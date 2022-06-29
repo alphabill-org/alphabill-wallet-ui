@@ -1,0 +1,70 @@
+@import './variables.scss';
+@import './utils.scss';
+@import './reset.scss';
+
+@import '../components/Animations/Animations.scss';
+@import '../components/Button/Button.scss';
+@import '../components/Form/Form.scss';
+@import '../components/Login/Login.scss';
+@import '../components/Spacer/Spacer.scss';
+@import '../components/Spinner/Spinner.scss';
+@import '../components/Textfield/Textfield.scss';
+
+
+@font-face {
+  font-family: "grotesk";
+  font-style: normal;
+  font-weight: 300;
+  src: url("./fonts/SpaceGrotesk-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "grotesk";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./fonts/SpaceGrotesk-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "grotesk";
+  font-style: normal;
+  font-weight: 500;
+  src: url("./fonts/SpaceGrotesk-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "grotesk";
+  font-style: normal;
+  font-weight: 600;
+  src: url("./fonts/SpaceGrotesk-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "grotesk";
+  font-style: normal;
+  font-weight: 700;
+  src: url("./fonts/SpaceGrotesk-Bold.ttf") format("truetype");
+}
+
+.app {
+  min-width: 375px;
+  max-width: 375px;
+  min-height: 600px;
+  max-height: 600px;
+  padding: 24px;
+  background-color: #0C0A3E;
+  color: $color-white;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    width: 100%;
+    justify-content: space-between;
+    z-index: 1;
+  }
+}

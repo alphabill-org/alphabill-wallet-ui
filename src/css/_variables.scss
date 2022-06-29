@@ -1,0 +1,39 @@
+// Colors
+$color-white: #ffffff;
+$color-black: #293033;
+$color-blue: #0C0A3E;
+$color-yellow: #fcb116;
+$color-primary: #08E8DE ;
+$color-primary--hover: #4E3EB6;
+$color-secondary: #4E3EB6;
+$color-link: #08E8DE;
+$color-border: #dbdbdb;
+$color-body-background: $color-blue;
+
+// Typography
+$font-family-base: 'Jost', sans-serif;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-semibold: 500;
+$font-weight-bold: 700;
+
+$base-font-size: 16px !default;
+$font-weight-base: 400 !default;
+$font-size-large: 1.1875rem !default;
+$font-size-regular: 0.9375rem !default;
+$font-size-small: 14px !default;
+$font-size-micro: 12px !default;
+$text-color-base: $color-black !default;
+
+// Heading
+$h1-size: 3rem !default;
+$h1-line-height: 3.5rem !default;
+
+$h2-size: 36px !default;
+$h2-line-height: 52px !default;
+
+$h3-size: 1.1875rem !default;
+$h3-line-height: 1.875rem !default;
+
+// Navbar
+$navbar-height: 68px;

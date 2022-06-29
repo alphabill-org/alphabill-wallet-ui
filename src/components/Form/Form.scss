@@ -1,0 +1,33 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto;
+  width: 100%;
+}
+
+
+.form-header,
+.form-footer {
+  flex: 0 0 auto;
+}
+
+.form-header {
+  align-items: center;
+  border-radius: 0.625em 0.625em 0 0;
+  display: flex;
+  justify-content: space-between;
+  min-height: 4em;
+  padding: 0 0 0 1.5em;
+}
+
+.form-content {
+  flex: 1 1 100%;
+}
+
+.form-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 32px 0;
+}

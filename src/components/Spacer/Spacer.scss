@@ -1,0 +1,9 @@
+.spacer {
+  margin: 0;
+  border-color: transparent;
+  width: 100%;
+
+  &--with-border {
+    border-bottom: 1px solid $color-primary;
+  }
+}
