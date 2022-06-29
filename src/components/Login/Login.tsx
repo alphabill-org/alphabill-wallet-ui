@@ -1,7 +1,7 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
 
-import { Form, FormHeader, FormFooter, FormContent } from "../Form/Form";
+import { Form, FormFooter, FormContent } from "../Form/Form";
 import Button from "../Button/Button";
 import Textfield from "../Textfield/Textfield";
 
