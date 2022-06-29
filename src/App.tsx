@@ -1,9 +1,11 @@
 import { useState } from "react";
 import Animations from "./components/Animations/Animations";
 import Login from "./components/Login/Login";
-import { IAccount, IActivity, IAsset, INetwork } from "./types/Types";
+import { IAccount, IActivity, IAsset, INetwork, IUser } from "./types/Types";
 
 function App() {
+  const [user, setUser] = useState<IUser>();
+
   const [networks, setNetworks] = useState<INetwork[]>([
     {
       id: "AB Mainnet",
@@ -47,11 +49,13 @@ function App() {
     },
   ]);
 
+  console.log(user);
+
   return (
     <div className="app">
       <Animations />
       <div className="app__content">
-        <Login />
+        {!user ? <Login setUser={setUser} /> : <></>}
       </div>
     </div>
   );

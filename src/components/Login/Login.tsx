@@ -7,8 +7,10 @@ import Textfield from "../Textfield/Textfield";
 
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../Spacer/Spacer";
+import { IUserProps } from "../../types/Types";
+import { extractFormikError } from "../../utils/utils";
 
-function Login(props: any): JSX.Element | null {
+function Login(props: IUserProps): JSX.Element | null {
   return (
     <div className="login">
       <Spacer mb={56} />
@@ -22,13 +24,22 @@ function Login(props: any): JSX.Element | null {
         initialValues={{
           password: "12345678",
         }}
-        onSubmit={(values) => console.log(values)}
+        onSubmit={() =>
+          props.setUser({
+            id: "Bob",
+            isLoggedIn: true,
+          })
+        }
         validationSchema={Yup.object().shape({
-          password: Yup.object().required("Password is required.").nullable(),
+          password: Yup.string().test(
+            "empty-or-8-characters-check",
+            "Password must be at least 8 characters",
+            (password) => !password || password.length >= 8
+          ),
         })}
       >
         {(formikProps) => {
-          const { handleSubmit, values } = formikProps;
+          const { handleSubmit, errors, touched } = formikProps;
 
           return (
             <form onSubmit={handleSubmit}>
@@ -39,6 +50,7 @@ function Login(props: any): JSX.Element | null {
                     name="password"
                     label="Password"
                     type="password"
+                    error={extractFormikError(errors, touched, ["password"])}
                   />
                 </FormContent>
                 <FormFooter>
@@ -59,7 +71,9 @@ function Login(props: any): JSX.Element | null {
 
       <div className="login__footer">
         <div className="flex">
-          <div>Unable to log in? {' '} <a href="#">Try another method</a></div>
+          <div>
+            Unable to log in? <a href="#">Try another method</a>
+          </div>
         </div>
         <Spacer mb={4} />
         <a href="#">Reset your wallet or create a new wallet</a>

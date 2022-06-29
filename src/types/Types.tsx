@@ -8,6 +8,15 @@ export interface IAssetProps {
   assets: IAsset[];
 }
 
+export interface IUser {
+  id: string;
+  isLoggedIn: boolean;
+}
+export interface IUserProps {
+  setUser: (e: any) => void;
+  User?: IUser;
+}
+
 export interface IAccount {
   id: string;
   address: string;
