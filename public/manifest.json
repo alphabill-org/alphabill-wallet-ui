@@ -1,7 +1,7 @@
 {
   "short_name": "Alphabill Wallet",
-  "name": "Alphabill Wallet Extension",
-  "description": "Alphabill Wallet Extension",
+  "name": "Alphabill Wallet",
+  "description": "Alphabill Wallet",
   "version": "1.0",
   "manifest_version": 3,
   "browser_action": {
