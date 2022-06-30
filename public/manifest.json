@@ -3,7 +3,7 @@
   "name": "Alphabill Wallet Extension",
   "description": "Alphabill Wallet Extension",
   "version": "1.0",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "browser_action": {
     "default_popup": "index.html",
     "default_title": "Open the popup"

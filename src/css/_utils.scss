@@ -6,6 +6,10 @@
   &-align-c {
     align-items: center;
   }
+
+  &-justify-sb {
+    justify-content: space-between;
+  }
 }
 
 .flex-group-2 {
@@ -21,4 +25,10 @@
       width: 100%;
     }
   }
+}
+
+// Paddings
+
+.pad-24 {
+  padding: 24px;
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Animations from "./components/Animations/Animations";
+import Header from "./components/Header/Header";
 import Login from "./components/Login/Login";
 import { IAccount, IActivity, IAsset, INetwork, IUser } from "./types/Types";
 
@@ -55,7 +56,13 @@ function App() {
     <div className="app">
       <Animations />
       <div className="app__content">
-        {!user ? <Login setUser={setUser} /> : <></>}
+        {!user ? (
+          <Login setUser={setUser} />
+        ) : (
+          <>
+            <Header networks={networks} setNetworks={setNetworks} />
+          </>
+        )}
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ import { extractFormikError } from "../../utils/utils";
 
 function Login(props: IUserProps): JSX.Element | null {
   return (
-    <div className="login">
+    <div className="login pad-24">
       <Spacer mb={56} />
       <div className="login__header">
         <img height="32" src={Logo} alt="Alphabill" />
