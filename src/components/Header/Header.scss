@@ -79,10 +79,18 @@
   border-bottom: 1px solid #4E3EB6;
   cursor: pointer;
   transition: all 300ms;
+  max-height: 55px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover,
   &--active {
     background: #EEEDFC;
+  }
+  &--hidden {
+    max-height: 0px;
+    padding: 0 12px;
+    border-bottom: none;
   }
 }
 

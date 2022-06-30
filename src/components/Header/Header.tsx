@@ -62,7 +62,10 @@ function Header(props: INetworkProps): JSX.Element | null {
               {props.networks?.map((network) => {
                 return (
                   <div
-                    className="select__option"
+                    className={classNames("select__option", {
+                      "select__option--hidden":
+                        !showTestNetworks && network.isTestNetwork,
+                    })}
                     onClick={() => {
                       const updatedData = props.networks?.map((obj) => {
                         if (obj.id === network.id) {
