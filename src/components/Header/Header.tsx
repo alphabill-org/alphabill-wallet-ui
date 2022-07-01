@@ -21,6 +21,13 @@ function Header(props: INetworkProps): JSX.Element | null {
     (network) => network.isActive === true
   );
 
+  const testNetworks = props.networks?.filter(
+    (network) => network.isTestNetwork === true
+  );
+  const mainNetworks = props.networks?.filter(
+    (network) => network.isTestNetwork != true
+  );
+
   return (
     <div className="header">
       <div className="header__ico">
@@ -59,12 +66,36 @@ function Header(props: INetworkProps): JSX.Element | null {
               />
             </div>
             <div className="select__options">
-              {props.networks?.map((network) => {
+              {mainNetworks.map((network) => {
+                return (
+                  <div
+                    className="select__option"
+                    onClick={() => {
+                      const updatedData = props.networks?.map((obj) => {
+                        if (obj.id === network.id) {
+                          return { ...obj, isActive: true };
+                        } else return { ...obj, isActive: false };
+                      });
+
+                      props.setNetworks(updatedData);
+                    }}
+                  >
+                    {network.id} {network.isActive && <Check />}
+                  </div>
+                );
+              })}
+              <div
+                className={classNames("select__popover-test-networks", {
+                  "select__popover-test-networks--hidden": !showTestNetworks,
+                })}
+              >
+                Test Networks
+              </div>
+              {testNetworks.map((network) => {
                 return (
                   <div
                     className={classNames("select__option", {
-                      "select__option--hidden":
-                        !showTestNetworks && network.isTestNetwork,
+                      "select__option--hidden": !showTestNetworks,
                     })}
                     onClick={() => {
                       const updatedData = props.networks?.map((obj) => {

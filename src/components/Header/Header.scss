@@ -87,6 +87,7 @@
   &--active {
     background: #EEEDFC;
   }
+
   &--hidden {
     max-height: 0px;
     padding: 0 12px;
@@ -118,4 +119,24 @@
       opacity: .7;
     }
   }
+}
+
+.select__popover-test-networks {
+  font-size: 14px;
+  line-height: 18px;
+  padding: 24px 0 16px;
+  margin: 0 24px;
+  font-weight: bold;
+  border-bottom: 1px solid #4E3EB6;
+  overflow: hidden;
+  transition: all 300ms;
+  max-height: 58px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select__popover-test-networks.select__popover-test-networks--hidden {
+  max-height: 0px;
+  padding: 0;
+  border-bottom: none;
 }
