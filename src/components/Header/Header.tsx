@@ -24,7 +24,7 @@ function Header(props: IAccountProps): JSX.Element | null {
     (network) => network.isTestNetwork === true
   );
   const mainNetworks = props.account?.networks?.filter(
-    (network) => network.isTestNetwork != true
+    (network) => network.isTestNetwork !== true
   );
 
   return (

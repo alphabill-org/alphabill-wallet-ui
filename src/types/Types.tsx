@@ -1,6 +1,7 @@
 
 export interface IAccount {
   id: string;
+  balance: number;
   assets: IAsset[];
   activities: IActivity[];
   networks: INetwork[];

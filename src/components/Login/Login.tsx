@@ -27,11 +27,10 @@ function Login(props: IAccountProps): JSX.Element | null {
         }}
         onSubmit={(values) =>{
           const updatedData = props.accounts?.map((obj) => {
-            if (obj.id == values.walletID) {
+            if (obj.id === values.walletID) {
               return { ...obj, isLoggedIn: true };
             } else return { ...obj, isLoggedIn: false };
           });
-          console.log(props.accounts?.find(a => a.id == values.walletID));
 
           props.setAccounts(updatedData);
         }}
@@ -84,11 +83,11 @@ function Login(props: IAccountProps): JSX.Element | null {
       <div className="login__footer">
         <div className="flex">
           <div>
-            Unable to log in? <a href="#">Try another method</a>
+            Unable to log in? <a href="/#">Try another method</a>
           </div>
         </div>
         <Spacer mb={4} />
-        <a href="#">Reset your wallet or create a new wallet</a>
+        <a href="/#">Reset your wallet or create a new wallet</a>
         <Spacer mb={32} />
       </div>
     </div>

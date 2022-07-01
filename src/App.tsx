@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Animations from "./components/Animations/Animations";
+import Dashboard from "./components/Dashboard/Dashboard";
 import Header from "./components/Header/Header";
 import Login from "./components/Login/Login";
 import { IAccount } from "./types/Types";
@@ -9,9 +10,10 @@ function App() {
     {
       id: "0x68ab2...4ff2408",
       isLoggedIn: false,
+      balance: 300,
       assets: [
         {
-          id: "alphabill",
+          id: "AlphaBill Token",
           amount: 300,
         },
       ],
@@ -73,6 +75,7 @@ function App() {
         {account ? (
           <>
             <Header accounts={accounts} account={account} setAccounts={setAccounts} />
+            <Dashboard accounts={accounts} account={account} setAccounts={setAccounts} />
           </>
         ) : (
           <Login accounts={accounts} setAccounts={setAccounts} />
