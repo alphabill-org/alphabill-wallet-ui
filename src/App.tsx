@@ -2,66 +2,80 @@ import { useState } from "react";
 import Animations from "./components/Animations/Animations";
 import Header from "./components/Header/Header";
 import Login from "./components/Login/Login";
-import { IAccount, IActivity, IAsset, INetwork, IUser } from "./types/Types";
+import { IAccount } from "./types/Types";
 
 function App() {
-  const [user, setUser] = useState<IUser>();
-
-  const [networks, setNetworks] = useState<INetwork[]>([
-    {
-      id: "AB Mainnet",
-      isActive: true,
-      isTestNetwork: false,
-    },
-    {
-      id: "AB Testnet",
-      isActive: false,
-      isTestNetwork: true,
-    },
-  ]);
-
   const [accounts, setAccounts] = useState<IAccount[]>([
     {
-      id: "alphabill",
-      address: "0x68ab2...4ff2408",
+      id: "0x68ab2...4ff2408",
+      isLoggedIn: false,
       assets: [
         {
           id: "alphabill",
           amount: 300,
         },
       ],
+      networks: [
+        {
+          id: "AB Mainnet",
+          isActive: true,
+          isTestNetwork: false,
+        },
+        {
+          id: "AB Testnet",
+          isActive: false,
+          isTestNetwork: true,
+        },
+      ],
+      activities: [
+        {
+          id: "alphabill",
+          amount: 300,
+          date: new Date(),
+          address: "0x68ab2...4ff2408",
+          type: "Buy",
+          network: "AB Mainnet",
+        },
+        {
+          id: "alphabill",
+          amount: 300,
+          date: new Date(),
+          address: "0x68ab2...4ff2408",
+          type: "Send",
+          network: "AB Mainnet",
+        },
+        {
+          id: "alphabill",
+          amount: 300,
+          date: new Date(),
+          address: "0x68ab2...4ff2408",
+          type: "Send",
+          network: "AB Testnet",
+        },
+        {
+          id: "alphabill",
+          amount: 300,
+          date: new Date(),
+          address: "0x68ab2...4ff2408",
+          type: "Swap",
+          network: "AB Mainnet",
+        },
+      ],
     },
   ]);
 
-  const [assets, setAssets] = useState<IAsset[]>([
-    {
-      id: "alphabill",
-      amount: 300,
-    },
-  ]);
-
-  const [activities, setActivities] = useState<IActivity[]>([
-    {
-      id: "alphabill",
-      amount: 300,
-      date: new Date(),
-      address: "0x68ab2...4ff2408",
-      type: "Buy",
-    },
-  ]);
-
-  console.log(user);
+  const account = accounts?.find((account) => account.isLoggedIn === true);
 
   return (
     <div className="app">
       <Animations />
       <div className="app__content">
-        {!user ? (
-          <Login setUser={setUser} />
-        ) : (
+        {account ? (
           <>
-            <Header networks={networks} setNetworks={setNetworks} />
+            <Header accounts={accounts} account={account} setAccounts={setAccounts} />
           </>
+        ) : (
+          <Login accounts={accounts} setAccounts={setAccounts} />
         )}
       </div>
     </div>

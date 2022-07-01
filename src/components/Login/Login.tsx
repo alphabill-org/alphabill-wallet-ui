@@ -7,10 +7,10 @@ import Textfield from "../Textfield/Textfield";
 
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../Spacer/Spacer";
-import { IUserProps } from "../../types/Types";
+import { IAccountProps } from "../../types/Types";
 import { extractFormikError } from "../../utils/utils";
 
-function Login(props: IUserProps): JSX.Element | null {
+function Login(props: IAccountProps): JSX.Element | null {
   return (
     <div className="login pad-24">
       <Spacer mb={56} />
@@ -23,13 +23,18 @@ function Login(props: IUserProps): JSX.Element | null {
       <Formik
         initialValues={{
           password: "12345678",
+          walletID: "0x68ab2...4ff2408"
         }}
-        onSubmit={() =>
-          props.setUser({
-            id: "Bob",
-            isLoggedIn: true,
-          })
-        }
+        onSubmit={(values) =>{
+          const updatedData = props.accounts?.map((obj) => {
+            if (obj.id == values.walletID) {
+              return { ...obj, isLoggedIn: true };
+            } else return { ...obj, isLoggedIn: false };
+          });
+          console.log(props.accounts?.find(a => a.id == values.walletID));
+
+          props.setAccounts(updatedData);
+        }}
         validationSchema={Yup.object().shape({
           password: Yup.string().test(
             "empty-or-8-characters-check",
@@ -45,6 +50,13 @@ function Login(props: IUserProps): JSX.Element | null {
             <form onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
+                  <Textfield
+                    id="walletID"
+                    name="walletID"
+                    label="walletID"
+                    type="walletID"
+                    error={extractFormikError(errors, touched, ["walletID"])}
+                  />
                   <Textfield
                     id="password"
                     name="password"

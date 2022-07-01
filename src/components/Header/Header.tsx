@@ -10,21 +10,20 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 
-import { INetwork, INetworkProps } from "../../types/Types";
-import { setNestedObjectValues } from "formik";
+import { IAccountProps } from "../../types/Types";
 
-function Header(props: INetworkProps): JSX.Element | null {
+function Header(props: IAccountProps): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const activeNetwork = props.networks?.find(
+  const activeNetwork = props.account?.networks?.find(
     (network) => network.isActive === true
   );
 
-  const testNetworks = props.networks?.filter(
+  const testNetworks = props.account?.networks?.filter(
     (network) => network.isTestNetwork === true
   );
-  const mainNetworks = props.networks?.filter(
+  const mainNetworks = props.account?.networks?.filter(
     (network) => network.isTestNetwork != true
   );
 
@@ -66,18 +65,26 @@ function Header(props: INetworkProps): JSX.Element | null {
               />
             </div>
             <div className="select__options">
-              {mainNetworks.map((network) => {
+              {mainNetworks?.map((network) => {
                 return (
                   <div
                     className="select__option"
                     onClick={() => {
-                      const updatedData = props.networks?.map((obj) => {
-                        if (obj.id === network.id) {
-                          return { ...obj, isActive: true };
-                        } else return { ...obj, isActive: false };
+                      const updatedNetworks = props.account?.networks?.map(
+                        (obj) => {
+                          if (obj.id === network.id) {
+                            return { ...obj, isActive: true };
+                          } else return { ...obj, isActive: false };
+                        }
+                      );
+
+                      const updatedAccounts = props.accounts?.map((obj) => {
+                        if (props.account?.id === obj.id) {
+                          return { ...obj, networks: updatedNetworks };
+                        } else return { ...obj };
                       });
 
-                      props.setNetworks(updatedData);
+                      props.setAccounts(updatedAccounts);
                     }}
                   >
                     {network.id} {network.isActive && <Check />}
@@ -91,20 +98,29 @@ function Header(props: INetworkProps): JSX.Element | null {
               >
                 Test Networks
               </div>
-              {testNetworks.map((network) => {
+              {testNetworks?.map((network) => {
                 return (
                   <div
                     className={classNames("select__option", {
                       "select__option--hidden": !showTestNetworks,
                     })}
                     onClick={() => {
-                      const updatedData = props.networks?.map((obj) => {
-                        if (obj.id === network.id) {
-                          return { ...obj, isActive: true };
-                        } else return { ...obj, isActive: false };
-                      });
+                      const updatedNetworks = props.account?.networks?.map(
+                        (obj) => {
+                          if (obj.id === network.id) {
+                            return { ...obj, isActive: true };
+                          } else return { ...obj, isActive: false };
+                        }
+                      );
 
-                      props.setNetworks(updatedData);
+                      const updatedAccounts = props.accounts?.map((obj) => {
+                        if (props.account?.id === obj.id) {
+                          return { ...obj, networks: updatedNetworks };
+                        } else return { ...obj };
+                      });
+                      console.log(updatedAccounts);
+
+                      props.setAccounts(updatedAccounts);
                     }}
                   >
                     {network.id} {network.isActive && <Check />}
