@@ -15,7 +15,7 @@ export interface IAsset {
 
 export interface IAccountProps {
   setAccounts: (e: any) => void;
-  accounts?: IAccount[];
+  accounts: IAccount[];
   account?: IAccount;
 }
 
@@ -23,6 +23,9 @@ export interface IActionProps {
   setIsActionsViewVisible: (e: any) => void;
   isActionsViewVisible: boolean;
   actionsView: string;
+  account: IAccount;
+  accounts?: IAccount[];
+  setAccounts: (e: any) => void;
 }
 
 export interface IDashboardProps {

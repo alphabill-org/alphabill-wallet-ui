@@ -4,7 +4,7 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  background-color: #4E3EB6;
+  background-color: $color-secondary-op;
   position: absolute;
   top: 0;
   right: 0;
@@ -46,5 +46,20 @@
     line-height: 26px;
     text-align: center;
     width: 100%;
+  }
+
+  &__view {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    padding: 24px;
+
+    .form {
+      height: 100%;
+
+      &-footer {
+        margin-top: auto;
+      }
+    }
   }
 }

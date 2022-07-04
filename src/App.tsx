@@ -96,6 +96,9 @@ function App() {
               setIsActionsViewVisible={setIsActionsViewVisible}
             />
             <Actions
+              accounts={accounts}
+              account={account}
+              setAccounts={setAccounts}
               actionsView={actionsView}
               setIsActionsViewVisible={setIsActionsViewVisible}
               isActionsViewVisible={isActionsViewVisible}
