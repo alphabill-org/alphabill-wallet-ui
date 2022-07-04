@@ -1,4 +1,6 @@
+import moment from "moment";
 import { useState } from "react";
+import Actions from "./components/Actions/Actions";
 import Animations from "./components/Animations/Animations";
 import Dashboard from "./components/Dashboard/Dashboard";
 import Header from "./components/Header/Header";
@@ -6,6 +8,9 @@ import Login from "./components/Login/Login";
 import { IAccount } from "./types/Types";
 
 function App() {
+  const [isActionsViewVisible, setIsActionsViewVisible] =
+    useState<boolean>(false);
+  const [actionsView, setActionsView] = useState("Buy");
   const [accounts, setAccounts] = useState<IAccount[]>([
     {
       id: "0x68ab2...4ff2408",
@@ -13,8 +18,14 @@ function App() {
       balance: 300,
       assets: [
         {
-          id: "AlphaBill Token",
-          amount: 300,
+          id: "AB",
+          name: "AlphaBill Token",
+          amount: 1300,
+        },
+        {
+          id: "ETH",
+          name: "Etherium Token",
+          amount: 100,
         },
       ],
       networks: [
@@ -33,7 +44,7 @@ function App() {
         {
           id: "alphabill",
           amount: 300,
-          date: new Date(),
+          time: moment().subtract(2, "days").startOf("day").format("LLL"),
           address: "0x68ab2...4ff2408",
           type: "Buy",
           network: "AB Mainnet",
@@ -41,7 +52,7 @@ function App() {
         {
           id: "alphabill",
           amount: 300,
-          date: new Date(),
+          time: moment().subtract(6, "days").startOf("day").format("LLL"),
           address: "0x68ab2...4ff2408",
           type: "Send",
           network: "AB Mainnet",
@@ -49,7 +60,7 @@ function App() {
         {
           id: "alphabill",
           amount: 300,
-          date: new Date(),
+          time: moment().subtract(5, "days").startOf("day").format("LLL"),
           address: "0x68ab2...4ff2408",
           type: "Send",
           network: "AB Testnet",
@@ -57,7 +68,7 @@ function App() {
         {
           id: "alphabill",
           amount: 300,
-          date: new Date(),
+          time: moment().subtract(4, "days").startOf("day").format("LLL"),
           address: "0x68ab2...4ff2408",
           type: "Swap",
           network: "AB Mainnet",
@@ -74,8 +85,21 @@ function App() {
       <div className="app__content">
         {account ? (
           <>
-            <Header accounts={accounts} account={account} setAccounts={setAccounts} />
-            <Dashboard accounts={accounts} account={account} setAccounts={setAccounts} />
+            <Header
+              accounts={accounts}
+              account={account}
+              setAccounts={setAccounts}
+            />
+            <Dashboard
+              account={account}
+              setActionsView={setActionsView}
+              setIsActionsViewVisible={setIsActionsViewVisible}
+            />
+            <Actions
+              actionsView={actionsView}
+              setIsActionsViewVisible={setIsActionsViewVisible}
+              isActionsViewVisible={isActionsViewVisible}
+            />
           </>
         ) : (
           <Login accounts={accounts} setAccounts={setAccounts} />

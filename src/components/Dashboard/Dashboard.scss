@@ -51,7 +51,7 @@
       color: $color-underpants;
       width: 50%;
       text-align: center;
-      padding-bottom: 16px;
+      padding-bottom: 12px;
       cursor: pointer;
       transition: all .3;
 
@@ -85,12 +85,38 @@
       &.active {
         opacity: 1;
       }
+    }
 
-      &-item {
-        padding: 24px 0 16px;
+    &-item {
+      &-wrap {
+        padding: 20px 0 16px;
         margin: 0 24px;
         display: flex;
-        border-bottom: 1px solid;
+        border-bottom: 1px solid $color-secondary;
+        display: flex;
+        align-items: center;
+      }
+
+      &-icon {
+        padding-right: 10px;
+
+        .ab-logo svg,
+        .ab-logo path {
+          fill: $color-secondary;
+          width: 18px;
+          margin-right: -2px;
+        }
+      }
+
+      &-type {
+        margin-right: auto;
+        padding-right: 10px;
+      }
+
+      &-amount {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
       }
     }
   }

@@ -45,6 +45,7 @@ function Header(props: IAccountProps): JSX.Element | null {
           className={classNames("select__popover-wrap", {
             "select__popover-wrap--open": isPopoverOpen,
           })}
+          onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
           <div className="select__popover">
             <div className="select__popover-header">

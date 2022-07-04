@@ -3,25 +3,61 @@ import { useState } from "react";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccountProps } from "../../types/Types";
+import { IDashboardProps, IActivity, IAsset, INetwork } from "../../types/Types";
+import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
+import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
+import { ReactComponent as SwapIcon } from "../../images/swap-ico.svg";
+import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
+import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 
-function Dashboard(props: IAccountProps): JSX.Element | null {
+function Dashboard({
+  setActionsView,
+  setIsActionsViewVisible,
+  account,
+}: IDashboardProps): JSX.Element | null {
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
+  const activeNetwork = account?.networks?.find(
+    (network: INetwork) => network.isActive === true
+  );
 
   return (
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{props.account?.balance}</h1>
+        <h1>{account?.balance}</h1>
         <h3> AB</h3>
       </div>
       <Spacer mb={8} />
-      <div className="dashboard__account">{props.account?.id}</div>
+      <div className="dashboard__account">{account?.id}</div>
       <Spacer mb={8} />
       <div className="dashboard__buttons">
-        <Button variant="primary">Buy</Button>
-        <Button variant="primary">Send</Button>
-        <Button variant="primary">Swap</Button>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setActionsView("Buy");
+            setIsActionsViewVisible(true);
+          }}
+        >
+          Buy
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setActionsView("Send");
+            setIsActionsViewVisible(true);
+          }}
+        >
+          Send
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setActionsView("Swap");
+            setIsActionsViewVisible(true);
+          }}
+        >
+          Swap
+        </Button>
       </div>
       <Spacer mb={32} />
       <div className="dashboard__footer">
@@ -49,12 +85,28 @@ function Dashboard(props: IAccountProps): JSX.Element | null {
               active: isAssetsColActive === true,
             })}
           >
-            {props.account?.assets.map((asset) => {
+            {account?.assets.map((asset: IAsset) => {
               return (
-                <div className="dashboard__info-col-item">
-                  <div>{asset.id} AB</div>
-                  {asset.amount}
-                  <div></div>
+                <div className="dashboard__info-item-wrap">
+                  <div className="dashboard__info-item-icon">
+                    {asset.id === "AB" ? (
+                      <div className="icon-wrap ab-logo">
+                        <ABLogo />
+                      </div>
+                    ) : asset.id === "ETH" ? (
+                      <div className="icon-wrap">
+                        <ETHLogo />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
+                  <div>
+                    <div>
+                      {asset.amount} {asset.id}
+                    </div>
+                    <div className="t-small c-light">{asset.name}</div>
+                  </div>
                 </div>
               );
             })}
@@ -64,15 +116,41 @@ function Dashboard(props: IAccountProps): JSX.Element | null {
               active: isAssetsColActive !== true,
             })}
           >
-            {props.account?.activities.map((activity) => {
-              return (
-                <div className="dashboard__info-col-item">
-                  <div>{activity.id} AB</div>
-                  {activity.amount}
-                  <div></div>
-                </div>
-              );
-            })}
+            {account?.activities
+              .sort((a: IActivity, b: IActivity) => {
+                return new Date(a.time).getTime() - new Date(b.time).getTime();
+              })
+              .map((activity: IActivity) => {
+                if (activeNetwork?.id !== activity?.network) return null;
+
+                return (
+                  <div className="dashboard__info-item-wrap">
+                    <div className="dashboard__info-item-icon">
+                      {activity.type === "Buy" ? (
+                        <div className="icon-wrap">
+                          <BuyIcon />
+                        </div>
+                      ) : activity.type === "Send" ? (
+                        <div className="icon-wrap">
+                          <SendIcon />
+                        </div>
+                      ) : (
+                        <div className="icon-wrap">
+                          <SwapIcon />
+                        </div>
+                      )}
+                    </div>
+                    <div className="dashboard__info-item-type">
+                      <div className="t-medium">{activity.type}</div>
+                      <div className="t-small c-light">{activity.time}</div>
+                    </div>
+                    <div className="dashboard__info-item-amount">
+                      <div className="t-medium">{activity.amount}</div>
+                      <div className="t-small c-light">{activity.amount}</div>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>

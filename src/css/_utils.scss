@@ -32,3 +32,34 @@
 .pad-24 {
   padding: 24px;
 }
+
+// Icons
+.icon-wrap {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  background-color: $color-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Typography
+
+.t-small {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.t-medium {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+// Color
+
+.c-light {
+  color: $color-light;
+}
