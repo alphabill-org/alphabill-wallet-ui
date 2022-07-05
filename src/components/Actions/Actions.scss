@@ -52,13 +52,81 @@
     display: flex;
     height: 100%;
     width: 100%;
-    padding: 24px;
+    padding: 0 24px 24px;
 
     .form {
       height: 100%;
 
       &-footer {
         margin-top: auto;
+      }
+    }
+  }
+}
+
+.account__view {
+  width: 100%;
+  height: 100%;
+
+  .account {
+    padding: 20px 0 16px;
+    width: 100%;
+    border-bottom: 1px solid $color-light;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all .3s;
+
+    &:hover {
+      opacity: .7;
+    }
+
+    &__item {
+      position: relative;
+
+      &:first-child {
+        padding-right: 10px;
+      }
+
+      &:last-of-type {
+        padding-left: 10px;
+        padding-right: 32px;
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 26px;
+        margin-left: auto;
+      }
+
+      &--active {
+        position: absolute;
+        right: 32px;
+      }
+    }
+
+    &__menu {
+      &-item {
+        position: relative;
+        display: flex;
+        padding: 12px 0;
+        width: 100%;
+        transition: all .3s;
+        cursor: pointer;
+        align-items: center;
+
+        &:hover {
+          opacity: .7;
+        }
+
+        &::after {
+          position: absolute;
+          right: 0px;
+          transform: rotate(270deg);
+          content: url("../../images/arrow.svg");
+        }
+
+        &-icon {
+          padding-right: 10px;
+        }
       }
     }
   }

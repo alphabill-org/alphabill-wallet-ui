@@ -28,8 +28,8 @@ function Login(props: IAccountProps): JSX.Element | null {
         onSubmit={(values) =>{
           const updatedData = props.accounts?.map((obj) => {
             if (obj.id === values.walletID) {
-              return { ...obj, isLoggedIn: true };
-            } else return { ...obj, isLoggedIn: false };
+              return { ...obj, isActive: true };
+            } else return { ...obj, isActive: false };
           });
 
           props.setAccounts(updatedData);

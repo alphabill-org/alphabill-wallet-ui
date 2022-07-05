@@ -1,10 +1,11 @@
 export interface IAccount {
   id: string;
+  name: string;
   balance: number;
   assets: IAsset[];
   activities: IActivity[];
   networks: INetwork[];
-  isLoggedIn: boolean;
+  isActive: boolean;
 }
 
 export interface IAsset {
@@ -15,6 +16,8 @@ export interface IAsset {
 
 export interface IAccountProps {
   setAccounts: (e: any) => void;
+  setActionsView: (e: any) => void;
+  setIsActionsViewVisible: (e: any) => void;
   accounts: IAccount[];
   account?: IAccount;
 }

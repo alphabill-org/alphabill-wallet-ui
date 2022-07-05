@@ -132,7 +132,13 @@ function Header(props: IAccountProps): JSX.Element | null {
           </div>{" "}
         </div>
       </div>
-      <Button variant="icon">
+      <Button
+        variant="icon"
+        onClick={() => {
+          props.setActionsView("Account");
+          props.setIsActionsViewVisible(true);
+        }}
+      >
         <img height="32" width="32px" src={Profile} alt="Profile" />
       </Button>
     </div>

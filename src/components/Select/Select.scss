@@ -43,10 +43,6 @@
   align-items: flex-start !important;
   flex-direction: column;
   padding: 0 !important;
-
-  .form--dark & {
-    align-items: flex-end !important;
-  }
 }
 
 .select__single-value {
@@ -86,8 +82,10 @@
 
 .select__menu {
   margin-left: -12px;
+}
 
-  &-list {
-    padding: 0 !important;
-  }
+.select__menu-list {
+  padding: 0 !important;
+  border-radius: 4px;
+  overflow: hidden;
 }

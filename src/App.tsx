@@ -14,8 +14,9 @@ function App() {
   const [accounts, setAccounts] = useState<IAccount[]>([
     {
       id: "0x68ab2...4ff2408",
-      isLoggedIn: false,
-      balance: 300,
+      name: "Account 1",
+      isActive: false,
+      balance: 1300,
       assets: [
         {
           id: "AB",
@@ -75,9 +76,52 @@ function App() {
         },
       ],
     },
+    {
+      id: "0x68ab1...4ff3333",
+      name: "Account 2",
+      isActive: false,
+      balance: 100,
+      assets: [
+        {
+          id: "AB",
+          name: "AlphaBill Token",
+          amount: 100,
+        },
+      ],
+      networks: [
+        {
+          id: "AB Mainnet",
+          isActive: true,
+          isTestNetwork: false,
+        },
+        {
+          id: "AB Testnet",
+          isActive: false,
+          isTestNetwork: true,
+        },
+      ],
+      activities: [
+        {
+          id: "alphabill",
+          amount: 200,
+          time: moment().subtract(2, "days").startOf("day").format("LLL"),
+          address: "0x68ab2...4ff2408",
+          type: "Buy",
+          network: "AB Mainnet",
+        },
+        {
+          id: "alphabill",
+          amount: 100,
+          time: moment().subtract(6, "days").startOf("day").format("LLL"),
+          address: "0x68ab2...4ff2408",
+          type: "Send",
+          network: "AB Mainnet",
+        },
+      ],
+    },
   ]);
 
-  const account = accounts?.find((account) => account.isLoggedIn === true);
+  const account = accounts?.find((account) => account.isActive === true);
 
   return (
     <div className="app">
@@ -89,6 +133,8 @@ function App() {
               accounts={accounts}
               account={account}
               setAccounts={setAccounts}
+              setActionsView={setActionsView}
+              setIsActionsViewVisible={setIsActionsViewVisible}
             />
             <Dashboard
               account={account}
@@ -105,7 +151,12 @@ function App() {
             />
           </>
         ) : (
-          <Login accounts={accounts} setAccounts={setAccounts} />
+          <Login
+            setActionsView={setActionsView}
+            setIsActionsViewVisible={setIsActionsViewVisible}
+            accounts={accounts}
+            setAccounts={setAccounts}
+          />
         )}
       </div>
     </div>

@@ -5,6 +5,7 @@ import Spacer from "../Spacer/Spacer";
 import { IActionProps } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
+import Account from "./components/AccountView";
 
 function Actions({
   actionsView,
@@ -27,7 +28,6 @@ function Actions({
         </Button>
         <div className="actions__title">{actionsView}</div>
       </div>
-      <Spacer mb={8} />
       <div className="actions__view">
         {actionsView === "Send" ? (
           <Send
@@ -35,6 +35,8 @@ function Actions({
             accounts={accounts}
             setAccounts={setAccounts}
           />
+        ) : actionsView === "Account" && accounts ? (
+          <Account accounts={accounts} setAccounts={setAccounts} />
         ) : (
           <></>
         )}
