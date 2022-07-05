@@ -29,7 +29,7 @@ function Send({ account, setAccounts }: any): JSX.Element | null {
         const { handleSubmit, errors, touched } = formikProps;
 
         return (
-          <form onSubmit={handleSubmit}>
+          <form className="pad-24" onSubmit={handleSubmit}>
             <Form>
               <FormContent>
                 <Select

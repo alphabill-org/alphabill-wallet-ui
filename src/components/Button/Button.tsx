@@ -7,7 +7,7 @@ import Spinner from '../Spinner/Spinner';
 export interface IButtonProps {
   children?: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
-  variant?: 'primary' | 'secondary' | 'link' | 'icon';
+  variant?: 'primary' | 'secondary' | 'third' | 'link' | 'icon';
   working?: boolean;
   workingText?: string;
   brand?: 'mastercard' | 'visa' | 'apple-pay' | 'discover';

@@ -13,15 +13,19 @@ import Spacer from "../../Spacer/Spacer";
 
 export interface IAccountViewProps {
   setAccounts: (e: any) => void;
+  setActionsView: (e: any) => void;
+  setIsActionsViewVisible: (e: any) => void;
   accounts: IAccount[];
 }
 
 function AccountView({
   accounts,
   setAccounts,
+  setActionsView,
+  setIsActionsViewVisible
 }: IAccountViewProps): JSX.Element | null {
   return (
-    <div className={classNames("account__view")}>
+    <div className={classNames("account__view pad-24-h")}>
       <div className="accounts">
         {accounts?.map((account) => {
           return (
@@ -67,7 +71,10 @@ function AccountView({
           <div className="account__menu-item-icon">
             <ImportIco />
           </div>
-          <div className="account__menu-item-title">Import Account</div>
+          <div className="account__menu-item-title" onClick={() => {
+          setActionsView("Import Account");
+          setIsActionsViewVisible(true);
+        }}>Import Account</div>
         </div>
 
         <div className="account__menu-item">

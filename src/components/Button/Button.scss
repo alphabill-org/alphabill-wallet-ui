@@ -28,6 +28,16 @@
   }
 }
 
+.button__group {
+  button {
+    margin-right: 16px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
 .button--primary {
   background-color: $color-primary;
   color: $color-blue;
@@ -41,8 +51,7 @@
 
 .button--secondary {
   color: currentColor;
-  background-color: transparent;
-  box-shadow: inset 0 0 0 2px currentColor;
+  background-color: $color-secondary;
 
   &:hover {
     opacity: 1;
@@ -50,11 +59,17 @@
     box-shadow: none;
     color: white;
   }
+}
 
-  .form--dark & {
-    &:hover {
-      box-shadow: inset 0 0 0 3px currentColor;
-    }
+.button--third {
+  color: currentColor;
+  background-color: $color-blue;
+
+  &:hover {
+    opacity: 1;
+    background-color: $color-secondary;
+    box-shadow: none;
+    color: white;
   }
 }
 

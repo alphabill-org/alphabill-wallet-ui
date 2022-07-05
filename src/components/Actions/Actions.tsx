@@ -6,15 +6,19 @@ import { IActionProps } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
+import ImportAccount from "./components/ImportAccount";
 
 function Actions({
   actionsView,
   setIsActionsViewVisible,
+  setActionsView,
   isActionsViewVisible,
   account,
   accounts,
   setAccounts,
 }: IActionProps): JSX.Element | null {
+  console.log(actionsView);
+
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
@@ -36,8 +40,18 @@ function Actions({
             setAccounts={setAccounts}
           />
         ) : actionsView === "Account" && accounts ? (
-          <Account accounts={accounts} setAccounts={setAccounts} />
-        ) : (
+          <Account
+            accounts={accounts}
+            setAccounts={setAccounts}
+            setActionsView={setActionsView}
+            setIsActionsViewVisible={setIsActionsViewVisible}
+          />
+        ) : actionsView === "Import Account" && accounts ? (
+          <ImportAccount
+            accounts={accounts}
+            setAccounts={setAccounts}
+          />
+        ): (
           <></>
         )}
         <div className="actions__footer"></div>

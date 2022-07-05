@@ -146,6 +146,7 @@ function App() {
               account={account}
               setAccounts={setAccounts}
               actionsView={actionsView}
+              setActionsView={setActionsView}
               setIsActionsViewVisible={setIsActionsViewVisible}
               isActionsViewVisible={isActionsViewVisible}
             />

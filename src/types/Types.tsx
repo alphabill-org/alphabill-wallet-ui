@@ -29,6 +29,7 @@ export interface IActionProps {
   account: IAccount;
   accounts?: IAccount[];
   setAccounts: (e: any) => void;
+  setActionsView: (e: any) => void;
 }
 
 export interface IDashboardProps {
