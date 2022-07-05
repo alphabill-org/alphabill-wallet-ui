@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useState } from "react";
 
 import { IAccount } from "../../../types/Types";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
@@ -10,6 +11,7 @@ import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
 
 import Profile from "../../../images/profile.svg";
 import Spacer from "../../Spacer/Spacer";
+import AddAccount from "../../AddAccount/AddAccount";
 
 export interface IAccountViewProps {
   setAccounts: (e: any) => void;
@@ -22,8 +24,10 @@ function AccountView({
   accounts,
   setAccounts,
   setActionsView,
-  setIsActionsViewVisible
+  setIsActionsViewVisible,
 }: IAccountViewProps): JSX.Element | null {
+  const [isAddAccountVisible, setIsAddAccountVisible] = useState(false);
+
   return (
     <div className={classNames("account__view pad-24-h")}>
       <div className="accounts">
@@ -60,7 +64,10 @@ function AccountView({
       </div>
       <Spacer mb={8} />
       <div className="account__menu">
-        <div className="account__menu-item">
+        <div
+          onClick={() => setIsAddAccountVisible(true)}
+          className="account__menu-item"
+        >
           <div className="account__menu-item-icon">
             <AddIco />
           </div>
@@ -71,10 +78,15 @@ function AccountView({
           <div className="account__menu-item-icon">
             <ImportIco />
           </div>
-          <div className="account__menu-item-title" onClick={() => {
-          setActionsView("Import Account");
-          setIsActionsViewVisible(true);
-        }}>Import Account</div>
+          <div
+            className="account__menu-item-title"
+            onClick={() => {
+              setActionsView("Import Account");
+              setIsActionsViewVisible(true);
+            }}
+          >
+            Import Account
+          </div>
         </div>
 
         <div className="account__menu-item">
@@ -98,6 +110,11 @@ function AccountView({
           <div className="account__menu-item-title">Lock</div>
         </div>
       </div>
+      <AddAccount
+        isAddAccountVisible={isAddAccountVisible}
+        setAccounts={setAccounts}
+        setIsAddAccountVisible={setIsAddAccountVisible}
+      />
     </div>
   );
 }

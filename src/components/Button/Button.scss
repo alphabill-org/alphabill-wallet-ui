@@ -29,8 +29,13 @@
 }
 
 .button__group {
+  width: 100%;
+
   button {
     margin-right: 16px;
+    &.button--block {
+      width: calc(50% - 8px);
+    }
 
     &:last-child {
       margin-right: 0;

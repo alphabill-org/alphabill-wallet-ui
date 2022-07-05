@@ -1,7 +1,6 @@
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import Spacer from "../Spacer/Spacer";
 import { IActionProps } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
