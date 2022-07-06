@@ -39,6 +39,7 @@ function AccountView({
         {accounts?.map((account) => {
           return (
             <div
+              key={account.id}
               className="account"
               onClick={() => {
                 const updatedData = accounts?.map((obj) => {
@@ -118,7 +119,6 @@ function AccountView({
 
       <Popup
         isPopupVisible={isPopupVisible}
-        setAccounts={setAccounts}
         setIsPopupVisible={setIsPopupVisible}
         title="Add New Account"
       >
@@ -133,7 +133,7 @@ function AccountView({
 
             return (
               <form onSubmit={handleSubmit}>
-                        <Spacer mb={16} />
+                <Spacer mb={16} />
 
                 <Form>
                   <FormContent>

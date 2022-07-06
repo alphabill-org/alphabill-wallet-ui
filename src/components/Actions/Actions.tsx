@@ -17,8 +17,6 @@ function Actions({
   accounts,
   setAccounts,
 }: IActionProps): JSX.Element | null {
-  console.log(actionsView);
-
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}

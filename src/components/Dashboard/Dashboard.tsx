@@ -94,7 +94,7 @@ function Dashboard({
           >
             {account?.assets.map((asset: IAsset) => {
               return (
-                <div className="dashboard__info-item-wrap">
+                <div key={asset.id} className="dashboard__info-item-wrap">
                   <div className="dashboard__info-item-icon">
                     {asset.id === "AB" ? (
                       <div className="icon-wrap ab-logo">
@@ -127,11 +127,11 @@ function Dashboard({
               .sort((a: IActivity, b: IActivity) => {
                 return new Date(a.time).getTime() - new Date(b.time).getTime();
               })
-              .map((activity: IActivity) => {
+              .map((activity: IActivity, idx) => {
                 if (activeNetwork?.id !== activity?.network) return null;
 
                 return (
-                  <div className="dashboard__info-item-wrap">
+                  <div key={idx} className="dashboard__info-item-wrap">
                     <div className="dashboard__info-item-icon">
                       {activity.type === "Buy" ? (
                         <div className="icon-wrap">

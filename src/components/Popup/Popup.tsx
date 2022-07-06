@@ -1,11 +1,9 @@
 import classNames from "classnames";
 
-import Spacer from "../Spacer/Spacer";
 import { ReactComponent as Close } from "../../images/close.svg";
 
 
 export interface IPopupProps {
-  setAccounts?: (e: any) => void;
   setIsPopupVisible: (e: any) => void;
   isPopupVisible: boolean;
   title: string;
@@ -13,7 +11,6 @@ export interface IPopupProps {
 }
 
 function Popup({
-  setAccounts,
   setIsPopupVisible,
   isPopupVisible,
   title,

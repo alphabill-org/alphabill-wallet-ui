@@ -69,6 +69,7 @@ function Header(props: IAccountProps): JSX.Element | null {
               {mainNetworks?.map((network) => {
                 return (
                   <div
+                    key={network.id}
                     className="select__option"
                     onClick={() => {
                       const updatedNetworks = props.account?.networks?.map(
@@ -102,6 +103,7 @@ function Header(props: IAccountProps): JSX.Element | null {
               {testNetworks?.map((network) => {
                 return (
                   <div
+                    key={network.id}
                     className={classNames("select__option", {
                       "select__option--hidden": !showTestNetworks,
                     })}
