@@ -19,6 +19,7 @@ export interface IButtonProps {
   type?: 'button' | 'submit' | 'reset';
   className?: string;
   target?: string;
+  isBordered?: boolean;
 }
 
 export default function Button(props: IButtonProps): JSX.Element {
@@ -30,6 +31,7 @@ export default function Button(props: IButtonProps): JSX.Element {
       'button--small': props.small,
       'button--block': props.block,
       'button--working': props.working,
+      'is--bordered': props.isBordered,
       [`button--${props.brand}`]: props.brand,
     },
     props.className

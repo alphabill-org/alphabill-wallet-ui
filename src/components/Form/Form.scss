@@ -31,3 +31,26 @@
   align-items: flex-start;
   padding-top: 32px;
 }
+
+.select-input-group {
+  display: flex;
+  align-items: flex-end;
+
+  .select__inner {
+    padding: 9px 12px;
+    border-radius: 4px 0 0 4px;
+
+    &::after {
+      position: absolute;
+      right: 0;
+      height: 70%;
+      width: 2px;
+      background-color: $color-blue;
+      content: '';
+    }
+  }
+
+  .textfield__input {
+    border-radius: 0 4px 4px 0;
+  }
+}

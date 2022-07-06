@@ -6,6 +6,7 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
 import ImportAccount from "./components/ImportAccount";
+import Swap from "./components/Swap";
 
 function Actions({
   actionsView,
@@ -38,6 +39,12 @@ function Actions({
             accounts={accounts}
             setAccounts={setAccounts}
           />
+        ) : actionsView === "Swap" ? (
+          <Swap
+            account={account}
+            accounts={accounts}
+            setAccounts={setAccounts}
+          />
         ) : actionsView === "Account" && accounts ? (
           <Account
             accounts={accounts}
@@ -46,11 +53,8 @@ function Actions({
             setIsActionsViewVisible={setIsActionsViewVisible}
           />
         ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount
-            accounts={accounts}
-            setAccounts={setAccounts}
-          />
-        ): (
+          <ImportAccount accounts={accounts} setAccounts={setAccounts} />
+        ) : (
           <></>
         )}
         <div className="actions__footer"></div>
