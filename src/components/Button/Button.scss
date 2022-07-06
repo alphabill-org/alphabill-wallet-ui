@@ -40,7 +40,7 @@
     margin-right: 8px;
 
     &.button--block {
-      width: calc(50% - 8px);
+      width: calc(50% - 4px);
     }
 
     &:last-child {
@@ -61,7 +61,7 @@
 }
 
 .button--secondary {
-  color: currentColor;
+  color: $color-light;
   background-color: $color-secondary;
 
   &:hover {

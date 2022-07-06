@@ -1,8 +1,13 @@
-.add-account {
+.popup {
   background-color: $color-white;
-  padding: 16px;
+  padding: 24px;
   position: relative;
   width: 100%;
+  color: $color-blue;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   .textfield__label {
     color: $color-blue;
@@ -19,7 +24,8 @@
 
     svg {
       position: absolute;
-      right: 16px;
+      right: 24px;
+      top: 28px;
       cursor: pointer;
       transition: all 300ms;
 
@@ -47,7 +53,7 @@
     transition: all 300ms;
     pointer-events: none;
     opacity: 0;
-    padding: 24px;
+    padding: 16px;
     align-items: center;
     justify-content: center;
 
