@@ -10,12 +10,16 @@
     min-width: 278px;
     justify-content: space-between;
     background: $color-secondary;
-    padding: 8px 12px;
+    padding: 8px 32px 8px 12px;
     border-radius: 4px;
     color: #ffffff;
     font-weight: 600;
     font-size: 14px;
     line-height: 18px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin: 0 24px;
+    max-width: calc(100% - 48px);
   }
 
   &__buttons {
@@ -105,6 +109,10 @@
           fill: $color-secondary;
           width: 18px;
           margin-right: -2px;
+        }
+
+        .receive {
+          transform: rotate(180deg);
         }
       }
 

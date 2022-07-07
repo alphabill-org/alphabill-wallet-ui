@@ -23,25 +23,17 @@ export default function Select(props: ISelectProps): JSX.Element {
   const handleChange = (option: any): void => {
     setFieldValue(
       field.name,
-      props.isMulti
-        ? (option as IOption[])?.map((item: IOption) => item?.value)
-        : (option as IOption)?.value || ''
+      (option as IOption)?.value || ''
     );
 
-    if (props.onChange) {
-      props.onChange(props.label, getValue());
-    }
+    props.onChange?.(props.label, option.value);
   };
 
   const getValue = () => {
     if (props.options) {
-      return props.isMulti
-        ? (props.options as IOption[]).filter(
-            (option: IOption) => field.value?.indexOf(option.value) >= 0
-          )
-        : (props.options as IOption[]).find((option: IOption) => option.value === field.value);
+      return (props.options as IOption[]).find((option: IOption) => option.value === field.value) || '';
     } else {
-      return props.isMulti ? [] : ('' as any);
+      return ('' as any);
     }
   };
 

@@ -47,19 +47,19 @@ function AccountView({
                     return { ...obj, isActive: true };
                   } else return { ...obj, isActive: false };
                 });
-
+                setIsActionsViewVisible(false);
                 setAccounts(updatedData);
               }}
             >
               <div className="account__item">
                 <img height="32" width="32px" src={Profile} alt="Profile" />
               </div>
-              <div className="account__item">
+              <div className="account__item account__item-name">
                 <div className="t-medium">{account.name}</div>
-                <div className="t-small c-light">{account.id}</div>
+                <div className="t-small c-light account__item-id">{account.id}</div>
               </div>
               <div className="account__item">
-                <div className="t-medium">{account.balance}</div>
+                <div className="t-medium">{account.assets?.[0].amount}</div>
               </div>
               {account.isActive && (
                 <CheckIco className="account__item--active" />

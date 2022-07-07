@@ -28,6 +28,9 @@
   padding: 12px;
   background-color: $color-secondary;
   border-radius: 4px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
 
   &:focus {
     outline: 0;

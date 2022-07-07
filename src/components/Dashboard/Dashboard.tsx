@@ -24,16 +24,14 @@ function Dashboard({
 }: IDashboardProps): JSX.Element | null {
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isBuyPopupVisible, setIsBuyPopupVisible] = useState(false);
-  const activeNetwork = account?.networks?.find(
-    (network: INetwork) => network.isActive === true
-  );
+  const activities = account.activities;
 
   return (
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{account?.balance}</h1>
-        <h3> AB</h3>
+        <h1>{account?.assets?.[0].amount}</h1>
+        <h3> {account?.assets?.[0].id}</h3>
       </div>
       <Spacer mb={8} />
       <div className="dashboard__account">{account?.id}</div>
@@ -92,7 +90,11 @@ function Dashboard({
               active: isAssetsColActive === true,
             })}
           >
-            {account?.assets.map((asset: IAsset) => {
+            {account?.assets.sort((a: IAsset, b: IAsset) => {
+                 if(a.id! < b.id!) { return -1; }
+                 if(a.id! > b.id!) { return 1; }
+                 return 0;
+              }).map((asset: IAsset) => {
               return (
                 <div key={asset.id} className="dashboard__info-item-wrap">
                   <div className="dashboard__info-item-icon">
@@ -123,12 +125,12 @@ function Dashboard({
               active: isAssetsColActive !== true,
             })}
           >
-            {account?.activities
+            {activities
               .sort((a: IActivity, b: IActivity) => {
-                return new Date(a.time).getTime() - new Date(b.time).getTime();
+                return new Date(b.time).getTime() - new Date(a.time).getTime();
               })
               .map((activity: IActivity, idx) => {
-                if (activeNetwork?.id !== activity?.network) return null;
+                if (account.activeNetwork !== activity?.network) return null;
 
                 return (
                   <div key={idx} className="dashboard__info-item-wrap">
@@ -141,7 +143,11 @@ function Dashboard({
                         <div className="icon-wrap">
                           <SendIcon />
                         </div>
-                      ) : (
+                      ) : activity.type === "Receive" ? (
+                        <div className="icon-wrap receive">
+                          <SendIcon />
+                        </div>
+                      ): (
                         <div className="icon-wrap">
                           <SwapIcon />
                         </div>

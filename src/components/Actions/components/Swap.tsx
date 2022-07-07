@@ -7,14 +7,19 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 import Select from "../../Select/Select";
-import { IAsset } from "../../../types/Types";
+import { IAsset, ITransferProps } from "../../../types/Types";
 
-function Swap({ account, setAccounts }: any): JSX.Element | null {
+function Swap({
+  account,
+  accounts,
+  setAccounts,
+  setIsActionsViewVisible
+}: ITransferProps): JSX.Element | null {
   return (
     <Formik
       initialValues={{
         password: "12345678",
-        walletID: "0x68ab2...4ff2408",
+        walletID: "0xb794f5ea0ba39494ce839613fffba74279579268",
       }}
       onSubmit={(values) => console.log("Submit")}
       validationSchema={Yup.object().shape({
@@ -73,9 +78,15 @@ function Swap({ account, setAccounts }: any): JSX.Element | null {
                 <span className="t-medium-small">Slippage</span>
                 <Spacer mb={8} />
                 <div className="button__group">
-                  <Button isBordered variant="secondary">1%</Button>
-                  <Button isBordered variant="third">2%</Button>
-                  <Button isBordered variant="third">Custom</Button>
+                  <Button isBordered variant="secondary">
+                    1%
+                  </Button>
+                  <Button isBordered variant="third">
+                    2%
+                  </Button>
+                  <Button isBordered variant="third">
+                    Custom
+                  </Button>
                 </div>
               </FormContent>
               <FormFooter>

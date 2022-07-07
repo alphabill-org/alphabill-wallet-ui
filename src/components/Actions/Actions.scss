@@ -95,6 +95,15 @@
     &__item {
       position: relative;
 
+      &-name {
+        width: 60%;
+      }
+
+      &-id {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       &:first-child {
         padding-right: 10px;
       }

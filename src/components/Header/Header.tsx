@@ -16,10 +16,6 @@ function Header(props: IAccountProps): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const activeNetwork = props.account?.networks?.find(
-    (network) => network.isActive === true
-  );
-
   const testNetworks = props.account?.networks?.filter(
     (network) => network.isTestNetwork === true
   );
@@ -38,7 +34,7 @@ function Header(props: IAccountProps): JSX.Element | null {
           className="select__button"
           onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
-          {activeNetwork ? activeNetwork.id : "Select Network"}
+          {props.account?.activeNetwork || "Select Network"}
           <Arrow />
         </Button>
         <div
@@ -72,24 +68,16 @@ function Header(props: IAccountProps): JSX.Element | null {
                     key={network.id}
                     className="select__option"
                     onClick={() => {
-                      const updatedNetworks = props.account?.networks?.map(
-                        (obj) => {
-                          if (obj.id === network.id) {
-                            return { ...obj, isActive: true };
-                          } else return { ...obj, isActive: false };
-                        }
-                      );
-
                       const updatedAccounts = props.accounts?.map((obj) => {
                         if (props.account?.id === obj.id) {
-                          return { ...obj, networks: updatedNetworks };
+                          return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
 
                       props.setAccounts(updatedAccounts);
                     }}
                   >
-                    {network.id} {network.isActive && <Check />}
+                    {network.id} {network.id === props.account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
@@ -108,25 +96,16 @@ function Header(props: IAccountProps): JSX.Element | null {
                       "select__option--hidden": !showTestNetworks,
                     })}
                     onClick={() => {
-                      const updatedNetworks = props.account?.networks?.map(
-                        (obj) => {
-                          if (obj.id === network.id) {
-                            return { ...obj, isActive: true };
-                          } else return { ...obj, isActive: false };
-                        }
-                      );
-
                       const updatedAccounts = props.accounts?.map((obj) => {
                         if (props.account?.id === obj.id) {
-                          return { ...obj, networks: updatedNetworks };
+                          return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
-                      console.log(updatedAccounts);
 
                       props.setAccounts(updatedAccounts);
                     }}
                   >
-                    {network.id} {network.isActive && <Check />}
+                    {network.id} {network.id === props.account?.activeNetwork && <Check />}
                   </div>
                 );
               })}

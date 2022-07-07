@@ -1,17 +1,18 @@
 export interface IAccount {
   id: string;
   name: string;
-  balance: number;
   assets: IAsset[];
   activities: IActivity[];
+  activeNetwork?: string;
   networks: INetwork[];
   isActive: boolean;
 }
 
 export interface IAsset {
-  id: string;
-  name: string;
-  amount: number;
+  id?: string;
+  name?: string;
+  amount?: number;
+  push?: any;
 }
 
 export interface IAccountProps {
@@ -40,7 +41,6 @@ export interface IDashboardProps {
 
 export interface INetwork {
   id: string;
-  isActive: boolean;
   isTestNetwork: boolean;
 }
 
@@ -51,10 +51,18 @@ export interface ISwap {
 
 export interface IActivity {
   id: string;
+  name: string;
   amount: number;
   swap?: ISwap;
   time: string;
   address: string;
-  type: "Buy" | "Send" | "Swap";
+  type: "Buy" | "Send" | "Swap" | "Receive";
   network: string;
+}
+
+export interface ITransferProps {
+  setAccounts: (e: any) => void;
+  account: IAccount;
+  accounts?: IAccount[];
+  setIsActionsViewVisible: (e: any) => void;
 }

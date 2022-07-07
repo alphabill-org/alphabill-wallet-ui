@@ -13,10 +13,9 @@ function App() {
   const [actionsView, setActionsView] = useState("Buy");
   const [accounts, setAccounts] = useState<IAccount[]>([
     {
-      id: "0x68ab2...4ff2408",
+      id: "0xb794f5ea0ba39494ce839613fffba74279579268",
       name: "Account 1",
       isActive: false,
-      balance: 1300,
       assets: [
         {
           id: "AB",
@@ -29,58 +28,60 @@ function App() {
           amount: 100,
         },
       ],
+      activeNetwork: "AB Mainnet",
       networks: [
         {
           id: "AB Mainnet",
-          isActive: true,
           isTestNetwork: false,
         },
         {
           id: "AB Testnet",
-          isActive: false,
           isTestNetwork: true,
         },
       ],
       activities: [
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 300,
           time: moment().subtract(2, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb666f5ea0ba39494ce839613fffba74279579268",
           type: "Buy",
           network: "AB Mainnet",
         },
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 300,
           time: moment().subtract(6, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb666f5ea0ba39494ce839613fffba74279579268",
           type: "Send",
           network: "AB Mainnet",
         },
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 300,
           time: moment().subtract(5, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb666f5ea0ba39494ce839613fffba74279579268",
           type: "Send",
           network: "AB Testnet",
         },
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 300,
           time: moment().subtract(4, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb666f5ea0ba39494ce839613fffba74279579268",
           type: "Swap",
           network: "AB Mainnet",
         },
       ],
     },
     {
-      id: "0x68ab1...4ff3333",
+      id: "0xb666f5ea0ba39494ce839613fffba74279579268",
       name: "Account 2",
       isActive: false,
-      balance: 100,
       assets: [
         {
           id: "AB",
@@ -88,32 +89,33 @@ function App() {
           amount: 100,
         },
       ],
+      activeNetwork: "AB Mainnet",
       networks: [
         {
           id: "AB Mainnet",
-          isActive: true,
           isTestNetwork: false,
         },
         {
           id: "AB Testnet",
-          isActive: false,
           isTestNetwork: true,
         },
       ],
       activities: [
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 200,
           time: moment().subtract(2, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb794f5ea0ba39494ce839613fffba74279579268",
           type: "Buy",
           network: "AB Mainnet",
         },
         {
-          id: "alphabill",
+          id: "AB",
+          name: "AlphaBill Token",
           amount: 100,
           time: moment().subtract(6, "days").startOf("day").format("LLL"),
-          address: "0x68ab2...4ff2408",
+          address: "0xb794f5ea0ba39494ce839613fffba74279579268",
           type: "Send",
           network: "AB Mainnet",
         },

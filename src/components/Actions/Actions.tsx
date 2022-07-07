@@ -1,7 +1,7 @@
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import { IActionProps } from "../../types/Types";
+import { IActionProps, INetwork } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
@@ -36,12 +36,14 @@ function Actions({
             account={account}
             accounts={accounts}
             setAccounts={setAccounts}
+            setIsActionsViewVisible={setIsActionsViewVisible}
           />
         ) : actionsView === "Swap" ? (
           <Swap
             account={account}
             accounts={accounts}
             setAccounts={setAccounts}
+            setIsActionsViewVisible={setIsActionsViewVisible}
           />
         ) : actionsView === "Account" && accounts ? (
           <Account
