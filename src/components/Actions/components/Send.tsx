@@ -134,6 +134,16 @@ function Send({
               return true;
             }
           }
+        ).test(
+          "account-id-same",
+          `Receiver's account is your account`,
+          function (value) {
+            if (value) {
+              return account.id === value;
+            } else {
+              return true;
+            }
+          }
         ),
         amount: Yup.number()
           .positive("Value must be greater than 0.")
