@@ -63,7 +63,9 @@ function AccountView({
                 </div>
               </div>
               <div className="account__item">
-                <div className="t-medium">{account.assets?.[0]?.amount || 0}</div>
+                <div className="t-medium">
+                  {account.assets?.[0]?.amount || 0}
+                </div>
               </div>
               {account.isActive && (
                 <CheckIco className="account__item--active" />
@@ -113,7 +115,17 @@ function AccountView({
           <div className="account__menu-item-title">Settings</div>
         </div>
 
-        <div className="account__menu-item">
+        <div
+          onClick={() => {
+            const updatedData = accounts?.map((obj) => {
+              return { ...obj, isActive: false };
+            });
+
+            setAccounts(updatedData);
+            setIsActionsViewVisible(false);
+          }}
+          className="account__menu-item"
+        >
           <div className="account__menu-item-icon">
             <LockIco />
           </div>
@@ -130,7 +142,7 @@ function AccountView({
           initialValues={{
             accountName: "",
           }}
-          onSubmit={async (values, {resetForm}) => {
+          onSubmit={async (values, { resetForm }) => {
             const privateKey = utils.randomPrivateKey();
             const publicKey = await getPublicKey(privateKey);
 
@@ -161,17 +173,19 @@ function AccountView({
             resetForm();
           }}
           validationSchema={Yup.object().shape({
-            accountName: Yup.string().required("Address is required").test(
-              "account-name-taken",
-              `The account name is taken`,
-              function (value) {
-                if (value) {
-                  return !Boolean(accounts?.find((a) => a.name === value));
-                } else {
-                  return true;
+            accountName: Yup.string()
+              .required("Address is required")
+              .test(
+                "account-name-taken",
+                `The account name is taken`,
+                function (value) {
+                  if (value) {
+                    return !Boolean(accounts?.find((a) => a.name === value));
+                  } else {
+                    return true;
+                  }
                 }
-              }
-            )
+              ),
           })}
         >
           {(formikProps) => {
