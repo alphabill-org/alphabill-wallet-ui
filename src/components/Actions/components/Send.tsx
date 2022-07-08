@@ -118,7 +118,7 @@ function Send({
             };
           } else return { ...obj };
         });
-        console.log(updatedData);
+
         setAccounts(updatedData);
         setIsActionsViewVisible(false);
       }}
@@ -149,7 +149,7 @@ function Send({
           .positive("Value must be greater than 0.")
           .test(
             "test less than",
-            `You don't have enough` + ` ` + currentTokenId.name + `'s`,
+            `You don't have enough` + currentTokenId.name + `'s`,
             (value) =>
               Number(value) <=
               Number(
@@ -161,7 +161,7 @@ function Send({
       })}
     >
       {(formikProps) => {
-        const { handleSubmit, errors, touched } = formikProps;
+        const { handleSubmit, errors, touched, values } = formikProps;
 
         return (
           <form className="pad-24" onSubmit={handleSubmit}>
@@ -202,6 +202,7 @@ function Send({
                   label="Amount"
                   type="number"
                   error={extractFormikError(errors, touched, ["amount"])}
+                  disabled={!Boolean(values.assets)}
                 />
               </FormContent>
               <FormFooter>

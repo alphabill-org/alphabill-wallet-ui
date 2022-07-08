@@ -1,5 +1,5 @@
 .actions {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
   height: 100%;
@@ -52,6 +52,8 @@
     display: flex;
     height: 100%;
     width: 100%;
+    overflow: auto;
+    max-height: 530px;
 
     .form {
       height: 100%;
@@ -87,6 +89,7 @@
     align-items: center;
     cursor: pointer;
     transition: all .3s;
+    position: relative;
 
     &:hover {
       opacity: .7;
@@ -119,7 +122,7 @@
 
       &--active {
         position: absolute;
-        right: 32px;
+        right: 0px;
       }
     }
 

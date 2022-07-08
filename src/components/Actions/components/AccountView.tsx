@@ -1,6 +1,8 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { Formik } from "formik";
+import { utils, getPublicKey } from "@noble/ed25519";
+import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
@@ -56,10 +58,12 @@ function AccountView({
               </div>
               <div className="account__item account__item-name">
                 <div className="t-medium">{account.name}</div>
-                <div className="t-small c-light account__item-id">{account.id}</div>
+                <div className="t-small c-light account__item-id">
+                  {account.id}
+                </div>
               </div>
               <div className="account__item">
-                <div className="t-medium">{account.assets?.[0].amount}</div>
+                <div className="t-medium">{account.assets?.[0]?.amount || 0}</div>
               </div>
               {account.isActive && (
                 <CheckIco className="account__item--active" />
@@ -124,9 +128,51 @@ function AccountView({
       >
         <Formik
           initialValues={{
-            Popup: "",
+            accountName: "",
           }}
-          onSubmit={(values) => console.log("Submit")}
+          onSubmit={async (values, {resetForm}) => {
+            const privateKey = utils.randomPrivateKey();
+            const publicKey = await getPublicKey(privateKey);
+
+            const addedAccount = accounts?.concat([
+              {
+                id: utils.bytesToHex(publicKey),
+                name: values.accountName,
+                isActive: true,
+                assets: [],
+                activeNetwork: "AB Testnet",
+                networks: [
+                  {
+                    id: "AB Testnet",
+                    isTestNetwork: true,
+                  },
+                ],
+                activities: [],
+              },
+            ]);
+
+            const updatedAccounts = addedAccount?.map((obj) => {
+              if (obj?.id !== utils.bytesToHex(publicKey)) {
+                return { ...obj, isActive: false };
+              } else return { ...obj };
+            });
+            setAccounts(updatedAccounts);
+            setIsPopupVisible(false);
+            resetForm();
+          }}
+          validationSchema={Yup.object().shape({
+            accountName: Yup.string().required("Address is required").test(
+              "account-name-taken",
+              `The account name is taken`,
+              function (value) {
+                if (value) {
+                  return !Boolean(accounts?.find((a) => a.name === value));
+                } else {
+                  return true;
+                }
+              }
+            )
+          })}
         >
           {(formikProps) => {
             const { handleSubmit, errors, touched } = formikProps;
@@ -138,11 +184,13 @@ function AccountView({
                 <Form>
                   <FormContent>
                     <Textfield
-                      id="Popup"
-                      name="Popup"
+                      id="accountName"
+                      name="accountName"
                       label="Account Name"
-                      type="Popup"
-                      error={extractFormikError(errors, touched, ["Popup"])}
+                      type="accountName"
+                      error={extractFormikError(errors, touched, [
+                        "accountName",
+                      ])}
                     />
                   </FormContent>
                   <FormFooter>

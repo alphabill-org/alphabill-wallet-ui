@@ -6,8 +6,7 @@ import Spacer from "../Spacer/Spacer";
 import {
   IDashboardProps,
   IActivity,
-  IAsset,
-  INetwork,
+  IAsset
 } from "../../types/Types";
 import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
 import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
@@ -30,8 +29,8 @@ function Dashboard({
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{account?.assets?.[0].amount}</h1>
-        <h3> {account?.assets?.[0].id}</h3>
+        <h1>{account?.assets?.[0]?.amount || 0}</h1>
+        <h3> {account?.assets?.[0]?.id}</h3>
       </div>
       <Spacer mb={8} />
       <div className="dashboard__account">{account?.id}</div>
