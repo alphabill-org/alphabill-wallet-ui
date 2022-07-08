@@ -24,7 +24,7 @@ function App() {
         },
         {
           id: "ETH",
-          name: "Etherium Token",
+          name: "Ethereum Token",
           amount: 100,
         },
       ],

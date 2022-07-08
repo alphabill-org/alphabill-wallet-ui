@@ -1,5 +1,3 @@
-import React from 'react';
-
 import classNames from 'classnames';
 import { useField, useFormikContext } from 'formik';
 import ReactSelect, { Props } from 'react-select';

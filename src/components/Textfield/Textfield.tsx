@@ -1,8 +1,9 @@
-import React from 'react';
+import React from "react";
 
-import classNames from 'classnames';
+import classNames from "classnames";
 
-import { useField, useFormikContext } from 'formik';
+import { useField, useFormikContext } from "formik";
+import { useEffect } from "react";
 
 export interface ITextfieldProps {
   id: string;
@@ -30,29 +31,42 @@ export interface ITextfieldProps {
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
-  const { hiddenPassword, error, transparent, floatingFixedPoint, isNumberFloat, ...inputProps } = props;
+  const {
+    hiddenPassword,
+    error,
+    transparent,
+    floatingFixedPoint,
+    isNumberFloat,
+    ...inputProps
+  } = props;
   const { setFieldValue, handleBlur } = useFormikContext();
   const [field] = useField(props as any);
 
+  useEffect(() => {
+    if (field.value !== props.value && props.value) {
+      setFieldValue(field.name, props.value);
+    }
+  }, [field.value, props.value, setFieldValue, field.name]);
+
   const className = classNames(
-    'textfield',
+    "textfield",
     {
-      'textfield--hidden-password': hiddenPassword,
-      'textfield--error': error,
-      'textfield--transparent': transparent,
+      "textfield--hidden-password": hiddenPassword,
+      "textfield--error": error,
+      "textfield--transparent": transparent,
     },
     props.className
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const regexNumber = /^[+-]?\d*(?:[.,]\d*)?$/;
-    const fixedPoint = props.floatingFixedPoint || "2" ;
+    const fixedPoint = props.floatingFixedPoint || "2";
     const regexFloatString = "^\\d+(\\.\\d{0," + fixedPoint + "})?$";
     const regexFloat = new RegExp(regexFloatString);
 
     if (
       props.isNumberFloat &&
-      e.target.value !== '' &&
+      e.target.value !== "" &&
       (!regexNumber.test(e.target.value) || !regexFloat.test(e.target.value))
     ) {
       return false;
@@ -68,26 +82,30 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
   return (
     <div className={className} data-testid="textfield">
       <div className="textfield__inner">
-        {props.label && <label className="textfield__label">{props.label}</label>}
+        {props.label && (
+          <label className="textfield__label">{props.label}</label>
+        )}
         <input
           {...inputProps}
           onChange={handleChange}
           onBlur={handleBlur}
           value={
             field.value
-              ? props.type === 'number'
+              ? props.type === "number"
                 ? Math.max(0, field.value)
                 : field.value
-              : props.value || ''
+              : props.value || ""
           }
           className="textfield__input"
           onKeyDown={
-            props.type === 'number'
-              ? (evt) => ['e', 'E', '+', '-', ',', '.'].includes(evt.key) && evt.preventDefault()
+            props.type === "number"
+              ? (evt) =>
+                  ["e", "E", "+", "-", ",", "."].includes(evt.key) &&
+                  evt.preventDefault()
               : undefined
           }
-          min={props.type === 'number' ? 0 : undefined}
-          step={props.type === 'number' ? props.step : undefined}
+          min={props.type === "number" ? 0 : undefined}
+          step={props.type === "number" ? props.step : undefined}
         />
       </div>
       {error && error.length > 0 && (
