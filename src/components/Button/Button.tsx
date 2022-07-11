@@ -20,6 +20,7 @@ export interface IButtonProps {
   className?: string;
   target?: string;
   isBordered?: boolean;
+  isActive?: boolean;
 }
 
 export default function Button(props: IButtonProps): JSX.Element {
@@ -32,6 +33,7 @@ export default function Button(props: IButtonProps): JSX.Element {
       'button--block': props.block,
       'button--working': props.working,
       'is--bordered': props.isBordered,
+      'is--active': props.isActive,
       [`button--${props.brand}`]: props.brand,
     },
     props.className

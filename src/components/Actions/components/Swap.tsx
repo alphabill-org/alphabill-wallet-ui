@@ -198,14 +198,16 @@ function Swap({
                   <Button
                     onClick={() => setSlippage(1)}
                     isBordered
-                    variant={slippage === 1 ? "secondary" : "third"}
+                    isActive={slippage === 1}
+                    variant={"secondary"}
                   >
                     1%
                   </Button>
                   <Button
                     onClick={() => setSlippage(2)}
                     isBordered
-                    variant={slippage === 2 ? "secondary" : "third"}
+                    isActive={slippage === 2}
+                    variant={"secondary"}
                   >
                     2%
                   </Button>
@@ -214,8 +216,9 @@ function Swap({
                       setIsCustomVisible(!isCustomVisible);
                       setSlippage(0);
                     }}
+                    isActive={isCustomVisible}
                     isBordered
-                    variant={isCustomVisible ? "secondary" : "third"}
+                    variant={"secondary"}
                   >
                     Custom
                   </Button>

@@ -10,6 +10,7 @@ import { extractFormikError } from "../../../utils/utils";
 
 function ImportAccount({ account, setAccounts }: any): JSX.Element | null {
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
+  const [isImportTypeKey, setIsImportTypeKey] = useState(true);
 
   return (
     <div className="import-account">
@@ -42,8 +43,20 @@ function ImportAccount({ account, setAccounts }: any): JSX.Element | null {
         <p>Select type</p>
         <Spacer mb={4} />
         <div className="button__group">
-          <Button variant="secondary">Private Key</Button>
-          <Button variant="third">JSON file</Button>
+          <Button
+            variant="secondary"
+            onClick={() => setIsImportTypeKey(true)}
+            isActive={isImportTypeKey}
+          >
+            Private Key
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setIsImportTypeKey(false)}
+            isActive={!isImportTypeKey}
+          >
+            JSON file
+          </Button>
         </div>
         <Spacer mb={16} />
 

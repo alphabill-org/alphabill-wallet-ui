@@ -53,10 +53,18 @@
   background-color: $color-primary;
   color: $color-blue;
 
+  &.is--active {
+    background-color: $color-blue;
+  }
+
   &:hover {
     opacity: 1;
     background: $color-primary--hover;
     color: $color-white;
+
+    &.is--active {
+      background-color: $color-blue;
+    }
   }
 }
 
@@ -64,11 +72,19 @@
   color: $color-light;
   background-color: $color-secondary;
 
+  &.is--active {
+    background-color: $color-blue;
+  }
+
   &:hover {
     opacity: 1;
     background-color: $color-blue;
     box-shadow: none;
     color: white;
+
+    &.is--active {
+      background-color: $color-blue;
+    }
   }
 }
 
@@ -81,6 +97,10 @@
     background-color: $color-secondary;
     box-shadow: none;
     color: white;
+
+    &.is--active {
+      background-color: $color-blue;
+    }
   }
 }
 
