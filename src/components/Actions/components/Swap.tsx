@@ -196,7 +196,10 @@ function Swap({
                 <Spacer mb={8} />
                 <div className="button__group">
                   <Button
-                    onClick={() => setSlippage(1)}
+                    onClick={() => {
+                      setIsCustomVisible(false);
+                      setSlippage(1);
+                    }}
                     isBordered
                     isActive={slippage === 1}
                     variant={"secondary"}
@@ -204,7 +207,10 @@ function Swap({
                     1%
                   </Button>
                   <Button
-                    onClick={() => setSlippage(2)}
+                    onClick={() => {
+                      setIsCustomVisible(false);
+                      setSlippage(2);
+                    }}
                     isBordered
                     isActive={slippage === 2}
                     variant={"secondary"}
