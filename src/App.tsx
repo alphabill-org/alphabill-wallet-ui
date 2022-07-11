@@ -139,7 +139,9 @@ function App() {
               setIsActionsViewVisible={setIsActionsViewVisible}
             />
             <Dashboard
+              accounts={accounts}
               account={account}
+              setAccounts={setAccounts}
               setActionsView={setActionsView}
               setIsActionsViewVisible={setIsActionsViewVisible}
             />

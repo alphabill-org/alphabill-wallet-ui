@@ -41,7 +41,6 @@ function Header(props: IAccountProps): JSX.Element | null {
           className={classNames("select__popover-wrap", {
             "select__popover-wrap--open": isPopoverOpen,
           })}
-          onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
           <div className="select__popover">
             <div className="select__popover-header">
@@ -73,7 +72,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
-
+                      setIsPopoverOpen(false);
                       props.setAccounts(updatedAccounts);
                     }}
                   >
@@ -101,7 +100,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
-
+                      setIsPopoverOpen(false);
                       props.setAccounts(updatedAccounts);
                     }}
                   >

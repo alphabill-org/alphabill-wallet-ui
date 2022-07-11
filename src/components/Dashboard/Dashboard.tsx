@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import OutsideClickHandler from 'react-outside-click-handler';
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import Popup from "../Popup/Popup";
 
 import { IDashboardProps, IActivity, IAsset } from "../../types/Types";
 import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
@@ -14,17 +14,21 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
-
-import Moonpay from "../../images/moonpay.svg";
-import Textfield from "../Textfield/Textfield";
+import Popups from "./Popups/Popups";
 
 function Dashboard({
   setActionsView,
   setIsActionsViewVisible,
   account,
+  setAccounts,
+  accounts,
 }: IDashboardProps): JSX.Element | null {
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isBuyPopupVisible, setIsBuyPopupVisible] = useState(false);
+  const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
+  const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
+    useState(false);
+
   const activities = account.activities;
 
   return (
@@ -38,8 +42,7 @@ function Dashboard({
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
-          {account.name} {' '}
-          <span>({account?.id})</span>
+          {account.name} <span>({account?.id})</span>
         </div>
         <div className="dashboard__account-buttons">
           <CopyToClipboard text={account?.id}>
@@ -47,9 +50,42 @@ function Dashboard({
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <Button onClick={() => console.log()} variant="icon">
-            <MoreIco className="textfield__btn" height="12px" />
-          </Button>
+          <OutsideClickHandler
+            display="flex"
+            onOutsideClick={() => {
+              setIsAccountSettingsVisible(false);
+            }}
+          >
+            <Button
+              onClick={() =>
+                setIsAccountSettingsVisible(!isAccountSettingsVisible)
+              }
+              variant="icon"
+            >
+              <MoreIco className="textfield__btn" height="12px" />
+              <div
+                className={classNames("dashboard__account-options", {
+                  active: isAccountSettingsVisible === true,
+                })}
+              >
+                <div
+                  onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
+                  className="dashboard__account-option"
+                >
+                  Rename
+                </div>
+                <div
+                  onClick={() => {
+                    setActionsView("Account");
+                    setIsActionsViewVisible(true);
+                  }}
+                  className="dashboard__account-option"
+                >
+                  Change Account
+                </div>
+              </div>
+            </Button>
+          </OutsideClickHandler>
         </div>
       </div>
       <Spacer mb={8} />
@@ -190,29 +226,15 @@ function Dashboard({
           </div>
         </div>
       </div>
-      <Popup
-        isPopupVisible={isBuyPopupVisible}
-        setIsPopupVisible={setIsBuyPopupVisible}
-        title=""
-      >
-        <div>
-          <Spacer mb={8} />
-          <img className="m-auto" height="32" src={Moonpay} alt="Profile" />
-          <Spacer mb={16} />
-          MoonPay supports popular payment methods, including Visa, Mastercard,
-          Apple / Google / Samsung Pay, and bank transfers in 145+ countries.
-          Tokens deposit into your MetaMask account.
-          <Spacer mb={16} />
-          <Button
-            onClick={() => setIsBuyPopupVisible(false)}
-            big={true}
-            block={true}
-            variant="primary"
-          >
-            Cancel
-          </Button>
-        </div>
-      </Popup>
+      <Popups
+        accounts={accounts}
+        account={account}
+        setAccounts={setAccounts}
+        isRenamePopupVisible={isRenamePopupVisible}
+        setIsRenamePopupVisible={setIsRenamePopupVisible}
+        isBuyPopupVisible={isBuyPopupVisible}
+        setIsBuyPopupVisible={setIsBuyPopupVisible}
+      />
     </div>
   );
 }

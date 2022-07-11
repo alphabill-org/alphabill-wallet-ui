@@ -34,9 +34,11 @@ export interface IActionProps {
 }
 
 export interface IDashboardProps {
-  account: IAccount;
   setActionsView: (e: any) => void;
   setIsActionsViewVisible: (e: any) => void;
+  setAccounts: (e: any) => void;
+  account: IAccount;
+  accounts?: IAccount[];
 }
 
 export interface INetwork {

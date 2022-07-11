@@ -73,9 +73,15 @@
   background-color: $color-body-background;
   border-bottom: 1px solid $color-light;
   padding: 20px 12px 16px;
+  transition: all .3s;
+  text-align: center;
 
   &:last-child {
     border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $color-secondary;
   }
 }
 

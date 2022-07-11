@@ -39,6 +39,7 @@
       display: flex;
       flex: 1 1 auto;
       margin-left: 8px;
+      z-index: 1;
 
       button {
         background-color: $color-blue;
@@ -48,6 +49,40 @@
         &:first-child {
           margin-right: 8px;
         }
+      }
+    }
+
+    &-options {
+      position: absolute;
+      top: 24px;
+      right: -24px;
+      background-color: $color-body-background;
+      border-radius: 4px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s;
+
+      &.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+    }
+
+    &-option {
+      cursor: pointer;
+      border-bottom: 1px solid $color-light;
+      padding: 8px 12px;
+      color: $color-light;
+      transition: all .3s;
+      text-align: center;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: $color-secondary;
       }
     }
   }
