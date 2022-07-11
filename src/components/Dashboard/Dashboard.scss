@@ -10,16 +10,46 @@
     min-width: 278px;
     justify-content: space-between;
     background: $color-secondary;
-    padding: 8px 32px 8px 12px;
+    padding: 8px 12px;
     border-radius: 4px;
     color: #ffffff;
     font-weight: 600;
     font-size: 14px;
     line-height: 18px;
-    text-overflow: ellipsis;
-    overflow: hidden;
     margin: 0 24px;
-    max-width: calc(100% - 48px);
+    max-width: calc(100% - 98px);
+    display: flex;
+    align-items: center;
+
+    &-id {
+      display: flex;
+      align-items: center;
+      max-width: 197px;
+      white-space: pre;
+
+      span {
+        opacity: .7;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+
+    &-buttons {
+      min-width: 50px;
+      display: flex;
+      flex: 1 1 auto;
+      margin-left: 8px;
+
+      button {
+        background-color: $color-blue;
+        padding: 4px;
+        border-radius: 4px;
+
+        &:first-child {
+          margin-right: 8px;
+        }
+      }
+    }
   }
 
   &__buttons {
