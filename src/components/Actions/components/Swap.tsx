@@ -41,6 +41,7 @@ function Swap({
         )?.[0],
         amountFrom: 0,
         amountTo: 0,
+        customSlippage: 1,
       }}
       onSubmit={(value) => {
         const updatedData = accounts?.map((obj) => {
@@ -58,7 +59,7 @@ function Swap({
             if (assetSwapTo) {
               updatedSwapToAsset = {
                 ...assetSwapTo,
-                amount: Number(assetSwapTo?.amount) + Number(value.amountTo),
+                amount: Number((Number(assetSwapTo?.amount) + Number(value.amountTo)).toFixed(2)),
               };
             } else {
               updatedSwapToAsset = {
@@ -83,7 +84,7 @@ function Swap({
 
             const updatedSwapFromAsset = {
               ...assetSwapFrom,
-              amount: Number(assetSwapFrom?.amount) - Number(value.amountFrom),
+              amount: Number((Number(assetSwapFrom?.amount) - Number(value.amountFrom)).toFixed(2)),
             };
 
             const updatedSwapFromAssets =
@@ -126,6 +127,13 @@ function Swap({
                 )?.amount
               )
           ),
+        customSlippage: Yup.number()
+          .positive("Slippage must more than 0%")
+          .test(
+            "test more or less than",
+            `Slippage must be more than 0% or less then 100%`,
+            (value) => Number(value) >= 0 && Number(value) < 100
+          ),
       })}
     >
       {(formikProps) => {
@@ -134,6 +142,14 @@ function Swap({
         const filteredAssets = ASSETS.filter(
           (asset) => asset.id !== values.swapFrom.id
         );
+        const slippageVal =
+          (values.amountFrom *
+            Number(
+              values.customSlippage && isCustomVisible
+                ? values.customSlippage
+                : slippage
+            )) /
+          100;
 
         return (
           <form className="pad-24" onSubmit={handleSubmit}>
@@ -183,7 +199,7 @@ function Swap({
                     value={
                       values?.swapTo.id !== values?.swapFrom.id
                         ? values.amountFrom > 0
-                          ? values.amountFrom.toString()
+                          ? (values.amountFrom - slippageVal).toString()
                           : ""
                         : ""
                     }
@@ -198,22 +214,26 @@ function Swap({
                   <Button
                     onClick={() => {
                       setIsCustomVisible(false);
+                      setFieldValue("customSlippage", 1);
                       setSlippage(1);
                     }}
                     isBordered
                     isActive={slippage === 1}
                     variant={"secondary"}
+                    type="reset"
                   >
                     1%
                   </Button>
                   <Button
                     onClick={() => {
                       setIsCustomVisible(false);
+                      setFieldValue("customSlippage", 2);
                       setSlippage(2);
                     }}
                     isBordered
                     isActive={slippage === 2}
                     variant={"secondary"}
+                    type="reset"
                   >
                     2%
                   </Button>
@@ -225,6 +245,7 @@ function Swap({
                     isActive={isCustomVisible}
                     isBordered
                     variant={"secondary"}
+                    type="reset"
                   >
                     Custom
                   </Button>
@@ -233,11 +254,15 @@ function Swap({
                   <>
                     <Spacer mb={8} />
                     <Textfield
-                      id="custom"
-                      name="custom"
+                      id="customSlippage"
+                      name="customSlippage"
                       label="Custom Slippage"
-                      type="custom"
-                      error={extractFormikError(errors, touched, ["custom"])}
+                      type="number"
+                      min="2.1"
+                      max="100"
+                      error={extractFormikError(errors, touched, [
+                        "customSlippage",
+                      ])}
                     />
                   </>
                 )}

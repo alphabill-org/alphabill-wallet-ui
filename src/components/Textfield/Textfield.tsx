@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import classNames from "classnames";
-
 import { useField, useFormikContext } from "formik";
-import { useEffect } from "react";
 
 export interface ITextfieldProps {
   id: string;
@@ -28,6 +26,8 @@ export interface ITextfieldProps {
   pattern?: string;
   floatingFixedPoint?: string;
   isNumberFloat?: boolean;
+  min?: string;
+  max?: string;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
