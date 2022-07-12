@@ -139,7 +139,7 @@ function Send({
           `Receiver's account is your account`,
           function (value) {
             if (value) {
-              return account.id === value;
+              return account.id !== value;
             } else {
               return true;
             }
