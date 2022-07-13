@@ -149,7 +149,7 @@ function Send({
           .positive("Value must be greater than 0.")
           .test(
             "test less than",
-            `You don't have enough` + currentTokenId.name + `'s`,
+            `You don't have enough ` + currentTokenId.name + `'s`,
             (value) =>
               Number(value) <=
               Number(
