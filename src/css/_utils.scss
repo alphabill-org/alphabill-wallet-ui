@@ -78,6 +78,12 @@
   line-height: 22px;
 }
 
+.t-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+
 // Color
 
 .c-light {

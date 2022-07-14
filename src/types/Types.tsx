@@ -60,6 +60,7 @@ export interface IActivity {
   address: string;
   type: "Buy" | "Send" | "Swap" | "Receive";
   network: string;
+  to?: string;
 }
 
 export interface ITransferProps {

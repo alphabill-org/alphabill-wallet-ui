@@ -100,7 +100,7 @@ function Swap({
                   id: value.swapTo.id,
                   name: value.swapTo.name,
                   amount: Number(value.amountTo),
-                  time: moment().format("LLL"),
+                  time: moment().format("ll LTS"),
                   address: account.id,
                   type: "Swap",
                   network: account.activeNetwork!,

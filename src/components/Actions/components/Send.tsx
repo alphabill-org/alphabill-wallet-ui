@@ -18,6 +18,7 @@ function Send({
   setIsActionsViewVisible,
 }: ITransferProps): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
+  console.log(moment().format("ll LTS"));
 
   return (
     <Formik
@@ -64,7 +65,7 @@ function Send({
                   id: currentTokenId.id,
                   name: currentTokenId.name,
                   amount: Number(values.amount),
-                  time: moment().format("LLL"),
+                  time: moment().format("ll LTS"),
                   address: values.address,
                   type: "Receive",
                   network: account.activeNetwork!,
@@ -109,7 +110,7 @@ function Send({
                   id: currentTokenId.id,
                   name: currentTokenId.name,
                   amount: Number(values.amount),
-                  time: moment().format("LLL"),
+                  time: moment().format("ll LTS"),
                   address: account.id,
                   type: "Send",
                   network: account.activeNetwork!,

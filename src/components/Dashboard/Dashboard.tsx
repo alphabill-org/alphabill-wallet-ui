@@ -30,19 +30,28 @@ function Dashboard({
     useState(false);
 
   const activities = account.activities;
+  const sortedAssets = account?.assets?.sort((a: IAsset, b: IAsset) => {
+    if (a.id! < b.id!) {
+      return -1;
+    }
+    if (a.id! > b.id!) {
+      return 1;
+    }
+    return 0;
+  })
 
   return (
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{account?.assets?.[0]?.amount || 0}</h1>
-        <h3> {account?.assets?.[0]?.id}</h3>
+        <h1>{sortedAssets?.[0]?.amount || 0}</h1>
+        <h3> {sortedAssets?.[0]?.id}</h3>
       </div>
       <Spacer mb={8} />
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
-          {account.name} <span>({account?.id})</span>
+          {account.name} <span>- {account?.id}</span>
         </div>
         <div className="dashboard__account-buttons">
           <CopyToClipboard text={account?.id}>
@@ -143,17 +152,7 @@ function Dashboard({
               active: isAssetsColActive === true,
             })}
           >
-            {account?.assets
-              .sort((a: IAsset, b: IAsset) => {
-                if (a.id! < b.id!) {
-                  return -1;
-                }
-                if (a.id! > b.id!) {
-                  return 1;
-                }
-                return 0;
-              })
-              .map((asset: IAsset) => {
+            {sortedAssets.map((asset: IAsset) => {
                 return (
                   <div key={asset.id} className="dashboard__info-item-wrap">
                     <div className="dashboard__info-item-icon">
@@ -213,8 +212,9 @@ function Dashboard({
                       )}
                     </div>
                     <div className="dashboard__info-item-type">
-                      <div className="t-medium">{activity.type}</div>
+                      <div className="t-medium">{activity.type} {' '} {activity.id} {' '} {activity.to && 'to ' + activity.to}</div>
                       <div className="t-small c-light">{activity.time}</div>
+                      {activity.type !== 'Swap' && activity.type !== 'Buy' && <div className="t-small c-light t-ellipsis">{activity.type === 'Send' ? 'To: ': 'From: '} {activity.address}</div>}
                     </div>
                     <div className="dashboard__info-item-amount">
                       <div className="t-medium">{activity.amount}</div>
