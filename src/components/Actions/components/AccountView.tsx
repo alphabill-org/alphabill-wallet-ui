@@ -152,11 +152,15 @@ function AccountView({
                 name: values.accountName,
                 isActive: true,
                 assets: [],
-                activeNetwork: "AB Testnet",
+                activeNetwork: "AB Mainnet",
                 networks: [
                   {
                     id: "AB Testnet",
                     isTestNetwork: true,
+                  },
+                  {
+                    id: "AB Mainnet",
+                    isTestNetwork: false,
                   },
                 ],
                 activities: [],
