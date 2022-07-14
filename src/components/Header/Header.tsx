@@ -19,6 +19,11 @@ function Header(props: IAccountProps): JSX.Element | null {
   const testNetworks = props.account?.networks?.filter(
     (network) => network.isTestNetwork === true
   );
+  const isTestNetworkActive = props.account?.networks?.find(
+    (network) =>
+      network.isTestNetwork === true &&
+      props.account?.activeNetwork === network.id
+  );
   const mainNetworks = props.account?.networks?.filter(
     (network) => network.isTestNetwork !== true
   );
@@ -51,7 +56,7 @@ function Header(props: IAccountProps): JSX.Element | null {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={showTestNetworks}
+                    checked={showTestNetworks && Boolean(isTestNetworkActive)}
                     onChange={() => setShowTestNetworks(!showTestNetworks)}
                     name="TestNetworks"
                     color="primary"
@@ -76,13 +81,15 @@ function Header(props: IAccountProps): JSX.Element | null {
                       props.setAccounts(updatedAccounts);
                     }}
                   >
-                    {network.id} {network.id === props.account?.activeNetwork && <Check />}
+                    {network.id}{" "}
+                    {network.id === props.account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
               <div
                 className={classNames("select__popover-test-networks", {
-                  "select__popover-test-networks--hidden": !showTestNetworks,
+                  "select__popover-test-networks--hidden":
+                    !showTestNetworks && Boolean(isTestNetworkActive),
                 })}
               >
                 Test Networks
@@ -92,7 +99,8 @@ function Header(props: IAccountProps): JSX.Element | null {
                   <div
                     key={network.id}
                     className={classNames("select__option", {
-                      "select__option--hidden": !showTestNetworks,
+                      "select__option--hidden":
+                        !showTestNetworks && Boolean(isTestNetworkActive),
                     })}
                     onClick={() => {
                       const updatedAccounts = props.accounts?.map((obj) => {
@@ -104,7 +112,8 @@ function Header(props: IAccountProps): JSX.Element | null {
                       props.setAccounts(updatedAccounts);
                     }}
                   >
-                    {network.id} {network.id === props.account?.activeNetwork && <Check />}
+                    {network.id}{" "}
+                    {network.id === props.account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
