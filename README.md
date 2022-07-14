@@ -4,6 +4,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Available Scripts
 
+First install dependencies. Use `--legacy-peer-deps` for react 18 and material-ui compatibility (@types/react@"^16.8.6 || ^17.0.0" from @material-ui/core@4.12.4)
+
+### `npm install --legacy-peer-deps`
+
 In the project directory, you can run:
 
 ### `npm start`
