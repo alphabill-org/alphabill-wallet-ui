@@ -56,7 +56,7 @@ function Header(props: IAccountProps): JSX.Element | null {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={showTestNetworks && Boolean(isTestNetworkActive)}
+                    checked={showTestNetworks || Boolean(isTestNetworkActive)}
                     onChange={() => setShowTestNetworks(!showTestNetworks)}
                     name="TestNetworks"
                     color="primary"
@@ -79,6 +79,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                       });
                       setIsPopoverOpen(false);
                       props.setAccounts(updatedAccounts);
+                      setShowTestNetworks(false)
                     }}
                   >
                     {network.id}{" "}
@@ -89,7 +90,7 @@ function Header(props: IAccountProps): JSX.Element | null {
               <div
                 className={classNames("select__popover-test-networks", {
                   "select__popover-test-networks--hidden":
-                    !showTestNetworks && Boolean(isTestNetworkActive),
+                    !showTestNetworks && !Boolean(isTestNetworkActive),
                 })}
               >
                 Test Networks
@@ -100,7 +101,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                     key={network.id}
                     className={classNames("select__option", {
                       "select__option--hidden":
-                        !showTestNetworks && Boolean(isTestNetworkActive),
+                        !showTestNetworks && !Boolean(isTestNetworkActive),
                     })}
                     onClick={() => {
                       const updatedAccounts = props.accounts?.map((obj) => {

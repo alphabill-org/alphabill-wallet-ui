@@ -23,11 +23,10 @@ function Login(props: IAccountProps): JSX.Element | null {
       <Formik
         initialValues={{
           password: "12345678",
-          walletID: "3f75cb8f3e692ac2e9a43bdb3d04d1bf8551b3190768f46dcfa379029a8686dd"
         }}
         onSubmit={(values) =>{
           const updatedData = props.accounts?.map((obj) => {
-            if (obj.id === values.walletID) {
+            if (obj.id === "3f75cb8f3e692ac2e9a43bdb3d04d1bf8551b3190768f46dcfa379029a8686dd") {
               return { ...obj, isActive: true };
             } else return { ...obj, isActive: false };
           });
@@ -49,13 +48,6 @@ function Login(props: IAccountProps): JSX.Element | null {
             <form onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
-                  <Textfield
-                    id="walletID"
-                    name="walletID"
-                    label="walletID"
-                    type="walletID"
-                    error={extractFormikError(errors, touched, ["walletID"])}
-                  />
                   <Textfield
                     id="password"
                     name="password"
