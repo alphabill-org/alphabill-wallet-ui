@@ -18,7 +18,6 @@ function Send({
   setIsActionsViewVisible,
 }: ITransferProps): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
-  console.log(moment().format("ll LTS"));
 
   return (
     <Formik
@@ -69,11 +68,10 @@ function Send({
                   address: values.address,
                   type: "Receive",
                   network: account.activeNetwork!,
+                  fromAddress: account.id,
                 },
               ]),
             };
-
-
           } else if (obj.id === account.id) {
             const asset = obj.assets?.find(
               (asset: any) => asset.id === currentTokenId.id
@@ -111,7 +109,7 @@ function Send({
                   name: currentTokenId.name,
                   amount: Number(values.amount),
                   time: moment().format("ll LTS"),
-                  address: account.id,
+                  address: values.address,
                   type: "Send",
                   network: account.activeNetwork!,
                 },
@@ -125,27 +123,30 @@ function Send({
       }}
       validationSchema={Yup.object().shape({
         assets: Yup.object().required("Selected asset is required"),
-        address: Yup.string().required("Address is required").test(
-          "account-id-no-match",
-          `Receiver's account is not real`,
-          function (value) {
-            if (value) {
-              return Boolean(accounts?.find((a) => a.id === value));
-            } else {
-              return true;
+        address: Yup.string()
+          .required("Address is required")
+          .test(
+            "account-id-no-match",
+            `Receiver's account is not real`,
+            function (value) {
+              if (value) {
+                return Boolean(accounts?.find((a) => a.id === value));
+              } else {
+                return true;
+              }
             }
-          }
-        ).test(
-          "account-id-same",
-          `Receiver's account is your account`,
-          function (value) {
-            if (value) {
-              return account.id !== value;
-            } else {
-              return true;
+          )
+          .test(
+            "account-id-same",
+            `Receiver's account is your account`,
+            function (value) {
+              if (value) {
+                return account.id !== value;
+              } else {
+                return true;
+              }
             }
-          }
-        ),
+          ),
         amount: Yup.number()
           .positive("Value must be greater than 0.")
           .test(

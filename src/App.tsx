@@ -57,6 +57,7 @@ function App() {
           address: "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e",
           type: "Send",
           network: "AB Mainnet",
+          fromAddress: "3f75cb8f3e692ac2e9a43bdb3d04d1bf8551b3190768f46dcfa379029a8686dd"
         },
         {
           id: "AB",
@@ -68,14 +69,15 @@ function App() {
           network: "AB Testnet",
         },
         {
-          id: "AB",
-          name: "AlphaBill Token",
-          amount: 500,
+          id: "ETH",
+          name: "Ethereum Token",
+          amount: 495,
           time: moment().subtract(4, "days").startOf("day").format("ll LTS"),
           address: "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e",
           type: "Swap",
           network: "AB Mainnet",
-          to: "ETH"
+          fromID: "AB",
+          fromAmount: 500
         },
       ],
     },
@@ -119,6 +121,7 @@ function App() {
           address: "3f75cb8f3e692ac2e9a43bdb3d04d1bf8551b3190768f46dcfa379029a8686dd",
           type: "Send",
           network: "AB Mainnet",
+          fromAddress: "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e"
         },
       ],
     },

@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import OutsideClickHandler from 'react-outside-click-handler';
+import OutsideClickHandler from "react-outside-click-handler";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
@@ -38,7 +38,7 @@ function Dashboard({
       return 1;
     }
     return 0;
-  })
+  });
 
   return (
     <div className="dashboard">
@@ -153,30 +153,30 @@ function Dashboard({
             })}
           >
             {sortedAssets.map((asset: IAsset) => {
-                return (
-                  <div key={asset.id} className="dashboard__info-item-wrap">
-                    <div className="dashboard__info-item-icon">
-                      {asset.id === "AB" ? (
-                        <div className="icon-wrap ab-logo">
-                          <ABLogo />
-                        </div>
-                      ) : asset.id === "ETH" ? (
-                        <div className="icon-wrap">
-                          <ETHLogo />
-                        </div>
-                      ) : (
-                        <></>
-                      )}
-                    </div>
-                    <div>
-                      <div>
-                        {asset.amount} {asset.id}
+              return (
+                <div key={asset.id} className="dashboard__info-item-wrap">
+                  <div className="dashboard__info-item-icon">
+                    {asset.id === "AB" ? (
+                      <div className="icon-wrap ab-logo">
+                        <ABLogo />
                       </div>
-                      <div className="t-small c-light">{asset.name}</div>
-                    </div>
+                    ) : asset.id === "ETH" ? (
+                      <div className="icon-wrap">
+                        <ETHLogo />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
                   </div>
-                );
-              })}
+                  <div>
+                    <div>
+                      {asset.amount} {asset.id}
+                    </div>
+                    <div className="t-small c-light">{asset.name}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <div
             className={classNames("dashboard__info-col", {
@@ -212,13 +212,25 @@ function Dashboard({
                       )}
                     </div>
                     <div className="dashboard__info-item-type">
-                      <div className="t-medium">{activity.type} {' '} {activity.id} {' '} {activity.to && 'to ' + activity.to}</div>
+                      <div className="t-medium">
+                        {activity.type}{" "}{activity.fromID && activity.fromID + " to "}
+                        {activity.id}{" "}
+                      </div>
                       <div className="t-small c-light">{activity.time}</div>
-                      {activity.type !== 'Swap' && activity.type !== 'Buy' && <div className="t-small c-light t-ellipsis">{activity.type === 'Send' ? 'To: ': 'From: '} {activity.address}</div>}
+                      {activity.type !== "Swap" && activity.type !== "Buy" && (
+                        <div className="t-small c-light t-ellipsis">
+                          {activity.type === "Send" ? "To: " : "From: "}{" "}
+                          {activity.fromAddress ? activity.fromAddress : activity.address}
+                        </div>
+                      )}
                     </div>
                     <div className="dashboard__info-item-amount">
                       <div className="t-medium">{activity.amount}</div>
-                      <div className="t-small c-light">{activity.amount}</div>
+                      <div className="t-small c-light">
+                        {activity.fromAmount
+                          ? activity.fromAmount
+                          : activity.amount}
+                      </div>
                     </div>
                   </div>
                 );

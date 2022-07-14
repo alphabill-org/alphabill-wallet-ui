@@ -104,6 +104,8 @@ function Swap({
                   address: account.id,
                   type: "Swap",
                   network: account.activeNetwork!,
+                  fromID: value.swapFrom.id,
+                  fromAmount: value.amountFrom
                 },
               ]),
             };
