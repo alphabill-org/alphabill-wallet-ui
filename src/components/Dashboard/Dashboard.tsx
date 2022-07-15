@@ -152,31 +152,34 @@ function Dashboard({
               active: isAssetsColActive === true,
             })}
           >
-            {sortedAssets.map((asset: IAsset) => {
-              return (
-                <div key={asset.id} className="dashboard__info-item-wrap">
-                  <div className="dashboard__info-item-icon">
-                    {asset.id === "AB" ? (
-                      <div className="icon-wrap ab-logo">
-                        <ABLogo />
-                      </div>
-                    ) : asset.id === "ETH" ? (
-                      <div className="icon-wrap">
-                        <ETHLogo />
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-                  </div>
-                  <div>
-                    <div>
-                      {asset.amount} {asset.id}
+            {sortedAssets
+              .filter((asset) => asset.network === account.activeNetwork)
+              .map((asset: IAsset, idx) => {
+
+                return (
+                  <div key={idx} className="dashboard__info-item-wrap">
+                    <div className="dashboard__info-item-icon">
+                      {asset.id === "AB" ? (
+                        <div className="icon-wrap ab-logo">
+                          <ABLogo />
+                        </div>
+                      ) : asset.id === "ETH" ? (
+                        <div className="icon-wrap">
+                          <ETHLogo />
+                        </div>
+                      ) : (
+                        <></>
+                      )}
                     </div>
-                    <div className="t-small c-light">{asset.name}</div>
+                    <div>
+                      <div>
+                        {asset.amount} {asset.id}
+                      </div>
+                      <div className="t-small c-light">{asset.name}</div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
           <div
             className={classNames("dashboard__info-col", {
@@ -213,14 +216,17 @@ function Dashboard({
                     </div>
                     <div className="dashboard__info-item-type">
                       <div className="t-medium">
-                        {activity.type}{" "}{activity.fromID && activity.fromID + " to "}
+                        {activity.type}{" "}
+                        {activity.fromID && activity.fromID + " to "}
                         {activity.id}{" "}
                       </div>
                       <div className="t-small c-light">{activity.time}</div>
                       {activity.type !== "Swap" && activity.type !== "Buy" && (
                         <div className="t-small c-light t-ellipsis">
                           {activity.type === "Send" ? "To: " : "From: "}{" "}
-                          {activity.fromAddress ? activity.fromAddress : activity.address}
+                          {activity.fromAddress
+                            ? activity.fromAddress
+                            : activity.address}
                         </div>
                       )}
                     </div>

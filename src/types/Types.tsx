@@ -13,6 +13,7 @@ export interface IAsset {
   name?: string;
   amount?: number;
   push?: any;
+  network?: string;
 }
 
 export interface IAccountProps {

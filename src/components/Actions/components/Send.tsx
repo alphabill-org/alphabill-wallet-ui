@@ -29,25 +29,29 @@ function Send({
       onSubmit={(values) => {
         const updatedData = accounts?.map((obj) => {
           if (obj.id === values.address) {
-            const asset = obj.assets?.find(
-              (asset: any) => asset.id === currentTokenId.id
+            const currentAsset = obj.assets?.find(
+              (asset: any) =>
+                asset.id === currentTokenId.id &&
+                asset.network === account.activeNetwork
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) => asset.id !== currentTokenId.id
+              (asset: any) =>
+                asset !== currentAsset
             );
 
             let updatedAsset;
-            if (asset) {
+            if (currentAsset) {
               updatedAsset = {
-                ...asset,
-                amount: Number(asset?.amount) + Number(values.amount),
+                ...currentAsset,
+                amount: Number(currentAsset?.amount) + Number(values.amount),
               };
             } else {
               updatedAsset = {
                 id: currentTokenId.id,
                 name: currentTokenId.name,
                 amount: values.amount,
+                network: account.activeNetwork,
               };
             }
 
@@ -73,19 +77,20 @@ function Send({
               ]),
             };
           } else if (obj.id === account.id) {
-            const asset = obj.assets?.find(
+            const currentAsset = obj.assets?.find(
               (asset: any) => asset.id === currentTokenId.id
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) => asset.id !== currentTokenId.id
+              (asset: any) =>
+                asset !== currentAsset
             );
 
             let updatedAsset;
-            if (asset) {
+            if (currentAsset) {
               updatedAsset = {
-                ...asset,
-                amount: Number(asset?.amount) - Number(values.amount),
+                ...currentAsset,
+                amount: Number(currentAsset?.amount) - Number(values.amount),
               };
             } else {
               updatedAsset = {
@@ -156,7 +161,9 @@ function Send({
               Number(value) <=
               Number(
                 account?.assets?.find(
-                  (asset: any) => asset.id === currentTokenId.id
+                  (asset: any) =>
+                    asset.id === currentTokenId.id &&
+                    asset.network === account.activeNetwork
                 )?.amount
               )
           ),
@@ -173,6 +180,7 @@ function Send({
                   label="Assets"
                   name="assets"
                   options={account.assets
+                    .filter((asset) => account.activeNetwork === asset.network)
                     .sort((a: IAsset, b: IAsset) => {
                       if (a.id! < b.id!) {
                         return -1;

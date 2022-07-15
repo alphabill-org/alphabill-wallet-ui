@@ -47,11 +47,13 @@ function Swap({
         const updatedData = accounts?.map((obj) => {
           if (obj.id === account.id) {
             const assetSwapTo = obj.assets?.find(
-              (asset: IAsset) => asset.id === value.swapTo.id
+              (asset: IAsset) =>
+                asset.id === value.swapTo.id &&
+                asset.network === account.activeNetwork
             );
 
             const filteredSwapToAsset = obj.assets?.filter(
-              (asset: IAsset) => asset.id !== value.swapTo.id
+              (asset: IAsset) => asset !== assetSwapTo
             );
 
             let updatedSwapToAsset;
@@ -59,13 +61,18 @@ function Swap({
             if (assetSwapTo) {
               updatedSwapToAsset = {
                 ...assetSwapTo,
-                amount: Number((Number(assetSwapTo?.amount) + Number(value.amountTo)).toFixed(2)),
+                amount: Number(
+                  (
+                    Number(assetSwapTo?.amount) + Number(value.amountTo)
+                  ).toFixed(2)
+                ),
               };
             } else {
               updatedSwapToAsset = {
                 id: value.swapTo.id,
                 name: value.swapTo.name,
                 amount: value.amountTo,
+                network: account.activeNetwork,
               };
             }
 
@@ -75,16 +82,23 @@ function Swap({
                 : [updatedSwapToAsset];
 
             const assetSwapFrom = updatedSwapToAssets.find(
-              (asset: IAsset) => asset.id === value.swapFrom.id
+              (asset: IAsset) =>
+                asset.id === value.swapFrom.id &&
+                asset.network === account.activeNetwork
             );
 
             const filteredSwapFromAsset = updatedSwapToAssets?.filter(
-              (asset: IAsset) => asset.id !== value.swapFrom.id
+              (asset: IAsset) =>
+                asset !== assetSwapFrom
             );
 
             const updatedSwapFromAsset = {
               ...assetSwapFrom,
-              amount: Number((Number(assetSwapFrom?.amount) - Number(value.amountFrom)).toFixed(2)),
+              amount: Number(
+                (
+                  Number(assetSwapFrom?.amount) - Number(value.amountFrom)
+                ).toFixed(2)
+              ),
             };
 
             const updatedSwapFromAssets =
@@ -105,7 +119,7 @@ function Swap({
                   type: "Swap",
                   network: account.activeNetwork!,
                   fromID: value.swapFrom.id,
-                  fromAmount: value.amountFrom
+                  fromAmount: value.amountFrom,
                 },
               ]),
             };
@@ -161,10 +175,14 @@ function Swap({
                   <Select
                     label="Swap from"
                     name="swapFrom"
-                    options={account.assets.map((asset: IAsset) => ({
-                      value: asset,
-                      label: asset.name,
-                    }))}
+                    options={account.assets
+                      .filter(
+                        (asset) => account.activeNetwork === asset.network
+                      )
+                      .map((asset: IAsset) => ({
+                        value: asset,
+                        label: asset.name,
+                      }))}
                     onChange={(label, value: IAsset) => {
                       setCurrentTokenId(value);
                       setFieldValue(
