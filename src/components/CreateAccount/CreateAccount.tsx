@@ -58,9 +58,7 @@ function CreateAccount(props: ICreateAccountProps): JSX.Element | null {
             ),
           })}
           onSubmit={(values) => {
-            const seed = mnemonicToSeedSync(
-              "use grid fetch reflect file bright average mercy morning leisure sad boil"
-            );
+            const seed = mnemonicToSeedSync(mnemonic);
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const hashingPrivKey = hashingKey.privateKey;
