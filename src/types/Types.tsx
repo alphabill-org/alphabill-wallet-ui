@@ -28,17 +28,18 @@ export interface IActionProps {
   setIsActionsViewVisible: (e: any) => void;
   isActionsViewVisible: boolean;
   actionsView: string;
-  account: IAccount;
+  account?: IAccount;
   accounts?: IAccount[];
   setAccounts: (e: any) => void;
   setActionsView: (e: any) => void;
+  setIsLoggedIn: (e: any) => void;
 }
 
 export interface IDashboardProps {
   setActionsView: (e: any) => void;
   setIsActionsViewVisible: (e: any) => void;
   setAccounts: (e: any) => void;
-  account: IAccount;
+  account?: IAccount;
   accounts?: IAccount[];
 }
 
@@ -68,7 +69,7 @@ export interface IActivity {
 
 export interface ITransferProps {
   setAccounts: (e: any) => void;
-  account: IAccount;
+  account?: IAccount;
   accounts?: IAccount[];
   setIsActionsViewVisible: (e: any) => void;
 }

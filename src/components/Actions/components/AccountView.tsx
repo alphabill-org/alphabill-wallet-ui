@@ -24,6 +24,7 @@ export interface IAccountViewProps {
   setAccounts: (e: any) => void;
   setActionsView: (e: any) => void;
   setIsActionsViewVisible: (e: any) => void;
+  setIsLoggedIn: (e: any) => void;
   accounts: IAccount[];
 }
 
@@ -32,6 +33,7 @@ function AccountView({
   setAccounts,
   setActionsView,
   setIsActionsViewVisible,
+  setIsLoggedIn,
 }: IAccountViewProps): JSX.Element | null {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -120,7 +122,7 @@ function AccountView({
             const updatedData = accounts?.map((obj) => {
               return { ...obj, isActive: false };
             });
-
+            setIsLoggedIn(false)
             setAccounts(updatedData);
             setIsActionsViewVisible(false);
           }}

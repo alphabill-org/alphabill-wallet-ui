@@ -16,6 +16,7 @@ function Actions({
   account,
   accounts,
   setAccounts,
+  setIsLoggedIn
 }: IActionProps): JSX.Element | null {
   return (
     <div
@@ -51,6 +52,7 @@ function Actions({
             setAccounts={setAccounts}
             setActionsView={setActionsView}
             setIsActionsViewVisible={setIsActionsViewVisible}
+            setIsLoggedIn={setIsLoggedIn}
           />
         ) : actionsView === "Import Account" && accounts ? (
           <ImportAccount accounts={accounts} setAccounts={setAccounts} />

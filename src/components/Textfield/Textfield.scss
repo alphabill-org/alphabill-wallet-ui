@@ -52,6 +52,10 @@
       color: $color-white;
     }
   }
+
+  .center & {
+    text-align: center;
+  }
 }
 
 .textfield__label {

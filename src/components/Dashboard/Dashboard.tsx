@@ -29,7 +29,7 @@ function Dashboard({
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
 
-  const activities = account.activities;
+  const activities = account?.activities;
   const sortedAssets = account?.assets?.sort((a: IAsset, b: IAsset) => {
     if (a.id! < b.id!) {
       return -1;
@@ -51,10 +51,10 @@ function Dashboard({
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
-          {account.name} <span>- {account?.id}</span>
+          {account?.name} <span>- {account?.id}</span>
         </div>
         <div className="dashboard__account-buttons">
-          <CopyToClipboard text={account?.id}>
+          <CopyToClipboard text={account?.id || ''}>
             <Button variant="icon">
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
@@ -152,8 +152,8 @@ function Dashboard({
               active: isAssetsColActive === true,
             })}
           >
-            {sortedAssets
-              .filter((asset) => asset.network === account.activeNetwork)
+            {sortedAssets && sortedAssets
+              .filter((asset) => asset.network === account?.activeNetwork)
               .map((asset: IAsset, idx) => {
 
                 return (
@@ -186,12 +186,12 @@ function Dashboard({
               active: isAssetsColActive !== true,
             })}
           >
-            {activities
+            {activities && activities
               .sort((a: IActivity, b: IActivity) => {
                 return new Date(b.time).getTime() - new Date(a.time).getTime();
               })
               .map((activity: IActivity, idx) => {
-                if (account.activeNetwork !== activity?.network) return null;
+                if (account?.activeNetwork !== activity?.network) return null;
 
                 return (
                   <div key={idx} className="dashboard__info-item-wrap">
@@ -246,7 +246,7 @@ function Dashboard({
       </div>
       <Popups
         accounts={accounts}
-        account={account}
+        account={account as any}
         setAccounts={setAccounts}
         isRenamePopupVisible={isRenamePopupVisible}
         setIsRenamePopupVisible={setIsRenamePopupVisible}

@@ -30,14 +30,14 @@ function Swap({
 }: ITransferProps): JSX.Element | null {
   const [slippage, setSlippage] = useState<string | number>(1);
   const [isCustomVisible, setIsCustomVisible] = useState<boolean>(false);
-  const [currentTokenId, setCurrentTokenId] = useState<any>(account.assets[0]);
+  const [currentTokenId, setCurrentTokenId] = useState<any>(account?.assets[0]);
 
   return (
     <Formik
       initialValues={{
-        swapFrom: account.assets[0],
+        swapFrom: account?.assets[0],
         swapTo: ASSETS.filter(
-          (asset) => asset.id !== account.assets[0].id
+          (asset) => asset.id !== account?.assets[0].id
         )?.[0],
         amountFrom: 0,
         amountTo: 0,
@@ -45,11 +45,11 @@ function Swap({
       }}
       onSubmit={(value) => {
         const updatedData = accounts?.map((obj) => {
-          if (obj.id === account.id) {
+          if (obj.id === account?.id) {
             const assetSwapTo = obj.assets?.find(
               (asset: IAsset) =>
                 asset.id === value.swapTo.id &&
-                asset.network === account.activeNetwork
+                asset.network === account?.activeNetwork
             );
 
             const filteredSwapToAsset = obj.assets?.filter(
@@ -72,7 +72,7 @@ function Swap({
                 id: value.swapTo.id,
                 name: value.swapTo.name,
                 amount: value.amountTo,
-                network: account.activeNetwork,
+                network: account?.activeNetwork,
               };
             }
 
@@ -83,8 +83,8 @@ function Swap({
 
             const assetSwapFrom = updatedSwapToAssets.find(
               (asset: IAsset) =>
-                asset.id === value.swapFrom.id &&
-                asset.network === account.activeNetwork
+                asset.id === value?.swapFrom?.id &&
+                asset.network === account?.activeNetwork
             );
 
             const filteredSwapFromAsset = updatedSwapToAssets?.filter(
@@ -115,10 +115,10 @@ function Swap({
                   name: value.swapTo.name,
                   amount: Number(value.amountTo),
                   time: moment().format("ll LTS"),
-                  address: account.id,
+                  address: account?.id,
                   type: "Swap",
-                  network: account.activeNetwork!,
-                  fromID: value.swapFrom.id,
+                  network: account?.activeNetwork!,
+                  fromID: value?.swapFrom?.id,
                   fromAmount: value.amountFrom,
                 },
               ]),
@@ -156,7 +156,7 @@ function Swap({
         const { handleSubmit, errors, touched, values, setFieldValue } =
           formikProps;
         const filteredAssets = ASSETS.filter(
-          (asset) => asset.id !== values.swapFrom.id
+          (asset) => asset.id !== values?.swapFrom?.id
         );
         const slippageVal =
           (values.amountFrom *
@@ -175,9 +175,9 @@ function Swap({
                   <Select
                     label="Swap from"
                     name="swapFrom"
-                    options={account.assets
+                    options={account?.assets
                       .filter(
-                        (asset) => account.activeNetwork === asset.network
+                        (asset) => account?.activeNetwork === asset.network
                       )
                       .map((asset: IAsset) => ({
                         value: asset,
@@ -217,7 +217,7 @@ function Swap({
                     label="Add amount"
                     type="number"
                     value={
-                      values?.swapTo.id !== values?.swapFrom.id
+                      values?.swapTo.id !== values?.swapFrom?.id
                         ? values.amountFrom > 0
                           ? (values.amountFrom - slippageVal).toString()
                           : ""

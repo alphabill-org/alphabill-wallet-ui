@@ -1,5 +1,6 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
+import CryptoJS from "crypto-js";
 
 import { Form, FormFooter, FormContent } from "../Form/Form";
 import Button from "../Button/Button";
@@ -7,10 +8,14 @@ import Textfield from "../Textfield/Textfield";
 
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../Spacer/Spacer";
-import { IAccountProps } from "../../types/Types";
 import { extractFormikError } from "../../utils/utils";
 
-function Login(props: IAccountProps): JSX.Element | null {
+export interface ILoginProps {
+  setIsCreateAccountView: (e: any) => void;
+  setIsLoggedIn: (e: any) => void;
+}
+
+function Login(props: ILoginProps): JSX.Element | null {
   return (
     <div className="login pad-24">
       <Spacer mb={56} />
@@ -22,21 +27,26 @@ function Login(props: IAccountProps): JSX.Element | null {
       <Spacer mb={60} />
       <Formik
         initialValues={{
-          password: "12345678",
+          password: "",
         }}
-        onSubmit={(values) =>{
-          const updatedData = props.accounts?.map((obj) => {
-            if (obj.id === "3f75cb8f3e692ac2e9a43bdb3d04d1bf8551b3190768f46dcfa379029a8686dd") {
-              return { ...obj, isActive: true };
-            } else return { ...obj, isActive: false };
-          });
+        onSubmit={(values) => {
+          const keys = localStorage.getItem("pubKeys");
+          const encrypted = localStorage.getItem("encryptedKeys") || "";
+          const decrypted = CryptoJS.AES.decrypt(
+            encrypted,
+            values.password
+          );
 
-          props.setAccounts(updatedData);
+          if (
+            keys === decrypted.toString(CryptoJS.enc.Utf8)
+          ) {
+            props.setIsLoggedIn(true);
+          }
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().test(
             "empty-or-8-characters-check",
-            "Password must be at least 8 characters",
+            "password must be at least 8 characters",
             (password) => !password || password.length >= 8
           ),
         })}
@@ -51,7 +61,7 @@ function Login(props: IAccountProps): JSX.Element | null {
                   <Textfield
                     id="password"
                     name="password"
-                    label="Password"
+                    label="password"
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
                   />
@@ -65,6 +75,15 @@ function Login(props: IAccountProps): JSX.Element | null {
                   >
                     Unlock
                   </Button>
+                  <Spacer mb={16} />
+                  <Button
+                    big={true}
+                    block={true}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Import a wallet
+                  </Button>
                 </FormFooter>
               </Form>
             </form>
@@ -74,13 +93,18 @@ function Login(props: IAccountProps): JSX.Element | null {
 
       <div className="login__footer">
         <div className="flex">
-          <div>
-            Unable to log in? <a href="/#">Try another method</a>
-          </div>
+          <Button
+            big={true}
+            block={true}
+            type="button"
+            variant="primary"
+            onClick={() => {
+              props.setIsCreateAccountView?.(true);
+            }}
+          >
+            Create a wallet
+          </Button>
         </div>
-        <Spacer mb={4} />
-        <a href="/#">Reset your wallet or create a new wallet</a>
-        <Spacer mb={32} />
       </div>
     </div>
   );
