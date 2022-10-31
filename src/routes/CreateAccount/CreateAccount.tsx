@@ -1,23 +1,22 @@
 import { Formik } from "formik";
 import { HDKey } from "@scure/bip32";
-import { generateMnemonic, mnemonicToSeedSync } from "bip39";
+import { generateMnemonic, mnemonicToSeedSync, mnemonicToEntropy } from "bip39";
 import * as Yup from "yup";
-import shaJS from "sha.js";
 import CryptoJS from "crypto-js";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
-import { Form, FormFooter, FormContent } from "../Form/Form";
-import Button from "../Button/Button";
-import Spacer from "../Spacer/Spacer";
-import TextAreaField from "../TextAreaField/TextAreaField";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import Button from "../../components/Button/Button";
+import Spacer from "../../components/Spacer/Spacer";
+import TextAreaField from "../../components/TextAreaField/TextAreaField";
 import { extractFormikError } from "../../utils/utils";
-import Textfield from "../Textfield/Textfield";
+import Textfield from "../../components/Textfield/Textfield";
+import { ReactComponent as Back } from "../../images/back-ico.svg";
+import { useAuth } from "../../hooks/useAuth";
 
-export interface ICreateAccountProps {
-  setIsLoggedIn: (e: any) => void;
-  setIsCreateAccountView: (e: any) => void;
-}
-
-function CreateAccount(props: ICreateAccountProps): JSX.Element | null {
+function CreateAccount(): JSX.Element | null {
+  const { login } = useAuth();
   const mnemonic = generateMnemonic();
 
   const downloadTxtFile = () => {
@@ -34,6 +33,9 @@ function CreateAccount(props: ICreateAccountProps): JSX.Element | null {
   return (
     <div className="create-account">
       <div className="actions__header">
+        <Link to="/" className="back-btn">
+          <Back />
+        </Link>
         <div className="actions__title">Create Account</div>
       </div>
       <Spacer mb={16} />
@@ -61,52 +63,38 @@ function CreateAccount(props: ICreateAccountProps): JSX.Element | null {
             const seed = mnemonicToSeedSync(mnemonic);
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
-            const hashingPrivKey = hashingKey.privateKey;
             const hashingPubKey = hashingKey.publicKey;
-            const data = {
-              keys: {
-                account1: {
-                  privKey:
-                    "0x" +
-                    CryptoJS.AES.encrypt(
-                      Buffer.from(hashingPrivKey!).toString("hex"),
-                      values.password
-                    ),
-                  pubKey: "0x" + Buffer.from(hashingPubKey!).toString("hex"),
-                  keyHash: {
-                    sha256: CryptoJS.AES.encrypt(
-                      shaJS("sha256").update(hashingPubKey!).digest("hex"),
-                      values.password
-                    ),
-                    sha512: CryptoJS.AES.encrypt(
-                      shaJS("sha512").update(hashingPubKey!).digest("hex"),
-                      values.password
-                    ),
-                  },
-                },
-              },
-            };
 
             const encrypted = CryptoJS.AES.encrypt(
-              data.keys.account1.pubKey,
+              "0x" + Buffer.from(hashingPubKey!).toString("hex"),
               values.password
             ).toString();
 
             const decrypted = CryptoJS.AES.decrypt(encrypted, values.password);
 
-            chrome?.storage?.local?.set({ enenKeys: data });
-            localStorage.setItem("pubKeys", data.keys.account1.pubKey);
-            localStorage.setItem("encryptedKeys", encrypted);
-            console.log(data.keys.account1.pubKey);
+            localStorage.setItem(
+              "ab_wallet_entropy",
+              CryptoJS.AES.encrypt(
+                mnemonicToEntropy(mnemonic),
+                values.password
+              ).toString()
+            );
 
-            if (
-              data.keys.account1.pubKey ===
-              decrypted.toString(CryptoJS.enc.Utf8)
-            ) {
-              props.setIsLoggedIn(true);
-            }
-
-            props.setIsCreateAccountView(false);
+            axios
+              .post<void>(
+                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                {
+                  pubkey: decrypted.toString(CryptoJS.enc.Utf8),
+                }
+              )
+              .then((r) => {
+                if (
+                  "0x" + Buffer.from(hashingPubKey!).toString("hex") ===
+                  decrypted.toString(CryptoJS.enc.Utf8)
+                ) {
+                  login("0x" + Buffer.from(hashingPubKey!).toString("hex"));
+                }
+              });
           }}
         >
           {(formikProps) => {

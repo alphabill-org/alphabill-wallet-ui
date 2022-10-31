@@ -1,19 +1,17 @@
 import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import CreateAccount from "./components/CreateAccount/CreateAccount";
-import Actions from "./components/Actions/Actions";
+import CreateAccount from "./routes/CreateAccount/CreateAccount";
 import Animations from "./components/Animations/Animations";
-import Dashboard from "./components/Dashboard/Dashboard";
-import Header from "./components/Header/Header";
-import Login from "./components/Login/Login";
+
+import Login from "./routes/Login/Login";
 import { IAccount } from "./types/Types";
+import Home from "./routes/Home";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 function App() {
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
-  const [isCreateAccountView, setIsCreateAccountView] =
-    useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const [actionsView, setActionsView] = useState("Buy");
   const [accounts, setAccounts] = useState<IAccount[]>([]);
@@ -22,41 +20,27 @@ function App() {
     <div className="app">
       <Animations />
       <div className="app__content">
-        {isLoggedIn ? (
-          <>
-            <Header
-              accounts={accounts}
-              setAccounts={setAccounts}
-              setActionsView={setActionsView}
-              setIsActionsViewVisible={setIsActionsViewVisible}
-            />
-            <Dashboard
-              accounts={accounts}
-              setAccounts={setAccounts}
-              setActionsView={setActionsView}
-              setIsActionsViewVisible={setIsActionsViewVisible}
-            />
-            <Actions
-              accounts={accounts}
-              setAccounts={setAccounts}
-              actionsView={actionsView}
-              setActionsView={setActionsView}
-              setIsActionsViewVisible={setIsActionsViewVisible}
-              isActionsViewVisible={isActionsViewVisible}
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          </>
-        ) : isCreateAccountView ? (
-          <CreateAccount
-            setIsLoggedIn={setIsLoggedIn}
-            setIsCreateAccountView={setIsCreateAccountView}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home
+                  accounts={accounts}
+                  setAccounts={setAccounts}
+                  actionsView={actionsView}
+                  setActionsView={setActionsView}
+                  setIsActionsViewVisible={setIsActionsViewVisible}
+                  isActionsViewVisible={isActionsViewVisible}
+                />
+              </ProtectedRoute>
+            }
           />
-        ) : (
-          <Login
-            setIsLoggedIn={setIsLoggedIn}
-            setIsCreateAccountView={setIsCreateAccountView}
-          />
-        )}
+          <Route path="/login" element={<Login />} />
+          <Route path="/create-wallet" element={<CreateAccount />} />
+          <Route path="/recover-wallet" element={<CreateAccount />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
     </div>
   );

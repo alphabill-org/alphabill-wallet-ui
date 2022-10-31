@@ -19,12 +19,12 @@ import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
 import Profile from "../../../images/profile.svg";
 import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
+import { useAuth } from "../../../hooks/useAuth";
 
 export interface IAccountViewProps {
   setAccounts: (e: any) => void;
   setActionsView: (e: any) => void;
   setIsActionsViewVisible: (e: any) => void;
-  setIsLoggedIn: (e: any) => void;
   accounts: IAccount[];
 }
 
@@ -33,9 +33,9 @@ function AccountView({
   setAccounts,
   setActionsView,
   setIsActionsViewVisible,
-  setIsLoggedIn,
 }: IAccountViewProps): JSX.Element | null {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const { logout } = useAuth();
 
   return (
     <div className={classNames("account__view pad-24-h")}>
@@ -119,12 +119,7 @@ function AccountView({
 
         <div
           onClick={() => {
-            const updatedData = accounts?.map((obj) => {
-              return { ...obj, isActive: false };
-            });
-            setIsLoggedIn(false)
-            setAccounts(updatedData);
-            setIsActionsViewVisible(false);
+            logout();
           }}
           className="account__menu-item"
         >

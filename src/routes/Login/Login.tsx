@@ -1,21 +1,22 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
 import CryptoJS from "crypto-js";
+import { Link } from "react-router-dom";
+import { HDKey } from "@scure/bip32";
+import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 
-import { Form, FormFooter, FormContent } from "../Form/Form";
-import Button from "../Button/Button";
-import Textfield from "../Textfield/Textfield";
-
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import Button from "../../components/Button/Button";
+import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
-import Spacer from "../Spacer/Spacer";
+import Spacer from "../../components/Spacer/Spacer";
 import { extractFormikError } from "../../utils/utils";
+import { useAuth } from "../../hooks/useAuth";
+import axios from "axios";
 
-export interface ILoginProps {
-  setIsCreateAccountView: (e: any) => void;
-  setIsLoggedIn: (e: any) => void;
-}
+function Login(): JSX.Element | null {
+  const { login } = useAuth();
 
-function Login(props: ILoginProps): JSX.Element | null {
   return (
     <div className="login pad-24">
       <Spacer mb={56} />
@@ -30,17 +31,31 @@ function Login(props: ILoginProps): JSX.Element | null {
           password: "",
         }}
         onSubmit={(values) => {
-          const keys = localStorage.getItem("pubKeys");
-          const encrypted = localStorage.getItem("encryptedKeys") || "";
-          const decrypted = CryptoJS.AES.decrypt(
-            encrypted,
+          const entropy = localStorage.getItem("ab_wallet_entropy") || "";
+          const entropyDecrypted = CryptoJS.AES.decrypt(
+            entropy,
             values.password
           );
 
-          if (
-            keys === decrypted.toString(CryptoJS.enc.Utf8)
-          ) {
-            props.setIsLoggedIn(true);
+          const seed = mnemonicToSeedSync(
+            entropyToMnemonic(entropyDecrypted?.toString(CryptoJS.enc.Utf8))
+          );
+          const masterKey = HDKey.fromMasterSeed(seed);
+          const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
+          const hashingPubKey = hashingKey.publicKey;
+          const prefixedHashingPubKey =
+            "0x" + Buffer.from(hashingPubKey!).toString("hex");
+
+          axios
+            .get<void>(
+              "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/balance?pubkey=" +
+                prefixedHashingPubKey +
+                ""
+            )
+            .then(() => login(prefixedHashingPubKey));
+
+          if (Buffer.from(hashingPubKey!).toString("hex")) {
+            login(prefixedHashingPubKey);
           }
         }}
         validationSchema={Yup.object().shape({
@@ -75,15 +90,6 @@ function Login(props: ILoginProps): JSX.Element | null {
                   >
                     Unlock
                   </Button>
-                  <Spacer mb={16} />
-                  <Button
-                    big={true}
-                    block={true}
-                    type="button"
-                    variant="secondary"
-                  >
-                    Import a wallet
-                  </Button>
                 </FormFooter>
               </Form>
             </form>
@@ -92,19 +98,11 @@ function Login(props: ILoginProps): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <div className="flex">
-          <Button
-            big={true}
-            block={true}
-            type="button"
-            variant="primary"
-            onClick={() => {
-              props.setIsCreateAccountView?.(true);
-            }}
-          >
-            Create a wallet
-          </Button>
-        </div>
+        <Link to="/register">{"Forgot password? Recover wallet"}</Link>
+        <Spacer mb={16} />
+        <Link to="/create-wallet">
+          {"Don't have an wallet? Create a wallet"}
+        </Link>
       </div>
     </div>
   );

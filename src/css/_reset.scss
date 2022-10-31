@@ -237,6 +237,10 @@ a {
 
   &:hover {
     color: $color-white;
+
+    svg {
+      fill: $color-white;
+    }
   }
 }
 

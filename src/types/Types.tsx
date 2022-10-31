@@ -32,7 +32,6 @@ export interface IActionProps {
   accounts?: IAccount[];
   setAccounts: (e: any) => void;
   setActionsView: (e: any) => void;
-  setIsLoggedIn: (e: any) => void;
 }
 
 export interface IDashboardProps {
