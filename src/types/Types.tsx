@@ -30,7 +30,7 @@ export interface IActionProps {
   actionsView: string;
   account?: IAccount;
   accounts?: IAccount[];
-  setAccounts: (e: any) => void;
+  setAccounts?: (e: any) => void;
   setActionsView: (e: any) => void;
 }
 

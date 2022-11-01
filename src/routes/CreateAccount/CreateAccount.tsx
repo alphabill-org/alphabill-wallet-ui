@@ -107,7 +107,7 @@ function CreateAccount(): JSX.Element | null {
               localStorage.setItem(
                 "ab_wallet_account_names",
                 "Account 1"
-              )
+              );
               login(pubKeyToHex(hashingPubKey!));
             }
           }}

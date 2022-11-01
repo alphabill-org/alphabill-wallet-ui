@@ -34,18 +34,18 @@ function Actions({
           <Send
             account={account}
             accounts={accounts}
-            setAccounts={setAccounts}
+            setAccounts={setAccounts!}
             setIsActionsViewVisible={setIsActionsViewVisible}
           />
         ) : actionsView === "Account" && accounts ? (
           <Account
             accounts={accounts}
-            setAccounts={setAccounts}
+            setAccounts={setAccounts!}
             setActionsView={setActionsView}
             setIsActionsViewVisible={setIsActionsViewVisible}
           />
         ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount accounts={accounts} setAccounts={setAccounts} />
+          <ImportAccount accounts={accounts} setAccounts={setAccounts!} />
         ) : (
           <></>
         )}
