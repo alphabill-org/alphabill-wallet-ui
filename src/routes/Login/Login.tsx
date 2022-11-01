@@ -1,7 +1,7 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
 import CryptoJS from "crypto-js";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 
@@ -10,12 +10,16 @@ import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError } from "../../utils/utils";
+import { extractFormikError, pubKeyToHex } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import axios from "axios";
 
 function Login(): JSX.Element | null {
-  const { login } = useAuth();
+  const { userKeys, setUserKeys, login } = useAuth();
+
+  if (userKeys && userKeys?.startsWith("0x0")) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="login pad-24">
@@ -30,32 +34,48 @@ function Login(): JSX.Element | null {
         initialValues={{
           password: "",
         }}
-        onSubmit={(values) => {
-          const entropy = localStorage.getItem("ab_wallet_entropy") || "";
-          const entropyDecrypted = CryptoJS.AES.decrypt(
-            entropy,
+        onSubmit={(values, { setErrors }) => {
+          const encryptedEntropy = localStorage.getItem("ab_wallet_entropy");
+          if (!encryptedEntropy) {
+            return setErrors({
+              password: "No active wallet with this password",
+            });
+          }
+          const decryptedEntropy = CryptoJS.AES.decrypt(
+            encryptedEntropy!,
             values.password
-          );
+          ).toString(CryptoJS.enc.Latin1);
 
-          const seed = mnemonicToSeedSync(
-            entropyToMnemonic(entropyDecrypted?.toString(CryptoJS.enc.Utf8))
-          );
+          if (
+            decryptedEntropy.length > 16 &&
+            decryptedEntropy.length < 32 &&
+            decryptedEntropy.length % 4 === 0
+          ) {
+            return setErrors({ password: "Password is incorrect!" });
+          }
+          const decryptedKeys = CryptoJS.AES.decrypt(
+            userKeys!,
+            values.password
+          ).toString(CryptoJS.enc.Latin1);
+
+          const mnemonic = entropyToMnemonic(decryptedEntropy);
+          const seed = mnemonicToSeedSync(mnemonic);
           const masterKey = HDKey.fromMasterSeed(seed);
-          const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
-          const hashingPubKey = hashingKey.publicKey;
-          const prefixedHashingPubKey =
-            "0x" + Buffer.from(hashingPubKey!).toString("hex");
 
-          axios
-            .get<void>(
-              "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/balance?pubkey=" +
-                prefixedHashingPubKey +
-                ""
-            )
-            .then(() => login(prefixedHashingPubKey));
+          const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
+          const controlHashingPubKey = controlHashingKey.publicKey;
 
-          if (Buffer.from(hashingPubKey!).toString("hex")) {
-            login(prefixedHashingPubKey);
+          if (
+            pubKeyToHex(controlHashingPubKey!) !== decryptedKeys?.split(" ")[0]
+          ) {
+            return setErrors({ password: "Password is incorrect!" });
+          }
+
+          if (
+            pubKeyToHex(controlHashingPubKey!) === decryptedKeys?.split(" ")[0]
+          ) {
+            setUserKeys(decryptedKeys);
+            login();
           }
         }}
         validationSchema={Yup.object().shape({
@@ -74,7 +94,7 @@ function Login(): JSX.Element | null {
               <Form>
                 <FormContent>
                   <Textfield
-                    id="password"
+                    id="passwordLogin"
                     name="password"
                     label="password"
                     type="password"

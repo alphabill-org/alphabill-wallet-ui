@@ -38,7 +38,7 @@ function Dashboard({
       return 1;
     }
     return 0;
-  }).filter(asset => asset.network === account.activeNetwork);
+  }).filter(asset => asset.network === account?.activeNetwork);
 
   return (
     <div className="dashboard">
@@ -105,7 +105,7 @@ function Dashboard({
             setIsBuyPopupVisible(true);
           }}
         >
-          Request Tokens
+          Request
         </Button>
         <Button
           variant="primary"
@@ -126,7 +126,7 @@ function Dashboard({
               active: isAssetsColActive === true,
             })}
           >
-            Assets
+            Bills
           </div>
           <div
             onClick={() => setIsAssetsColActive(false)}

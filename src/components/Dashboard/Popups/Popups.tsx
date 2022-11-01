@@ -47,7 +47,7 @@ function Popups({
           testnet features on the network.
           <Spacer mb={24} />
           <div className="t-medium-small flex t-bold">
-            Account: <div className="t-ellipsis pad-8-h">{account.id}</div>
+            Account: <div className="t-ellipsis pad-8-h">{account?.id}</div>
           </div>
           <Spacer mb={8} />
           <Button
@@ -58,7 +58,7 @@ function Popups({
                 method: "post",
                 url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
                 data: {
-                  pubKey: account.id,
+                  pubKey: account?.id,
                 },
               })
                 .then((data) => {
@@ -89,11 +89,11 @@ function Popups({
         >
           <Formik
             initialValues={{
-              accountName: account.name,
+              accountName: account?.name,
             }}
             onSubmit={async (values, { resetForm }) => {
               const updatedAccounts = accounts?.map((obj) => {
-                if (obj?.id === account.id) {
+                if (obj?.id === account?.id) {
                   return { ...obj, name: values.accountName };
                 } else return { ...obj };
               });

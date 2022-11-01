@@ -10,10 +10,11 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { extractFormikError } from "../../utils/utils";
+import { extractFormikError, pubKeyToHex } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
+import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 function CreateAccount(): JSX.Element | null {
   const { login } = useAuth();
@@ -66,7 +67,7 @@ function CreateAccount(): JSX.Element | null {
             const hashingPubKey = hashingKey.publicKey;
 
             const encrypted = CryptoJS.AES.encrypt(
-              "0x" + Buffer.from(hashingPubKey!).toString("hex"),
+              pubKeyToHex(hashingPubKey!),
               values.password
             ).toString();
 
@@ -80,22 +81,35 @@ function CreateAccount(): JSX.Element | null {
               ).toString()
             );
 
+            /*
             axios
               .post<void>(
                 "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
                 {
-                  pubkey: decrypted.toString(CryptoJS.enc.Utf8),
+                  pubkey: decrypted.toString(CryptoJS.enc.Latin1),
                 }
               )
               .then((r) => {
                 // Just to double check
                 if (
-                  "0x" + Buffer.from(hashingPubKey!).toString("hex") ===
-                  decrypted.toString(CryptoJS.enc.Utf8)
+                  pubKeyToHex(hashingPubKey!) ===
+                  decrypted.toString(CryptoJS.enc.Latin1)
                 ) {
-                  login("0x" + Buffer.from(hashingPubKey!).toString("hex"));
+                  login(pubKeyToHex(hashingPubKey!));
                 }
               });
+            */
+
+            if (
+              pubKeyToHex(hashingPubKey!) ===
+              decrypted.toString(CryptoJS.enc.Latin1)
+            ) {
+              localStorage.setItem(
+                "ab_wallet_account_names",
+                "Account 1"
+              )
+              login(pubKeyToHex(hashingPubKey!));
+            }
           }}
         >
           {(formikProps) => {
@@ -116,7 +130,7 @@ function CreateAccount(): JSX.Element | null {
                       disabled
                     />
                     <Textfield
-                      id="password"
+                      id="passwordCreateAccount"
                       name="password"
                       label="Create password"
                       type="password"

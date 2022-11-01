@@ -8,27 +8,29 @@ interface IUseLocalStorageProps {
 
 interface IUserContext {
   userKeys: string | null;
-  login: (e: any) => void;
+  login: (e?: any) => void;
   logout: () => void;
+  setUserKeys: (e: any) => void;
 }
 
 const AuthContext = createContext<IUserContext>({
   userKeys: null,
-  login: (e: any) => {},
+  login: (e?: any) => {},
   logout: () => {},
+  setUserKeys: (e: any) => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
-  const [userKeys, setUserKeys] = useLocalStorage("ab_wallet_keys", null);
+  const [userKeys, setUserKeys] = useLocalStorage("ab_wallet_pub_keys", null);
+
   const navigate = useNavigate();
 
-  const login = async (data: string | null) => {
-    setUserKeys(data);
+  const login = async (data?: string | null) => {
+    data && setUserKeys(data);
     navigate("/", { replace: true });
   };
 
   const logout = () => {
-    setUserKeys(null);
     navigate("/", { replace: true });
   };
 
@@ -36,6 +38,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     userKeys,
     login,
     logout,
+    setUserKeys,
   };
 
   return (
