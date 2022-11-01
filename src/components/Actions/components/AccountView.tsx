@@ -10,10 +10,8 @@ import { extractFormikError } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { IAccount } from "../../../types/Types";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
-import { ReactComponent as HardwareIco } from "../../../images/hardware-ico.svg";
 import { ReactComponent as ImportIco } from "../../../images/import-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
-import { ReactComponent as SettingIco } from "../../../images/settings-ico.svg";
 import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
 
 import Profile from "../../../images/profile.svg";
@@ -103,20 +101,6 @@ function AccountView({
           </div>
         </div>
 
-        <div className="account__menu-item">
-          <div className="account__menu-item-icon">
-            <HardwareIco />
-          </div>
-          <div className="account__menu-item-title">Hardware Wallet</div>
-        </div>
-
-        <div className="account__menu-item">
-          <div className="account__menu-item-icon">
-            <SettingIco />
-          </div>
-          <div className="account__menu-item-title">Settings</div>
-        </div>
-
         <div
           onClick={() => {
             logout();
@@ -149,7 +133,7 @@ function AccountView({
                 name: values.accountName,
                 isActive: true,
                 assets: [],
-                activeNetwork: "AB Mainnet",
+                activeNetwork: "AB Testnet",
                 networks: [
                   {
                     id: "AB Testnet",

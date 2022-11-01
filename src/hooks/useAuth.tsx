@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useCallback } from "react";
+import { createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
 
@@ -7,33 +7,33 @@ interface IUseLocalStorageProps {
 }
 
 interface IUserContext {
-  user: string | null;
+  userKeys: string | null;
   login: (e: any) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<IUserContext>({
-  user: null,
+  userKeys: null,
   login: (e: any) => {},
   logout: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
-  const [user, setUser] = useLocalStorage("ab_wallet_keys", null);
+  const [userKeys, setUserKeys] = useLocalStorage("ab_wallet_keys", null);
   const navigate = useNavigate();
 
   const login = async (data: string | null) => {
-    setUser(data);
+    setUserKeys(data);
     navigate("/", { replace: true });
   };
 
   const logout = () => {
-    setUser(null);
+    setUserKeys(null);
     navigate("/", { replace: true });
   };
 
   const value = {
-    user,
+    userKeys,
     login,
     logout,
   };

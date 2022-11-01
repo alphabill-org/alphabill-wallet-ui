@@ -16,6 +16,7 @@
     "storage"
   ],
   "host_permissions": [
-    "*://*.dev-ab-wallet-backend.abdev1.guardtime.com/*"
+    "*://*.dev-ab-wallet-backend.abdev1.guardtime.com/*",
+    "*://*.dev-ab-faucet-api.abdev1.guardtime.com/*"
   ]
 }

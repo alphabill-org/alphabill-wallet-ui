@@ -6,8 +6,8 @@ export interface IProtectedRouteProps {
 }
 
 function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
-  const { user } = useAuth();
-  if (!user) {
+  const { userKeys } = useAuth();
+  if (!userKeys) {
     return <Navigate to="/login" />;
   }
   return <>{children}</>;

@@ -88,6 +88,7 @@ function CreateAccount(): JSX.Element | null {
                 }
               )
               .then((r) => {
+                // Just to double check
                 if (
                   "0x" + Buffer.from(hashingPubKey!).toString("hex") ===
                   decrypted.toString(CryptoJS.enc.Utf8)

@@ -10,6 +10,7 @@ function Home({
   isActionsViewVisible,
   accounts,
   setAccounts,
+  account
 }: IActionProps): JSX.Element {
   return (
     <>
@@ -18,12 +19,14 @@ function Home({
         setAccounts={setAccounts}
         setActionsView={setActionsView}
         setIsActionsViewVisible={setIsActionsViewVisible}
+        account={account}
       />
       <Dashboard
         accounts={accounts}
         setAccounts={setAccounts}
         setActionsView={setActionsView}
         setIsActionsViewVisible={setIsActionsViewVisible}
+        account={account}
       />
       <Actions
         accounts={accounts}

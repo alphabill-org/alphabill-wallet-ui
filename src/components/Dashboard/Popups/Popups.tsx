@@ -1,13 +1,16 @@
+import { useState } from "react";
+
 import Popup from "../../Popup/Popup";
 import * as Yup from "yup";
 import { Formik } from "formik";
+import axios from "axios";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
-import Moonpay from "../../../images/moonpay.svg";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
+
+import { extractFormikError } from "../../../utils/utils";
 import { IAccount } from "../../../types/Types";
 
 export interface IPopupsProps {
@@ -29,28 +32,51 @@ function Popups({
   accounts,
   setAccounts,
 }: IPopupsProps): JSX.Element | null {
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <>
       <Popup
         isPopupVisible={isBuyPopupVisible}
         setIsPopupVisible={setIsBuyPopupVisible}
-        title=""
+        title={isRenamePopupVisible ? "" : "Experiment with Test Tokens"}
       >
-        <div>
+        <div className="mw-100p">
+          <Spacer mb={24} />
+          Alphabill provides free test tokens that users can deploy to trial
+          testnet features on the network.
+          <Spacer mb={24} />
+          <div className="t-medium-small flex t-bold">
+            Account: <div className="t-ellipsis pad-8-h">{account.id}</div>
+          </div>
           <Spacer mb={8} />
-          <img className="m-auto" height="32" src={Moonpay} alt="Profile" />
-          <Spacer mb={16} />
-          MoonPay supports popular payment methods, including Visa, Mastercard,
-          Apple / Google / Samsung Pay, and bank transfers in 145+ countries.
-          Tokens deposit into your MetaMask account.
-          <Spacer mb={16} />
           <Button
-            onClick={() => setIsBuyPopupVisible(false)}
+            onClick={() => {
+              setIsLoading(true);
+              setIsBuyPopupVisible(false);
+              axios({
+                method: "post",
+                url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
+                data: {
+                  pubKey: account.id,
+                },
+              })
+                .then((data) => {
+                  setIsLoading(false);
+                  return data;
+                })
+                .catch((error) => {
+                  console.error(error.response.data.error);
+                  setIsLoading(false);
+                  return;
+                });
+            }}
             big={true}
             block={true}
+            working={isLoading}
             variant="primary"
           >
-            Cancel
+            Request From Faucet
           </Button>
         </div>
       </Popup>

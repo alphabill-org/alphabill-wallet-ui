@@ -38,7 +38,7 @@ function Dashboard({
       return 1;
     }
     return 0;
-  });
+  }).filter(asset => asset.network === account.activeNetwork);
 
   return (
     <div className="dashboard">
@@ -105,7 +105,7 @@ function Dashboard({
             setIsBuyPopupVisible(true);
           }}
         >
-          Buy
+          Request Tokens
         </Button>
         <Button
           variant="primary"
@@ -115,15 +115,6 @@ function Dashboard({
           }}
         >
           Send
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setActionsView("Swap");
-            setIsActionsViewVisible(true);
-          }}
-        >
-          Swap
         </Button>
       </div>
       <Spacer mb={32} />

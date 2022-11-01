@@ -6,7 +6,6 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
 import ImportAccount from "./components/ImportAccount";
-import Swap from "./components/Swap";
 
 function Actions({
   actionsView,
@@ -33,13 +32,6 @@ function Actions({
       <div className="actions__view">
         {actionsView === "Send" ? (
           <Send
-            account={account}
-            accounts={accounts}
-            setAccounts={setAccounts}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
-        ) : actionsView === "Swap" ? (
-          <Swap
             account={account}
             accounts={accounts}
             setAccounts={setAccounts}

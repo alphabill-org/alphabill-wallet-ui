@@ -10,6 +10,10 @@
   &-justify-sb {
     justify-content: space-between;
   }
+
+  &-justify-c {
+    justify-content: center;
+  }
 }
 
 .flex-group-2 {
@@ -47,6 +51,10 @@
   padding: 24px 0;
 }
 
+.pad-8-h {
+  padding: 0 8px;
+}
+
 // Icons
 .icon-wrap {
   height: 32px;
@@ -78,14 +86,42 @@
   line-height: 22px;
 }
 
+.t-regular {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 26px;
+}
+
 .t-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: pre;
 }
 
+.t-bold {
+  font-weight: bold;
+}
+
 // Color
 
 .c-light {
   color: $color-light;
+}
+
+.c-primary {
+  color: $color-primary;
+}
+
+.c-blue {
+  color: $color-blue;
+}
+
+.f-blue {
+  fill: $color-blue;
+}
+
+// Widths
+
+.mw-100p {
+  max-width: 100%;
 }
