@@ -92,6 +92,18 @@ function Popups({
               accountName: account?.name,
             }}
             onSubmit={async (values, { resetForm }) => {
+              const accountNames =
+                localStorage.getItem("ab_wallet_account_names") || "";
+              const accountNamesObj = JSON.parse(accountNames);
+              localStorage.setItem(
+                "ab_wallet_account_names",
+                JSON.stringify(
+                  Object.assign(accountNamesObj, {
+                    ["_" + account.id]: values.accountName,
+                  })
+                )
+              );
+
               const updatedAccounts = accounts?.map((obj) => {
                 if (obj?.id === account?.id) {
                   return { ...obj, name: values.accountName };

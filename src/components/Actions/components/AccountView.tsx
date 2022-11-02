@@ -4,10 +4,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 
 import { HDKey } from "@scure/bip32";
-import {
-  mnemonicToSeedSync,
-  entropyToMnemonic,
-} from "bip39";
+import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import CryptoJS from "crypto-js";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
@@ -139,7 +136,7 @@ function AccountView({
               `m/44'/634'/${accountIndex}'/0/0`
             );
             const hashingPubKey = hashingKey.publicKey;
-
+            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
 
@@ -152,18 +149,23 @@ function AccountView({
             if (
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
-              setUserKeys(userKeys?.concat(" ", pubKeyToHex(hashingPubKey!)));
-              const names = localStorage
-              .getItem("ab_wallet_account_names") || '';
+              setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
+              const accountNames =
+                localStorage.getItem("ab_wallet_account_names") || "";
+              const accountNamesObj = JSON.parse(accountNames);
               localStorage.setItem(
                 "ab_wallet_account_names",
-                names.concat(",", values.accountName)
+                JSON.stringify(
+                  Object.assign(accountNamesObj, {
+                    ["_" + prefixedHashingPubKey]: values.accountName,
+                  })
+                )
               );
             }
 
             const addedAccount = accounts?.concat([
               {
-                id: pubKeyToHex(hashingPubKey!),
+                id: prefixedHashingPubKey,
                 name: values.accountName,
                 isActive: true,
                 assets: [],
@@ -179,7 +181,7 @@ function AccountView({
             ]);
 
             const updatedAccounts = addedAccount?.map((obj) => {
-              if (obj?.id !== pubKeyToHex(hashingPubKey!)) {
+              if (obj?.id !== prefixedHashingPubKey) {
                 return { ...obj, isActive: false };
               } else return { ...obj };
             });
@@ -298,6 +300,10 @@ function AccountView({
             const masterKey = HDKey.fromMasterSeed(seed);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
+            const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
+            const encryptedNames = userKeys
+              ? CryptoJS.AES.encrypt(accountNames, values.password).toString()
+              : "";
             const encryptedKeys = userKeys
               ? CryptoJS.AES.encrypt(userKeys, values.password).toString()
               : "";
@@ -312,6 +318,7 @@ function AccountView({
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
               setUserKeys(encryptedKeys);
+              localStorage.setItem("ab_wallet_account_names", encryptedNames);
               logout();
             }
 

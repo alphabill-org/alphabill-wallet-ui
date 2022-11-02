@@ -58,6 +58,11 @@ function Login(): JSX.Element | null {
             userKeys!,
             values.password
           ).toString(CryptoJS.enc.Latin1);
+          const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
+          const decryptedNames = CryptoJS.AES.decrypt(
+            accountNames,
+            values.password
+          ).toString(CryptoJS.enc.Latin1);
 
           const mnemonic = entropyToMnemonic(decryptedEntropy);
           const seed = mnemonicToSeedSync(mnemonic);
@@ -76,6 +81,7 @@ function Login(): JSX.Element | null {
             pubKeyToHex(controlHashingPubKey!) === decryptedKeys?.split(" ")[0]
           ) {
             setUserKeys(decryptedKeys);
+            localStorage.setItem("ab_wallet_account_names", decryptedNames);
             login();
           }
         }}

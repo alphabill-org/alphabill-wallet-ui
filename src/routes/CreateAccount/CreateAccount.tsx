@@ -73,9 +73,10 @@ function CreateAccount(): JSX.Element | null {
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const hashingPubKey = hashingKey.publicKey;
+            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
 
             const encrypted = CryptoJS.AES.encrypt(
-              pubKeyToHex(hashingPubKey!),
+              prefixedHashingPubKey,
               values.password
             ).toString();
 
@@ -98,22 +99,17 @@ function CreateAccount(): JSX.Element | null {
               )
               .then((r) => {
                 if (
-                  pubKeyToHex(hashingPubKey!) ===
+                  prefixedHashingPubKey ===
                   decrypted.toString(CryptoJS.enc.Latin1)
                 ) {
-                  localStorage.setItem("ab_wallet_account_names", "Account 1");
-                  login(pubKeyToHex(hashingPubKey!));
+                  localStorage.setItem(
+                    "ab_wallet_account_names",
+                    JSON.stringify({ ["_" + prefixedHashingPubKey]: "Account 1" })
+                  );
+                  login(prefixedHashingPubKey);
                 }
               })
               .catch(() => setErrors({ passwordConfirm: "Key was not added" }));
-
-            if (
-              pubKeyToHex(hashingPubKey!) ===
-              decrypted.toString(CryptoJS.enc.Latin1)
-            ) {
-              localStorage.setItem("ab_wallet_account_names", "Account 1");
-              login(pubKeyToHex(hashingPubKey!));
-            }
           }}
         >
           {(formikProps) => {
