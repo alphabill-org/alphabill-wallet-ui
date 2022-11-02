@@ -11,6 +11,14 @@
   }
 }
 
+.textfield-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 8px;
+  row-gap: 8px;
+  padding: 8px 0;
+}
+
 .textfield__input {
   width: 100%;
   border: 0;

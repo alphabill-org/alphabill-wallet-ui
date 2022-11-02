@@ -12,12 +12,13 @@ import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
 import { extractFormikError, pubKeyToHex } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
-import axios from "axios";
+import { useApp } from "../../hooks/appProvider";
 
 function Login(): JSX.Element | null {
   const { userKeys, setUserKeys, login } = useAuth();
+  const { balance, balanceIsFetching } = useApp();
 
-  if (userKeys && userKeys?.startsWith("0x0")) {
+  if (userKeys && balance && !balanceIsFetching) {
     return <Navigate to="/" />;
   }
 
@@ -118,7 +119,7 @@ function Login(): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <Link to="/register">{"Forgot password? Recover wallet"}</Link>
+        <Link to="/recover-wallet">{"Forgot password? Recover wallet"}</Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">
           {"Don't have an wallet? Create a wallet"}

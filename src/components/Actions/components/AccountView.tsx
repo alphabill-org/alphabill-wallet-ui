@@ -2,12 +2,10 @@ import classNames from "classnames";
 import { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 
 import { HDKey } from "@scure/bip32";
 import {
   mnemonicToSeedSync,
-  mnemonicToEntropy,
   entropyToMnemonic,
 } from "bip39";
 import CryptoJS from "crypto-js";
@@ -151,30 +149,13 @@ function AccountView({
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            /*axios
-              .post<void>(
-                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
-                {
-                  pubkey: hashingPubKey
-                }
-              )
-              .then((r) => {
-                // Just to double check
-                if (
-                  pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
-                ) {
-                  setUserKeys(userKeys?.concat(" ", pubKeyToHex(hashingPubKey!)));
-                }
-              });
-              */
-
             if (
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
               setUserKeys(userKeys?.concat(" ", pubKeyToHex(hashingPubKey!)));
               const names = localStorage
               .getItem("ab_wallet_account_names") || '';
-              const accountNames = localStorage.setItem(
+              localStorage.setItem(
                 "ab_wallet_account_names",
                 names.concat(",", values.accountName)
               );
@@ -288,7 +269,7 @@ function AccountView({
       >
         <Spacer mb={16} />
         <div className="t-medium-small t-bold">
-          Password is used to encrypt keys in localStorage.
+          Password is used to encrypt wallet keys in localStorage.
         </div>
 
         <Formik
@@ -320,7 +301,6 @@ function AccountView({
             const encryptedKeys = userKeys
               ? CryptoJS.AES.encrypt(userKeys, values.password).toString()
               : "";
-            console.log(userKeys?.split(" ")[0]);
 
             if (
               pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]

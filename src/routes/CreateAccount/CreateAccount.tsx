@@ -14,7 +14,6 @@ import { extractFormikError, pubKeyToHex } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 function CreateAccount(): JSX.Element | null {
   const { login } = useAuth();
@@ -39,8 +38,7 @@ function CreateAccount(): JSX.Element | null {
         </Link>
         <div className="actions__title">Create Account</div>
       </div>
-      <Spacer mb={16} />
-      <div className="pad-24-h">
+      <div className="pad-24">
         <div>
           Your Secret Recovery Phrase is a 12-word phrase that is the “master
           key” to your wallet and your funds. It makes it easy to back up and
@@ -52,6 +50,7 @@ function CreateAccount(): JSX.Element | null {
           initialValues={{
             mnemonic: "",
             password: "",
+            passwordConfirm: "",
           }}
           validationSchema={Yup.object().shape({
             password: Yup.string().test(
@@ -59,8 +58,17 @@ function CreateAccount(): JSX.Element | null {
               "password must be at least 8 characters",
               (password) => !password || password.length >= 8
             ),
+            passwordConfirm: Yup.string().test(
+              "empty-or-8-characters-check",
+              "password must be at least 8 characters",
+              (password) => !password || password.length >= 8
+            ),
           })}
-          onSubmit={(values) => {
+          onSubmit={(values, { setErrors }) => {
+            if (values.password !== values.passwordConfirm) {
+              return setErrors({ passwordConfirm: "Passwords don't match" });
+            }
+
             const seed = mnemonicToSeedSync(mnemonic);
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
@@ -81,7 +89,6 @@ function CreateAccount(): JSX.Element | null {
               ).toString()
             );
 
-            /*
             axios
               .post<void>(
                 "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
@@ -90,24 +97,21 @@ function CreateAccount(): JSX.Element | null {
                 }
               )
               .then((r) => {
-                // Just to double check
                 if (
                   pubKeyToHex(hashingPubKey!) ===
                   decrypted.toString(CryptoJS.enc.Latin1)
                 ) {
+                  localStorage.setItem("ab_wallet_account_names", "Account 1");
                   login(pubKeyToHex(hashingPubKey!));
                 }
-              });
-            */
+              })
+              .catch(() => setErrors({ passwordConfirm: "Key was not added" }));
 
             if (
               pubKeyToHex(hashingPubKey!) ===
               decrypted.toString(CryptoJS.enc.Latin1)
             ) {
-              localStorage.setItem(
-                "ab_wallet_account_names",
-                "Account 1"
-              );
+              localStorage.setItem("ab_wallet_account_names", "Account 1");
               login(pubKeyToHex(hashingPubKey!));
             }
           }}
@@ -132,9 +136,18 @@ function CreateAccount(): JSX.Element | null {
                     <Textfield
                       id="passwordCreateAccount"
                       name="password"
-                      label="Create password"
+                      label="New password (8 characters min)"
                       type="password"
                       error={extractFormikError(errors, touched, ["password"])}
+                    />
+                    <Textfield
+                      id="passwordCreateAccountConfirm"
+                      name="passwordConfirm"
+                      label="Confirm password"
+                      type="password"
+                      error={extractFormikError(errors, touched, [
+                        "passwordConfirm",
+                      ])}
                     />
                   </FormContent>
                   <FormFooter>

@@ -71,7 +71,9 @@
     width: 100%;
     justify-content: space-between;
     z-index: 1;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box
   }
 
   h1 {

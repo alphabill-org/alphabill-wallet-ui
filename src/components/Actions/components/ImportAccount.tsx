@@ -34,7 +34,7 @@ function ImportAccount({ account, setAccounts }: any): JSX.Element | null {
         </div>
       </div>
       <Spacer mb={8} />
-      <div className="pad-24-h">
+      <div className="pad-24">
         <p>
           Imported accounts will not be associated with your originally created
           Binance Wallet account seed phrase.
