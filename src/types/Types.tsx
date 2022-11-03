@@ -1,11 +1,11 @@
 export interface IAccount {
-  id: string;
+  pubKey: string;
   name: string;
   assets: IAsset[];
   activities: IActivity[];
   activeNetwork?: string;
   networks: INetwork[];
-  isActive: boolean;
+  idx?: number | string;
 }
 
 export interface IAsset {

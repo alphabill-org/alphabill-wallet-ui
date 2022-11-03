@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import CryptoJS from "crypto-js";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
@@ -14,10 +15,12 @@ import { extractFormikError, pubKeyToHex } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
+import { useApp } from "../../hooks/appProvider";
 
 function CreateAccount(): JSX.Element | null {
-  const { login } = useAuth();
+  const { login, setUserKeys } = useAuth();
   const mnemonic = generateMnemonic();
+  const { setActiveAccountId } = useApp();
 
   const downloadTxtFile = () => {
     const element = document.createElement("a");
@@ -82,34 +85,47 @@ function CreateAccount(): JSX.Element | null {
 
             const decrypted = CryptoJS.AES.decrypt(encrypted, values.password);
 
-            localStorage.setItem(
-              "ab_wallet_entropy",
-              CryptoJS.AES.encrypt(
-                mnemonicToEntropy(mnemonic),
-                values.password
-              ).toString()
-            );
+            if (
+              prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)
+            ) {
+              axios
+                .post<void>(
+                  "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                  {
+                    pubkey: decrypted.toString(CryptoJS.enc.Latin1),
+                  }
+                )
+                .then(() => {
+                  const vaultData = {
+                    entropy: mnemonicToEntropy(mnemonic),
+                    pub_keys: prefixedHashingPubKey,
+                  };
 
-            axios
-              .post<void>(
-                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
-                {
-                  pubkey: decrypted.toString(CryptoJS.enc.Latin1),
-                }
-              )
-              .then((r) => {
-                if (
-                  prefixedHashingPubKey ===
-                  decrypted.toString(CryptoJS.enc.Latin1)
-                ) {
+                  localStorage.setItem(
+                    "ab_wallet_vault",
+                    CryptoJS.AES.encrypt(
+                      JSON.stringify(vaultData),
+                      values.password
+                    ).toString()
+                  );
                   localStorage.setItem(
                     "ab_wallet_account_names",
-                    JSON.stringify({ ["_" + prefixedHashingPubKey]: "Account 1" })
+                    JSON.stringify({
+                      ["_" + 1]: "Account 1",
+                    })
                   );
-                  login(prefixedHashingPubKey);
-                }
-              })
-              .catch(() => setErrors({ passwordConfirm: "Key was not added" }));
+                  setActiveAccountId(prefixedHashingPubKey);
+                  setUserKeys(prefixedHashingPubKey);
+                  login();
+                })
+                .catch(() =>
+                  setErrors({ passwordConfirm: "Key was not added" })
+                );
+            } else {
+              return setErrors({
+                passwordConfirm: "Public key creation failed",
+              });
+            }
           }}
         >
           {(formikProps) => {

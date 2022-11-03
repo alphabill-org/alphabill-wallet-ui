@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-import Popup from "../../Popup/Popup";
+import { useQueryClient } from "react-query";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import axios from "axios";
@@ -9,6 +8,7 @@ import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
+import Popup from "../../Popup/Popup";
 
 import { extractFormikError } from "../../../utils/utils";
 import { IAccount } from "../../../types/Types";
@@ -33,6 +33,7 @@ function Popups({
   setAccounts,
 }: IPopupsProps): JSX.Element | null {
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   return (
     <>
@@ -47,7 +48,7 @@ function Popups({
           testnet features on the network.
           <Spacer mb={24} />
           <div className="t-medium-small flex t-bold">
-            Account: <div className="t-ellipsis pad-8-h">{account?.id}</div>
+            Account: <div className="t-ellipsis pad-8-h">{account?.pubKey}</div>
           </div>
           <Spacer mb={8} />
           <Button
@@ -58,10 +59,11 @@ function Popups({
                 method: "post",
                 url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
                 data: {
-                  pubKey: account?.id,
+                  pubKey: account?.pubKey,
                 },
               })
                 .then((data) => {
+                  queryClient.invalidateQueries(["balance", account?.pubKey]);
                   setIsLoading(false);
                   return data;
                 })
@@ -93,19 +95,22 @@ function Popups({
             }}
             onSubmit={async (values, { resetForm }) => {
               const accountNames =
-                localStorage.getItem("ab_wallet_account_names") || "";
-              const accountNamesObj = JSON.parse(accountNames);
+                localStorage.getItem("ab_wallet_account_names");
+              const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
+              const idx = Number(account?.idx);
+              console.log(account);
+
               localStorage.setItem(
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + account.id]: values.accountName,
+                    ['_' + idx]: values.accountName,
                   })
                 )
               );
 
               const updatedAccounts = accounts?.map((obj) => {
-                if (obj?.id === account?.id) {
+                if (obj?.pubKey === account?.pubKey) {
                   return { ...obj, name: values.accountName };
                 } else return { ...obj };
               });

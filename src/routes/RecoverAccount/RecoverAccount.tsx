@@ -14,7 +14,7 @@ import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 
 function RecoverAccount(): JSX.Element | null {
-  const { login } = useAuth();
+  const { login, userKeys } = useAuth();
 
   return (
     <div className="create-account">
@@ -65,12 +65,10 @@ function RecoverAccount(): JSX.Element | null {
               return setErrors({ passwordConfirm: "Passwords don't match" });
             }
 
-            const mnemonic = Array.from({ length: 12 }, (_, i) =>
-              i !== 11 ? values["mnemonic" + i] + " " : values["mnemonic" + i]
-            ).join("");
+            const mnemonicArr = values.mnemonicRecovery.split(" ");
 
-            mnemonic.split(" ").forEach((word) => {
-              const index = mnemonic.split(" ").indexOf(word);
+            mnemonicArr.forEach((word: any) => {
+              const index = mnemonicArr.indexOf(word);
 
               if (index === -1) {
                 setErrors({
@@ -79,13 +77,13 @@ function RecoverAccount(): JSX.Element | null {
               }
             });
 
-            if (mnemonic.normalize().split(' ').length % 3 === 0) {
+            if (mnemonicArr.length % 3 !== 0) {
               return setErrors({
                 passwordConfirm: "Invalid secret recovery phrase",
               });
             }
 
-            mnemonicToSeed(mnemonic)
+            mnemonicToSeed(values.mnemonicRecovery)
               .then((seed) => {
                 const masterKey = HDKey.fromMasterSeed(seed);
                 const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
@@ -94,28 +92,31 @@ function RecoverAccount(): JSX.Element | null {
                   pubKeyToHex(hashingPubKey!),
                   values.password
                 ).toString();
-
+                const prefixedPubKey = pubKeyToHex(hashingPubKey!);
                 const decrypted = CryptoJS.AES.decrypt(
                   encrypted,
                   values.password
                 );
 
                 if (
-                  pubKeyToHex(hashingPubKey!) ===
-                  decrypted.toString(CryptoJS.enc.Latin1)
+                  prefixedPubKey === decrypted.toString(CryptoJS.enc.Latin1)
                 ) {
-                  login(pubKeyToHex(hashingPubKey!));
+                  const vaultData = {
+                    entropy: mnemonicToEntropy(values.mnemonicRecovery),
+                    pub_keys: userKeys?.includes(prefixedPubKey)
+                      ? userKeys
+                      : prefixedPubKey,
+                  };
+                  localStorage.setItem(
+                    "ab_wallet_vault",
+                    CryptoJS.AES.encrypt(
+                      JSON.stringify(vaultData),
+                      values.password
+                    ).toString()
+                  );
+                  login(!userKeys && prefixedPubKey);
                 }
               })
-              .then(() =>
-                localStorage.setItem(
-                  "ab_wallet_entropy",
-                  CryptoJS.AES.encrypt(
-                    mnemonicToEntropy(mnemonic),
-                    values.password
-                  ).toString()
-                )
-              )
               .catch((e) => setErrors({ passwordConfirm: e }));
           }}
         >
@@ -125,28 +126,17 @@ function RecoverAccount(): JSX.Element | null {
               <form onSubmit={handleSubmit}>
                 <Form>
                   <FormContent>
-                    <div className="t-medium-medium t-bold">
-                      Secret Recovery Phrase
-                    </div>
-                    <div className="textfield-group">
-                      {Array.from({ length: 12 }, (_, i) => {
-                        return (
-                          <Textfield
-                            key={"mnemonic" + i}
-                            id={"mnemonic" + i}
-                            name={"mnemonic" + i}
-                            type={"mnemonic" + i}
-                            label=""
-                            error={extractFormikError(errors, touched, [
-                              "mnemonic" + i,
-                            ])}
-                            className="center"
-                          />
-                        );
-                      })}
-                    </div>
-
-                    <Spacer mb={16} />
+                    <Spacer mb={8} />
+                    <Textfield
+                      id="mnemonicRecovery"
+                      name="mnemonicRecovery"
+                      label="Secret Recovery Phrase"
+                      type="mnemonicRecovery"
+                      error={extractFormikError(errors, touched, [
+                        "mnemonicRecovery",
+                      ])}
+                    />
+                    <Spacer mb={8} />
                     <Textfield
                       id="passwordRecoverAccount"
                       name="password"

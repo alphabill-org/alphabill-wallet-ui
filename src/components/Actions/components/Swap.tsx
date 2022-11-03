@@ -37,7 +37,7 @@ function Swap({
       initialValues={{
         swapFrom: account?.assets[0],
         swapTo: ASSETS.filter(
-          (asset) => asset.id !== account?.assets[0].id
+          (asset) => asset?.id !== account?.assets[0].id
         )?.[0],
         amountFrom: 0,
         amountTo: 0,
@@ -45,10 +45,10 @@ function Swap({
       }}
       onSubmit={(value) => {
         const updatedData = accounts?.map((obj) => {
-          if (obj.id === account?.id) {
+          if (obj?.pubKey === account?.pubKey) {
             const assetSwapTo = obj.assets?.find(
               (asset: IAsset) =>
-                asset.id === value.swapTo.id &&
+                asset?.id === value.swapTo.id &&
                 asset.network === account?.activeNetwork
             );
 
@@ -83,7 +83,7 @@ function Swap({
 
             const assetSwapFrom = updatedSwapToAssets.find(
               (asset: IAsset) =>
-                asset.id === value?.swapFrom?.id &&
+                asset?.id === value?.swapFrom?.id &&
                 asset.network === account?.activeNetwork
             );
 
@@ -115,7 +115,7 @@ function Swap({
                   name: value.swapTo.name,
                   amount: Number(value.amountTo),
                   time: moment().format("ll LTS"),
-                  address: account?.id,
+                  address: account?.pubKey,
                   type: "Swap",
                   network: account?.activeNetwork!,
                   fromID: value?.swapFrom?.id,
@@ -139,7 +139,7 @@ function Swap({
               Number(value) <=
               Number(
                 account?.assets?.find(
-                  (asset: any) => asset.id === currentTokenId.id
+                  (asset: any) => asset?.id === currentTokenId.id
                 )?.amount
               )
           ),
@@ -156,7 +156,7 @@ function Swap({
         const { handleSubmit, errors, touched, values, setFieldValue } =
           formikProps;
         const filteredAssets = ASSETS.filter(
-          (asset) => asset.id !== values?.swapFrom?.id
+          (asset) => asset?.id !== values?.swapFrom?.id
         );
         const slippageVal =
           (values.amountFrom *
@@ -187,7 +187,7 @@ function Swap({
                       setCurrentTokenId(value);
                       setFieldValue(
                         "swapTo",
-                        ASSETS.filter((asset) => asset.id !== value.id)?.[0]
+                        ASSETS.filter((asset) => asset?.id !== value.id)?.[0]
                       );
                     }}
                     error={extractFormikError(errors, touched, ["swapFrom"])}

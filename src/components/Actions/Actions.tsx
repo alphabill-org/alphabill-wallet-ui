@@ -39,6 +39,7 @@ function Actions({
           />
         ) : actionsView === "Account" && accounts ? (
           <Account
+            account={account}
             accounts={accounts}
             setAccounts={setAccounts!}
             setActionsView={setActionsView}

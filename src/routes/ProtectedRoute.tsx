@@ -2,16 +2,14 @@ import { Navigate } from "react-router-dom";
 import { useApp } from "../hooks/appProvider";
 import { useAuth } from "../hooks/useAuth";
 
-
 export interface IProtectedRouteProps {
   children: React.ReactNode;
 }
 
 function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
-  const { userKeys } = useAuth();
-  const { balance, balanceIsFetching } = useApp();
+  const { userKeys, vault } = useAuth();
 
-  if (!userKeys || (!balance && !balanceIsFetching)) {
+  if (!Boolean(userKeys) || !Boolean(vault)) {
     return <Navigate to="/login" />;
   }
   return <>{children}</>;

@@ -73,7 +73,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                     className="select__option"
                     onClick={() => {
                       const updatedAccounts = props.accounts?.map((obj) => {
-                        if (props.account?.id === obj.id) {
+                        if (props.account?.pubKey === obj?.pubKey) {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
@@ -105,7 +105,7 @@ function Header(props: IAccountProps): JSX.Element | null {
                     })}
                     onClick={() => {
                       const updatedAccounts = props.accounts?.map((obj) => {
-                        if (props.account?.id === obj.id) {
+                        if (props.account?.pubKey === obj?.pubKey) {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });

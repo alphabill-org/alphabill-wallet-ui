@@ -28,10 +28,10 @@ function Send({
       }}
       onSubmit={(values) => {
         const updatedData = accounts?.map((obj) => {
-          if (obj.id === values.address) {
+          if (obj?.pubKey === values.address) {
             const currentAsset = obj.assets?.find(
               (asset: any) =>
-                asset.id === currentTokenId.id &&
+                asset?.id === currentTokenId.id &&
                 asset.network === account?.activeNetwork
             );
 
@@ -72,13 +72,13 @@ function Send({
                   address: values.address,
                   type: "Receive",
                   network: account?.activeNetwork!,
-                  fromAddress: account?.id,
+                  fromAddress: account?.pubKey,
                 },
               ]),
             };
-          } else if (obj.id === account?.id) {
+          } else if (obj?.pubKey === account?.pubKey) {
             const currentAsset = obj.assets?.find(
-              (asset: any) => asset.id === currentTokenId.id
+              (asset: any) => asset?.id === currentTokenId.id
             );
 
             const filteredAsset = obj.assets?.filter(
@@ -135,7 +135,7 @@ function Send({
             `Receiver's account is not real`,
             function (value) {
               if (value) {
-                return Boolean(accounts?.find((a) => a.id === value));
+                return Boolean(accounts?.find((a) => a?.pubKey === value));
               } else {
                 return true;
               }
@@ -146,7 +146,7 @@ function Send({
             `Receiver's account is your account`,
             function (value) {
               if (value) {
-                return account?.id !== value;
+                return account?.pubKey !== value;
               } else {
                 return true;
               }
@@ -162,7 +162,7 @@ function Send({
               Number(
                 account?.assets?.find(
                   (asset: any) =>
-                    asset.id === currentTokenId.id &&
+                    asset?.id === currentTokenId.id &&
                     asset.network === account?.activeNetwork
                 )?.amount
               )
@@ -182,10 +182,10 @@ function Send({
                   options={account?.assets
                     .filter((asset) => account?.activeNetwork === asset.network)
                     .sort((a: IAsset, b: IAsset) => {
-                      if (a.id! < b.id!) {
+                      if (a?.id! < b?.id!) {
                         return -1;
                       }
-                      if (a.id! > b.id!) {
+                      if (a?.id! > b?.id!) {
                         return 1;
                       }
                       return 0;

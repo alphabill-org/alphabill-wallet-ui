@@ -4,7 +4,7 @@ import CryptoJS from "crypto-js";
 import { Link, Navigate } from "react-router-dom";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-
+import { isString } from "lodash";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
@@ -15,10 +15,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
 function Login(): JSX.Element | null {
-  const { userKeys, setUserKeys, login } = useAuth();
-  const { balance, balanceIsFetching } = useApp();
+  const { userKeys, setUserKeys, login, vault } = useAuth();
+  const { setActiveAccountId, activeAccountId } = useApp();
 
-  if (userKeys && balance && !balanceIsFetching) {
+  if (Boolean(userKeys) && Boolean(vault)) {
     return <Navigate to="/" />;
   }
 
@@ -36,35 +36,29 @@ function Login(): JSX.Element | null {
           password: "",
         }}
         onSubmit={(values, { setErrors }) => {
-          const encryptedEntropy = localStorage.getItem("ab_wallet_entropy");
-          if (!encryptedEntropy) {
+          console.log(vault);
+
+          if (!vault) {
             return setErrors({
               password: "No active wallet with this password",
             });
           }
-          const decryptedEntropy = CryptoJS.AES.decrypt(
-            encryptedEntropy!,
-            values.password
-          ).toString(CryptoJS.enc.Latin1);
+
+          const decryptedVault = JSON.parse(
+            CryptoJS.AES.decrypt(vault!, values.password).toString(
+              CryptoJS.enc.Latin1
+            )
+          );
 
           if (
-            decryptedEntropy.length > 16 &&
-            decryptedEntropy.length < 32 &&
-            decryptedEntropy.length % 4 === 0
+            decryptedVault.entropy.length > 16 &&
+            decryptedVault.entropy.length < 32 &&
+            decryptedVault.entropy.length % 4 === 0
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
-          const decryptedKeys = CryptoJS.AES.decrypt(
-            userKeys!,
-            values.password
-          ).toString(CryptoJS.enc.Latin1);
-          const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
-          const decryptedNames = CryptoJS.AES.decrypt(
-            accountNames,
-            values.password
-          ).toString(CryptoJS.enc.Latin1);
 
-          const mnemonic = entropyToMnemonic(decryptedEntropy);
+          const mnemonic = entropyToMnemonic(decryptedVault.entropy);
           const seed = mnemonicToSeedSync(mnemonic);
           const masterKey = HDKey.fromMasterSeed(seed);
 
@@ -72,16 +66,18 @@ function Login(): JSX.Element | null {
           const controlHashingPubKey = controlHashingKey.publicKey;
 
           if (
-            pubKeyToHex(controlHashingPubKey!) !== decryptedKeys?.split(" ")[0]
+            pubKeyToHex(controlHashingPubKey!) !==
+            decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
 
           if (
-            pubKeyToHex(controlHashingPubKey!) === decryptedKeys?.split(" ")[0]
+            pubKeyToHex(controlHashingPubKey!) ===
+            decryptedVault.pub_keys?.split(" ")[0]
           ) {
-            setUserKeys(decryptedKeys);
-            localStorage.setItem("ab_wallet_account_names", decryptedNames);
+            setUserKeys(decryptedVault.pub_keys);
+            setActiveAccountId(pubKeyToHex(controlHashingPubKey!));
             login();
           }
         }}

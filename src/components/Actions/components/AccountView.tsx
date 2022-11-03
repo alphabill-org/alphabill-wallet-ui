@@ -2,10 +2,12 @@ import classNames from "classnames";
 import { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import axios from "axios";
 
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import CryptoJS from "crypto-js";
+import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
@@ -20,23 +22,26 @@ import Profile from "../../../images/profile.svg";
 import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
+import { useApp } from "../../../hooks/appProvider";
 
 export interface IAccountViewProps {
   setAccounts: (e: any) => void;
-  setActionsView: (e: any) => void;
+  setActionsView?: (e: any) => void;
   setIsActionsViewVisible: (e: any) => void;
   accounts: IAccount[];
+  account?: IAccount;
 }
 
 function AccountView({
   accounts,
+  account,
   setAccounts,
-  setActionsView,
   setIsActionsViewVisible,
 }: IAccountViewProps): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
-  const [isLockPopupVisible, setIsLockPopupVisible] = useState(false);
-  const { logout, userKeys, setUserKeys } = useAuth();
+  const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
+  const { activeAccountId, setActiveAccountId } = useApp();
+  const queryClient = useQueryClient();
 
   return (
     <div className={classNames("account__view pad-24-h")}>
@@ -44,16 +49,12 @@ function AccountView({
         {accounts?.map((account) => {
           return (
             <div
-              key={account?.id}
+              key={account?.pubKey}
               className="account"
               onClick={() => {
-                const updatedData = accounts?.map((obj) => {
-                  if (obj.id === account?.id) {
-                    return { ...obj, isActive: true };
-                  } else return { ...obj, isActive: false };
-                });
+                setActiveAccountId(account?.pubKey);
                 setIsActionsViewVisible(false);
-                setAccounts(updatedData);
+                queryClient.invalidateQueries(["balance", account?.pubKey]);
               }}
             >
               <div className="account__item">
@@ -62,15 +63,10 @@ function AccountView({
               <div className="account__item account__item-name">
                 <div className="t-medium">{account?.name}</div>
                 <div className="t-small c-light account__item-id">
-                  {account?.id}
+                  {account?.pubKey}
                 </div>
               </div>
-              <div className="account__item">
-                <div className="t-medium">
-                  {account?.assets?.[0]?.amount || 0}
-                </div>
-              </div>
-              {account?.isActive && (
+              {account?.pubKey === activeAccountId && (
                 <CheckIco className="account__item--active" />
               )}
             </div>
@@ -91,7 +87,9 @@ function AccountView({
 
         <div
           onClick={() => {
-            setIsLockPopupVisible(true);
+            setIsActionsViewVisible(false);
+            setUserKeys(null);
+            logout();
           }}
           className="account__menu-item"
         >
@@ -113,22 +111,21 @@ function AccountView({
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const encryptedEntropy = localStorage.getItem("ab_wallet_entropy");
-
-            const decryptedEntropy = CryptoJS.AES.decrypt(
-              encryptedEntropy!,
-              values.password
-            ).toString(CryptoJS.enc.Latin1);
+            const decryptedVault = JSON.parse(
+              CryptoJS.AES.decrypt(vault!, values.password).toString(
+                CryptoJS.enc.Latin1
+              )
+            );
 
             if (
-              decryptedEntropy.length > 16 &&
-              decryptedEntropy.length < 32 &&
-              decryptedEntropy.length % 4 === 0
+              decryptedVault?.entropy.length > 16 &&
+              decryptedVault?.entropy.length < 32 &&
+              decryptedVault?.entropy.length % 4 === 0
             ) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            const mnemonic = entropyToMnemonic(decryptedEntropy);
+            const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
             const seed = mnemonicToSeedSync(mnemonic);
             const masterKey = HDKey.fromMasterSeed(seed);
             const accountIndex = accounts.length;
@@ -139,6 +136,51 @@ function AccountView({
             const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
+            const addAccount = () => {
+              setVault(
+                CryptoJS.AES.encrypt(
+                  JSON.stringify(
+                    Object.assign(decryptedVault, {
+                      pub_keys: userKeys?.concat(" ", prefixedHashingPubKey),
+                    })
+                  ),
+                  values.password
+                ).toString()
+              );
+              setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
+              const accountNames =
+                localStorage.getItem("ab_wallet_account_names") || "";
+              const accountNamesObj = JSON.parse(accountNames);
+              const idx = Number(account?.idx);
+              localStorage.setItem(
+                "ab_wallet_account_names",
+                JSON.stringify(
+                  Object.assign(accountNamesObj, {
+                    ['_' + idx]: values.accountName,
+                  })
+                )
+              );
+
+              const updatedAccounts = accounts?.concat([
+                {
+                  pubKey: prefixedHashingPubKey,
+                  name: values.accountName,
+                  assets: [],
+                  activeNetwork: "AB Testnet",
+                  networks: [
+                    {
+                      id: "AB Testnet",
+                      isTestNetwork: true,
+                    },
+                  ],
+                  activities: [],
+                },
+              ]);
+              setActiveAccountId(prefixedHashingPubKey);
+              setAccounts(updatedAccounts);
+              setIsAddPopupVisible(false);
+              queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
+            };
 
             if (
               pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]
@@ -149,44 +191,28 @@ function AccountView({
             if (
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
-              setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
-              const accountNames =
-                localStorage.getItem("ab_wallet_account_names") || "";
-              const accountNamesObj = JSON.parse(accountNames);
-              localStorage.setItem(
-                "ab_wallet_account_names",
-                JSON.stringify(
-                  Object.assign(accountNamesObj, {
-                    ["_" + prefixedHashingPubKey]: values.accountName,
-                  })
+              axios
+                .get<any>(
+                  `https://dev-ab-wallet-backend.abdev1.guardtime.com/balance?pubkey=${prefixedHashingPubKey}`
                 )
-              );
+                .then(() => addAccount())
+                .catch(() =>
+                  axios
+                    .post<void>(
+                      "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                      {
+                        pubkey: prefixedHashingPubKey,
+                      }
+                    )
+                    .then(() => addAccount())
+                    .catch(() =>
+                      setErrors({ accountName: "Account creation failed" })
+                    )
+                );
+            } else {
+              return setErrors({ accountName: "Account creation failed" });
             }
 
-            const addedAccount = accounts?.concat([
-              {
-                id: prefixedHashingPubKey,
-                name: values.accountName,
-                isActive: true,
-                assets: [],
-                activeNetwork: "AB Testnet",
-                networks: [
-                  {
-                    id: "AB Testnet",
-                    isTestNetwork: true,
-                  },
-                ],
-                activities: [],
-              },
-            ]);
-
-            const updatedAccounts = addedAccount?.map((obj) => {
-              if (obj?.id !== prefixedHashingPubKey) {
-                return { ...obj, isActive: false };
-              } else return { ...obj };
-            });
-            setAccounts(updatedAccounts);
-            setIsAddPopupVisible(false);
             resetForm();
           }}
           validationSchema={Yup.object().shape({
@@ -222,7 +248,7 @@ function AccountView({
                     <Textfield
                       id="passwordAddAccount"
                       name="password"
-                      label="password"
+                      label="Add your password for decryption"
                       type="password"
                       error={extractFormikError(errors, touched, ["password"])}
                     />
@@ -254,120 +280,6 @@ function AccountView({
                         variant="primary"
                       >
                         Confirm
-                      </Button>
-                    </div>
-                  </FormFooter>
-                </Form>
-              </form>
-            );
-          }}
-        </Formik>
-      </Popup>
-
-      <Popup
-        isPopupVisible={isLockPopupVisible}
-        setIsPopupVisible={setIsLockPopupVisible}
-        title="Lock Wallet"
-      >
-        <Spacer mb={16} />
-        <div className="t-medium-small t-bold">
-          Password is used to encrypt wallet keys in localStorage.
-        </div>
-
-        <Formik
-          initialValues={{
-            accountName: "",
-            password: "",
-          }}
-          onSubmit={async (values, { resetForm, setErrors }) => {
-            const encryptedEntropy = localStorage.getItem("ab_wallet_entropy");
-
-            const decryptedEntropy = CryptoJS.AES.decrypt(
-              encryptedEntropy!,
-              values.password
-            ).toString(CryptoJS.enc.Latin1);
-
-            if (
-              decryptedEntropy.length > 16 &&
-              decryptedEntropy.length < 32 &&
-              decryptedEntropy.length % 4 === 0
-            ) {
-              return setErrors({ password: "Password is incorrect!" });
-            }
-
-            const mnemonic = entropyToMnemonic(decryptedEntropy);
-            const seed = mnemonicToSeedSync(mnemonic);
-            const masterKey = HDKey.fromMasterSeed(seed);
-            const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
-            const controlHashingPubKey = controlHashingKey.publicKey;
-            const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
-            const encryptedNames = userKeys
-              ? CryptoJS.AES.encrypt(accountNames, values.password).toString()
-              : "";
-            const encryptedKeys = userKeys
-              ? CryptoJS.AES.encrypt(userKeys, values.password).toString()
-              : "";
-
-            if (
-              pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]
-            ) {
-              return setErrors({ password: "Password is incorrect!" });
-            }
-
-            if (
-              pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
-            ) {
-              setUserKeys(encryptedKeys);
-              localStorage.setItem("ab_wallet_account_names", encryptedNames);
-              logout();
-            }
-
-            setIsLockPopupVisible(false);
-            resetForm();
-          }}
-          validationSchema={Yup.object().shape({
-            password: Yup.string().test(
-              "empty-or-8-characters-check",
-              "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
-            ),
-          })}
-        >
-          {(formikProps) => {
-            const { handleSubmit, errors, touched } = formikProps;
-
-            return (
-              <form onSubmit={handleSubmit}>
-                <Spacer mb={16} />
-
-                <Form>
-                  <FormContent>
-                    <Textfield
-                      id="passwordLockAccount"
-                      name="password"
-                      label="password"
-                      type="password"
-                      error={extractFormikError(errors, touched, ["password"])}
-                    />
-                  </FormContent>
-                  <FormFooter>
-                    <div className="button__group">
-                      <Button
-                        type="reset"
-                        onClick={() => setIsLockPopupVisible(false)}
-                        big={true}
-                        block={true}
-                        variant="secondary"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        big={true}
-                        block={true}
-                        type="submit"
-                        variant="primary"
-                      >
-                        Lock
                       </Button>
                     </div>
                   </FormFooter>
