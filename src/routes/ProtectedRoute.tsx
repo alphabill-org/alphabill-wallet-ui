@@ -7,9 +7,18 @@ export interface IProtectedRouteProps {
 }
 
 function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
-  const { userKeys, vault } = useAuth();
+  const { balances } = useApp();
+  const vault = localStorage.getItem("ab_wallet_vault");
+  const userKeys = localStorage.getItem("ab_wallet_pub_keys");
 
-  if (!Boolean(userKeys) || !Boolean(vault)) {
+
+  if (
+    !Boolean(userKeys) ||
+    !Boolean(vault) ||
+    !Boolean(balances) ||
+    vault === "null" ||
+    userKeys === "null"
+  ) {
     return <Navigate to="/login" />;
   }
   return <>{children}</>;

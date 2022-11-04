@@ -5,7 +5,6 @@ import * as Yup from "yup";
 import CryptoJS from "crypto-js";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
@@ -111,7 +110,7 @@ function CreateAccount(): JSX.Element | null {
                   localStorage.setItem(
                     "ab_wallet_account_names",
                     JSON.stringify({
-                      ["_" + 1]: "Account 1",
+                      ["_" + 0]: "Account 1",
                     })
                   );
                   setActiveAccountId(prefixedHashingPubKey);

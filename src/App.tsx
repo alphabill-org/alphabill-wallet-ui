@@ -9,10 +9,6 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
 
 function App() {
-  const [isActionsViewVisible, setIsActionsViewVisible] =
-    useState<boolean>(false);
-  const [actionsView, setActionsView] = useState("Buy");
-
   return (
     <div className="app">
       <Animations />
@@ -22,12 +18,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Home
-                  actionsView={actionsView}
-                  setActionsView={setActionsView}
-                  setIsActionsViewVisible={setIsActionsViewVisible}
-                  isActionsViewVisible={isActionsViewVisible}
-                />
+                <Home />
               </ProtectedRoute>
             }
           />

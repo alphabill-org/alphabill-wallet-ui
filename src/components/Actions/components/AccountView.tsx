@@ -151,7 +151,7 @@ function AccountView({
               const accountNames =
                 localStorage.getItem("ab_wallet_account_names") || "";
               const accountNamesObj = JSON.parse(accountNames);
-              const idx = Number(account?.idx);
+              const idx = accountIndex;
               localStorage.setItem(
                 "ab_wallet_account_names",
                 JSON.stringify(
@@ -192,23 +192,22 @@ function AccountView({
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
               axios
-                .get<any>(
-                  `https://dev-ab-wallet-backend.abdev1.guardtime.com/balance?pubkey=${prefixedHashingPubKey}`
-                )
-                .then(() => addAccount())
-                .catch(() =>
-                  axios
-                    .post<void>(
-                      "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
-                      {
-                        pubkey: prefixedHashingPubKey,
-                      }
-                    )
-                    .then(() => addAccount())
-                    .catch(() =>
-                      setErrors({ accountName: "Account creation failed" })
-                    )
-                );
+              .post<void>(
+                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                {
+                  pubkey: prefixedHashingPubKey,
+                }
+              )
+              .then(() => addAccount())
+              .catch((e) =>{
+                if( e.response.data.message ==
+                  "pubkey already exists") {
+                    addAccount()
+                  } else {
+                    setErrors({ accountName: "Account creation failed" })}
+                  }
+
+              );
             } else {
               return setErrors({ accountName: "Account creation failed" });
             }

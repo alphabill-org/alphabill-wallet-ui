@@ -3,28 +3,27 @@ import { Checkbox, FormControlLabel } from "@material-ui/core";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-
 import Logo from "../../images/ab-logo-ico.svg";
 import Profile from "../../images/profile.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
+import { useApp } from "../../hooks/appProvider";
 
-import { IAccountProps } from "../../types/Types";
-
-function Header(props: IAccountProps): JSX.Element | null {
+function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } =
+    useApp();
 
-  const testNetworks = props.account?.networks?.filter(
+  const testNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork === true
   );
-  const isTestNetworkActive = props.account?.networks?.find(
+  const isTestNetworkActive = account?.networks?.find(
     (network) =>
-      network.isTestNetwork === true &&
-      props.account?.activeNetwork === network.id
+      network.isTestNetwork === true && account?.activeNetwork === network.id
   );
-  const mainNetworks = props.account?.networks?.filter(
+  const mainNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork !== true
   );
 
@@ -39,7 +38,7 @@ function Header(props: IAccountProps): JSX.Element | null {
           className="select__button"
           onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
-          {props.account?.activeNetwork || "Select Network"}
+          {account?.activeNetwork || "Select Network"}
           <Arrow />
         </Button>
         <div
@@ -72,18 +71,18 @@ function Header(props: IAccountProps): JSX.Element | null {
                     key={network.id}
                     className="select__option"
                     onClick={() => {
-                      const updatedAccounts = props.accounts?.map((obj) => {
-                        if (props.account?.pubKey === obj?.pubKey) {
+                      const updatedAccounts = accounts?.map((obj) => {
+                        if (account?.pubKey === obj?.pubKey) {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
                       setIsPopoverOpen(false);
-                      props.setAccounts(updatedAccounts);
-                      setShowTestNetworks(false)
+                      setAccounts(updatedAccounts);
+                      setShowTestNetworks(false);
                     }}
                   >
                     {network.id}{" "}
-                    {network.id === props.account?.activeNetwork && <Check />}
+                    {network.id === account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
@@ -104,17 +103,17 @@ function Header(props: IAccountProps): JSX.Element | null {
                         !showTestNetworks && !Boolean(isTestNetworkActive),
                     })}
                     onClick={() => {
-                      const updatedAccounts = props.accounts?.map((obj) => {
-                        if (props.account?.pubKey === obj?.pubKey) {
+                      const updatedAccounts = accounts?.map((obj) => {
+                        if (account?.pubKey === obj?.pubKey) {
                           return { ...obj, activeNetwork: network.id };
                         } else return { ...obj };
                       });
                       setIsPopoverOpen(false);
-                      props.setAccounts(updatedAccounts);
+                      setAccounts(updatedAccounts);
                     }}
                   >
                     {network.id}{" "}
-                    {network.id === props.account?.activeNetwork && <Check />}
+                    {network.id === account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
@@ -125,8 +124,8 @@ function Header(props: IAccountProps): JSX.Element | null {
       <Button
         variant="icon"
         onClick={() => {
-          props.setActionsView("Account");
-          props.setIsActionsViewVisible(true);
+          setActionsView("Account");
+          setIsActionsViewVisible(true);
         }}
       >
         <img height="32" width="32px" src={Profile} alt="Profile" />

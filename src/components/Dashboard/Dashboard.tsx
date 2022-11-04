@@ -2,11 +2,10 @@ import classNames from "classnames";
 import { useEffect, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import OutsideClickHandler from "react-outside-click-handler";
-import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IDashboardProps, IActivity, IAsset } from "../../types/Types";
+import { IActivity, IAsset } from "../../types/Types";
 import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
 import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
 import { ReactComponent as SwapIcon } from "../../images/swap-ico.svg";
@@ -16,15 +15,20 @@ import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
+import { useQueryClient } from "react-query";
 
-function Dashboard({
-  setActionsView,
-  setIsActionsViewVisible,
-  account,
-  setAccounts,
-  accounts,
-}: IDashboardProps): JSX.Element | null {
-  const { balance } = useApp();
+function Dashboard(): JSX.Element | null {
+  const {
+    setIsActionsViewVisible,
+    setActionsView,
+    balances,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
+  const abBalance = balances.find(
+    (balance: any) => balance?.data?.id === account?.pubKey
+  )?.data?.balance;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isBuyPopupVisible, setIsBuyPopupVisible] = useState(false);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
@@ -34,7 +38,7 @@ function Dashboard({
 
   useEffect(() => {
     account && queryClient.invalidateQueries(["balance", account?.pubKey]);
-  }, [account]);
+  }, [accounts, account, queryClient]);
 
   const activities = account?.activities;
   const sortedAssets = account?.assets
@@ -53,8 +57,8 @@ function Dashboard({
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{balance?.balance || 0}</h1>
-        <h3> {sortedAssets?.[0]?.id}</h3>
+        <h1>{abBalance}</h1>
+        <h3>AB</h3>
       </div>
       <Spacer mb={8} />
 
@@ -133,7 +137,10 @@ function Dashboard({
       <div className="dashboard__footer">
         <div className="dashboard__navbar">
           <div
-            onClick={() => setIsAssetsColActive(true)}
+            onClick={() => {
+              setIsAssetsColActive(true);
+              queryClient.invalidateQueries(["balance", account?.pubKey]);
+            }}
             className={classNames("dashboard__navbar-item", {
               active: isAssetsColActive === true,
             })}
@@ -159,6 +166,7 @@ function Dashboard({
               sortedAssets
                 .filter((asset) => asset.network === account?.activeNetwork)
                 .map((asset: IAsset, idx) => {
+                  // API supports only AB balance at the moment
                   return (
                     <div key={idx} className="dashboard__info-item-wrap">
                       <div className="dashboard__info-item-icon">
@@ -176,7 +184,7 @@ function Dashboard({
                       </div>
                       <div>
                         <div>
-                          {balance?.balance} {asset?.id}
+                          {abBalance} {asset?.id}
                         </div>
                         <div className="t-small c-light">{asset.name}</div>
                       </div>

@@ -3,6 +3,7 @@ import { useQueryClient } from "react-query";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import axios from "axios";
+import moment from "moment";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
@@ -64,6 +65,103 @@ function Popups({
               })
                 .then((data) => {
                   queryClient.invalidateQueries(["balance", account?.pubKey]);
+                  const updatedData = accounts?.map((obj) => {
+                    if (obj?.pubKey === account.pubKey) {
+                      const currentAsset = obj.assets?.find(
+                        (asset: any) =>
+                          asset?.id === "AB" &&
+                          asset.network === account?.activeNetwork
+                      );
+
+                      const filteredAsset = obj.assets?.filter(
+                        (asset: any) =>
+                          asset !== currentAsset
+                      );
+
+                      let updatedAsset;
+                      if (currentAsset) {
+                        updatedAsset = {
+                          ...currentAsset,
+                          amount: Number(currentAsset?.amount) + 100,
+                        };
+                      } else {
+                        updatedAsset = {
+                          id: "AB",
+                          name: "AlphaBill Token",
+                          amount: 100,
+                          network: account?.activeNetwork,
+                        };
+                      }
+
+                      const updatedAssets =
+                        filteredAsset.length >= 1
+                          ? filteredAsset.concat([updatedAsset])
+                          : [updatedAsset];
+
+                      return {
+                        ...obj,
+                        assets: updatedAssets,
+                        activities: obj.activities.concat([
+                          {
+                            id: "AB",
+                            name: "AlphaBill Token",
+                            amount: 100,
+                            time: moment().format("ll LTS"),
+                            address: account.pubKey,
+                            type: "Receive",
+                            network: account?.activeNetwork!,
+                            fromAddress: account?.pubKey,
+                          },
+                        ]),
+                      };
+                    } else if (obj?.pubKey === account?.pubKey) {
+                      const currentAsset = obj.assets?.find(
+                        (asset: any) => asset?.id === "AB"
+                      );
+
+                      const filteredAsset = obj.assets?.filter(
+                        (asset: any) =>
+                          asset !== currentAsset
+                      );
+
+                      let updatedAsset;
+                      if (currentAsset) {
+                        updatedAsset = {
+                          ...currentAsset,
+                          amount: Number(currentAsset?.amount) - 100,
+                        };
+                      } else {
+                        updatedAsset = {
+                          id: "AB",
+                          name: "AlphaBill Token",
+                          amount: 100,
+                        };
+                      }
+
+                      const updatedAssets =
+                        filteredAsset.length >= 1
+                          ? filteredAsset.concat([updatedAsset])
+                          : [updatedAsset];
+
+                      return {
+                        ...obj,
+                        assets: updatedAssets,
+                        activities: obj.activities.concat([
+                          {
+                            id: "AB",
+                            name: "AlphaBill Token",
+                            amount: 100,
+                            time: moment().format("ll LTS"),
+                            address: account.pubKey,
+                            type: "Send",
+                            network: account?.activeNetwork!,
+                          },
+                        ]),
+                      };
+                    } else return { ...obj };
+                  });
+
+                  setAccounts(updatedData);
                   setIsLoading(false);
                   return data;
                 })

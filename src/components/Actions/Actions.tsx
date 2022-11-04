@@ -1,21 +1,23 @@
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import { IActionProps } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
 import ImportAccount from "./components/ImportAccount";
+import { useApp } from "../../hooks/appProvider";
 
-function Actions({
-  actionsView,
-  setIsActionsViewVisible,
-  setActionsView,
-  isActionsViewVisible,
-  account,
-  accounts,
-  setAccounts,
-}: IActionProps): JSX.Element | null {
+function Actions(): JSX.Element | null {
+  const {
+    isActionsViewVisible,
+    setIsActionsViewVisible,
+    actionsView,
+    setActionsView,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
+
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}

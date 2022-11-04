@@ -1,10 +1,18 @@
 import { AxiosError } from "axios";
-import { QueryObserverResult, useQuery } from "react-query";
+import { QueryObserverResult, useQueries, UseQueryResult } from "react-query";
 import { getBalance } from "./requests";
 
-export function useGetBalance(id: any): QueryObserverResult<any, AxiosError> {
-  return useQuery([`balance`, id], async () => getBalance(id), {
-    enabled: true,
-    staleTime: Infinity,
-  });
+export function useGetBalances(
+  ids: string[] | undefined
+) {
+  return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
+    ids!.map((id) => {
+      return {
+        queryKey: ["balance", id],
+        queryFn: async () => getBalance(id),
+        enabled: !!id,
+        staleTime: Infinity,
+      };
+    })
+  );
 }

@@ -1,99 +1,29 @@
-import { useState } from "react";
-import moment from "moment";
+import { useEffect } from "react";
+import { useQueryClient } from "react-query";
 
-import { IAccount, IActionProps } from "./../types/Types";
 import Dashboard from "../components/Dashboard/Dashboard";
 import Header from "../components/Header/Header";
 import Actions from "../components/Actions/Actions";
 import { useAuth } from "../hooks/useAuth";
 import { useApp } from "../hooks/appProvider";
+import { IAccount } from "../types/Types";
 
-function Home({
-  actionsView,
-  setIsActionsViewVisible,
-  setActionsView,
-  isActionsViewVisible,
-}: IActionProps): JSX.Element {
-  const { userKeys } = useAuth();
-  const { activeAccountId } = useApp();
-
-  const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
-  const keysArr = userKeys?.split(" ") || [];
-  const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
-
-  const [accounts, setAccounts] = useState<IAccount[]>(
-    keysArr.map((key, idx) => ({
-      pubKey: key,
-      idx: idx,
-      name: accountNamesObj['_' + idx],
-      assets: [
-        {
-          id: "AB",
-          name: "AlphaBill Token",
-          network: "AB Testnet",
-          amount: 1000,
-        },
-        {
-          id: "ETH",
-          name: "Etherium Token",
-          amount: 300,
-          time: moment().subtract(5, "days").startOf("day").format("ll LTS"),
-          address:
-            "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e",
-          type: "Send",
-          network: "AB Testnet",
-        },
-      ],
-      activeNetwork: "AB Testnet",
-      networks: [
-        {
-          id: "AB Testnet",
-          isTestNetwork: true,
-        },
-      ],
-      activities: [
-        {
-          id: "AB",
-          name: "AlphaBill Token",
-          amount: 300,
-          time: moment().subtract(5, "days").startOf("day").format("ll LTS"),
-          address:
-            "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e",
-          type: "Send",
-          network: "AB Testnet",
-        }
-      ],
-    }))
+function Home(): JSX.Element {
+  const queryClient = useQueryClient();
+  const { accounts, activeAccountId } = useApp();
+  const account = accounts?.find(
+    (account: IAccount) => account?.pubKey === activeAccountId
   );
 
-  const account = accounts?.find((account: IAccount) =>
-    account?.pubKey === activeAccountId
-  );
+  useEffect(() => {
+    account && queryClient.invalidateQueries(["balance", account?.pubKey]);
+  }, [accounts, account, queryClient]);
 
   return (
     <>
-      <Header
-        accounts={accounts || []}
-        setAccounts={setAccounts}
-        setActionsView={setActionsView}
-        setIsActionsViewVisible={setIsActionsViewVisible}
-        account={account}
-      />
-      <Dashboard
-        accounts={accounts}
-        setAccounts={setAccounts}
-        setActionsView={setActionsView}
-        setIsActionsViewVisible={setIsActionsViewVisible}
-        account={account}
-      />
-      <Actions
-        accounts={accounts}
-        setAccounts={setAccounts}
-        actionsView={actionsView}
-        setActionsView={setActionsView}
-        setIsActionsViewVisible={setIsActionsViewVisible}
-        isActionsViewVisible={isActionsViewVisible}
-      />
+      <Header />
+      <Dashboard />
+      <Actions />
     </>
   );
 }

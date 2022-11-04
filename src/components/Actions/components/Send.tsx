@@ -131,17 +131,6 @@ function Send({
         address: Yup.string()
           .required("Address is required")
           .test(
-            "account-id-no-match",
-            `Receiver's account is not real`,
-            function (value) {
-              if (value) {
-                return Boolean(accounts?.find((a) => a?.pubKey === value));
-              } else {
-                return true;
-              }
-            }
-          )
-          .test(
             "account-id-same",
             `Receiver's account is your account`,
             function (value) {

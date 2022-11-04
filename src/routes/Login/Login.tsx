@@ -4,7 +4,7 @@ import CryptoJS from "crypto-js";
 import { Link, Navigate } from "react-router-dom";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { isString } from "lodash";
+
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
@@ -15,10 +15,18 @@ import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
 function Login(): JSX.Element | null {
-  const { userKeys, setUserKeys, login, vault } = useAuth();
-  const { setActiveAccountId, activeAccountId } = useApp();
+  const { setUserKeys, login } = useAuth();
+  const { setActiveAccountId, balances } = useApp();
+  const vault = localStorage.getItem("ab_wallet_vault");
+  const userKeys = localStorage.getItem("ab_wallet_pub_keys");
 
-  if (Boolean(userKeys) && Boolean(vault)) {
+  if (
+    Boolean(balances) &&
+    Boolean(vault) &&
+    Boolean(userKeys) &&
+    vault !== "null" &&
+    userKeys !== "null"
+  ) {
     return <Navigate to="/" />;
   }
 
@@ -36,9 +44,7 @@ function Login(): JSX.Element | null {
           password: "",
         }}
         onSubmit={(values, { setErrors }) => {
-          console.log(vault);
-
-          if (!vault) {
+          if (Boolean(!vault) || vault === "null") {
             return setErrors({
               password: "No active wallet with this password",
             });

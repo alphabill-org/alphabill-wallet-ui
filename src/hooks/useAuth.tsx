@@ -16,9 +16,12 @@ interface IUserContext {
   setVault: (e: any) => void;
 }
 
+const keysData = localStorage.getItem("ab_wallet_pub_keys");
+const vaultData = localStorage.getItem("ab_wallet_vault");
+
 const AuthContext = createContext<IUserContext>({
-  userKeys: localStorage.getItem("ab_wallet_pub_keys"),
-  vault: localStorage.getItem("ab_wallet_vault"),
+  userKeys: keysData,
+  vault: vaultData,
   login: (e?: any) => {},
   logout: () => {},
   setUserKeys: (e: any) => {},
@@ -28,12 +31,9 @@ const AuthContext = createContext<IUserContext>({
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const [userKeys, setUserKeys] = useLocalStorage(
     "ab_wallet_pub_keys",
-    localStorage.getItem("ab_wallet_pub_keys")
+    keysData
   );
-  const [vault, setVault] = useLocalStorage(
-    "ab_wallet_vault",
-    localStorage.getItem("ab_wallet_vault")
-  );
+  const [vault, setVault] = useLocalStorage("ab_wallet_vault", vaultData);
   const navigate = useNavigate();
 
   const login = async (data?: string | null) => {

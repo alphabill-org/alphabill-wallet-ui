@@ -1,6 +1,7 @@
 export interface IAccount {
   pubKey: string;
   name: string;
+  balance?: number;
   assets: IAsset[];
   activities: IActivity[];
   activeNetwork?: string;
@@ -14,32 +15,6 @@ export interface IAsset {
   amount?: number;
   push?: any;
   network?: string;
-}
-
-export interface IAccountProps {
-  setAccounts: (e: any) => void;
-  setActionsView: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  accounts: IAccount[];
-  account?: IAccount;
-}
-
-export interface IActionProps {
-  setIsActionsViewVisible: (e: any) => void;
-  isActionsViewVisible: boolean;
-  actionsView: string;
-  account?: IAccount;
-  accounts?: IAccount[];
-  setAccounts?: (e: any) => void;
-  setActionsView: (e: any) => void;
-}
-
-export interface IDashboardProps {
-  setActionsView: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  setAccounts: (e: any) => void;
-  account?: IAccount;
-  accounts?: IAccount[];
 }
 
 export interface INetwork {
