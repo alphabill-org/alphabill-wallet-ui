@@ -204,7 +204,7 @@ function AccountView({
                   setIsAddAccountLoading(false);
                 })
                 .catch((e) => {
-                  if (e.response.data.message == "pubkey already exists") {
+                  if (e.response.data.message === "pubkey already exists") {
                     addAccount();
                   } else {
                     setErrors({ accountName: "Account creation failed" });

@@ -4,7 +4,6 @@ import { useQueryClient } from "react-query";
 import Dashboard from "../components/Dashboard/Dashboard";
 import Header from "../components/Header/Header";
 import Actions from "../components/Actions/Actions";
-import { useAuth } from "../hooks/useAuth";
 import { useApp } from "../hooks/appProvider";
 import { IAccount } from "../types/Types";
 

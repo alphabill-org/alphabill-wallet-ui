@@ -1,5 +1,3 @@
-import moment from "moment";
-import { useEffect } from "react";
 import { createContext, FunctionComponent, useContext, useState } from "react";
 import { IAccount } from "../types/Types";
 import { useGetBalances } from "./api";
@@ -52,18 +50,7 @@ export const AppProvider: FunctionComponent<{
           isTestNetwork: true,
         },
       ],
-      activities: [
-        {
-          id: "AB",
-          name: "AlphaBill Token",
-          amount: 300,
-          time: moment().subtract(5, "days").startOf("day").format("ll LTS"),
-          address:
-            "1693c10bb3be2d5cb4de35bf7e6a0b592f5918038393a0447aef019fca52b37e",
-          type: "Send",
-          network: "AB Testnet",
-        },
-      ],
+      activities: [],
     }))
   );
   const account = accounts?.find(

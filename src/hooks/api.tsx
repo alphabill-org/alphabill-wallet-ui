@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { QueryObserverResult, useQueries, UseQueryResult } from "react-query";
+import { QueryObserverResult, useQueries } from "react-query";
 import { getBalance } from "./requests";
 
 export function useGetBalances(

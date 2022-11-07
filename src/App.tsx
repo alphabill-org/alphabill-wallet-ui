@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import CreateAccount from "./routes/CreateAccount/CreateAccount";
