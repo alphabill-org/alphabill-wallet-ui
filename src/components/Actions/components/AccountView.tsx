@@ -39,6 +39,7 @@ function AccountView({
   setIsActionsViewVisible,
 }: IAccountViewProps): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
+  const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
   const { activeAccountId, setActiveAccountId } = useApp();
   const queryClient = useQueryClient();
@@ -156,7 +157,7 @@ function AccountView({
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ['_' + idx]: values.accountName,
+                    ["_" + idx]: values.accountName,
                   })
                 )
               );
@@ -192,22 +193,24 @@ function AccountView({
               pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
             ) {
               axios
-              .post<void>(
-                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
-                {
-                  pubkey: prefixedHashingPubKey,
-                }
-              )
-              .then(() => addAccount())
-              .catch((e) =>{
-                if( e.response.data.message ==
-                  "pubkey already exists") {
-                    addAccount()
-                  } else {
-                    setErrors({ accountName: "Account creation failed" })}
+                .post<void>(
+                  "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                  {
+                    pubkey: prefixedHashingPubKey,
                   }
-
-              );
+                )
+                .then(() => {
+                  addAccount();
+                  setIsAddAccountLoading(false);
+                })
+                .catch((e) => {
+                  if (e.response.data.message == "pubkey already exists") {
+                    addAccount();
+                  } else {
+                    setErrors({ accountName: "Account creation failed" });
+                  }
+                  setIsAddAccountLoading(false);
+                });
             } else {
               return setErrors({ accountName: "Account creation failed" });
             }
@@ -277,6 +280,8 @@ function AccountView({
                         block={true}
                         type="submit"
                         variant="primary"
+                        working={isAddAccountLoading}
+                        onClick={() => setIsAddAccountLoading(true)}
                       >
                         Confirm
                       </Button>

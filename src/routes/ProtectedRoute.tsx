@@ -11,7 +11,6 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
   const vault = localStorage.getItem("ab_wallet_vault");
   const userKeys = localStorage.getItem("ab_wallet_pub_keys");
 
-
   if (
     !Boolean(userKeys) ||
     !Boolean(vault) ||

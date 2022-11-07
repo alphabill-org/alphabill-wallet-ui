@@ -16,6 +16,7 @@ import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import { useQueryClient } from "react-query";
+import Spinner from "../Spinner/Spinner";
 
 function Dashboard(): JSX.Element | null {
   const {
@@ -53,11 +54,19 @@ function Dashboard(): JSX.Element | null {
     })
     .filter((asset) => asset.network === account?.activeNetwork);
 
+  if (!account) {
+    return (
+      <div className="m-auto">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard">
       <Spacer mb={40} />
       <div className="dashboard__balance">
-        <h1>{abBalance}</h1>
+        <h1>{abBalance || 0}</h1>
         <h3>AB</h3>
       </div>
       <Spacer mb={8} />

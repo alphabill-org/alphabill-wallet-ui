@@ -196,7 +196,6 @@ function Popups({
                 localStorage.getItem("ab_wallet_account_names");
               const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
               const idx = Number(account?.idx);
-              console.log(account);
 
               localStorage.setItem(
                 "ab_wallet_account_names",
