@@ -16,8 +16,8 @@ interface IUserContext {
   setVault: (e: any) => void;
 }
 
-const keysData = localStorage.getItem("ab_wallet_pub_keys");
-const vaultData = localStorage.getItem("ab_wallet_vault");
+const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
+const vaultData = localStorage.getItem("ab_wallet_vault") || null;
 
 const AuthContext = createContext<IUserContext>({
   userKeys: keysData,

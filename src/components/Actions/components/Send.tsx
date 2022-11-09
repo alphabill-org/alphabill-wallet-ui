@@ -9,15 +9,17 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 import Select from "../../Select/Select";
-import { IAsset, ITransferProps } from "../../../types/Types";
+import { IAsset } from "../../../types/Types";
+import { useApp } from "../../../hooks/appProvider";
 
-function Send({
-  account,
-  accounts,
-  setAccounts,
-  setIsActionsViewVisible,
-}: ITransferProps): JSX.Element | null {
+function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
+  const {
+    setIsActionsViewVisible,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
 
   return (
     <Formik
@@ -36,8 +38,7 @@ function Send({
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) =>
-                asset !== currentAsset
+              (asset: any) => asset !== currentAsset
             );
 
             let updatedAsset;
@@ -82,8 +83,7 @@ function Send({
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) =>
-                asset !== currentAsset
+              (asset: any) => asset !== currentAsset
             );
 
             let updatedAsset;

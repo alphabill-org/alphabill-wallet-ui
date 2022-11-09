@@ -16,7 +16,7 @@ function Home(): JSX.Element {
 
   useEffect(() => {
     account && queryClient.invalidateQueries(["balance", account?.pubKey]);
-  }, [accounts, account, queryClient]);
+  }, [accounts, queryClient, account]);
 
   return (
     <>

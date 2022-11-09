@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
+import { Navigate } from "react-router-dom";
 
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
@@ -13,7 +14,6 @@ import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
 import Button from "../../Button/Button";
-import { IAccount } from "../../../types/Types";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
 import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
@@ -24,25 +24,29 @@ import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
 import { useApp } from "../../../hooks/appProvider";
 
-export interface IAccountViewProps {
-  setAccounts: (e: any) => void;
-  setActionsView?: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  accounts: IAccount[];
-  account?: IAccount;
-}
-
-function AccountView({
-  accounts,
-  account,
-  setAccounts,
-  setIsActionsViewVisible,
-}: IAccountViewProps): JSX.Element | null {
+function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
   const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
-  const { activeAccountId, setActiveAccountId } = useApp();
+  const {
+    accounts,
+    setAccounts,
+    setIsActionsViewVisible,
+    activeAccountId,
+    setActiveAccountId,
+    balances,
+  } = useApp();
   const queryClient = useQueryClient();
+
+  if (
+    userKeys!.length <= 0 ||
+    !vault ||
+    !Boolean(balances) ||
+    vault === "null" ||
+    userKeys === "null"
+  ) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className={classNames("account__view pad-24-h")}>
@@ -113,7 +117,7 @@ function AccountView({
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
             const decryptedVault = JSON.parse(
-              CryptoJS.AES.decrypt(vault!, values.password).toString(
+              CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
                 CryptoJS.enc.Latin1
               )
             );

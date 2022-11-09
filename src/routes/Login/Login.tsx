@@ -44,14 +44,14 @@ function Login(): JSX.Element | null {
           password: "",
         }}
         onSubmit={(values, { setErrors }) => {
-          if (Boolean(!vault) || vault === "null") {
+          if (!vault || vault === "null") {
             return setErrors({
               password: "No active wallet with this password",
             });
           }
 
           const decryptedVault = JSON.parse(
-            CryptoJS.AES.decrypt(vault!, values.password).toString(
+            CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
               CryptoJS.enc.Latin1
             )
           );

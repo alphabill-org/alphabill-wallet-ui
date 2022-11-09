@@ -12,8 +12,6 @@ function Actions(): JSX.Element | null {
     isActionsViewVisible,
     setIsActionsViewVisible,
     actionsView,
-    setActionsView,
-    account,
     accounts,
     setAccounts,
   } = useApp();
@@ -33,20 +31,9 @@ function Actions(): JSX.Element | null {
       </div>
       <div className="actions__view">
         {actionsView === "Send" ? (
-          <Send
-            account={account}
-            accounts={accounts}
-            setAccounts={setAccounts!}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
+          <Send />
         ) : actionsView === "Account" && accounts ? (
-          <Account
-            account={account}
-            accounts={accounts}
-            setAccounts={setAccounts!}
-            setActionsView={setActionsView}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
+          <Account />
         ) : actionsView === "Import Account" && accounts ? (
           <ImportAccount accounts={accounts} setAccounts={setAccounts!} />
         ) : (

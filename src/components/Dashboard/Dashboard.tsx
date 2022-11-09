@@ -1,7 +1,8 @@
 import classNames from "classnames";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import OutsideClickHandler from "react-outside-click-handler";
+import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
@@ -15,31 +16,23 @@ import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
-import { useQueryClient } from "react-query";
 import Spinner from "../Spinner/Spinner";
 
 function Dashboard(): JSX.Element | null {
   const {
     setIsActionsViewVisible,
     setActionsView,
-    balances,
     account,
     accounts,
     setAccounts,
   } = useApp();
-  const abBalance = balances.find(
-    (balance: any) => balance?.data?.id === account?.pubKey
-  )?.data?.balance;
+  const abBalance = account?.assets.find((asset) => (asset.id = "AB"))?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isBuyPopupVisible, setIsBuyPopupVisible] = useState(false);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    account && queryClient.invalidateQueries(["balance", account?.pubKey]);
-  }, [accounts, account, queryClient]);
 
   const activities = account?.activities;
   const sortedAssets = account?.assets
@@ -54,7 +47,7 @@ function Dashboard(): JSX.Element | null {
     })
     .filter((asset) => asset.network === account?.activeNetwork);
 
-  if (!account) {
+  if (!accounts) {
     return (
       <div className="m-auto">
         <Spinner />
@@ -193,7 +186,7 @@ function Dashboard(): JSX.Element | null {
                       </div>
                       <div>
                         <div>
-                          {abBalance} {asset?.id}
+                          {asset.amount} {asset?.id}
                         </div>
                         <div className="t-small c-light">{asset.name}</div>
                       </div>
