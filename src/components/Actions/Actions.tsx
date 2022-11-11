@@ -13,7 +13,6 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
-    setAccounts,
   } = useApp();
 
   return (
@@ -35,7 +34,7 @@ function Actions(): JSX.Element | null {
         ) : actionsView === "Account" && accounts ? (
           <Account />
         ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount accounts={accounts} setAccounts={setAccounts!} />
+          <ImportAccount />
         ) : (
           <></>
         )}

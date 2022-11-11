@@ -10,16 +10,15 @@ import Textfield from "../../Textfield/Textfield";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
-
 import { extractFormikError } from "../../../utils/utils";
-import { IAccount } from "../../../types/Types";
+import { IAccount, IAsset } from "../../../types/Types";
 
 export interface IPopupsProps {
-  setAccounts: (e: any) => void;
+  setAccounts: (e: IAccount[]) => void;
   account: IAccount;
   accounts?: IAccount[];
-  setIsRenamePopupVisible: (e: any) => void;
-  setIsRequestPopupVisible: (e: any) => void;
+  setIsRenamePopupVisible: (e: boolean) => void;
+  setIsRequestPopupVisible: (e: boolean) => void;
   isRequestPopupVisible: boolean;
   isRenamePopupVisible: boolean;
 }
@@ -69,13 +68,13 @@ function Popups({
                   const updatedData = accounts?.map((obj) => {
                     if (obj?.pubKey === account.pubKey) {
                       const currentAsset = obj.assets?.find(
-                        (asset: any) =>
+                        (asset: IAsset) =>
                           asset?.id === "AB" &&
                           asset.network === account?.activeNetwork
                       );
 
                       const filteredAsset = obj.assets?.filter(
-                        (asset: any) => asset !== currentAsset
+                        (asset: IAsset) => asset !== currentAsset
                       );
 
                       let updatedAsset;
@@ -95,7 +94,7 @@ function Popups({
 
                       const updatedAssets =
                         filteredAsset.length >= 1
-                          ? filteredAsset.concat([updatedAsset])
+                          ? filteredAsset.concat([updatedAsset as IAsset])
                           : [updatedAsset];
 
                       return {
@@ -116,11 +115,11 @@ function Popups({
                       };
                     } else if (obj?.pubKey === account?.pubKey) {
                       const currentAsset = obj.assets?.find(
-                        (asset: any) => asset?.id === "AB"
+                        (asset: IAsset) => asset?.id === "AB"
                       );
 
                       const filteredAsset = obj.assets?.filter(
-                        (asset: any) => asset !== currentAsset
+                        (asset: IAsset) => asset !== currentAsset
                       );
 
                       let updatedAsset;
@@ -139,7 +138,7 @@ function Popups({
 
                       const updatedAssets =
                         filteredAsset.length >= 1
-                          ? filteredAsset.concat([updatedAsset])
+                          ? filteredAsset.concat([updatedAsset as IAsset])
                           : [updatedAsset];
 
                       return {
@@ -160,12 +159,12 @@ function Popups({
                     } else return { ...obj };
                   });
 
-                  setAccounts(updatedData);
+                  setAccounts(updatedData as IAccount[]);
                   setIsLoading(false);
                   return data;
                 })
                 .catch((error) => {
-                  console.error(error.response.data.error);
+                  console.error(error.response?.data?.error);
                   setIsLoading(false);
                   return;
                 });
@@ -213,7 +212,7 @@ function Popups({
                   return { ...obj, name: values.accountName };
                 } else return { ...obj };
               });
-              setAccounts(updatedAccounts);
+              setAccounts(updatedAccounts as IAccount[]);
               setIsRenamePopupVisible(false);
               resetForm();
             }}

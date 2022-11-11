@@ -8,7 +8,7 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 
-function ImportAccount({ account, setAccounts }: any): JSX.Element | null {
+function ImportAccount(): JSX.Element | null {
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isImportTypeKey, setIsImportTypeKey] = useState(true);
 

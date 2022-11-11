@@ -6,7 +6,7 @@ import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IActivity, IAsset } from "../../types/Types";
+import { IAccount, IActivity, IAsset } from "../../types/Types";
 import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
 import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
 import { ReactComponent as SwapIcon } from "../../images/swap-ico.svg";
@@ -265,7 +265,7 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Popups
         accounts={accounts}
-        account={account as any}
+        account={account as IAccount}
         setAccounts={setAccounts}
         isRenamePopupVisible={isRenamePopupVisible}
         setIsRenamePopupVisible={setIsRenamePopupVisible}

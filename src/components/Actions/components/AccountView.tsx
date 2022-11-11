@@ -30,7 +30,6 @@ function AccountView(): JSX.Element | null {
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
   const {
     accounts,
-    setAccounts,
     setIsActionsViewVisible,
     activeAccountId,
     setActiveAccountId,
@@ -155,7 +154,7 @@ function AccountView(): JSX.Element | null {
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
               const accountNames =
                 localStorage.getItem("ab_wallet_account_names") || "";
-              const accountNamesObj = JSON.parse(accountNames);
+              const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
               const idx = accountIndex;
               localStorage.setItem(
                 "ab_wallet_account_names",
@@ -192,7 +191,7 @@ function AccountView(): JSX.Element | null {
                   setIsAddAccountLoading(false);
                 })
                 .catch((e) => {
-                  if (e.response.data.message === "pubkey already exists") {
+                  if (e.response?.data?.message === "pubkey already exists") {
                     addAccount();
                   } else {
                     setErrors({ accountName: "Account creation failed" });

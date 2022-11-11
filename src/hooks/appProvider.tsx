@@ -16,7 +16,7 @@ interface IAppContextShape {
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
   accounts: IAccount[];
-  setAccounts: (e: any) => void;
+  setAccounts: (e: IAccount[]) => void;
   account: IAccount | undefined;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
@@ -79,38 +79,44 @@ export const AppProvider: FunctionComponent<{
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
-    (accounts.length <= 0 && keysArr.length >= 1) ||
+    if (
+      (accounts.length <= 0 && keysArr.length >= 1) ||
       (keysArr.length >= 1 &&
         balances[balances.length - 1]?.data?.balance !==
-          accounts[accounts.length - 1].assets.find(
+          accounts[accounts.length - 1]?.assets.find(
             (asset) => asset.id === "AB"
-          )?.amount &&
-        setAccounts(
-          keysArr.map((key, idx) => ({
-            pubKey: key,
-            idx: idx,
-            name: accountNamesObj["_" + idx],
-            assets: [
-              {
-                id: "AB",
-                name: "AlphaBill Token",
-                network: "AB Testnet",
-                amount: balances?.find(
-                  (balance: any) => balance?.data?.id === key
-                )?.data?.balance,
-              },
-            ],
-            activeNetwork: "AB Testnet",
-            networks: [
-              {
-                id: "AB Testnet",
-                isTestNetwork: true,
-              },
-            ],
-            activities: [],
-          }))
-        ));
-  }, [accounts, keysArr, accountNamesObj, balances]);
+          )?.amount)
+    ) {
+      setAccounts(
+        keysArr.map((key, idx) => ({
+          pubKey: key,
+          idx: idx,
+          name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
+          assets: [
+            {
+              id: "AB",
+              name: "AlphaBill Token",
+              network: "AB Testnet",
+              amount: balances?.find(
+                (balance: any) => balance?.data?.id === key
+              )?.data?.balance,
+            },
+          ],
+          activeNetwork: "AB Testnet",
+          networks: [
+            {
+              id: "AB Testnet",
+              isTestNetwork: true,
+            },
+          ],
+          activities:
+            accounts?.find((account: IAccount) => account?.pubKey === key)
+              ?.activities || [],
+        }))
+      );
+      !activeAccountId && setActiveAccountId(keysArr[0]);
+    }
+  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
 
   return (
     <AppContext.Provider

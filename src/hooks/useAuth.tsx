@@ -9,11 +9,11 @@ interface IUseLocalStorageProps {
 
 interface IUserContext {
   userKeys: string | null;
-  login: (e?: any) => void;
+  login: (e?: string | null) => void;
   logout: () => void;
   vault: string | null;
   setUserKeys: (e: any) => void;
-  setVault: (e: any) => void;
+  setVault: (e: string) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -22,9 +22,9 @@ const vaultData = localStorage.getItem("ab_wallet_vault") || null;
 const AuthContext = createContext<IUserContext>({
   userKeys: keysData,
   vault: vaultData,
-  login: (e?: any) => {},
+  login: () => {},
   logout: () => {},
-  setUserKeys: (e: any) => {},
+  setUserKeys: (e: []) => {},
   setVault: (e: any) => {},
 });
 

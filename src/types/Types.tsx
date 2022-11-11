@@ -10,11 +10,10 @@ export interface IAccount {
 }
 
 export interface IAsset {
-  id?: string;
-  name?: string;
-  amount?: number;
-  push?: any;
-  network?: string;
+  id: string;
+  name: string;
+  amount: number;
+  network: string;
 }
 
 export interface INetwork {
@@ -42,8 +41,8 @@ export interface IActivity {
 }
 
 export interface ITransferProps {
-  setAccounts: (e: any) => void;
+  setAccounts: (e: IAccount[]) => void;
   account?: IAccount;
   accounts?: IAccount[];
-  setIsActionsViewVisible: (e: any) => void;
+  setIsActionsViewVisible: (e: boolean) => void;
 }

@@ -67,7 +67,7 @@ function RecoverAccount(): JSX.Element | null {
 
             const mnemonicArr = values.mnemonicRecovery.split(" ");
 
-            mnemonicArr.forEach((word: any) => {
+            mnemonicArr.forEach((word: string) => {
               const index = mnemonicArr.indexOf(word);
 
               if (index === -1) {
@@ -114,7 +114,7 @@ function RecoverAccount(): JSX.Element | null {
                       values.password
                     ).toString()
                   );
-                  login(!userKeys && prefixedPubKey);
+                  login(!userKeys ? prefixedPubKey : null);
                 }
               })
               .catch((e) => setErrors({ passwordConfirm: e }));

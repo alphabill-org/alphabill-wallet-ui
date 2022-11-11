@@ -9,7 +9,7 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 import Select from "../../Select/Select";
-import { IAsset } from "../../../types/Types";
+import { IAccount, IAsset } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 
 function Send(): JSX.Element | null {
@@ -32,13 +32,13 @@ function Send(): JSX.Element | null {
         const updatedData = accounts?.map((obj) => {
           if (obj?.pubKey === values.address) {
             const currentAsset = obj.assets?.find(
-              (asset: any) =>
+              (asset: IAsset) =>
                 asset?.id === currentTokenId.id &&
                 asset.network === account?.activeNetwork
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) => asset !== currentAsset
+              (asset: IAsset) => asset !== currentAsset
             );
 
             let updatedAsset;
@@ -58,7 +58,7 @@ function Send(): JSX.Element | null {
 
             const updatedAssets =
               filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset])
+                ? filteredAsset.concat([updatedAsset as IAsset])
                 : [updatedAsset];
 
             return {
@@ -79,11 +79,11 @@ function Send(): JSX.Element | null {
             };
           } else if (obj?.pubKey === account?.pubKey) {
             const currentAsset = obj.assets?.find(
-              (asset: any) => asset?.id === currentTokenId.id
+              (asset: IAsset) => asset?.id === currentTokenId.id
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) => asset !== currentAsset
+              (asset: IAsset) => asset !== currentAsset
             );
 
             let updatedAsset;
@@ -102,7 +102,7 @@ function Send(): JSX.Element | null {
 
             const updatedAssets =
               filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset])
+                ? filteredAsset.concat([updatedAsset as IAsset])
                 : [updatedAsset];
 
             return {
@@ -123,7 +123,7 @@ function Send(): JSX.Element | null {
           } else return { ...obj };
         });
 
-        setAccounts(updatedData);
+        setAccounts(updatedData as IAccount[]);
         setIsActionsViewVisible(false);
       }}
       validationSchema={Yup.object().shape({
@@ -150,7 +150,7 @@ function Send(): JSX.Element | null {
               Number(value) <=
               Number(
                 account?.assets?.find(
-                  (asset: any) =>
+                  (asset: IAsset) =>
                     asset?.id === currentTokenId.id &&
                     asset.network === account?.activeNetwork
                 )?.amount
