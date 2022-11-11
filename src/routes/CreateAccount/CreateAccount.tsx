@@ -19,7 +19,7 @@ import { useApp } from "../../hooks/appProvider";
 function CreateAccount(): JSX.Element | null {
   const { login, setUserKeys } = useAuth();
   const mnemonic = generateMnemonic();
-  const { setActiveAccountId, setAccounts } = useApp();
+  const { setActiveAccountId } = useApp();
 
   const downloadTxtFile = () => {
     const element = document.createElement("a");
@@ -116,28 +116,6 @@ function CreateAccount(): JSX.Element | null {
                   setActiveAccountId(prefixedHashingPubKey);
                   setUserKeys(prefixedHashingPubKey);
                   login(prefixedHashingPubKey);
-                  setAccounts([
-                    {
-                      pubKey: prefixedHashingPubKey,
-                      idx: 0,
-                      name: "Account 1",
-                      assets: [
-                        {
-                          id: "AB",
-                          name: "AlphaBill Token",
-                          network: "AB Testnet",
-                        },
-                      ],
-                      activeNetwork: "AB Testnet",
-                      networks: [
-                        {
-                          id: "AB Testnet",
-                          isTestNetwork: true,
-                        },
-                      ],
-                      activities: [],
-                    },
-                  ]);
                 })
                 .catch(() =>
                   setErrors({ passwordConfirm: "Key was not added" })

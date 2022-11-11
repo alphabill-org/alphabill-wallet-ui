@@ -75,7 +75,7 @@ export const AppProvider: FunctionComponent<{
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
-  const [actionsView, setActionsView] = useState("Buy");
+  const [actionsView, setActionsView] = useState("Request");
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {

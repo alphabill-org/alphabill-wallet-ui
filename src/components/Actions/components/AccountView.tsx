@@ -166,23 +166,7 @@ function AccountView(): JSX.Element | null {
                 )
               );
 
-              const updatedAccounts = accounts?.concat([
-                {
-                  pubKey: prefixedHashingPubKey,
-                  name: values.accountName,
-                  assets: [],
-                  activeNetwork: "AB Testnet",
-                  networks: [
-                    {
-                      id: "AB Testnet",
-                      isTestNetwork: true,
-                    },
-                  ],
-                  activities: [],
-                },
-              ]);
               setActiveAccountId(prefixedHashingPubKey);
-              setAccounts(updatedAccounts);
               setIsAddPopupVisible(false);
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };

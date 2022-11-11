@@ -19,14 +19,14 @@ export interface IPopupsProps {
   account: IAccount;
   accounts?: IAccount[];
   setIsRenamePopupVisible: (e: any) => void;
-  setIsBuyPopupVisible: (e: any) => void;
-  isBuyPopupVisible: boolean;
+  setIsRequestPopupVisible: (e: any) => void;
+  isRequestPopupVisible: boolean;
   isRenamePopupVisible: boolean;
 }
 
 function Popups({
-  isBuyPopupVisible,
-  setIsBuyPopupVisible,
+  isRequestPopupVisible,
+  setIsRequestPopupVisible,
   isRenamePopupVisible,
   setIsRenamePopupVisible,
   account,
@@ -38,9 +38,10 @@ function Popups({
 
   return (
     <>
+      {/* Useful for testing & demoing for now & will be removed later */}
       <Popup
-        isPopupVisible={isBuyPopupVisible}
-        setIsPopupVisible={setIsBuyPopupVisible}
+        isPopupVisible={isRequestPopupVisible}
+        setIsPopupVisible={setIsRequestPopupVisible}
         title={isRenamePopupVisible ? "" : "Experiment with Test Tokens"}
       >
         <div className="mw-100p">
@@ -55,7 +56,7 @@ function Popups({
           <Button
             onClick={() => {
               setIsLoading(true);
-              setIsBuyPopupVisible(false);
+              setIsRequestPopupVisible(false);
               axios({
                 method: "post",
                 url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
@@ -74,8 +75,7 @@ function Popups({
                       );
 
                       const filteredAsset = obj.assets?.filter(
-                        (asset: any) =>
-                          asset !== currentAsset
+                        (asset: any) => asset !== currentAsset
                       );
 
                       let updatedAsset;
@@ -120,8 +120,7 @@ function Popups({
                       );
 
                       const filteredAsset = obj.assets?.filter(
-                        (asset: any) =>
-                          asset !== currentAsset
+                        (asset: any) => asset !== currentAsset
                       );
 
                       let updatedAsset;
@@ -192,16 +191,19 @@ function Popups({
               accountName: account?.name,
             }}
             onSubmit={async (values, { resetForm }) => {
-              const accountNames =
-                localStorage.getItem("ab_wallet_account_names");
-              const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
+              const accountNames = localStorage.getItem(
+                "ab_wallet_account_names"
+              );
+              const accountNamesObj = accountNames
+                ? JSON.parse(accountNames)
+                : {};
               const idx = Number(account?.idx);
 
               localStorage.setItem(
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ['_' + idx]: values.accountName,
+                    ["_" + idx]: values.accountName,
                   })
                 )
               );

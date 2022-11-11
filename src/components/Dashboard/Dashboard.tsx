@@ -28,7 +28,7 @@ function Dashboard(): JSX.Element | null {
   } = useApp();
   const abBalance = account?.assets.find((asset) => (asset.id = "AB"))?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
-  const [isBuyPopupVisible, setIsBuyPopupVisible] = useState(false);
+  const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
@@ -117,14 +117,16 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Spacer mb={8} />
       <div className="dashboard__buttons">
+        {/* Useful for testing & demoing for now & will be removed later */}
         <Button
           variant="primary"
           onClick={() => {
-            setIsBuyPopupVisible(true);
+            setIsRequestPopupVisible(true);
           }}
         >
           Request
         </Button>
+        {/* Needs API integration */}
         <Button
           variant="primary"
           onClick={() => {
@@ -194,6 +196,7 @@ function Dashboard(): JSX.Element | null {
                   );
                 })}
           </div>
+          {/* Activities need API or localStorage implementation */}
           <div
             className={classNames("dashboard__info-col", {
               active: isAssetsColActive !== true,
@@ -266,8 +269,8 @@ function Dashboard(): JSX.Element | null {
         setAccounts={setAccounts}
         isRenamePopupVisible={isRenamePopupVisible}
         setIsRenamePopupVisible={setIsRenamePopupVisible}
-        isBuyPopupVisible={isBuyPopupVisible}
-        setIsBuyPopupVisible={setIsBuyPopupVisible}
+        isRequestPopupVisible={isRequestPopupVisible}
+        setIsRequestPopupVisible={setIsRequestPopupVisible}
       />
     </div>
   );
