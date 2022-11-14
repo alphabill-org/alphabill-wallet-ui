@@ -154,7 +154,9 @@ function AccountView(): JSX.Element | null {
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
               const accountNames =
                 localStorage.getItem("ab_wallet_account_names") || "";
-              const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
+              const accountNamesObj = accountNames
+                ? JSON.parse(accountNames)
+                : {};
               const idx = accountIndex;
               localStorage.setItem(
                 "ab_wallet_account_names",
@@ -176,31 +178,25 @@ function AccountView(): JSX.Element | null {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            if (
-              pubKeyToHex(controlHashingPubKey!) === userKeys?.split(" ")[0]
-            ) {
-              axios
-                .post<void>(
-                  "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
-                  {
-                    pubkey: prefixedHashingPubKey,
-                  }
-                )
-                .then(() => {
+            axios
+              .post<void>(
+                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                {
+                  pubkey: prefixedHashingPubKey,
+                }
+              )
+              .then(() => {
+                addAccount();
+                setIsAddAccountLoading(false);
+              })
+              .catch((e) => {
+                if (e.response?.data?.message === "pubkey already exists") {
                   addAccount();
-                  setIsAddAccountLoading(false);
-                })
-                .catch((e) => {
-                  if (e.response?.data?.message === "pubkey already exists") {
-                    addAccount();
-                  } else {
-                    setErrors({ accountName: "Account creation failed" });
-                  }
-                  setIsAddAccountLoading(false);
-                });
-            } else {
-              return setErrors({ accountName: "Account creation failed" });
-            }
+                } else {
+                  setErrors({ accountName: "Account creation failed" });
+                }
+                setIsAddAccountLoading(false);
+              });
 
             resetForm();
           }}

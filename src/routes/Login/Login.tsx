@@ -78,14 +78,9 @@ function Login(): JSX.Element | null {
             return setErrors({ password: "Password is incorrect!" });
           }
 
-          if (
-            pubKeyToHex(controlHashingPubKey!) ===
-            decryptedVault.pub_keys?.split(" ")[0]
-          ) {
-            setUserKeys(decryptedVault.pub_keys);
-            setActiveAccountId(pubKeyToHex(controlHashingPubKey!));
-            login();
-          }
+          setUserKeys(decryptedVault.pub_keys);
+          setActiveAccountId(pubKeyToHex(controlHashingPubKey!));
+          login();
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().test(
