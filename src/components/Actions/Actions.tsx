@@ -6,6 +6,7 @@ import Send from "./components/Send";
 import Account from "./components/AccountView";
 import ImportAccount from "./components/ImportAccount";
 import { useApp } from "../../hooks/appProvider";
+import BillsList from "./components/BillsList";
 
 function Actions(): JSX.Element | null {
   const {
@@ -31,6 +32,8 @@ function Actions(): JSX.Element | null {
       <div className="actions__view">
         {actionsView === "Send" ? (
           <Send />
+        ) : actionsView === "Bills List" ? (
+          <BillsList />
         ) : actionsView === "Account" && accounts ? (
           <Account />
         ) : actionsView === "Import Account" && accounts ? (
