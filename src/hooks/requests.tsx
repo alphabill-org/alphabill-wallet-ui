@@ -18,7 +18,7 @@ export const getBalance = async (id: string): Promise<any> => {
 
 export const getBillsList = async (id: string): Promise<IBillsList> => {
   const response = await axios.get<IBillsList>(
-    `https://dev-ab-wallet-backend.abdev1.guardtime.com//list-bills?pubkey=${id}`
+    `https://dev-ab-wallet-backend.abdev1.guardtime.com/list-bills?pubkey=${id}`
   );
 
   return response.data;

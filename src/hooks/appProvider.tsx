@@ -122,7 +122,7 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
+  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId, abAccountBalance, abFetchedBalance, updatedBalance]);
 
   return (
     <AppContext.Provider
