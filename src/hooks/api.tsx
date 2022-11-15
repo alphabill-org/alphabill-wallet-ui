@@ -25,21 +25,3 @@ export function useGetBillsList(id: string): QueryObserverResult<IBillsList, Axi
     staleTime: Infinity,
   });
 }
-
-
-/*
-export function useGetBillsList(
-  ids: string[] | undefined
-) {
-  return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
-    ids!.map((id) => {
-      return {
-        queryKey: ["billsList", id],
-        queryFn: async () => getBillsList(id),
-        enabled: !!id,
-        staleTime: Infinity,
-      };
-    })
-  );
-}
-*/
