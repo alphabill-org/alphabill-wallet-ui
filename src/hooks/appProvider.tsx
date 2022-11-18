@@ -77,50 +77,54 @@ export const AppProvider: FunctionComponent<{
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
   const abAccountBalance = accounts
-  ?.find((account) => account?.pubKey === activeAccountId)
-  ?.assets.find((asset) => asset.id === "AB")?.amount;
-const abFetchedBalance = balances?.find(
-  (balance: any) => balance?.data?.id === activeAccountId
-)?.data?.balance;
-const updatedBalance =
-  abFetchedBalance < Number(abAccountBalance)
-    ? abAccountBalance
-    : abFetchedBalance;
+    ?.find((account) => account?.pubKey === activeAccountId)
+    ?.assets.find((asset) => asset.id === "AB")?.amount;
+  const abFetchedBalance = balances?.find(
+    (balance: any) => balance?.data?.id === activeAccountId
+  )?.data?.balance;
 
-// Used when getting keys from localStorage or fetching balance takes time
-useEffect(() => {
-  if (
-    (accounts.length <= 0 && keysArr.length >= 1) ||
-    (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance)
-  ) {
-    setAccounts(
-      keysArr.map((key, idx) => ({
-        pubKey: key,
-        idx: idx,
-        name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
-        assets: [
-          {
-            id: "AB",
-            name: "AlphaBill Token",
-            network: "AB Testnet",
-            amount: updatedBalance,
-          },
-        ],
-        activeNetwork: "AB Testnet",
-        networks: [
-          {
-            id: "AB Testnet",
-            isTestNetwork: true,
-          },
-        ],
-        activities:
-          accounts?.find((account: IAccount) => account?.pubKey === key)
-            ?.activities || [],
-      }))
-    );
-    !activeAccountId && setActiveAccountId(keysArr[0]);
-  }
-}, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
+  // Used when getting keys from localStorage or fetching balance takes time
+  useEffect(() => {
+    if (
+      (accounts.length <= 0 && keysArr.length >= 1) ||
+      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance)
+    ) {
+      setAccounts(
+        keysArr.map((key, idx) => ({
+          pubKey: key,
+          idx: idx,
+          name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
+          assets: [
+            {
+              id: "AB",
+              name: "AlphaBill Token",
+              network: "AB Testnet",
+              amount: abFetchedBalance,
+            },
+          ],
+          activeNetwork: "AB Testnet",
+          networks: [
+            {
+              id: "AB Testnet",
+              isTestNetwork: true,
+            },
+          ],
+          activities:
+            accounts?.find((account: IAccount) => account?.pubKey === key)
+              ?.activities || [],
+        }))
+      );
+      !activeAccountId && setActiveAccountId(keysArr[0]);
+    }
+  }, [
+    accounts,
+    keysArr,
+    accountNamesObj,
+    balances,
+    activeAccountId,
+    abAccountBalance,
+    abFetchedBalance,
+  ]);
 
   return (
     <AppContext.Provider
