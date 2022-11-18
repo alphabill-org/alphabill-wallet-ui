@@ -7,8 +7,8 @@ import {
   useState,
 } from "react";
 
-import { IAccount } from "../types/Types";
-import { useGetBalances, useGetBillsList } from "./api";
+import { IAccount, IBlockStats } from "../types/Types";
+import { useGetBalances, useGetBillsList, useGetBlockHeight } from "./api";
 import { useAuth } from "./useAuth";
 
 interface IAppContextShape {
@@ -23,6 +23,7 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
   setActionsView: (e: string) => void;
+  blockStats: IBlockStats;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -43,6 +44,7 @@ export const AppProvider: FunctionComponent<{
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
   const balances: any = useGetBalances(keysArr);
+  const { data: blockStats}: any = useGetBlockHeight();
   const { data: billsList } = useGetBillsList(activeAccountId);
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
@@ -105,7 +107,7 @@ export const AppProvider: FunctionComponent<{
               id: "AB",
               name: "AlphaBill Token",
               network: "AB Testnet",
-              amount: updatedBalance,
+              amount: abFetchedBalance,
             },
           ],
           activeNetwork: "AB Testnet",
@@ -122,11 +124,21 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId, abAccountBalance, abFetchedBalance, updatedBalance]);
+  }, [
+    accounts,
+    keysArr,
+    accountNamesObj,
+    balances,
+    activeAccountId,
+    abAccountBalance,
+    abFetchedBalance,
+    updatedBalance,
+  ]);
 
   return (
     <AppContext.Provider
       value={{
+        blockStats,
         billsList,
         balances,
         activeAccountId,

@@ -26,7 +26,7 @@ function Dashboard(): JSX.Element | null {
     accounts,
     setAccounts,
   } = useApp();
-  const abBalance = account?.assets.find((asset) => (asset.id = "AB"))?.amount;
+  const abBalance = account?.assets.find((asset: IAsset) => (asset.id = "AB"))?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
@@ -168,8 +168,8 @@ function Dashboard(): JSX.Element | null {
           >
             {sortedAssets &&
               sortedAssets
-                .filter((asset) => asset.network === account?.activeNetwork)
-                .map((asset: IAsset, idx) => {
+                .filter((asset: IAsset) => asset.network === account?.activeNetwork)
+                .map((asset: IAsset, idx: number) => {
                   // API supports only AB balance at the moment
                   return (
                     <div key={idx} className="dashboard__info-item-wrap">
@@ -222,7 +222,7 @@ function Dashboard(): JSX.Element | null {
                     new Date(b.time).getTime() - new Date(a.time).getTime()
                   );
                 })
-                .map((activity: IActivity, idx) => {
+                .map((activity: IActivity, idx: number) => {
                   if (account?.activeNetwork !== activity?.network) return null;
 
                   return (
