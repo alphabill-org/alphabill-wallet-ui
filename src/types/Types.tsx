@@ -46,23 +46,10 @@ export interface ITransfer {
   type: string;
   attributes: {
     backlink: string;
-    new_bearer: string;
-    target_value: number;
-  },
-  timeout: number;
-  owner_proof: string;
-}
-
-
-export interface ISplit {
-  system_id: string;
-  unit_id: string;
-  type: string;
-  attributes: {
-    amount: number;
-    backlink: string;
-    remaining_value: number;
-    target_bearer: string;
+    new_bearer?: string;
+    target_value?: number;
+    remaining_value?: number;
+    target_bearer?: string;
   },
   timeout: number;
   owner_proof: string;

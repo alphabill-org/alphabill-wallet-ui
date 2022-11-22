@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IBillsList, IBlockStats, ISplit, ITransfer } from "../types/Types";
+import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
 
 export const getBalance = async (id: string): Promise<any> => {
   if (!id || Number(id) === 0 || !id.startsWith("0x0")) {
@@ -35,9 +35,9 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
 
 export const makeTransaction = async (
   data: ITransfer
-): Promise<{ data: ITransfer | ISplit }> => {
-  const response = await axios.post<{ data: ITransfer | ISplit }>(
-    'https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1/transactions',
+): Promise<{ data: ITransfer }> => {
+  const response = await axios.post<{ data: ITransfer }>(
+    'https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions',
     {
       ...data,
     }

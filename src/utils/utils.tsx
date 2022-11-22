@@ -41,16 +41,3 @@ export function useCombinedRefs(...refs: any[]) {
 
 export const pubKeyToHex = (pubKey: Uint8Array) =>
   "0x" + Buffer.from(pubKey).toString("hex");
-
-const bitLength = (number: number) => {
-  return Math.floor(Math.log2(number)) + 1;
-};
-
-const byteLength = (number: number) => {
-  return Math.ceil(bitLength(number) / 8);
-};
-
-export const getInt64Bytes = (x: number) => {
-  let y= Math.floor(x/2**32);
-  return [y,(y<<8),(y<<16),(y<<24), x,(x<<8),(x<<16),(x<<24)].map(z=> z>>>24)
-}

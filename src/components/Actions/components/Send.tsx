@@ -3,58 +3,29 @@ import { Formik } from "formik";
 import { differenceBy } from "lodash";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
-import { Utf8Converter } from "@guardtime/common/lib/strings/Utf8Converter.js";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { Uint64BE } from "int64-buffer";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import * as secp from "@noble/secp256k1";
+import { useQueryClient } from "react-query";
+import axios from "axios";
 
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, getInt64Bytes } from "../../../utils/utils";
+import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
 import Select from "../../Select/Select";
 import { IAsset, IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
-import { useMakeTransaction } from "../../../hooks/api";
-
-const BILLS = [
-  {
-    id: "0x00000000b219635baa33b1958a9cfa76ed4e59118214d5706216e84c388aa4b2",
-    value: 100,
-  },
-  {
-    id: "0x00000000c099673d4d795f50434934e445128bddb0beadf97d4ddfc86366f12c",
-    value: 200,
-  },
-  {
-    id: "0x00000000cb8ccb11b39fe08eeaee9331e62bf3b3faf432de5b075f28ba5a9480",
-    value: 300,
-  },
-  {
-    id: "0x00000000687ae2d3e46e20ed7257b35934a4a27dfd6a96c208474a976913873a",
-    value: 40,
-  },
-  {
-    id: "0x00000000c92434a241444091a5f31a7ee0f7a5e522a26d6742715821aece190f",
-    value: 500,
-  },
-  {
-    id: "0x00000000d475221b3c3cab785d9067d74b88ebc413617d203b3ac980e6237988",
-    value: 10,
-  },
-];
+import { makeTransaction } from "../../../hooks/requests";
 
 function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
-  const { setIsActionsViewVisible, account, accounts, billsList, blockStats } =
-    useApp();
+  const { setIsActionsViewVisible, account, billsList, blockStats } = useApp();
   const { vault } = useAuth();
-  const getSignedData = (data: any) => {
-    return Uint8Array.from(Utf8Converter.ToBytes(JSON.stringify(data)));
-  };
+  const queryClient = useQueryClient();
 
   return (
     <Formik
@@ -66,6 +37,7 @@ function Send(): JSX.Element | null {
       }}
       onSubmit={(values, { setErrors }) => {
         if (!vault) return;
+        queryClient.invalidateQueries(["blockHeight"]);
 
         const decryptedVault = JSON.parse(
           CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
@@ -84,14 +56,14 @@ function Send(): JSX.Element | null {
         const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
         const seed = mnemonicToSeedSync(mnemonic);
         const masterKey = HDKey.fromMasterSeed(seed);
-        const accountIndex = accounts.length;
+        const accountIndex = account?.idx;
         const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
         const hashingPrivateKey = hashingKey.privateKey;
         const hashingPublicKey = hashingKey.publicKey;
 
         if (!hashingPrivateKey || !hashingPublicKey) return;
 
-        let billsArr = BILLS;
+        let billsArr = billsList.bills as IBill[];
         let selectedBills: IBill[] = [];
         const findClosestBigger = (bills: IBill[], target: number) =>
           bills
@@ -113,13 +85,6 @@ function Send(): JSX.Element | null {
         } else {
           const initialBill = getClosestSmaller(billsArr, values.amount);
           selectedBills = selectedBills.concat([initialBill]);
-          const billsInitialSum = selectedBills.reduce(
-            (acc: number, obj: IBill) => {
-              return acc + obj.value;
-            },
-            0
-          );
-
           let missingSum = Number(values.amount) - initialBill.value;
 
           do {
@@ -154,41 +119,39 @@ function Send(): JSX.Element | null {
             }
             missingSum = missingSum - addedSum;
             if (filteredBillsSum <= 0) {
-              return setErrors({
-                amount: `You don't have enough ` + currentTokenId.name + `'s`,
-              });
               break;
             }
           } while (missingSum > 0);
         }
 
         const startByte = "53";
-        const OpPushSig = "54";
-        const OpPushPubKey = "55";
+        const opPushSig = "54";
+        const opPushPubKey = "55";
         const opDup = "76";
         const opHash = "a8";
         const opPushHash = "4f";
         const opCheckSig = "ac";
         const opEqual = "87";
         const opVerify = "69";
-        const hash256Alg = "01";
+        const sigScheme = "01";
 
-        const address = values.address;
-        const hash = CryptoJS.enc.Hex.parse(address);
-        const SHA256 = CryptoJS.SHA256(hash);
+        const address = values.address.startsWith("0x")
+          ? values.address.substring(2)
+          : values.address;
+        const addressHash = CryptoJS.enc.Hex.parse(address);
+        const SHA256 = CryptoJS.SHA256(addressHash);
         const newBearer = Buffer.from(
           startByte +
             opDup +
             opHash +
-            hash256Alg +
+            sigScheme +
             opPushHash +
-            hash256Alg +
+            sigScheme +
             SHA256.toString(CryptoJS.enc.Hex) +
             opEqual +
             opVerify +
-            opVerify +
             opCheckSig +
-            hash256Alg,
+            sigScheme,
           "hex"
         ).toString("base64");
 
@@ -199,88 +162,149 @@ function Send(): JSX.Element | null {
           0
         );
         const billsSumDifference = selectedBillsSum - values.amount;
-        const billToSplit = findClosestBigger(
-          selectedBills,
-          billsSumDifference
-        );
-        const billsToTransfer = selectedBills.filter(
-          (bill) => bill.id != billToSplit!.id
-        );
-        const splitBillAmount = billToSplit!.value - billsSumDifference;
-
-        (async () => {
-          const transferData = billsToTransfer.map((bill) => ({
-            system_id: "AAAAAA==",
-            unit_id: bill.id,
-            type: "TransferOrder",
-            attributes: {
-              backlink: "AAABAQ==", // Bill block proof transaction_hash
-              new_bearer: newBearer,
-              target_value: new Uint64BE(bill.value),
-            },
-            timeout: new Uint64BE(blockStats.blockHeight),
-            owner_proof: "AAAAAg==",
-          }));
-
-          const splitData = billToSplit
-            ? {
-                system_id: "AAAAAA==",
-                unit_id: billToSplit.id,
-                type: "SplitOrder",
-                attributes: {
-                  amount: new Uint64BE(splitBillAmount),
-                  backlink: "AAABAQ==", // Bill block proof transaction_hash
-                  target_bearer: newBearer,
-                  remaining_value: billToSplit.value - splitBillAmount,
-                },
-                timeout: new Uint64BE(blockStats.blockHeight),
-                owner_proof: "AAAAAg==",
-              }
+        const billToSplit =
+          billsSumDifference !== 0
+            ? findClosestBigger(selectedBills, billsSumDifference)
             : null;
+        const billsToTransfer = billToSplit
+          ? selectedBills.filter((bill) => bill.id !== billToSplit?.id)
+          : selectedBills;
+        const splitBillAmount = billToSplit
+          ? billToSplit?.value - billsSumDifference
+          : null;
 
-          const testAttr = {
-            system_id: Buffer.from("AAAAAA==", "base64"),
-            unit_id: Buffer.from(
-              "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=",
+        const transferData = billsToTransfer.map((bill) => ({
+          system_id: "AAAAAA==",
+          unit_id: Buffer.from(bill.id.substring(2), "hex").toString("base64"),
+          type: "TransferOrder",
+          attributes: {
+            new_bearer: newBearer,
+            target_value: bill.value,
+          },
+          timeout: blockStats.blockHeight + 42,
+        }));
+
+        if (billToSplit && splitBillAmount) {
+          const splitData = {
+            system_id: "AAAAAA==",
+            unit_id: Buffer.from(billToSplit.id.substring(2), "hex").toString(
               "base64"
             ),
-            timeout: new Uint64BE(blockStats.blockHeight),
-            backlink: Buffer.from(
-              "CCLSSbR2ofJXWF4N/A45a1VUNpvXoJd9s63YsFYREA0=",
-              "base64"
-            ),
-            new_bearer: Buffer.from(
-              "U3aoAU8BpecwP7Drs/OG3ZCIf2F7vwNDtV2IrybgUkXvmKjXoXKHaawB",
-              "base64"
-            ),
-            target_value: new Uint64BE(133300),
+            type: "SplitOrder",
+            attributes: {
+              amount: splitBillAmount,
+              backlink:
+                /*bill.transaction_hash*/ "PVQuOMvKYuhKvpSoAphfYLMxf+89pdiCd/RCJRP9dOU=",
+              target_bearer: newBearer,
+              remaining_value: billToSplit.value - splitBillAmount,
+            },
+            timeout: blockStats.blockHeight + 42,
           };
+          (async () => {
+            const msgHash = await secp.utils.sha256(
+              secp.utils.concatBytes(
+                /*Buffer.from(splitData.system_id, "base64"),
+                Buffer.from(splitData.unit_id, "base64"),
+                new Uint64BE(1343867).toBuffer(),*/
+                Buffer.from(splitData.attributes.backlink, "base64"),
+                Buffer.from(splitData.attributes.target_bearer, "base64"),
+                new Uint64BE(splitData.attributes.remaining_value).toBuffer()
+              )
+            );
 
-          const testPublicKey =
-            "029e014f63fc5c2187fbd2c9963e1934413493108cf5c4f3edce835286ae5524fb";
-          const msgHash = await secp.utils.sha256(
-            secp.utils.concatBytes(
-              testAttr.system_id,
-              testAttr.unit_id,
-              testAttr.timeout.toBuffer(),
-              testAttr.backlink,
-              testAttr.new_bearer,
-              testAttr.target_value.toBuffer()
+            const signature = await secp.sign(msgHash, hashingPrivateKey, {
+              der: false,
+              recovered: true,
+            });
+
+            const isValid = secp.verify(
+              signature[0],
+              msgHash,
+              hashingPublicKey
+            );
+
+            const ownerProof = Buffer.from(
+              startByte +
+                opPushSig +
+                sigScheme +
+                Buffer.from(
+                  secp.utils.concatBytes(
+                    signature[0],
+                    Buffer.from([signature[1]])
+                  )
+                ).toString("hex") +
+                opPushPubKey +
+                sigScheme +
+                pubKeyToHex(hashingPublicKey).substring(2),
+              "hex"
+            ).toString("base64");
+
+            const dataWithProof = Object.assign(splitData, {
+              owner_proof: ownerProof,
+            });
+
+            isValid && makeTransaction(dataWithProof);
+          })();
+        }
+
+        transferData.map(async (data) => {
+          axios
+            .get<any>(
+              `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=0x${Buffer.from(
+                data.unit_id,
+                "base64"
+              ).toString("hex")}`
             )
-          );
-          const signature = await secp.sign(msgHash, hashingPrivateKey);
-          const isValid = secp.verify(signature, msgHash, hashingPublicKey);
-          const ownerProof = Buffer.from(
-            startByte +
-              OpPushSig +
-              hash256Alg +
-              Buffer.from(signature).toString("hex") +
-              OpPushPubKey +
-              hash256Alg +
-              SHA256.toString(CryptoJS.enc.Hex),
-            "hex"
-          ).toString("base64");
-        })();
+            .then(async (r) => {
+              const msgHash = await secp.utils.sha256(
+                secp.utils.concatBytes(
+                  /*Buffer.from(data.system_id, "base64"),
+                  Buffer.from(data.unit_id, "base64"),
+                  new Uint64BE(1339034).toBuffer(),*/
+                  Buffer.from(data.attributes.new_bearer, "base64"),
+                  new Uint64BE(data.attributes.target_value).toBuffer(),
+                  Buffer.from(r.data.blockProof.transactions_hash, "base64")
+                )
+              );
+
+              const signature = await secp.sign(msgHash, hashingPrivateKey, {
+                der: false,
+                recovered: true,
+              });
+
+              const isValid = secp.verify(
+                signature[0],
+                msgHash,
+                hashingPublicKey
+              );
+
+              const ownerProof = Buffer.from(
+                startByte +
+                  opPushSig +
+                  sigScheme +
+                  Buffer.from(
+                    secp.utils.concatBytes(
+                      signature[0],
+                      Buffer.from([signature[1]])
+                    )
+                  ).toString("hex") +
+                  opPushPubKey +
+                  sigScheme +
+                  pubKeyToHex(hashingPublicKey).substring(2),
+                "hex"
+              ).toString("base64");
+
+              const dataWithProof = Object.assign(data, {
+                owner_proof: ownerProof,
+                attributes: {
+                  ...data.attributes,
+                  backlink: r.data.blockProof.transactions_hash,
+                },
+              });
+
+              isValid && makeTransaction(dataWithProof);
+            });
+        });
 
         setIsActionsViewVisible(true);
       }}
