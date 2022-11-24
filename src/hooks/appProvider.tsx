@@ -8,11 +8,12 @@ import {
 } from "react";
 
 import { IAccount } from "../types/Types";
-import { useGetBalances } from "./api";
+import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 
 interface IAppContextShape {
   balances: any;
+  billsList: any;
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
   accounts: IAccount[];
@@ -42,6 +43,7 @@ export const AppProvider: FunctionComponent<{
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
   const balances: any = useGetBalances(keysArr);
+  const { data: billsList } = useGetBillsList(activeAccountId);
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
       pubKey: key,
@@ -85,9 +87,17 @@ export const AppProvider: FunctionComponent<{
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
+    const abAccountBalance = accounts
+      ?.find((account) => account?.pubKey === activeAccountId)
+      ?.assets.find((asset) => asset.id === "AB")?.amount;
+    const abFetchedBalance = balances?.find(
+      (balance: any) => balance?.data?.id === activeAccountId
+    )?.data?.balance;
+
     if (
       (accounts.length <= 0 && keysArr.length >= 1) ||
-      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance)
+      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
+      keysArr.length > accounts.length
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
@@ -121,14 +131,13 @@ export const AppProvider: FunctionComponent<{
     keysArr,
     accountNamesObj,
     balances,
-    activeAccountId,
-    abAccountBalance,
-    abFetchedBalance,
+    activeAccountId
   ]);
 
   return (
     <AppContext.Provider
       value={{
+        billsList,
         balances,
         activeAccountId,
         setActiveAccountId,

@@ -192,6 +192,20 @@ function Dashboard(): JSX.Element | null {
                         </div>
                         <div className="t-small c-light">{asset.name}</div>
                       </div>
+                      {asset?.id === "AB" && (
+                        <Button
+                          variant="primary"
+                          className="m-auto-l"
+                          small
+                          onClick={() => {
+                            setActionsView("Bills List");
+                            setIsActionsViewVisible(true);
+                            queryClient.invalidateQueries(["billsList", account?.pubKey]);
+                          }}
+                        >
+                          Show Bills
+                        </Button>
+                      )}
                     </div>
                   );
                 })}

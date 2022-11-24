@@ -16,6 +16,16 @@ export interface IAsset {
   network: string;
 }
 
+export interface IBill {
+  id: string;
+  value: number;
+}
+
+export interface IBillsList {
+  total: number;
+  bills: IBill[];
+}
+
 export interface INetwork {
   id: string;
   isTestNetwork: boolean;
