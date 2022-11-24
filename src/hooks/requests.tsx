@@ -2,7 +2,7 @@ import axios from "axios";
 import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
 
 export const getBalance = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x0")) {
+  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
     return;
   }
 
@@ -17,7 +17,7 @@ export const getBalance = async (id: string): Promise<any> => {
 };
 
 export const getBillsList = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x0")) {
+  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
     return;
   }
 
