@@ -7,8 +7,8 @@ import {
   useState,
 } from "react";
 
-import { IAccount, IBlockStats } from "../types/Types";
-import { useGetBalances, useGetBillsList, useGetBlockHeight } from "./api";
+import { IAccount } from "../types/Types";
+import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 
 interface IAppContextShape {
@@ -23,7 +23,6 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
   setActionsView: (e: string) => void;
-  blockStats: IBlockStats;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -44,7 +43,6 @@ export const AppProvider: FunctionComponent<{
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
   const balances: any = useGetBalances(keysArr);
-  const { data: blockStats}: any = useGetBlockHeight();
   const { data: billsList } = useGetBillsList(activeAccountId);
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
@@ -80,22 +78,20 @@ export const AppProvider: FunctionComponent<{
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
-  const abAccountBalance = accounts
-    ?.find((account) => account?.pubKey === activeAccountId)
-    ?.assets.find((asset) => asset.id === "AB")?.amount;
-  const abFetchedBalance = balances?.find(
-    (balance: any) => balance?.data?.id === activeAccountId
-  )?.data?.balance;
-  const updatedBalance =
-    abFetchedBalance < Number(abAccountBalance)
-      ? abAccountBalance
-      : abFetchedBalance;
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
+    const abAccountBalance = accounts
+      ?.find((account) => account?.pubKey === activeAccountId)
+      ?.assets.find((asset) => asset.id === "AB")?.amount;
+    const abFetchedBalance = balances?.find(
+      (balance: any) => balance?.data?.id === activeAccountId
+    )?.data?.balance;
+
     if (
       (accounts.length <= 0 && keysArr.length >= 1) ||
-      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance)
+      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
+      keysArr.length > accounts.length
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
@@ -129,16 +125,12 @@ export const AppProvider: FunctionComponent<{
     keysArr,
     accountNamesObj,
     balances,
-    activeAccountId,
-    abAccountBalance,
-    abFetchedBalance,
-    updatedBalance,
+    activeAccountId
   ]);
 
   return (
     <AppContext.Provider
       value={{
-        blockStats,
         billsList,
         balances,
         activeAccountId,

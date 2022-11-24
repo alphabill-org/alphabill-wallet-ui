@@ -33,14 +33,12 @@ function AccountView(): JSX.Element | null {
     setIsActionsViewVisible,
     activeAccountId,
     setActiveAccountId,
-    balances,
   } = useApp();
   const queryClient = useQueryClient();
 
   if (
     userKeys!.length <= 0 ||
     !vault ||
-    !Boolean(balances) ||
     vault === "null" ||
     userKeys === "null"
   ) {
@@ -59,6 +57,7 @@ function AccountView(): JSX.Element | null {
                 setActiveAccountId(account?.pubKey);
                 setIsActionsViewVisible(false);
                 queryClient.invalidateQueries(["balance", account?.pubKey]);
+                queryClient.invalidateQueries(["billsList", activeAccountId]);
               }}
             >
               <div className="account__item">

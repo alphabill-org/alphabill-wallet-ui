@@ -25,6 +25,7 @@ function Dashboard(): JSX.Element | null {
     account,
     accounts,
     setAccounts,
+    activeAccountId
   } = useApp();
   const abBalance = account?.assets.find((asset: IAsset) => (asset.id = "AB"))?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
@@ -132,6 +133,7 @@ function Dashboard(): JSX.Element | null {
           onClick={() => {
             setActionsView("Send");
             setIsActionsViewVisible(true);
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
           }}
         >
           Send
@@ -200,6 +202,7 @@ function Dashboard(): JSX.Element | null {
                           onClick={() => {
                             setActionsView("Bills List");
                             setIsActionsViewVisible(true);
+                            queryClient.invalidateQueries(["billsList", activeAccountId]);
                           }}
                         >
                           Show Bills

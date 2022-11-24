@@ -14,7 +14,7 @@ import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 
 function RecoverAccount(): JSX.Element | null {
-  const { login, userKeys } = useAuth();
+  const { login, userKeys, setVault } = useAuth();
 
   return (
     <div className="create-account">
@@ -107,13 +107,13 @@ function RecoverAccount(): JSX.Element | null {
                       ? userKeys
                       : prefixedPubKey,
                   };
-                  localStorage.setItem(
-                    "ab_wallet_vault",
+                  setVault(
                     CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password
                     ).toString()
                   );
+
                   login(!userKeys ? prefixedPubKey : null);
                 }
               })

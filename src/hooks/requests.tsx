@@ -16,7 +16,11 @@ export const getBalance = async (id: string): Promise<any> => {
   return res;
 };
 
-export const getBillsList = async (id: string): Promise<IBillsList> => {
+export const getBillsList = async (id: string): Promise<any> => {
+  if (!id || Number(id) === 0 || !id.startsWith("0x0")) {
+    return;
+  }
+
   const response = await axios.get<IBillsList>(
     `https://dev-ab-wallet-backend.abdev1.guardtime.com/list-bills?pubkey=${id}`
   );
@@ -32,12 +36,11 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
   return response.data;
 };
 
-
 export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer }>(
-    'https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions',
+    "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
     {
       ...data,
     }

@@ -19,11 +19,12 @@ import Select from "../../Select/Select";
 import { IAsset, IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
-import { makeTransaction } from "../../../hooks/requests";
+import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
 
 function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
-  const { setIsActionsViewVisible, account, billsList, blockStats } = useApp();
+  const { setIsActionsViewVisible, account, billsList, activeAccountId } =
+    useApp();
   const { vault } = useAuth();
   const queryClient = useQueryClient();
 
@@ -37,8 +38,7 @@ function Send(): JSX.Element | null {
       }}
       onSubmit={(values, { setErrors }) => {
         if (!vault) return;
-        queryClient.invalidateQueries(["blockHeight"]);
-
+        queryClient.invalidateQueries(["billsList", activeAccountId]);
         const decryptedVault = JSON.parse(
           CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
             CryptoJS.enc.Latin1
@@ -181,70 +181,95 @@ function Send(): JSX.Element | null {
             new_bearer: newBearer,
             target_value: bill.value,
           },
-          timeout: blockStats.blockHeight + 42,
         }));
 
         if (billToSplit && splitBillAmount) {
-          const splitData = {
-            system_id: "AAAAAA==",
-            unit_id: Buffer.from(billToSplit.id.substring(2), "hex").toString(
-              "base64"
-            ),
-            type: "SplitOrder",
-            attributes: {
-              amount: splitBillAmount,
-              backlink:
-                /*bill.transaction_hash*/ "PVQuOMvKYuhKvpSoAphfYLMxf+89pdiCd/RCJRP9dOU=",
-              target_bearer: newBearer,
-              remaining_value: billToSplit.value - splitBillAmount,
-            },
-            timeout: blockStats.blockHeight + 42,
-          };
-          (async () => {
-            const msgHash = await secp.utils.sha256(
-              secp.utils.concatBytes(
-                /*Buffer.from(splitData.system_id, "base64"),
-                Buffer.from(splitData.unit_id, "base64"),
-                new Uint64BE(1343867).toBuffer(),*/
-                Buffer.from(splitData.attributes.backlink, "base64"),
-                Buffer.from(splitData.attributes.target_bearer, "base64"),
-                new Uint64BE(splitData.attributes.remaining_value).toBuffer()
-              )
-            );
-
-            const signature = await secp.sign(msgHash, hashingPrivateKey, {
-              der: false,
-              recovered: true,
-            });
-
-            const isValid = secp.verify(
-              signature[0],
-              msgHash,
-              hashingPublicKey
-            );
-
-            const ownerProof = Buffer.from(
-              startByte +
-                opPushSig +
-                sigScheme +
-                Buffer.from(
+          axios
+            .get<any>(
+              `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=${billToSplit.id}`
+            )
+            .then(async (proofData) => {
+              getBlockHeight().then(async (blockData) => {
+                const splitData = {
+                  system_id: "AAAAAA==",
+                  unit_id: Buffer.from(
+                    billToSplit.id.substring(2),
+                    "hex"
+                  ).toString("base64"),
+                  type: "SplitOrder",
+                  attributes: {
+                    amount: splitBillAmount,
+                    target_bearer: newBearer,
+                    remaining_value: billToSplit.value - splitBillAmount,
+                  },
+                };
+                const msgHash = await secp.utils.sha256(
                   secp.utils.concatBytes(
-                    signature[0],
-                    Buffer.from([signature[1]])
+                    Buffer.from(splitData.system_id, "base64"),
+                    Buffer.from(splitData.unit_id, "base64"),
+                    new Uint64BE(blockData.blockHeight + 42).toBuffer(),
+                    new Uint64BE(splitData.attributes.amount).toBuffer(),
+                    Buffer.from(splitData.attributes.target_bearer, "base64"),
+                    new Uint64BE(
+                      splitData.attributes.remaining_value
+                    ).toBuffer(),
+                    Buffer.from(
+                      proofData.data.blockProof.transactions_hash,
+                      "base64"
+                    )
                   )
-                ).toString("hex") +
-                opPushPubKey +
-                sigScheme +
-                pubKeyToHex(hashingPublicKey).substring(2),
-              "hex"
-            ).toString("base64");
+                );
 
-            const dataWithProof = Object.assign(splitData, {
-              owner_proof: ownerProof,
+                const signature = await secp.sign(msgHash, hashingPrivateKey, {
+                  der: false,
+                  recovered: true,
+                });
+
+                const isValid = secp.verify(
+                  signature[0],
+                  msgHash,
+                  hashingPublicKey
+                );
+
+                const ownerProof = Buffer.from(
+                  startByte +
+                    opPushSig +
+                    sigScheme +
+                    Buffer.from(
+                      secp.utils.concatBytes(
+                        signature[0],
+                        Buffer.from([signature[1]])
+                      )
+                    ).toString("hex") +
+                    opPushPubKey +
+                    sigScheme +
+                    pubKeyToHex(hashingPublicKey).substring(2),
+                  "hex"
+                ).toString("base64");
+
+                const dataWithProof = Object.assign(splitData, {
+                  owner_proof: ownerProof,
+                  timeout: blockData.blockHeight + 42,
+                  attributes: {
+                    ...splitData.attributes,
+                    backlink: proofData.data.blockProof.transactions_hash,
+                  },
+                });
+
+                isValid &&
+                  makeTransaction(dataWithProof).then(() => {
+                    setIsActionsViewVisible(false);
+                    queryClient.invalidateQueries([
+                      "billsList",
+                      activeAccountId,
+                    ]);
+                    queryClient.invalidateQueries([
+                      "balance",
+                      pubKeyToHex(hashingPublicKey),
+                    ]);
+                  });
+              });
             });
-
-            isValid && makeTransaction(dataWithProof);
-          })();
         }
 
         transferData.map(async (data) => {
@@ -255,58 +280,73 @@ function Send(): JSX.Element | null {
                 "base64"
               ).toString("hex")}`
             )
-            .then(async (r) => {
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  /*Buffer.from(data.system_id, "base64"),
-                  Buffer.from(data.unit_id, "base64"),
-                  new Uint64BE(1339034).toBuffer(),*/
-                  Buffer.from(data.attributes.new_bearer, "base64"),
-                  new Uint64BE(data.attributes.target_value).toBuffer(),
-                  Buffer.from(r.data.blockProof.transactions_hash, "base64")
-                )
-              );
-
-              const signature = await secp.sign(msgHash, hashingPrivateKey, {
-                der: false,
-                recovered: true,
-              });
-
-              const isValid = secp.verify(
-                signature[0],
-                msgHash,
-                hashingPublicKey
-              );
-
-              const ownerProof = Buffer.from(
-                startByte +
-                  opPushSig +
-                  sigScheme +
-                  Buffer.from(
-                    secp.utils.concatBytes(
-                      signature[0],
-                      Buffer.from([signature[1]])
+            .then(async (proofData) => {
+              getBlockHeight().then(async (blockData) => {
+                const msgHash = await secp.utils.sha256(
+                  secp.utils.concatBytes(
+                    Buffer.from(data.system_id, "base64"),
+                    Buffer.from(data.unit_id, "base64"),
+                    new Uint64BE(blockData.blockHeight + 42).toBuffer(),
+                    Buffer.from(data.attributes.new_bearer, "base64"),
+                    new Uint64BE(data.attributes.target_value).toBuffer(),
+                    Buffer.from(
+                      proofData.data.blockProof.transactions_hash,
+                      "base64"
                     )
-                  ).toString("hex") +
-                  opPushPubKey +
-                  sigScheme +
-                  pubKeyToHex(hashingPublicKey).substring(2),
-                "hex"
-              ).toString("base64");
+                  )
+                );
 
-              const dataWithProof = Object.assign(data, {
-                owner_proof: ownerProof,
-                attributes: {
-                  ...data.attributes,
-                  backlink: r.data.blockProof.transactions_hash,
-                },
+                const signature = await secp.sign(msgHash, hashingPrivateKey, {
+                  der: false,
+                  recovered: true,
+                });
+
+                const isValid = secp.verify(
+                  signature[0],
+                  msgHash,
+                  hashingPublicKey
+                );
+
+                const ownerProof = Buffer.from(
+                  startByte +
+                    opPushSig +
+                    sigScheme +
+                    Buffer.from(
+                      secp.utils.concatBytes(
+                        signature[0],
+                        Buffer.from([signature[1]])
+                      )
+                    ).toString("hex") +
+                    opPushPubKey +
+                    sigScheme +
+                    pubKeyToHex(hashingPublicKey).substring(2),
+                  "hex"
+                ).toString("base64");
+
+                const dataWithProof = Object.assign(data, {
+                  owner_proof: ownerProof,
+                  timeout: blockData.blockHeight + 42,
+                  attributes: {
+                    ...data.attributes,
+                    backlink: proofData.data.blockProof.transactions_hash,
+                  },
+                });
+
+                isValid &&
+                  makeTransaction(dataWithProof).then(() => {
+                    setIsActionsViewVisible(false);
+                    queryClient.invalidateQueries([
+                      "billsList",
+                      activeAccountId,
+                    ]);
+                    queryClient.invalidateQueries([
+                      "balance",
+                      pubKeyToHex(hashingPublicKey),
+                    ]);
+                  });
               });
-
-              isValid && makeTransaction(dataWithProof);
             });
         });
-
-        setIsActionsViewVisible(true);
       }}
       validationSchema={Yup.object().shape({
         assets: Yup.object().required("Selected asset is required"),

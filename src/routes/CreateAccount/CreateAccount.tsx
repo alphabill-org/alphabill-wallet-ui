@@ -17,7 +17,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
 function CreateAccount(): JSX.Element | null {
-  const { login, setUserKeys } = useAuth();
+  const { login, setUserKeys, setVault } = useAuth();
   const mnemonic = generateMnemonic();
   const { setActiveAccountId } = useApp();
 
@@ -100,8 +100,7 @@ function CreateAccount(): JSX.Element | null {
                     pub_keys: prefixedHashingPubKey,
                   };
 
-                  localStorage.setItem(
-                    "ab_wallet_vault",
+                  setVault(
                     CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password

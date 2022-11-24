@@ -1,7 +1,7 @@
 import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
-import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
-import { getBalance, getBillsList, getBlockHeight, makeTransaction } from "./requests";
+import { IBillsList, ITransfer } from "../types/Types";
+import { getBalance, getBillsList, makeTransaction } from "./requests";
 
 export function useGetBalances(
   ids: string[] | undefined
@@ -20,14 +20,6 @@ export function useGetBalances(
 
 export function useGetBillsList(id: string): QueryObserverResult<IBillsList, AxiosError> {
   return useQuery([`billsList`, id], async () => getBillsList(id), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}
-
-export function useGetBlockHeight(): QueryObserverResult<IBlockStats, AxiosError> {
-  return useQuery([`blockHeight`], async () => getBlockHeight(), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
