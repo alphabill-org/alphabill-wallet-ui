@@ -78,6 +78,12 @@ export const AppProvider: FunctionComponent<{
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
+  const abAccountBalance = accounts
+    ?.find((account) => account?.pubKey === activeAccountId)
+    ?.assets.find((asset) => asset.id === "AB")?.amount;
+  const abFetchedBalance = balances?.find(
+    (balance: any) => balance?.data?.id === activeAccountId
+  )?.data?.balance;
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
