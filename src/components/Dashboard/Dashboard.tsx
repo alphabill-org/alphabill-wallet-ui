@@ -200,6 +200,7 @@ function Dashboard(): JSX.Element | null {
                           onClick={() => {
                             setActionsView("Bills List");
                             setIsActionsViewVisible(true);
+                            queryClient.invalidateQueries(["billsList", account?.pubKey]);
                           }}
                         >
                           Show Bills
