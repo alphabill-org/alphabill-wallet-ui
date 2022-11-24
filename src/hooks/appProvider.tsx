@@ -78,22 +78,20 @@ export const AppProvider: FunctionComponent<{
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
-  const abAccountBalance = accounts
-    ?.find((account) => account?.pubKey === activeAccountId)
-    ?.assets.find((asset) => asset.id === "AB")?.amount;
-  const abFetchedBalance = balances?.find(
-    (balance: any) => balance?.data?.id === activeAccountId
-  )?.data?.balance;
-  const updatedBalance =
-    abFetchedBalance < Number(abAccountBalance)
-      ? abAccountBalance
-      : abFetchedBalance;
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
+    const abAccountBalance = accounts
+      ?.find((account) => account?.pubKey === activeAccountId)
+      ?.assets.find((asset) => asset.id === "AB")?.amount;
+    const abFetchedBalance = balances?.find(
+      (balance: any) => balance?.data?.id === activeAccountId
+    )?.data?.balance;
+
     if (
       (accounts.length <= 0 && keysArr.length >= 1) ||
-      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance)
+      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
+      keysArr.length > accounts.length
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
@@ -105,7 +103,7 @@ export const AppProvider: FunctionComponent<{
               id: "AB",
               name: "AlphaBill Token",
               network: "AB Testnet",
-              amount: updatedBalance,
+              amount: abFetchedBalance,
             },
           ],
           activeNetwork: "AB Testnet",
@@ -122,7 +120,13 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId, abAccountBalance, abFetchedBalance, updatedBalance]);
+  }, [
+    accounts,
+    keysArr,
+    accountNamesObj,
+    balances,
+    activeAccountId
+  ]);
 
   return (
     <AppContext.Provider
