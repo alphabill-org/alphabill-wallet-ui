@@ -1,22 +1,20 @@
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import { IActionProps } from "../../types/Types";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
 import ImportAccount from "./components/ImportAccount";
-import Swap from "./components/Swap";
+import { useApp } from "../../hooks/appProvider";
 
-function Actions({
-  actionsView,
-  setIsActionsViewVisible,
-  setActionsView,
-  isActionsViewVisible,
-  account,
-  accounts,
-  setAccounts,
-}: IActionProps): JSX.Element | null {
+function Actions(): JSX.Element | null {
+  const {
+    isActionsViewVisible,
+    setIsActionsViewVisible,
+    actionsView,
+    accounts,
+  } = useApp();
+
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
@@ -32,28 +30,11 @@ function Actions({
       </div>
       <div className="actions__view">
         {actionsView === "Send" ? (
-          <Send
-            account={account}
-            accounts={accounts}
-            setAccounts={setAccounts}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
-        ) : actionsView === "Swap" ? (
-          <Swap
-            account={account}
-            accounts={accounts}
-            setAccounts={setAccounts}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
+          <Send />
         ) : actionsView === "Account" && accounts ? (
-          <Account
-            accounts={accounts}
-            setAccounts={setAccounts}
-            setActionsView={setActionsView}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-          />
+          <Account />
         ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount accounts={accounts} setAccounts={setAccounts} />
+          <ImportAccount />
         ) : (
           <></>
         )}

@@ -1,39 +1,51 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { Formik } from "formik";
-import { utils, getPublicKey } from "@noble/ed25519";
 import * as Yup from "yup";
+import axios from "axios";
+import { Navigate } from "react-router-dom";
+
+import { HDKey } from "@scure/bip32";
+import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
+import CryptoJS from "crypto-js";
+import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError } from "../../../utils/utils";
+import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
 import Button from "../../Button/Button";
-import { IAccount } from "../../../types/Types";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
-import { ReactComponent as HardwareIco } from "../../../images/hardware-ico.svg";
-import { ReactComponent as ImportIco } from "../../../images/import-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
-import { ReactComponent as SettingIco } from "../../../images/settings-ico.svg";
 import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
 
 import Profile from "../../../images/profile.svg";
 import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
+import { useAuth } from "../../../hooks/useAuth";
+import { useApp } from "../../../hooks/appProvider";
 
-export interface IAccountViewProps {
-  setAccounts: (e: any) => void;
-  setActionsView: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  accounts: IAccount[];
-}
+function AccountView(): JSX.Element | null {
+  const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
+  const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
+  const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
+  const {
+    accounts,
+    setIsActionsViewVisible,
+    activeAccountId,
+    setActiveAccountId,
+    balances,
+  } = useApp();
+  const queryClient = useQueryClient();
 
-function AccountView({
-  accounts,
-  setAccounts,
-  setActionsView,
-  setIsActionsViewVisible,
-}: IAccountViewProps): JSX.Element | null {
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  if (
+    userKeys!.length <= 0 ||
+    !vault ||
+    !Boolean(balances) ||
+    vault === "null" ||
+    userKeys === "null"
+  ) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className={classNames("account__view pad-24-h")}>
@@ -41,33 +53,24 @@ function AccountView({
         {accounts?.map((account) => {
           return (
             <div
-              key={account.id}
+              key={account?.pubKey}
               className="account"
               onClick={() => {
-                const updatedData = accounts?.map((obj) => {
-                  if (obj.id === account.id) {
-                    return { ...obj, isActive: true };
-                  } else return { ...obj, isActive: false };
-                });
+                setActiveAccountId(account?.pubKey);
                 setIsActionsViewVisible(false);
-                setAccounts(updatedData);
+                queryClient.invalidateQueries(["balance", account?.pubKey]);
               }}
             >
               <div className="account__item">
                 <img height="32" width="32px" src={Profile} alt="Profile" />
               </div>
               <div className="account__item account__item-name">
-                <div className="t-medium">{account.name}</div>
+                <div className="t-medium">{account?.name}</div>
                 <div className="t-small c-light account__item-id">
-                  {account.id}
+                  {account?.pubKey}
                 </div>
               </div>
-              <div className="account__item">
-                <div className="t-medium">
-                  {account.assets?.[0]?.amount || 0}
-                </div>
-              </div>
-              {account.isActive && (
+              {account?.pubKey === activeAccountId && (
                 <CheckIco className="account__item--active" />
               )}
             </div>
@@ -77,7 +80,7 @@ function AccountView({
       <Spacer mb={8} />
       <div className="account__menu">
         <div
-          onClick={() => setIsPopupVisible(true)}
+          onClick={() => setIsAddPopupVisible(true)}
           className="account__menu-item"
         >
           <div className="account__menu-item-icon">
@@ -86,43 +89,11 @@ function AccountView({
           <div className="account__menu-item-title">Add New Account</div>
         </div>
 
-        <div className="account__menu-item">
-          <div className="account__menu-item-icon">
-            <ImportIco />
-          </div>
-          <div
-            className="account__menu-item-title"
-            onClick={() => {
-              setActionsView("Import Account");
-              setIsActionsViewVisible(true);
-            }}
-          >
-            Import Account
-          </div>
-        </div>
-
-        <div className="account__menu-item">
-          <div className="account__menu-item-icon">
-            <HardwareIco />
-          </div>
-          <div className="account__menu-item-title">Hardware Wallet</div>
-        </div>
-
-        <div className="account__menu-item">
-          <div className="account__menu-item-icon">
-            <SettingIco />
-          </div>
-          <div className="account__menu-item-title">Settings</div>
-        </div>
-
         <div
           onClick={() => {
-            const updatedData = accounts?.map((obj) => {
-              return { ...obj, isActive: false };
-            });
-
-            setAccounts(updatedData);
             setIsActionsViewVisible(false);
+            setUserKeys(null);
+            logout();
           }}
           className="account__menu-item"
         >
@@ -134,46 +105,99 @@ function AccountView({
       </div>
 
       <Popup
-        isPopupVisible={isPopupVisible}
-        setIsPopupVisible={setIsPopupVisible}
+        isPopupVisible={isAddPopupVisible}
+        setIsPopupVisible={setIsAddPopupVisible}
         title="Add New Account"
       >
         <Formik
           initialValues={{
             accountName: "",
+            password: "",
           }}
-          onSubmit={async (values, { resetForm }) => {
-            const privateKey = utils.randomPrivateKey();
-            const publicKey = await getPublicKey(privateKey);
+          onSubmit={async (values, { resetForm, setErrors }) => {
+            const decryptedVault = JSON.parse(
+              CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
+                CryptoJS.enc.Latin1
+              )
+            );
 
-            const addedAccount = accounts?.concat([
-              {
-                id: utils.bytesToHex(publicKey),
-                name: values.accountName,
-                isActive: true,
-                assets: [],
-                activeNetwork: "AB Mainnet",
-                networks: [
-                  {
-                    id: "AB Testnet",
-                    isTestNetwork: true,
-                  },
-                  {
-                    id: "AB Mainnet",
-                    isTestNetwork: false,
-                  },
-                ],
-                activities: [],
-              },
-            ]);
+            if (
+              decryptedVault?.entropy.length > 16 &&
+              decryptedVault?.entropy.length < 32 &&
+              decryptedVault?.entropy.length % 4 === 0
+            ) {
+              return setErrors({ password: "Password is incorrect!" });
+            }
 
-            const updatedAccounts = addedAccount?.map((obj) => {
-              if (obj?.id !== utils.bytesToHex(publicKey)) {
-                return { ...obj, isActive: false };
-              } else return { ...obj };
-            });
-            setAccounts(updatedAccounts);
-            setIsPopupVisible(false);
+            const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
+            const seed = mnemonicToSeedSync(mnemonic);
+            const masterKey = HDKey.fromMasterSeed(seed);
+            const accountIndex = accounts.length;
+            const hashingKey = masterKey.derive(
+              `m/44'/634'/${accountIndex}'/0/0`
+            );
+            const hashingPubKey = hashingKey.publicKey;
+            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
+            const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
+            const controlHashingPubKey = controlHashingKey.publicKey;
+            const addAccount = () => {
+              setVault(
+                CryptoJS.AES.encrypt(
+                  JSON.stringify(
+                    Object.assign(decryptedVault, {
+                      pub_keys: userKeys?.concat(" ", prefixedHashingPubKey),
+                    })
+                  ),
+                  values.password
+                ).toString()
+              );
+              setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
+              const accountNames =
+                localStorage.getItem("ab_wallet_account_names") || "";
+              const accountNamesObj = accountNames
+                ? JSON.parse(accountNames)
+                : {};
+              const idx = accountIndex;
+              localStorage.setItem(
+                "ab_wallet_account_names",
+                JSON.stringify(
+                  Object.assign(accountNamesObj, {
+                    ["_" + idx]: values.accountName,
+                  })
+                )
+              );
+
+              setActiveAccountId(prefixedHashingPubKey);
+              setIsAddPopupVisible(false);
+              queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
+            };
+
+            if (
+              pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]
+            ) {
+              return setErrors({ password: "Password is incorrect!" });
+            }
+
+            axios
+              .post<void>(
+                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                {
+                  pubkey: prefixedHashingPubKey,
+                }
+              )
+              .then(() => {
+                addAccount();
+                setIsAddAccountLoading(false);
+              })
+              .catch((e) => {
+                if (e.response?.data?.message === "pubkey already exists") {
+                  addAccount();
+                } else {
+                  setErrors({ accountName: "Account creation failed" });
+                }
+                setIsAddAccountLoading(false);
+              });
+
             resetForm();
           }}
           validationSchema={Yup.object().shape({
@@ -190,6 +214,11 @@ function AccountView({
                   }
                 }
               ),
+            password: Yup.string().test(
+              "empty-or-8-characters-check",
+              "password must be at least 8 characters",
+              (password) => !password || password.length >= 8
+            ),
           })}
         >
           {(formikProps) => {
@@ -201,6 +230,13 @@ function AccountView({
 
                 <Form>
                   <FormContent>
+                    <Textfield
+                      id="passwordAddAccount"
+                      name="password"
+                      label="Add your password for decryption"
+                      type="password"
+                      error={extractFormikError(errors, touched, ["password"])}
+                    />
                     <Textfield
                       id="accountName"
                       name="accountName"
@@ -215,7 +251,7 @@ function AccountView({
                     <div className="button__group">
                       <Button
                         type="reset"
-                        onClick={() => setIsPopupVisible(false)}
+                        onClick={() => setIsAddPopupVisible(false)}
                         big={true}
                         block={true}
                         variant="secondary"
@@ -227,6 +263,8 @@ function AccountView({
                         block={true}
                         type="submit"
                         variant="primary"
+                        working={isAddAccountLoading}
+                        onClick={() => setIsAddAccountLoading(true)}
                       >
                         Confirm
                       </Button>

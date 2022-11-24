@@ -88,9 +88,16 @@
   }
 
   &__buttons {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    max-width: calc(100% - 90px);
+
     button {
-      min-width: 87px;
+      min-width: calc(50% - 54px);
       margin: 4px;
+      flex: 1 1 auto;
+      max-width: calc(100% - 98px);
     }
   }
 

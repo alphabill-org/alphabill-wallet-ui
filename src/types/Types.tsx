@@ -1,45 +1,19 @@
 export interface IAccount {
-  id: string;
+  pubKey: string;
   name: string;
+  balance?: number;
   assets: IAsset[];
   activities: IActivity[];
   activeNetwork?: string;
   networks: INetwork[];
-  isActive: boolean;
+  idx?: number | string;
 }
 
 export interface IAsset {
-  id?: string;
-  name?: string;
-  amount?: number;
-  push?: any;
-  network?: string;
-}
-
-export interface IAccountProps {
-  setAccounts: (e: any) => void;
-  setActionsView: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  accounts: IAccount[];
-  account?: IAccount;
-}
-
-export interface IActionProps {
-  setIsActionsViewVisible: (e: any) => void;
-  isActionsViewVisible: boolean;
-  actionsView: string;
-  account: IAccount;
-  accounts?: IAccount[];
-  setAccounts: (e: any) => void;
-  setActionsView: (e: any) => void;
-}
-
-export interface IDashboardProps {
-  setActionsView: (e: any) => void;
-  setIsActionsViewVisible: (e: any) => void;
-  setAccounts: (e: any) => void;
-  account: IAccount;
-  accounts?: IAccount[];
+  id: string;
+  name: string;
+  amount: number;
+  network: string;
 }
 
 export interface INetwork {
@@ -67,8 +41,8 @@ export interface IActivity {
 }
 
 export interface ITransferProps {
-  setAccounts: (e: any) => void;
-  account: IAccount;
+  setAccounts: (e: IAccount[]) => void;
+  account?: IAccount;
   accounts?: IAccount[];
-  setIsActionsViewVisible: (e: any) => void;
+  setIsActionsViewVisible: (e: boolean) => void;
 }

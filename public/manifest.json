@@ -11,5 +11,12 @@
     "16": "logo192.png",
     "48": "logo192.png",
     "128": "logo192.png"
-  }
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.dev-ab-wallet-backend.abdev1.guardtime.com/*",
+    "*://*.dev-ab-faucet-api.abdev1.guardtime.com/*"
+  ]
 }

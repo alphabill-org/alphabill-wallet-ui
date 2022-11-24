@@ -1,56 +1,180 @@
-import Popup from "../../Popup/Popup";
+import { useState } from "react";
+import { useQueryClient } from "react-query";
 import * as Yup from "yup";
 import { Formik } from "formik";
+import axios from "axios";
+import moment from "moment";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
-import Moonpay from "../../../images/moonpay.svg";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
-import { IAccount } from "../../../types/Types";
+import Popup from "../../Popup/Popup";
+import { extractFormikError } from "../../../utils/utils";
+import { IAccount, IAsset } from "../../../types/Types";
 
 export interface IPopupsProps {
-  setAccounts: (e: any) => void;
+  setAccounts: (e: IAccount[]) => void;
   account: IAccount;
   accounts?: IAccount[];
-  setIsRenamePopupVisible: (e: any) => void;
-  setIsBuyPopupVisible: (e: any) => void;
-  isBuyPopupVisible: boolean;
+  setIsRenamePopupVisible: (e: boolean) => void;
+  setIsRequestPopupVisible: (e: boolean) => void;
+  isRequestPopupVisible: boolean;
   isRenamePopupVisible: boolean;
 }
 
 function Popups({
-  isBuyPopupVisible,
-  setIsBuyPopupVisible,
+  isRequestPopupVisible,
+  setIsRequestPopupVisible,
   isRenamePopupVisible,
   setIsRenamePopupVisible,
   account,
   accounts,
   setAccounts,
 }: IPopupsProps): JSX.Element | null {
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+
   return (
     <>
+      {/* Useful for testing & demoing for now & will be removed later */}
       <Popup
-        isPopupVisible={isBuyPopupVisible}
-        setIsPopupVisible={setIsBuyPopupVisible}
-        title=""
+        isPopupVisible={isRequestPopupVisible}
+        setIsPopupVisible={setIsRequestPopupVisible}
+        title={isRenamePopupVisible ? "" : "Experiment with Test Tokens"}
       >
-        <div>
+        <div className="mw-100p">
+          <Spacer mb={24} />
+          Alphabill provides free test tokens that users can deploy to trial
+          testnet features on the network.
+          <Spacer mb={24} />
+          <div className="t-medium-small flex t-bold">
+            Account: <div className="t-ellipsis pad-8-h">{account?.pubKey}</div>
+          </div>
           <Spacer mb={8} />
-          <img className="m-auto" height="32" src={Moonpay} alt="Profile" />
-          <Spacer mb={16} />
-          MoonPay supports popular payment methods, including Visa, Mastercard,
-          Apple / Google / Samsung Pay, and bank transfers in 145+ countries.
-          Tokens deposit into your MetaMask account.
-          <Spacer mb={16} />
           <Button
-            onClick={() => setIsBuyPopupVisible(false)}
+            onClick={() => {
+              setIsLoading(true);
+              setIsRequestPopupVisible(false);
+              axios({
+                method: "post",
+                url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
+                data: {
+                  pubKey: account?.pubKey,
+                },
+              })
+                .then((data) => {
+                  queryClient.invalidateQueries(["balance", account?.pubKey]);
+                  const updatedData = accounts?.map((obj) => {
+                    if (obj?.pubKey === account.pubKey) {
+                      const currentAsset = obj.assets?.find(
+                        (asset: IAsset) =>
+                          asset?.id === "AB" &&
+                          asset.network === account?.activeNetwork
+                      );
+
+                      const filteredAsset = obj.assets?.filter(
+                        (asset: IAsset) => asset !== currentAsset
+                      );
+
+                      let updatedAsset;
+                      if (currentAsset) {
+                        updatedAsset = {
+                          ...currentAsset,
+                          amount: Number(currentAsset?.amount) + 100,
+                        };
+                      } else {
+                        updatedAsset = {
+                          id: "AB",
+                          name: "AlphaBill Token",
+                          amount: 100,
+                          network: account?.activeNetwork,
+                        };
+                      }
+
+                      const updatedAssets =
+                        filteredAsset.length >= 1
+                          ? filteredAsset.concat([updatedAsset as IAsset])
+                          : [updatedAsset];
+
+                      return {
+                        ...obj,
+                        assets: updatedAssets,
+                        activities: obj.activities.concat([
+                          {
+                            id: "AB",
+                            name: "AlphaBill Token",
+                            amount: 100,
+                            time: moment().format("ll LTS"),
+                            address: account.pubKey,
+                            type: "Receive",
+                            network: account?.activeNetwork!,
+                            fromAddress: account?.pubKey,
+                          },
+                        ]),
+                      };
+                    } else if (obj?.pubKey === account?.pubKey) {
+                      const currentAsset = obj.assets?.find(
+                        (asset: IAsset) => asset?.id === "AB"
+                      );
+
+                      const filteredAsset = obj.assets?.filter(
+                        (asset: IAsset) => asset !== currentAsset
+                      );
+
+                      let updatedAsset;
+                      if (currentAsset) {
+                        updatedAsset = {
+                          ...currentAsset,
+                          amount: Number(currentAsset?.amount) - 100,
+                        };
+                      } else {
+                        updatedAsset = {
+                          id: "AB",
+                          name: "AlphaBill Token",
+                          amount: 100,
+                        };
+                      }
+
+                      const updatedAssets =
+                        filteredAsset.length >= 1
+                          ? filteredAsset.concat([updatedAsset as IAsset])
+                          : [updatedAsset];
+
+                      return {
+                        ...obj,
+                        assets: updatedAssets,
+                        activities: obj.activities.concat([
+                          {
+                            id: "AB",
+                            name: "AlphaBill Token",
+                            amount: 100,
+                            time: moment().format("ll LTS"),
+                            address: account.pubKey,
+                            type: "Send",
+                            network: account?.activeNetwork!,
+                          },
+                        ]),
+                      };
+                    } else return { ...obj };
+                  });
+
+                  setAccounts(updatedData as IAccount[]);
+                  setIsLoading(false);
+                  return data;
+                })
+                .catch((error) => {
+                  console.error(error.response?.data?.error);
+                  setIsLoading(false);
+                  return;
+                });
+            }}
             big={true}
             block={true}
+            working={isLoading}
             variant="primary"
           >
-            Cancel
+            Request From Faucet
           </Button>
         </div>
       </Popup>
@@ -63,15 +187,32 @@ function Popups({
         >
           <Formik
             initialValues={{
-              accountName: account.name,
+              accountName: account?.name,
             }}
             onSubmit={async (values, { resetForm }) => {
+              const accountNames = localStorage.getItem(
+                "ab_wallet_account_names"
+              );
+              const accountNamesObj = accountNames
+                ? JSON.parse(accountNames)
+                : {};
+              const idx = Number(account?.idx);
+
+              localStorage.setItem(
+                "ab_wallet_account_names",
+                JSON.stringify(
+                  Object.assign(accountNamesObj, {
+                    ["_" + idx]: values.accountName,
+                  })
+                )
+              );
+
               const updatedAccounts = accounts?.map((obj) => {
-                if (obj?.id === account.id) {
+                if (obj?.pubKey === account?.pubKey) {
                   return { ...obj, name: values.accountName };
                 } else return { ...obj };
               });
-              setAccounts(updatedAccounts);
+              setAccounts(updatedAccounts as IAccount[]);
               setIsRenamePopupVisible(false);
               resetForm();
             }}
