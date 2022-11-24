@@ -8,8 +8,6 @@ function BillsList(): JSX.Element | null {
   return (
     <div className="dashboard__info-col active relative">
       <Spacer mt={16} />
-      <h4 className="pad-24-h">Total of {billsList.bills.length} bills</h4>
-      <Spacer mt={16} />
       {billsList?.bills
         ?.sort((a: IBill, b: IBill) => Number(a.value) - Number(b.value))
         .map((bill: IBill, idx: number) => {
@@ -24,9 +22,12 @@ function BillsList(): JSX.Element | null {
               {isNewDenomination && (
                 <>
                   {idx !== 0 && <Spacer mt={24} />}
-                  <div className="t-regular pad-24-h">
-                    Denomination: {bill.value} - total of{" "}
-                    {amountOfGivenDenomination}
+                  <div className="t-regular pad-24-h flex flex-align-c">
+                    Denomination: {bill.value}{" "}
+                    <span className="t-medium pad-8-l">
+                      (total of {amountOfGivenDenomination} bill{" "}
+                      {amountOfGivenDenomination > 1 && "s"})
+                    </span>
                   </div>
                   <Spacer mt={4} />
                 </>
