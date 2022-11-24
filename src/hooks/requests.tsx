@@ -1,7 +1,8 @@
 import axios from "axios";
+import { IBillsList } from "../types/Types";
 
 export const getBalance = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x0")) {
+  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
     return;
   }
 
@@ -13,4 +14,16 @@ export const getBalance = async (id: string): Promise<any> => {
   res = { ...response.data, id: id };
 
   return res;
+};
+
+export const getBillsList = async (id: string): Promise<any> => {
+  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+    return;
+  }
+
+  const response = await axios.get<IBillsList>(
+    `https://dev-ab-wallet-backend.abdev1.guardtime.com/list-bills?pubkey=${id}`
+  );
+
+  return response.data;
 };
