@@ -4,7 +4,7 @@ import { ReactComponent as Close } from "../../images/close.svg";
 
 
 export interface IPopupProps {
-  setIsPopupVisible: (e: any) => void;
+  setIsPopupVisible: (e: boolean) => void;
   isPopupVisible: boolean;
   title: string;
   children: React.ReactNode;
@@ -25,7 +25,7 @@ function Popup({
       <div className="popup">
         <div className="popup__header">
           <p>{title}</p>
-          <Close onClick={() => setIsPopupVisible(null)} />
+          <Close onClick={() => setIsPopupVisible(false)} />
         </div>
         {children}
       </div>

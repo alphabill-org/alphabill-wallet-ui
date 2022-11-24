@@ -43,6 +43,7 @@
 
 .button__group {
   width: 100%;
+  display: flex;
 
   button {
     margin-right: 8px;
@@ -134,14 +135,13 @@
 }
 
 .button--working {
-  background-color: gray;
-  color: white;
   pointer-events: none;
 
   .spinner {
+    margin-left: 8px;
     > div {
-      height: 24px !important;
-      width: 24px !important;
+      height: 16px !important;
+      width: 16px !important;
     }
   }
 }

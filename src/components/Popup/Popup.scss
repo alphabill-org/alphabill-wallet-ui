@@ -17,10 +17,11 @@
     color: $color-blue;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: left;
     font-weight: 700;
     font-size: 18px;
     line-height: 26px;
+    width: 100%;
 
     svg {
       position: absolute;

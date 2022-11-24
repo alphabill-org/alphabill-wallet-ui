@@ -34,6 +34,22 @@
       height: 20px;
     }
 
+    .back-btn {
+      position: absolute;
+      left: 24px;
+
+      svg {
+        transform: rotate(0deg);
+        fill: $color-primary;
+      }
+
+      &:hover {
+        svg {
+          fill: $color-white;
+        }
+      }
+    }
+
     button {
       position: absolute;
       left: 24px;
@@ -99,7 +115,7 @@
       position: relative;
 
       &-name {
-        width: 60%;
+        width: 80%;
       }
 
       &-id {
@@ -117,7 +133,6 @@
         font-weight: 400;
         font-size: 18px;
         line-height: 26px;
-        margin-left: auto;
       }
 
       &--active {

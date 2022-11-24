@@ -9,15 +9,17 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 import Select from "../../Select/Select";
-import { IAsset, ITransferProps } from "../../../types/Types";
+import { IAccount, IAsset } from "../../../types/Types";
+import { useApp } from "../../../hooks/appProvider";
 
-function Send({
-  account,
-  accounts,
-  setAccounts,
-  setIsActionsViewVisible,
-}: ITransferProps): JSX.Element | null {
+function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
+  const {
+    setIsActionsViewVisible,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
 
   return (
     <Formik
@@ -28,16 +30,15 @@ function Send({
       }}
       onSubmit={(values) => {
         const updatedData = accounts?.map((obj) => {
-          if (obj.id === values.address) {
+          if (obj?.pubKey === values.address) {
             const currentAsset = obj.assets?.find(
-              (asset: any) =>
-                asset.id === currentTokenId.id &&
-                asset.network === account.activeNetwork
+              (asset: IAsset) =>
+                asset?.id === currentTokenId.id &&
+                asset.network === account?.activeNetwork
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) =>
-                asset !== currentAsset
+              (asset: IAsset) => asset !== currentAsset
             );
 
             let updatedAsset;
@@ -51,13 +52,13 @@ function Send({
                 id: currentTokenId.id,
                 name: currentTokenId.name,
                 amount: values.amount,
-                network: account.activeNetwork,
+                network: account?.activeNetwork,
               };
             }
 
             const updatedAssets =
               filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset])
+                ? filteredAsset.concat([updatedAsset as IAsset])
                 : [updatedAsset];
 
             return {
@@ -71,19 +72,18 @@ function Send({
                   time: moment().format("ll LTS"),
                   address: values.address,
                   type: "Receive",
-                  network: account.activeNetwork!,
-                  fromAddress: account.id,
+                  network: account?.activeNetwork!,
+                  fromAddress: account?.pubKey,
                 },
               ]),
             };
-          } else if (obj.id === account.id) {
+          } else if (obj?.pubKey === account?.pubKey) {
             const currentAsset = obj.assets?.find(
-              (asset: any) => asset.id === currentTokenId.id
+              (asset: IAsset) => asset?.id === currentTokenId.id
             );
 
             const filteredAsset = obj.assets?.filter(
-              (asset: any) =>
-                asset !== currentAsset
+              (asset: IAsset) => asset !== currentAsset
             );
 
             let updatedAsset;
@@ -102,7 +102,7 @@ function Send({
 
             const updatedAssets =
               filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset])
+                ? filteredAsset.concat([updatedAsset as IAsset])
                 : [updatedAsset];
 
             return {
@@ -116,14 +116,14 @@ function Send({
                   time: moment().format("ll LTS"),
                   address: values.address,
                   type: "Send",
-                  network: account.activeNetwork!,
+                  network: account?.activeNetwork!,
                 },
               ]),
             };
           } else return { ...obj };
         });
 
-        setAccounts(updatedData);
+        setAccounts(updatedData as IAccount[]);
         setIsActionsViewVisible(false);
       }}
       validationSchema={Yup.object().shape({
@@ -131,22 +131,11 @@ function Send({
         address: Yup.string()
           .required("Address is required")
           .test(
-            "account-id-no-match",
-            `Receiver's account is not real`,
-            function (value) {
-              if (value) {
-                return Boolean(accounts?.find((a) => a.id === value));
-              } else {
-                return true;
-              }
-            }
-          )
-          .test(
             "account-id-same",
             `Receiver's account is your account`,
             function (value) {
               if (value) {
-                return account.id !== value;
+                return account?.pubKey !== value;
               } else {
                 return true;
               }
@@ -161,9 +150,9 @@ function Send({
               Number(value) <=
               Number(
                 account?.assets?.find(
-                  (asset: any) =>
-                    asset.id === currentTokenId.id &&
-                    asset.network === account.activeNetwork
+                  (asset: IAsset) =>
+                    asset?.id === currentTokenId.id &&
+                    asset.network === account?.activeNetwork
                 )?.amount
               )
           ),
@@ -179,13 +168,13 @@ function Send({
                 <Select
                   label="Assets"
                   name="assets"
-                  options={account.assets
-                    .filter((asset) => account.activeNetwork === asset.network)
+                  options={account?.assets
+                    .filter((asset) => account?.activeNetwork === asset.network)
                     .sort((a: IAsset, b: IAsset) => {
-                      if (a.id! < b.id!) {
+                      if (a?.id! < b?.id!) {
                         return -1;
                       }
-                      if (a.id! > b.id!) {
+                      if (a?.id! > b?.id!) {
                         return 1;
                       }
                       return 0;
