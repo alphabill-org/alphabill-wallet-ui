@@ -12,12 +12,28 @@ import axios from "axios";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, getKeys, pubKeyToHex } from "../../../utils/utils";
+
 import Select from "../../Select/Select";
 import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
+
+import {
+  extractFormikError,
+  getKeys,
+  pubKeyToHex,
+  startByte,
+  opPushSig,
+  opPushPubKey,
+  opDup,
+  opHash,
+  opPushHash,
+  opCheckSig,
+  opEqual,
+  opVerify,
+  sigScheme,
+} from "../../../utils/utils";
 
 function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
@@ -105,17 +121,6 @@ function Send(): JSX.Element | null {
             }
           } while (missingSum > 0);
         }
-
-        const startByte = "53";
-        const opPushSig = "54";
-        const opPushPubKey = "55";
-        const opDup = "76";
-        const opHash = "a8";
-        const opPushHash = "4f";
-        const opCheckSig = "ac";
-        const opEqual = "87";
-        const opVerify = "69";
-        const sigScheme = "01";
 
         const address = values.address.startsWith("0x")
           ? values.address.substring(2)

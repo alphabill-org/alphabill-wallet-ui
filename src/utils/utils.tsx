@@ -90,5 +90,17 @@ export const getKeys = (
     decryptedVault: decryptedVault,
     error: null,
     masterKey: masterKey,
+    hashingKey: hashingKey
   };
 };
+
+export const startByte = "53";
+export const opPushSig = "54";
+export const opPushPubKey = "55";
+export const opDup = "76";
+export const opHash = "a8";
+export const opPushHash = "4f";
+export const opCheckSig = "ac";
+export const opEqual = "87";
+export const opVerify = "69";
+export const sigScheme = "01";
