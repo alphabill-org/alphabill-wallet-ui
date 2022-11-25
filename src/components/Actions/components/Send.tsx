@@ -4,9 +4,7 @@ import { differenceBy } from "lodash";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import CryptoJS from "crypto-js";
-import { HDKey } from "@scure/bip32";
 import { Uint64BE } from "int64-buffer";
-import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import * as secp from "@noble/secp256k1";
 import { useQueryClient } from "react-query";
 import axios from "axios";
@@ -14,9 +12,9 @@ import axios from "axios";
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
+import { extractFormikError, getKeys, pubKeyToHex } from "../../../utils/utils";
 import Select from "../../Select/Select";
-import { IAsset, IBill } from "../../../types/Types";
+import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
@@ -37,33 +35,17 @@ function Send(): JSX.Element | null {
         password: "",
       }}
       onSubmit={(values, { setErrors }) => {
-        if (!vault) return;
-        queryClient.invalidateQueries(["billsList", activeAccountId]);
-        const decryptedVault = JSON.parse(
-          CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
-            CryptoJS.enc.Latin1
-          )
+        const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+          values.password,
+          Number(account.idx),
+          vault
         );
 
-        if (
-          decryptedVault?.entropy.length > 16 &&
-          decryptedVault?.entropy.length < 32 &&
-          decryptedVault?.entropy.length % 4 === 0
-        ) {
-          return setErrors({ password: "Password is incorrect!" });
+        if (error || !hashingPrivateKey || !hashingPublicKey) {
+          return setErrors({ password: error || "Hashing keys are missing!" });
         }
 
-        const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
-        const seed = mnemonicToSeedSync(mnemonic);
-        const masterKey = HDKey.fromMasterSeed(seed);
-        const accountIndex = account?.idx;
-        const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
-        const hashingPrivateKey = hashingKey.privateKey;
-        const hashingPublicKey = hashingKey.publicKey;
-
-        if (!hashingPrivateKey || !hashingPublicKey) return;
-
-        let billsArr = billsList.bills as IBill[];
+        const billsArr = billsList.bills as IBill[];
         let selectedBills: IBill[] = [];
         const findClosestBigger = (bills: IBill[], target: number) =>
           bills
@@ -190,7 +172,7 @@ function Send(): JSX.Element | null {
             )
             .then(async (proofData) => {
               getBlockHeight().then(async (blockData) => {
-                const splitData = {
+                const splitData: ITransfer = {
                   system_id: "AAAAAA==",
                   unit_id: Buffer.from(
                     billToSplit.id.substring(2),
@@ -202,14 +184,19 @@ function Send(): JSX.Element | null {
                     target_bearer: newBearer,
                     remaining_value: billToSplit.value - splitBillAmount,
                   },
+                  timeout: blockData.blockHeight + 42,
+                  owner_proof: "",
                 };
                 const msgHash = await secp.utils.sha256(
                   secp.utils.concatBytes(
                     Buffer.from(splitData.system_id, "base64"),
                     Buffer.from(splitData.unit_id, "base64"),
-                    new Uint64BE(blockData.blockHeight + 42).toBuffer(),
+                    new Uint64BE(splitData.timeout).toBuffer(),
                     new Uint64BE(splitData.attributes.amount).toBuffer(),
-                    Buffer.from(splitData.attributes.target_bearer, "base64"),
+                    Buffer.from(
+                      splitData.attributes.target_bearer as string,
+                      "base64"
+                    ),
                     new Uint64BE(
                       splitData.attributes.remaining_value
                     ).toBuffer(),
@@ -220,54 +207,12 @@ function Send(): JSX.Element | null {
                   )
                 );
 
-                const signature = await secp.sign(msgHash, hashingPrivateKey, {
-                  der: false,
-                  recovered: true,
-                });
-
-                const isValid = secp.verify(
-                  signature[0],
+                handleValidation(
                   msgHash,
-                  hashingPublicKey
+                  blockData,
+                  proofData.data.blockProof.transactions_hash,
+                  splitData
                 );
-
-                const ownerProof = Buffer.from(
-                  startByte +
-                    opPushSig +
-                    sigScheme +
-                    Buffer.from(
-                      secp.utils.concatBytes(
-                        signature[0],
-                        Buffer.from([signature[1]])
-                      )
-                    ).toString("hex") +
-                    opPushPubKey +
-                    sigScheme +
-                    pubKeyToHex(hashingPublicKey).substring(2),
-                  "hex"
-                ).toString("base64");
-
-                const dataWithProof = Object.assign(splitData, {
-                  owner_proof: ownerProof,
-                  timeout: blockData.blockHeight + 42,
-                  attributes: {
-                    ...splitData.attributes,
-                    backlink: proofData.data.blockProof.transactions_hash,
-                  },
-                });
-
-                isValid &&
-                  makeTransaction(dataWithProof).then(() => {
-                    setIsActionsViewVisible(false);
-                    queryClient.invalidateQueries([
-                      "billsList",
-                      activeAccountId,
-                    ]);
-                    queryClient.invalidateQueries([
-                      "balance",
-                      pubKeyToHex(hashingPublicKey),
-                    ]);
-                  });
               });
             });
         }
@@ -287,7 +232,7 @@ function Send(): JSX.Element | null {
                     Buffer.from(data.system_id, "base64"),
                     Buffer.from(data.unit_id, "base64"),
                     new Uint64BE(blockData.blockHeight + 42).toBuffer(),
-                    Buffer.from(data.attributes.new_bearer, "base64"),
+                    Buffer.from(data.attributes.new_bearer as string, "base64"),
                     new Uint64BE(data.attributes.target_value).toBuffer(),
                     Buffer.from(
                       proofData.data.blockProof.transactions_hash,
@@ -296,57 +241,64 @@ function Send(): JSX.Element | null {
                   )
                 );
 
-                const signature = await secp.sign(msgHash, hashingPrivateKey, {
-                  der: false,
-                  recovered: true,
-                });
-
-                const isValid = secp.verify(
-                  signature[0],
+                handleValidation(
                   msgHash,
-                  hashingPublicKey
+                  blockData,
+                  proofData.data.blockProof.transactions_hash,
+                  data as ITransfer
                 );
-
-                const ownerProof = Buffer.from(
-                  startByte +
-                    opPushSig +
-                    sigScheme +
-                    Buffer.from(
-                      secp.utils.concatBytes(
-                        signature[0],
-                        Buffer.from([signature[1]])
-                      )
-                    ).toString("hex") +
-                    opPushPubKey +
-                    sigScheme +
-                    pubKeyToHex(hashingPublicKey).substring(2),
-                  "hex"
-                ).toString("base64");
-
-                const dataWithProof = Object.assign(data, {
-                  owner_proof: ownerProof,
-                  timeout: blockData.blockHeight + 42,
-                  attributes: {
-                    ...data.attributes,
-                    backlink: proofData.data.blockProof.transactions_hash,
-                  },
-                });
-
-                isValid &&
-                  makeTransaction(dataWithProof).then(() => {
-                    setIsActionsViewVisible(false);
-                    queryClient.invalidateQueries([
-                      "billsList",
-                      activeAccountId,
-                    ]);
-                    queryClient.invalidateQueries([
-                      "balance",
-                      pubKeyToHex(hashingPublicKey),
-                    ]);
-                  });
               });
             });
         });
+
+        const handleValidation = async (
+          msgHash: Uint8Array,
+          blockData: IBlockStats,
+          backlink: string,
+          billData: ITransfer
+        ) => {
+          const signature = await secp.sign(msgHash, hashingPrivateKey, {
+            der: false,
+            recovered: true,
+          });
+
+          const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
+
+          const ownerProof = Buffer.from(
+            startByte +
+              opPushSig +
+              sigScheme +
+              Buffer.from(
+                secp.utils.concatBytes(
+                  signature[0],
+                  Buffer.from([signature[1]])
+                )
+              ).toString("hex") +
+              opPushPubKey +
+              sigScheme +
+              pubKeyToHex(hashingPublicKey).substring(2),
+            "hex"
+          ).toString("base64");
+
+          const dataWithProof = Object.assign(billData, {
+            owner_proof: ownerProof,
+            timeout: blockData.blockHeight + 42,
+            attributes: {
+              ...billData.attributes,
+              backlink: backlink,
+            },
+          });
+
+          isValid &&
+            makeTransaction(dataWithProof).then(() => {
+              setIsActionsViewVisible(false);
+              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              queryClient.invalidateQueries([
+                "balance",
+                pubKeyToHex(hashingPublicKey),
+              ]);
+            });
+        };
       }}
       validationSchema={Yup.object().shape({
         assets: Yup.object().required("Selected asset is required"),
@@ -427,6 +379,8 @@ function Send(): JSX.Element | null {
                   name="amount"
                   label="Amount"
                   type="number"
+                  step="any"
+                  floatingFixedPoint="2"
                   error={extractFormikError(errors, touched, ["amount"])}
                   disabled={!Boolean(values.assets)}
                 />

@@ -45,11 +45,12 @@ export interface ITransfer {
   unit_id: string;
   type: string;
   attributes: {
-    backlink: string;
+    backlink?: string;
     new_bearer?: string;
     target_value?: number;
     remaining_value?: number;
     target_bearer?: string;
+    amount?: number;
   },
   timeout: number;
   owner_proof: string;

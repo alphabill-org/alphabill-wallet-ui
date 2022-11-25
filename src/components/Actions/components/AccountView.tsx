@@ -5,14 +5,12 @@ import * as Yup from "yup";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 
-import { HDKey } from "@scure/bip32";
-import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import CryptoJS from "crypto-js";
 import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
+import { extractFormikError, getKeys, pubKeyToHex } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
@@ -114,31 +112,24 @@ function AccountView(): JSX.Element | null {
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const decryptedVault = JSON.parse(
-              CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
-                CryptoJS.enc.Latin1
-              )
-            );
+            const {
+              error,
+              masterKey,
+              hashingPublicKey,
+              decryptedVault,
+            } = getKeys(values.password, accounts.length, vault);
+            const accountIndex = accounts.length;
+            const prefixedHashingPubKey = hashingPublicKey
+              ? pubKeyToHex(hashingPublicKey)
+              : "";
 
-            if (
-              decryptedVault?.entropy.length > 16 &&
-              decryptedVault?.entropy.length < 32 &&
-              decryptedVault?.entropy.length % 4 === 0
-            ) {
+            if (error || !masterKey) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
-            const seed = mnemonicToSeedSync(mnemonic);
-            const masterKey = HDKey.fromMasterSeed(seed);
-            const accountIndex = accounts.length;
-            const hashingKey = masterKey.derive(
-              `m/44'/634'/${accountIndex}'/0/0`
-            );
-            const hashingPubKey = hashingKey.publicKey;
-            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
+
             const addAccount = () => {
               setVault(
                 CryptoJS.AES.encrypt(
@@ -171,9 +162,7 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };
 
-            if (
-              pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]
-            ) {
+            if (pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
               return setErrors({ password: "Password is incorrect!" });
             }
 

@@ -18,7 +18,7 @@ interface IAppContextShape {
   setActiveAccountId: (e: string) => void;
   accounts: IAccount[];
   setAccounts: (e: IAccount[]) => void;
-  account: IAccount | undefined;
+  account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
@@ -72,7 +72,7 @@ export const AppProvider: FunctionComponent<{
     () =>
       accounts?.find(
         (account: IAccount) => account?.pubKey === activeAccountId
-      ),
+      )!,
     [accounts, activeAccountId]
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =

@@ -11,7 +11,7 @@ function BillsList(): JSX.Element | null {
       {billsList?.bills
         ?.sort((a: IBill, b: IBill) => Number(a.value) - Number(b.value))
         .map((bill: IBill, idx: number) => {
-          const isNewDenomination = denomination != bill.value && true;
+          const isNewDenomination = denomination !== bill.value && true;
           const amountOfGivenDenomination = billsList?.bills.filter(
             (b: IBill) => b.value === bill.value
           ).length;
