@@ -51,6 +51,7 @@ export interface ITransfer {
     remaining_value?: number;
     target_bearer?: string;
     amount?: number;
+    nonce?: string;
   },
   timeout: number;
   owner_proof: string;

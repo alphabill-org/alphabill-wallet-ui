@@ -293,6 +293,7 @@ function Send(): JSX.Element | null {
               backlink: backlink,
             },
           });
+          console.log(dataWithProof);
 
           isValid &&
             makeTransaction(dataWithProof).then(() => {
