@@ -1,3 +1,5 @@
+import { number } from "yup";
+
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -52,7 +54,7 @@ export interface ITransfer {
     target_bearer?: string;
     amount?: number;
     nonce?: string;
-  },
+  };
   timeout: number;
   owner_proof: string;
 }
@@ -76,4 +78,56 @@ export interface ITransferProps {
   account?: IAccount;
   accounts?: IAccount[];
   setIsActionsViewVisible: (e: boolean) => void;
+}
+
+export interface ISwapProps {
+  system_id: string;
+  unit_id: string;
+  type: string;
+  attributes: {
+    bill_identifiers: string[];
+    dc_transfers: ITransfer[];
+    owner_condition: string;
+    proofs: [
+      {
+        proof_type: number;
+        block_header_hash: string;
+        transactions_hash: string;
+        hash_value: string;
+        block_tree_hash_chain: {
+          items: [
+            {
+              val: string;
+              hash: string;
+            }
+          ];
+        };
+        unicity_certificate: {
+          input_record: {
+            previous_hash: string;
+            hash: string;
+            block_hash: string;
+            summary_value: string;
+          };
+          unicity_tree_certificate: {
+            system_identifier: string;
+            sibling_hashes: string[];
+
+            system_description_hash: string;
+          };
+          unicity_seal: {
+            root_chain_round_number: 1;
+            previous_hash: string;
+            hash: string;
+            signatures: {
+              test: string;
+            };
+          };
+        };
+      }
+    ];
+    target_value: number;
+  };
+  timeout: number;
+  owner_proof: string;
 }
