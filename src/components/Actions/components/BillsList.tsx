@@ -220,8 +220,6 @@ function BillsList(): JSX.Element | null {
                             )
                           );
                         } else {
-                          console.log(bill.value);
-
                           setFirstBills(
                             sortedList.filter(
                               (b: IBill) => b.value === bill.value
@@ -239,7 +237,7 @@ function BillsList(): JSX.Element | null {
                       DC All {bill.value} AB Bills
                     </Button>
                   </span>
-                  <Spacer mt={16} />
+                  <Spacer mt={4} />
                 </>
               )}
               <div key={bill.id} className="dashboard__info-item-wrap small">
@@ -278,7 +276,12 @@ function BillsList(): JSX.Element | null {
         <div className="select__popover">
           <div className="select__popover-header">
             <div>INSERT PASSWORD TO TRANSFER</div>
-            <Close onClick={() => setIsFormVisible(!isFormVisible)} />
+            <Close
+              onClick={() => {
+                setIsLoadingID(null);
+                setIsFormVisible(!isFormVisible);
+              }}
+            />
           </div>
           <Spacer mt={16} />
           <Formik
