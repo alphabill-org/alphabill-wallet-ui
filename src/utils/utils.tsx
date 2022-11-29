@@ -40,8 +40,11 @@ export function useCombinedRefs(...refs: any[]) {
   return targetRef;
 }
 
-export const pubKeyToHex = (pubKey: Uint8Array) =>
-  "0x" + Buffer.from(pubKey).toString("hex");
+export const unit8ToHexPrefixed = (key: Uint8Array) =>
+  "0x" + Buffer.from(key).toString("hex");
+
+export const base64ToHexPrefixed = (key: string) =>
+  "0x" + Buffer.from(key,  "base64").toString("hex");
 
 export const getKeys = (
   password: string,
@@ -90,7 +93,7 @@ export const getKeys = (
     decryptedVault: decryptedVault,
     error: null,
     masterKey: masterKey,
-    hashingKey: hashingKey
+    hashingKey: hashingKey,
   };
 };
 

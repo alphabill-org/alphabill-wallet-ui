@@ -10,7 +10,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { extractFormikError, pubKeyToHex } from "../../utils/utils";
+import { extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -76,7 +76,7 @@ function CreateAccount(): JSX.Element | null {
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const hashingPubKey = hashingKey.publicKey;
-            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
+            const prefixedHashingPubKey = unit8ToHexPrefixed(hashingPubKey!);
 
             const encrypted = CryptoJS.AES.encrypt(
               prefixedHashingPubKey,

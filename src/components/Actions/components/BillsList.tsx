@@ -1,6 +1,7 @@
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import Spacer from "../../Spacer/Spacer";
+import { base64ToHexPrefixed } from "../../../utils/utils";
 
 function BillsList(): JSX.Element | null {
   const { billsList } = useApp();
@@ -35,7 +36,10 @@ function BillsList(): JSX.Element | null {
               <div key={bill.id} className="dashboard__info-item-wrap small">
                 <div className="dashboard__info-item-bill">
                   <div className="flex t-small c-light">
-                    <span className="pad-8-r">ID:</span> <span>{bill.id}</span>
+                    <span className="pad-8-r">ID:</span>{" "}
+                    <span>
+                      {base64ToHexPrefixed(bill.id)}
+                    </span>
                   </div>
                 </div>
               </div>

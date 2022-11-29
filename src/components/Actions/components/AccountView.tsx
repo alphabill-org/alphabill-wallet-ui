@@ -10,7 +10,7 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, getKeys, pubKeyToHex } from "../../../utils/utils";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
@@ -121,7 +121,7 @@ function AccountView(): JSX.Element | null {
             } = getKeys(values.password, accounts.length, vault);
             const accountIndex = accounts.length;
             const prefixedHashingPubKey = hashingPublicKey
-              ? pubKeyToHex(hashingPublicKey)
+              ? unit8ToHexPrefixed(hashingPublicKey)
               : "";
 
             if (error || !masterKey) {
@@ -163,7 +163,7 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };
 
-            if (pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
+            if (unit8ToHexPrefixed(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
               return setErrors({ password: "Password is incorrect!" });
             }
 

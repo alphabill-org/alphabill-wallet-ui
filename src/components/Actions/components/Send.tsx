@@ -26,7 +26,7 @@ import {
 import {
   extractFormikError,
   getKeys,
-  pubKeyToHex,
+  unit8ToHexPrefixed,
   startByte,
   opPushSig,
   opPushPubKey,
@@ -166,7 +166,7 @@ function Send(): JSX.Element | null {
 
         const transferData = billsToTransfer.map((bill) => ({
           system_id: "AAAAAA==",
-          unit_id: Buffer.from(bill.id.substring(2), "hex").toString("base64"),
+          unit_id: bill.id,
           type: "TransferOrder",
           attributes: {
             new_bearer: newBearer,
@@ -179,9 +179,7 @@ function Send(): JSX.Element | null {
           getBlockHeight().then(async (blockData) => {
             const splitData: ITransfer = {
               system_id: "AAAAAA==",
-              unit_id: Buffer.from(billToSplit.id.substring(2), "hex").toString(
-                "base64"
-              ),
+              unit_id: billToSplit.id,
               type: "SplitOrder",
               attributes: {
                 amount: splitBillAmount,
@@ -252,7 +250,7 @@ function Send(): JSX.Element | null {
               ).toString("hex") +
               opPushPubKey +
               sigScheme +
-              pubKeyToHex(hashingPublicKey).substring(2),
+              unit8ToHexPrefixed(hashingPublicKey).substring(2),
             "hex"
           ).toString("base64");
 
@@ -267,7 +265,7 @@ function Send(): JSX.Element | null {
               queryClient.invalidateQueries(["billsList", activeAccountId]);
               queryClient.invalidateQueries([
                 "balance",
-                pubKeyToHex(hashingPublicKey),
+                unit8ToHexPrefixed(hashingPublicKey),
               ]);
             });
         };
