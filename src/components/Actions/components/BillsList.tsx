@@ -9,7 +9,7 @@ import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 
-import { IBill, ITransfer } from "../../../types/Types";
+import { IBill, IProofProps, ISwapProps, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../Spacer/Spacer";
@@ -38,6 +38,7 @@ function BillsList(): JSX.Element | null {
   const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
   const [isLoadingID, setIsLoadingID] = useState<number | null>();
   const { billsList, account } = useApp();
+  const [swapList, setSwapList] = useState<string[]>([]);
   const sortedList = billsList?.bills?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
@@ -140,34 +141,171 @@ function BillsList(): JSX.Element | null {
               owner_proof: ownerProof,
               timeout: blockData.blockHeight + 42,
             });
-            console.log(bills.length, total);
 
             isValid && makeTransaction(dataWithProof);
             setIsLoadingID(null);
           });
         });
-
-      const address = account.pubKey.startsWith("0x")
-        ? account.pubKey.substring(2)
-        : account.pubKey;
-      const addressHash = CryptoJS.enc.Hex.parse(address);
-      const SHA256 = CryptoJS.SHA256(addressHash);
-      const newBearer = Buffer.from(
-        startByte +
-          opDup +
-          opHash +
-          sigScheme +
-          opPushHash +
-          sigScheme +
-          SHA256.toString(CryptoJS.enc.Hex) +
-          opEqual +
-          opVerify +
-          opCheckSig +
-          sigScheme,
-        "hex"
-      ).toString("base64");
     });
   };
+
+  const handleSwap = (formPassword?: string) => {
+    const { hashingPrivateKey, hashingPublicKey } = getKeys(
+      formPassword || password,
+      Number(account.idx),
+      vault
+    );
+
+    if (!hashingPublicKey || !hashingPrivateKey) return;
+    let total = 0;
+
+    swapList.map((bill: string) => {
+      axios
+        .get<any>(
+          `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=${bill.id}`
+        )
+        .then(async (proofData) => {
+          getBlockHeight().then(async (blockData) => {
+            let nonce: Buffer[] = [];
+            total = total + 1;
+
+            sortedList.map((bill: IBill) =>
+              nonce.push(Buffer.from(bill.id.substring(2), "hex"))
+            );
+
+            if (!nonce.length) return;
+
+            const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+            const transferData: ISwapProps = {
+              system_id: "AAAAAA==",
+              unit_id: Buffer.from(nonceHash).toString("base64"),
+              type: "SwapOrder",
+              attributes: {
+                bill_identifiers: [
+                  "5/eBoiDMXo8wJ2YaI9FIpVTeFRjPeVuepvRn6jjqpx0=",
+                ],
+                dc_transfers: [
+                  {
+                    system_id: "AAAAAA==",
+                    unit_id: "AAAAAQ==",
+                    type: "TransferDCOrder",
+                    attributes: {
+                      backlink: "AAABAQ==",
+                      nonce: "G+5F41yYTlj6V85FjH5InWvLCEmrWAx3F9++zPK3kkk=",
+                      target_bearer: "U1EB",
+                      target_value: 10,
+                    },
+                    timeout: 100,
+                    owner_proof: "AAAAAg==",
+                  },
+                ],
+                owner_condition: "U1EB",
+                proofs: [
+                  {
+                    proof_type: 'PRIM',
+                    block_header_hash:
+                      "r1Vw9aGBC3r3jK9LxwpmDw31HkK6+R1N5bIyjeDoPfw=",
+                    transactions_hash:
+                      "wG1SUf3/Bmns5fI7XTN23GwJxydA2Jqguo2UB/0yBog=",
+                    hash_value: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    block_tree_hash_chain: {
+                      items: [
+                        {
+                          val: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACl+ZM=",
+                          hash: "4yzD8aKTVfMeqBjB+XTufSHPDyILnIvV5fz4gfNjeIw=",
+                        },
+                      ],
+                    },
+                    unicity_certificate: {
+                      input_record: {
+                        previous_hash:
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        hash: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        block_hash:
+                          "4IYIlQ8q+wDlUSlYYmgOciokbVm3OpbKGCwLeDdj5aE=",
+                        summary_value:
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                      },
+                      unicity_tree_certificate: {
+                        system_identifier: "AAAAAA==",
+                        sibling_hashes: [
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        ],
+                        system_description_hash:
+                          "Fex78LUHMrSfgijgfSQ2Uzj546uZSwCvCOWjv/5V/Ys=",
+                      },
+                      unicity_seal: {
+                        root_chain_round_number: 1,
+                        previous_hash:
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        hash: "qu+Re5xdkhFGx6QbTQQotIoU9F8qH0aB+3bLu3i7DKU=",
+                        signatures: {
+                          test: "WA2Dzms4YXS+0JPxvtwPO1bKQMIqzh2vWKuo6MifCU4ugB4KpSkSBIUx3bKS+5T6dQhAVnC0KmaeTZmnKTjyBAE=",
+                        },
+                      },
+                    },
+                  },
+                ],
+                target_value: 10,
+              },
+              timeout: blockData.blockHeight + 42,
+              owner_proof: "",
+            };
+          });
+        });
+    });
+  };
+
+  const address = account.pubKey.startsWith("0x")
+    ? account.pubKey.substring(2)
+    : account.pubKey;
+  const addressHash = CryptoJS.enc.Hex.parse(address);
+  const SHA256 = CryptoJS.SHA256(addressHash);
+  const newBearer = Buffer.from(
+    startByte +
+      opDup +
+      opHash +
+      sigScheme +
+      opPushHash +
+      sigScheme +
+      SHA256.toString(CryptoJS.enc.Hex) +
+      opEqual +
+      opVerify +
+      opCheckSig +
+      sigScheme,
+    "hex"
+  ).toString("base64");
 
   return (
     <>

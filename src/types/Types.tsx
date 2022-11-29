@@ -85,12 +85,12 @@ export interface ISwapProps {
   unit_id: string;
   type: string;
   attributes: {
-    bill_identifiers: string[];
+    bill_identifiers: string[]; // All the bills that are used in a swap
     dc_transfers: ITransfer[];
     owner_condition: string;
     proofs: [
       {
-        proof_type: number;
+        proof_type: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
         block_header_hash: string;
         transactions_hash: string;
         hash_value: string;
@@ -130,4 +130,34 @@ export interface ISwapProps {
   };
   timeout: number;
   owner_proof: string;
+}
+
+export interface IProofProps {
+  billId: string;
+  blockNumber: number;
+  blockProof: {
+    block_header_hash: string;
+  };
+  merkle_proof: {
+    path_items: { path_item: string; direction_left?: string }[];
+  };
+  unicity_certificate: {
+    input_record: {
+      previous_hash: string;
+      hash: string;
+      block_hash: string;
+      summary_value: string;
+    };
+    unicity_tree_certificate: {
+      system_identifier: string;
+      sibling_hashes: string[];
+      system_description_hash: string;
+    };
+    unicity_seal: {
+      root_chain_round_number: 1;
+      previous_hash: string;
+      hash: string;
+      signatures: any;
+    };
+  };
 }
