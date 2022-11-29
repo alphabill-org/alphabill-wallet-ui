@@ -17,7 +17,7 @@ export interface IAsset {
 }
 
 export interface IBill {
-  id: string;
+  id: string; // base64
   value: number;
   txHash: string;
 }

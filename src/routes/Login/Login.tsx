@@ -7,7 +7,7 @@ import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError, getKeys, pubKeyToHex } from "../../utils/utils";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
@@ -54,14 +54,14 @@ function Login(): JSX.Element | null {
           );
 
           if (
-            pubKeyToHex(hashingPublicKey!) !==
+            unit8ToHexPrefixed(hashingPublicKey!) !==
             decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
 
           setUserKeys(decryptedVault.pub_keys);
-          setActiveAccountId(pubKeyToHex(hashingPublicKey!));
+          setActiveAccountId(unit8ToHexPrefixed(hashingPublicKey!));
           login();
         }}
         validationSchema={Yup.object().shape({

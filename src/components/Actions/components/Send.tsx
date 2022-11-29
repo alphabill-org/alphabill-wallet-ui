@@ -17,12 +17,16 @@ import Select from "../../Select/Select";
 import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
-import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
+import {
+  API_URL,
+  getBlockHeight,
+  makeTransaction,
+} from "../../../hooks/requests";
 
 import {
   extractFormikError,
   getKeys,
-  pubKeyToHex,
+  unit8ToHexPrefixed,
   startByte,
   opPushSig,
   opPushPubKey,
@@ -162,104 +166,69 @@ function Send(): JSX.Element | null {
 
         const transferData = billsToTransfer.map((bill) => ({
           system_id: "AAAAAA==",
-          unit_id: Buffer.from(bill.id.substring(2), "hex").toString("base64"),
+          unit_id: bill.id,
           type: "TransferOrder",
           attributes: {
             new_bearer: newBearer,
             target_value: bill.value,
+            backlink: bill.txHash,
           },
         }));
 
         if (billToSplit && splitBillAmount) {
-          axios
-            .get<any>(
-              `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=${billToSplit.id}`
-            )
-            .then(async (proofData) => {
-              getBlockHeight().then(async (blockData) => {
-                const splitData: ITransfer = {
-                  system_id: "AAAAAA==",
-                  unit_id: Buffer.from(
-                    billToSplit.id.substring(2),
-                    "hex"
-                  ).toString("base64"),
-                  type: "SplitOrder",
-                  attributes: {
-                    amount: splitBillAmount,
-                    target_bearer: newBearer,
-                    remaining_value: billToSplit.value - splitBillAmount,
-                  },
-                  timeout: blockData.blockHeight + 42,
-                  owner_proof: "",
-                };
-                const msgHash = await secp.utils.sha256(
-                  secp.utils.concatBytes(
-                    Buffer.from(splitData.system_id, "base64"),
-                    Buffer.from(splitData.unit_id, "base64"),
-                    new Uint64BE(splitData.timeout).toBuffer(),
-                    new Uint64BE(splitData.attributes.amount).toBuffer(),
-                    Buffer.from(
-                      splitData.attributes.target_bearer as string,
-                      "base64"
-                    ),
-                    new Uint64BE(
-                      splitData.attributes.remaining_value
-                    ).toBuffer(),
-                    Buffer.from(
-                      proofData.data.blockProof.transactions_hash,
-                      "base64"
-                    )
-                  )
-                );
+          getBlockHeight().then(async (blockData) => {
+            const splitData: ITransfer = {
+              system_id: "AAAAAA==",
+              unit_id: billToSplit.id,
+              type: "SplitOrder",
+              attributes: {
+                amount: splitBillAmount,
+                target_bearer: newBearer,
+                remaining_value: billToSplit.value - splitBillAmount,
+                backlink: billToSplit.txHash,
+              },
+              timeout: blockData.blockHeight + 42,
+              owner_proof: "",
+            };
+            const msgHash = await secp.utils.sha256(
+              secp.utils.concatBytes(
+                Buffer.from(splitData.system_id, "base64"),
+                Buffer.from(splitData.unit_id, "base64"),
+                new Uint64BE(splitData.timeout).toBuffer(),
+                new Uint64BE(splitData.attributes.amount).toBuffer(),
+                Buffer.from(
+                  splitData.attributes.target_bearer as string,
+                  "base64"
+                ),
+                new Uint64BE(splitData.attributes.remaining_value).toBuffer(),
+                Buffer.from(billToSplit.txHash, "base64")
+              )
+            );
 
-                handleValidation(
-                  msgHash,
-                  blockData,
-                  proofData.data.blockProof.transactions_hash,
-                  splitData
-                );
-              });
-            });
+            handleValidation(msgHash, blockData, splitData);
+          });
         }
 
         transferData.map(async (data) => {
-          axios
-            .get<any>(
-              `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=0x${Buffer.from(
-                data.unit_id,
-                "base64"
-              ).toString("hex")}`
-            )
-            .then(async (proofData) => {
-              getBlockHeight().then(async (blockData) => {
-                const msgHash = await secp.utils.sha256(
-                  secp.utils.concatBytes(
-                    Buffer.from(data.system_id, "base64"),
-                    Buffer.from(data.unit_id, "base64"),
-                    new Uint64BE(blockData.blockHeight + 42).toBuffer(),
-                    Buffer.from(data.attributes.new_bearer as string, "base64"),
-                    new Uint64BE(data.attributes.target_value).toBuffer(),
-                    Buffer.from(
-                      proofData.data.blockProof.transactions_hash,
-                      "base64"
-                    )
-                  )
-                );
+          getBlockHeight().then(async (blockData) => {
+            const msgHash = await secp.utils.sha256(
+              secp.utils.concatBytes(
+                Buffer.from(data.system_id, "base64"),
+                Buffer.from(data.unit_id, "base64"),
+                new Uint64BE(blockData.blockHeight + 42).toBuffer(),
+                Buffer.from(data.attributes.new_bearer as string, "base64"),
+                new Uint64BE(data.attributes.target_value).toBuffer(),
+                Buffer.from(data.attributes.backlink, "base64")
+              )
+            );
 
-                handleValidation(
-                  msgHash,
-                  blockData,
-                  proofData.data.blockProof.transactions_hash,
-                  data as ITransfer
-                );
-              });
-            });
+            handleValidation(msgHash, blockData, data as ITransfer);
+          });
         });
 
         const handleValidation = async (
           msgHash: Uint8Array,
           blockData: IBlockStats,
-          backlink: string,
           billData: ITransfer
         ) => {
           const signature = await secp.sign(msgHash, hashingPrivateKey, {
@@ -281,17 +250,13 @@ function Send(): JSX.Element | null {
               ).toString("hex") +
               opPushPubKey +
               sigScheme +
-              pubKeyToHex(hashingPublicKey).substring(2),
+              unit8ToHexPrefixed(hashingPublicKey).substring(2),
             "hex"
           ).toString("base64");
 
           const dataWithProof = Object.assign(billData, {
             owner_proof: ownerProof,
             timeout: blockData.blockHeight + 42,
-            attributes: {
-              ...billData.attributes,
-              backlink: backlink,
-            },
           });
           console.log(dataWithProof);
 
@@ -301,7 +266,7 @@ function Send(): JSX.Element | null {
               queryClient.invalidateQueries(["billsList", activeAccountId]);
               queryClient.invalidateQueries([
                 "balance",
-                pubKeyToHex(hashingPublicKey),
+                unit8ToHexPrefixed(hashingPublicKey),
               ]);
             });
         };

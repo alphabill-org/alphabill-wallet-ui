@@ -9,7 +9,11 @@ import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import { extractFormikError } from "../../../utils/utils";
 
-import { IBill, IProofProps, ISwapProps, ITransfer } from "../../../types/Types";
+import {
+  IBill,
+  ISwapProps,
+  ITransfer,
+} from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../Spacer/Spacer";
@@ -19,7 +23,8 @@ import { ReactComponent as Close } from "../../../images/close.svg";
 
 import {
   getKeys,
-  pubKeyToHex,
+  base64ToHexPrefixed,
+  unit8ToHexPrefixed,
   startByte,
   opPushSig,
   opPushPubKey,
@@ -75,9 +80,7 @@ function BillsList(): JSX.Element | null {
 
             const transferData: ITransfer = {
               system_id: "AAAAAA==",
-              unit_id: Buffer.from(bill.id.substring(2), "hex").toString(
-                "base64"
-              ),
+              unit_id: base64ToHexPrefixed(bill.id),
               type: "TransferDCOrder",
               attributes: {
                 backlink: proofData.data.blockProof.transactions_hash,
@@ -133,7 +136,7 @@ function BillsList(): JSX.Element | null {
                 ).toString("hex") +
                 opPushPubKey +
                 sigScheme +
-                pubKeyToHex(hashingPublicKey).substring(2),
+                unit8ToHexPrefixed(hashingPublicKey).substring(2),
               "hex"
             ).toString("base64");
 
@@ -159,10 +162,10 @@ function BillsList(): JSX.Element | null {
     if (!hashingPublicKey || !hashingPrivateKey) return;
     let total = 0;
 
-    swapList.map((bill: string) => {
+    swapList.map((id: string) => {
       axios
         .get<any>(
-          `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=${bill.id}`
+          `https://dev-ab-wallet-backend.abdev1.guardtime.com/block-proof?bill_id=${id}`
         )
         .then(async (proofData) => {
           getBlockHeight().then(async (blockData) => {
@@ -202,7 +205,7 @@ function BillsList(): JSX.Element | null {
                 owner_condition: "U1EB",
                 proofs: [
                   {
-                    proof_type: 'PRIM',
+                    proof_type: "PRIM",
                     block_header_hash:
                       "r1Vw9aGBC3r3jK9LxwpmDw31HkK6+R1N5bIyjeDoPfw=",
                     transactions_hash:
@@ -381,16 +384,29 @@ function BillsList(): JSX.Element | null {
               <div key={bill.id} className="dashboard__info-item-wrap small">
                 <div className="dashboard__info-item-bill">
                   <div className="flex t-small c-light">
-                    <span className="pad-8-r">ID:</span> <span>{bill.id}</span>
+                    <span className="pad-8-r">ID:</span>{" "}
+                    <span>{base64ToHexPrefixed(bill.id)}</span>
                   </div>
                 </div>
                 <span className="pad-16-l">
                   <Button
                     onClick={() => {
                       if (password) {
-                        handleDC([{ id: bill.id, value: bill.value }]);
+                        handleDC([
+                          {
+                            id: bill.id,
+                            value: bill.value,
+                            txHash: bill.txHash,
+                          },
+                        ]);
                       } else {
-                        setFirstBills([{ id: bill.id, value: bill.value }]);
+                        setFirstBills([
+                          {
+                            id: bill.id,
+                            value: bill.value,
+                            txHash: bill.txHash,
+                          },
+                        ]);
                         setIsFormVisible(true);
                       }
                     }}
