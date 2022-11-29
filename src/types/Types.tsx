@@ -19,6 +19,7 @@ export interface IAsset {
 export interface IBill {
   id: string;
   value: number;
+  txHash: string;
 }
 
 export interface IBillsList {
@@ -51,7 +52,8 @@ export interface ITransfer {
     remaining_value?: number;
     target_bearer?: string;
     amount?: number;
-  },
+    nonce?: string;
+  };
   timeout: number;
   owner_proof: string;
 }

@@ -15,6 +15,7 @@ import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
+import { API_URL } from "../../hooks/requests";
 
 function CreateAccount(): JSX.Element | null {
   const { login, setUserKeys, setVault } = useAuth();
@@ -89,7 +90,7 @@ function CreateAccount(): JSX.Element | null {
             ) {
               axios
                 .post<void>(
-                  "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                  API_URL + "/admin/add-key",
                   {
                     pubkey: decrypted.toString(CryptoJS.enc.Latin1),
                   }

@@ -21,6 +21,7 @@ import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
 import { useApp } from "../../../hooks/appProvider";
+import { API_URL } from "../../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -168,7 +169,7 @@ function AccountView(): JSX.Element | null {
 
             axios
               .post<void>(
-                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                API_URL + "/admin/add-key",
                 {
                   pubkey: prefixedHashingPubKey,
                 }
