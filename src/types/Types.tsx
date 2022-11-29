@@ -1,5 +1,3 @@
-import { number } from "yup";
-
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -21,6 +19,7 @@ export interface IAsset {
 export interface IBill {
   id: string;
   value: number;
+  txHash: string;
 }
 
 export interface IBillsList {
@@ -133,31 +132,50 @@ export interface ISwapProps {
 }
 
 export interface IProofProps {
-  billId: string;
-  blockNumber: number;
-  blockProof: {
+  id: string;
+  value: number;
+  txHash: string;
+  txProof: {
+    blockNumber: number;
+    tx: {
+      systemId: string;
+      unitId: string;
+      transactionAttributes: {
+        "@type": string;
+        amount: number;
+        targetBearer: string;
+        remainingValue: number;
+        backlink: string;
+      };
+    };
+    timeout: number;
+    ownerProof: string;
+  };
+  proof: {
     block_header_hash: string;
-  };
-  merkle_proof: {
-    path_items: { path_item: string; direction_left?: string }[];
-  };
-  unicity_certificate: {
-    input_record: {
-      previous_hash: string;
-      hash: string;
-      block_hash: string;
-      summary_value: string;
+    transactionsHash: string;
+    hashValue: string;
+    blockTreeHashChain: {
+      items: { val: string; hash: string }[];
     };
-    unicity_tree_certificate: {
-      system_identifier: string;
-      sibling_hashes: string[];
-      system_description_hash: string;
-    };
-    unicity_seal: {
-      root_chain_round_number: 1;
-      previous_hash: string;
-      hash: string;
-      signatures: any;
+    unicityCertificate: {
+      inputRecord: {
+        previousHash: string;
+        hash: string;
+        blockHash: string;
+        summaryValue: string;
+      };
+      unicityTreeCertificate: {
+        systemIdentifier: string;
+        siblingHashes: string[];
+        systemDescriptionHash: string;
+      };
+      unicitySeal: {
+        rootChainRoundNumber: 1;
+        previousHash: string;
+        hash: string;
+        signatures: any;
+      };
     };
   };
 }
