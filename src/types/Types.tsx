@@ -87,48 +87,15 @@ export interface ISwapProps {
     bill_identifiers: string[]; // All the bills that are used in a swap
     dc_transfers: ITransfer[];
     owner_condition: string;
-    proofs: [
-      {
-        proof_type: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
-        block_header_hash: string;
-        transactions_hash: string;
-        hash_value: string;
-        block_tree_hash_chain: {
-          items: [
-            {
-              val: string;
-              hash: string;
-            }
-          ];
-        };
-        unicity_certificate: {
-          input_record: {
-            previous_hash: string;
-            hash: string;
-            block_hash: string;
-            summary_value: string;
-          };
-          unicity_tree_certificate: {
-            system_identifier: string;
-            sibling_hashes: string[];
-
-            system_description_hash: string;
-          };
-          unicity_seal: {
-            root_chain_round_number: 1;
-            previous_hash: string;
-            hash: string;
-            signatures: {
-              test: string;
-            };
-          };
-        };
-      }
-    ];
+    proofs: [ISwapProofProps];
     target_value: number;
   };
   timeout: number;
   owner_proof: string;
+}
+
+export interface IProofsProps {
+  bills: IProofProps[];
 }
 
 export interface IProofProps {
@@ -147,34 +114,71 @@ export interface IProofProps {
         remainingValue: number;
         backlink: string;
       };
+      timeout: number;
+      ownerProof: string;
     };
-    timeout: number;
-    ownerProof: string;
+    proof: {
+      blockHeaderHash: string;
+      transactionsHash: string;
+      hashValue: string;
+      blockTreeHashChain: {
+        items: { val: string; hash: string }[];
+      };
+      unicityCertificate: {
+        inputRecord: {
+          previousHash: string;
+          hash: string;
+          blockHash: string;
+          summaryValue: string;
+        };
+        unicityTreeCertificate: {
+          systemIdentifier: string;
+          siblingHashes: string[];
+          systemDescriptionHash: string;
+        };
+        unicitySeal: {
+          rootChainRoundNumber: 1;
+          previousHash: string;
+          hash: string;
+          signatures: any;
+        };
+      };
+    };
   };
-  proof: {
-    block_header_hash: string;
-    transactionsHash: string;
-    hashValue: string;
-    blockTreeHashChain: {
-      items: { val: string; hash: string }[];
+}
+
+export interface ISwapProofProps {
+  proof_type: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
+  block_header_hash: string;
+  transactions_hash: string;
+  hash_value: string;
+  block_tree_hash_chain: {
+    items: [
+      {
+        val: string;
+        hash: string;
+      }
+    ];
+  };
+  unicity_certificate: {
+    input_record: {
+      previous_hash: string;
+      hash: string;
+      block_hash: string;
+      summary_value: string;
     };
-    unicityCertificate: {
-      inputRecord: {
-        previousHash: string;
-        hash: string;
-        blockHash: string;
-        summaryValue: string;
-      };
-      unicityTreeCertificate: {
-        systemIdentifier: string;
-        siblingHashes: string[];
-        systemDescriptionHash: string;
-      };
-      unicitySeal: {
-        rootChainRoundNumber: 1;
-        previousHash: string;
-        hash: string;
-        signatures: any;
+    unicity_tree_certificate: {
+      system_identifier: string;
+      sibling_hashes: string[];
+
+      system_description_hash: string;
+    };
+    unicity_seal: {
+      root_chain_round_number: 1;
+      previous_hash: string;
+      hash: string;
+      signatures: {
+        test: string;
       };
     };
   };

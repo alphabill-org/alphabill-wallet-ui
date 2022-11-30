@@ -1,11 +1,14 @@
 import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
-import { IBillsList, ITransfer } from "../types/Types";
-import { getBalance, getBillsList, makeTransaction } from "./requests";
+import { IBillsList, IProofsProps, ITransfer } from "../types/Types";
+import {
+  getBalance,
+  getBillsList,
+  getProof,
+  makeTransaction,
+} from "./requests";
 
-export function useGetBalances(
-  ids: string[] | undefined
-) {
+export function useGetBalances(ids: string[] | undefined) {
   return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
     ids!.map((id) => {
       return {
@@ -18,7 +21,9 @@ export function useGetBalances(
   );
 }
 
-export function useGetBillsList(id: string): QueryObserverResult<IBillsList, AxiosError> {
+export function useGetBillsList(
+  id: string
+): QueryObserverResult<IBillsList, AxiosError> {
   return useQuery([`billsList`, id], async () => getBillsList(id), {
     enabled: true,
     keepPreviousData: true,
@@ -26,7 +31,19 @@ export function useGetBillsList(id: string): QueryObserverResult<IBillsList, Axi
   });
 }
 
-export function useMakeTransaction(data: any): QueryObserverResult<ITransfer, AxiosError> {
+export function useGetProof(
+  id: string
+): QueryObserverResult<IProofsProps, AxiosError> {
+  return useQuery([`proof`, id], async () => getProof(id), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
+}
+
+export function useMakeTransaction(
+  data: any
+): QueryObserverResult<ITransfer, AxiosError> {
   return useQuery([`transaction`], async () => makeTransaction(data), {
     enabled: true,
     keepPreviousData: true,

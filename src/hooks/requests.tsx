@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
+import { IBillsList, IBlockStats, ITransfer, IProofsProps } from "../types/Types";
 
 export const API_URL = "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1"
 
@@ -25,6 +25,18 @@ export const getBillsList = async (id: string): Promise<any> => {
 
   const response = await axios.get<IBillsList>(
     `${API_URL}/list-bills?pubkey=${id}`
+  );
+
+  return response.data;
+};
+
+export const getProof = async (id: string): Promise<any> => {
+  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+    return;
+  }
+
+  const response = await axios.get<IProofsProps>(
+    `${API_URL}/proof?bill_id=${id}`
   );
 
   return response.data;
