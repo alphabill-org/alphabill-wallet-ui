@@ -87,7 +87,7 @@ export interface ISwapProps {
     bill_identifiers: string[]; // All the bills that are used in a swap
     dc_transfers: ITransfer[];
     owner_condition: string;
-    proofs: [ISwapProofProps];
+    proofs: ISwapProofProps[];
     target_value: number;
   };
   timeout: number;

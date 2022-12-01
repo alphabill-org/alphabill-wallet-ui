@@ -43,8 +43,8 @@ export function useCombinedRefs(...refs: any[]) {
 export const unit8ToHexPrefixed = (key: Uint8Array) =>
   "0x" + Buffer.from(key).toString("hex");
 
-export const base64ToHexPrefixed = (key: string) =>
-  "0x" + Buffer.from(key,  "base64").toString("hex");
+export const base64ToHexPrefixed = (key: string = "") =>
+  "0x" + Buffer.from(key, "base64").toString("hex");
 
 export const getKeys = (
   password: string,

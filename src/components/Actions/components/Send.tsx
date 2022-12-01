@@ -7,7 +7,6 @@ import CryptoJS from "crypto-js";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
 import { useQueryClient } from "react-query";
-import axios from "axios";
 
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
@@ -17,11 +16,7 @@ import Select from "../../Select/Select";
 import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
-import {
-  API_URL,
-  getBlockHeight,
-  makeTransaction,
-} from "../../../hooks/requests";
+import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
 
 import {
   extractFormikError,
@@ -40,16 +35,34 @@ import {
 } from "../../../utils/utils";
 
 function Send(): JSX.Element | null {
-  const [currentTokenId, setCurrentTokenId] = useState<any>("");
-  const { setIsActionsViewVisible, account, billsList, activeAccountId } =
-    useApp();
+  const {
+    setIsActionsViewVisible,
+    account,
+    billsList,
+    activeAccountId,
+    lockedKeys,
+    selectedSendKey,
+  } = useApp();
   const { vault } = useAuth();
   const queryClient = useQueryClient();
+  const defaultAsset = selectedSendKey
+    ? {
+        value: account?.assets
+          .filter((asset) => account?.activeNetwork === asset.network)
+          .find((asset) => asset.id === "AB"),
+        label: account?.assets
+          .filter((asset) => account?.activeNetwork === asset.network)
+          .find((asset) => asset.id === "AB")?.name,
+      }
+    : "";
+  const [currentTokenId, setCurrentTokenId] = useState<any>(
+    defaultAsset ? defaultAsset?.value : ""
+  );
 
   return (
     <Formik
       initialValues={{
-        assets: "",
+        assets: defaultAsset,
         amount: 0,
         address: "",
         password: "",
@@ -65,7 +78,19 @@ function Send(): JSX.Element | null {
           return setErrors({ password: error || "Hashing keys are missing!" });
         }
 
-        const billsArr = billsList.bills as IBill[];
+        const billsArr = selectedSendKey
+          ? ([
+              billsList.bills.find(
+                (bill: IBill) => bill.id === selectedSendKey
+              ),
+            ] as IBill[])
+          : (billsList.bills.filter(
+              (bill: IBill) =>
+                !lockedKeys.find(
+                  (b: { key: string; desc: string }) => b.key === bill.id
+                )
+            ) as IBill[]);
+
         let selectedBills: IBill[] = [];
         const findClosestBigger = (bills: IBill[], target: number) =>
           bills
@@ -258,7 +283,6 @@ function Send(): JSX.Element | null {
             owner_proof: ownerProof,
             timeout: blockData.blockHeight + 42,
           });
-          console.log(dataWithProof);
 
           isValid &&
             makeTransaction(dataWithProof).then(() => {
@@ -314,10 +338,17 @@ function Send(): JSX.Element | null {
         return (
           <form className="pad-24" onSubmit={handleSubmit}>
             <Form>
+              {selectedSendKey && (
+                <div>
+                  You have selected to transfer Alphabill: <Spacer mt={8} />
+                  <div className="t-small t-bold">{selectedSendKey}</div>
+                </div>
+              )}
               <FormContent>
                 <Select
                   label="Assets"
                   name="assets"
+                  className={selectedSendKey ? "d-none" : ""}
                   options={account?.assets
                     .filter((asset) => account?.activeNetwork === asset.network)
                     .sort((a: IAsset, b: IAsset) => {
@@ -344,7 +375,7 @@ function Send(): JSX.Element | null {
                   type="address"
                   error={extractFormikError(errors, touched, ["address"])}
                 />
-                <Spacer mb={16} />
+                <Spacer mb={8} />
                 <Textfield
                   id="amount"
                   name="amount"
@@ -353,15 +384,24 @@ function Send(): JSX.Element | null {
                   step="any"
                   floatingFixedPoint="2"
                   error={extractFormikError(errors, touched, ["amount"])}
-                  disabled={!Boolean(values.assets)}
+                  disabled={!Boolean(values.assets) || Boolean(selectedSendKey)}
+                  value={
+                    selectedSendKey &&
+                    billsList.bills.find(
+                      (bill: IBill) => bill.id === selectedSendKey
+                    ).value
+                  }
                 />
+                <Spacer mb={8} />
                 <Textfield
                   id="password"
                   name="password"
                   label="Password"
                   type="password"
                   error={extractFormikError(errors, touched, ["password"])}
-                  disabled={!Boolean(values.assets)}
+                  disabled={
+                    !Boolean(values.assets) && !Boolean(selectedSendKey)
+                  }
                 />
               </FormContent>
               <FormFooter>

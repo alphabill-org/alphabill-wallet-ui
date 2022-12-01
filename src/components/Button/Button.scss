@@ -35,6 +35,12 @@
     height: 30px;
   }
 
+  &.button--x-small {
+    height: 20px;
+    font-size: 14px;
+    padding: 6px;
+  }
+
   &.is--bordered {
     border-radius: 4px;
     padding: 8px 16px;

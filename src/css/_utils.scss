@@ -114,6 +114,10 @@
   white-space: pre;
 }
 
+.t-w-s-nowrap {
+  white-space: nowrap;
+}
+
 .t-bold {
   font-weight: bold;
 }
@@ -144,4 +148,10 @@
 
 .w-100p {
   width: 100%;
+}
+
+// Displays
+
+.d-none {
+  display: none;
 }
