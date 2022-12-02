@@ -1,3 +1,5 @@
+import { string } from "yup/lib/locale";
+
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -92,7 +94,7 @@ export interface ISwapProps {
   type: string;
   attributes: {
     bill_identifiers: string[]; // All the bills that are used in a swap
-    dc_transfers: ITransfer[];
+    dc_transfers: IDCTransferProps[];
     owner_condition: string;
     proofs: ISwapProofProps[];
     target_value: number;
@@ -189,4 +191,33 @@ export interface ISwapProofProps {
       };
     };
   };
+}
+
+export interface ISwapTransferProps {
+  system_id: string;
+  unit_id: string;
+  type: string;
+  attributes: {
+    bill_identifiers: string[];
+    dc_transfers: IDCTransferProps[];
+    owner_condition: string;
+    proofs: ISwapProofProps[];
+    target_value: number;
+  };
+  timeout: number;
+  owner_proof: string;
+}
+
+export interface IDCTransferProps {
+  system_id: string;
+  unit_id: string;
+  type: string;
+  attributes: {
+    backlink: string;
+    nonce: string;
+    target_bearer: string;
+    target_value: number;
+  };
+  timeout: number;
+  owner_proof: string;
 }

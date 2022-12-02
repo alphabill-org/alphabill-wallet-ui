@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
-import { IBillsList, IProofsProps, ITransfer } from "../types/Types";
+import { IBillsList, IProofsProps, ISwapTransferProps, ITransfer } from "../types/Types";
 import {
   getBalance,
   getBillsList,
@@ -44,7 +44,7 @@ export function useGetProof(
 
 export function useMakeTransaction(
   data: any
-): QueryObserverResult<ITransfer, AxiosError> {
+): QueryObserverResult<ITransfer | ISwapTransferProps, AxiosError> {
   return useQuery([`transaction`], async () => makeTransaction(data), {
     enabled: true,
     keepPreviousData: true,

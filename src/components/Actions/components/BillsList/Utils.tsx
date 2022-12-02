@@ -9,13 +9,13 @@ import {
   sigScheme,
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";
-import { IAccount, ISwapProofProps, ISwapProps } from "../../../../types/Types";
+import { IAccount, IDCTransferProps, ISwapProofProps, ISwapProps, ISwapTransferProps } from "../../../../types/Types";
 import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
 
 export const handleSwapRequest = async (
   nonce: Buffer[],
   proofs: ISwapProofProps[],
-  dc_transfers: any,
+  dc_transfers: IDCTransferProps[],
   formPassword: string | undefined,
   password: string,
   billIdentifiers: string[],
@@ -127,7 +127,7 @@ export const handleSwapRequest = async (
       "hex"
     ).toString("base64");
 
-    const dataWithProof = Object.assign(transferData, {
+    const dataWithProof: ISwapTransferProps = Object.assign(transferData, {
       owner_proof: ownerProof,
     });
 

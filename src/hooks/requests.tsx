@@ -5,6 +5,7 @@ import {
   IBlockStats,
   ITransfer,
   IProofsProps,
+  ISwapTransferProps,
 } from "../types/Types";
 
 export const API_URL =
@@ -60,7 +61,7 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
 export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
-  const response = await axios.post<{ data: ITransfer }>(
+  const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
     "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
     {
       ...data,
