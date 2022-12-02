@@ -23,10 +23,10 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
   setActionsView: (e: string) => void;
-  lockedKeys: {key: string; desc: string}[];
-  setLockedKeys: (e: {key: string; desc: string}[]) => void;
+  lockedKeys: {key: string; desc: string; value: number}[];
+  setLockedKeys: (e: {key: string; desc: string; value: number}[]) => void;
   selectedSendKey: string | null | undefined;
-  setSelectedSendKey: (e: string) => void;
+  setSelectedSendKey: (e: string | null) => void;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -46,7 +46,7 @@ export const AppProvider: FunctionComponent<{
     [accountNames]
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
-  const [lockedKeys, setLockedKeys] = useState< {key: string; desc: string}[]>([]);
+  const [lockedKeys, setLockedKeys] = useState< {key: string; desc: string; value: number}[]>([]);
   const [selectedSendKey, setSelectedSendKey] = useState<string | null | undefined>();
   const balances: any = useGetBalances(keysArr);
   const { data: billsList } = useGetBillsList(activeAccountId);

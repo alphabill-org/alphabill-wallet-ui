@@ -18,7 +18,7 @@ export const handleSwapRequest = async (
   dc_transfers: any,
   formPassword: string | undefined,
   password: string,
-  swapList: string[],
+  billIdentifiers: string[],
   newBearer: string,
   transferMsgHashes: Uint8Array[],
   account: IAccount,
@@ -40,7 +40,7 @@ export const handleSwapRequest = async (
       unit_id: Buffer.from(nonceHash).toString("base64"),
       type: "SwapOrder",
       attributes: {
-        bill_identifiers: swapList,
+        bill_identifiers: billIdentifiers,
         dc_transfers: dc_transfers,
         owner_condition: newBearer,
         proofs: proofs,

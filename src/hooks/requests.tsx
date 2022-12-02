@@ -37,13 +37,13 @@ export const getBillsList = async (id: string): Promise<any> => {
   return response.data;
 };
 
-export const getProof = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+export const getProof = async (id: string, key: string): Promise<any> => {
+  if (!id || Number(id) === 0 || !id.startsWith("0x") || !key.startsWith("0x")) {
     return;
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/proof?bill_id=${id}`
+    `${API_URL}/proof/${key}?bill_id=${id}`
   );
 
   return response.data;

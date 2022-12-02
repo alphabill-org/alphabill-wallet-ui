@@ -20,6 +20,7 @@ export interface IBill {
   id: string; // base64
   value: number;
   txHash: string;
+  isDCBill?: boolean;
 }
 
 export interface IBillsList {
@@ -109,9 +110,9 @@ export interface IProofProps {
       unitId: string;
       transactionAttributes: {
         "@type": string;
-        amount: number;
+        nonce: string;
         targetBearer: string;
-        remainingValue: number;
+        targetValue: number;
         backlink: string;
       };
       timeout: number;

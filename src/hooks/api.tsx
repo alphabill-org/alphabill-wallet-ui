@@ -32,9 +32,10 @@ export function useGetBillsList(
 }
 
 export function useGetProof(
-  id: string
+  id: string,
+  key: string
 ): QueryObserverResult<IProofsProps, AxiosError> {
-  return useQuery([`proof`, id], async () => getProof(id), {
+  return useQuery([`proof`, id], async () => getProof(id, key), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,

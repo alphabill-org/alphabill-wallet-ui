@@ -14,6 +14,7 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
+    setSelectedSendKey
   } = useApp();
 
   return (
@@ -22,7 +23,10 @@ function Actions(): JSX.Element | null {
     >
       <div className="actions__header">
         <Button
-          onClick={() => setIsActionsViewVisible(!isActionsViewVisible)}
+          onClick={() => {
+            setIsActionsViewVisible(!isActionsViewVisible);
+            actionsView === "Send" && setSelectedSendKey(null);
+          }}
           variant="icon"
         >
           <Arrow />

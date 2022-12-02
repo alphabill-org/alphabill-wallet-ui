@@ -45,7 +45,9 @@ import { handleSwapRequest } from "./Utils";
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
   const [firstBills, setFirstBills] = useState<IBill[]>([]);
-  const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
+  const [passwordFormType, setPasswordFormType] = useState<
+    "DC" | "swap" | null
+  >(null);
   const [isLoadingID, setIsLoadingID] = useState<number | null>();
   const {
     billsList,
@@ -56,24 +58,26 @@ function BillsList(): JSX.Element | null {
     setIsActionsViewVisible,
     setSelectedSendKey,
   } = useApp();
-  const [swapList, setSwapList] = useState<string[]>([]);
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
   const sortedList = billsList?.bills?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
+  const DCBills = sortedList.filter((b: IBill) => b.isDCBill);
   const [activeBillId, setActiveBillId] = useState<string>(sortedList[0]?.id);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
     string | null
   >(null);
-  const { data: proof } = useGetProof(base64ToHexPrefixed(activeBillId));
+  const { data: proof } = useGetProof(
+    base64ToHexPrefixed(activeBillId),
+    account.pubKey
+  );
   const queryClient = useQueryClient();
-
   const { vault } = useAuth();
 
   let denomination: number | null = null;
-
+  let DCDenomination: number | null = null;
   const handleDC = (bills: IBill[], formPassword?: string) => {
     const { hashingPrivateKey, hashingPublicKey } = getKeys(
       formPassword || password,
@@ -153,11 +157,9 @@ function BillsList(): JSX.Element | null {
         });
 
         isValid &&
-          makeTransaction(dataWithProof).then(() =>
-            setSwapList([...swapList, bill.id.toString()])
-          );
-        setSwapList([...swapList, bill.id.toString()]);
-
+          makeTransaction(dataWithProof).then(() => {
+            queryClient.invalidateQueries(["billsList", account.pubKey]);
+          });
         setIsLoadingID(null);
       })
     );
@@ -188,22 +190,31 @@ function BillsList(): JSX.Element | null {
     let nonce: Buffer[] = [];
     let dc_transfers: any = [];
     let proofs: any = [];
+    let billIdentifiers: string[] = [];
 
-    swapList.map((id: string) =>
+    DCBills.map((bill: IBill) =>
       axios
         .get<IProofsProps>(
-          `${API_URL}/proof?bill_id=${base64ToHexPrefixed(id)}`
+          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
+            bill.id
+          )}`
         )
         .then(({ data }) => {
           total = total + 1;
           const tx = data.bills[0].txProof.tx;
           const proof = data.bills[0].txProof.proof;
+          billIdentifiers.push(bill.id);
 
           dc_transfers.push({
             system_id: tx.systemId,
             unit_id: tx.unitId,
-            type: tx.transactionAttributes["@type"],
-            attributes: tx.transactionAttributes,
+            type: "TransferDCOrder",
+            attributes: {
+              backlink: tx.transactionAttributes.backlink,
+              nonce: tx.transactionAttributes.nonce,
+              target_bearer: tx.transactionAttributes.targetBearer,
+              target_value: tx.transactionAttributes.targetValue,
+            },
             timeout: tx.timeout,
             owner_proof: tx.ownerProof,
           });
@@ -243,18 +254,19 @@ function BillsList(): JSX.Element | null {
               },
             },
           });
+
           sortedList.map((bill: IBill) =>
             nonce.push(Buffer.from(bill.id.substring(2), "hex"))
           );
 
-          if (total - 1 === swapList.length) {
+          if (total === DCBills.length) {
             handleSwapRequest(
               nonce,
               proofs,
               dc_transfers,
               formPassword,
               password,
-              swapList,
+              billIdentifiers,
               newBearer,
               transferMsgHashes,
               account,
@@ -273,48 +285,90 @@ function BillsList(): JSX.Element | null {
           To swap your bills into one bigger bill click on the Dust Collection
           button next to the given bill and then click on Swap Bills button.
           <Spacer mt={8} />
+        </div>{" "}
+        <div>
+          {DCBills.length > 0 && (
+            <>
+              <Spacer mt={16} />
+              <div className="t-medium pad-24-h c-primary">
+                COLLECTED BILLS FOR SWAP
+              </div>
+              <Spacer mt={8} />
+            </>
+          )}
+
+          {DCBills.map((bill: IBill, idx: number) => {
+            const isNewDenomination = DCDenomination !== bill.value && true;
+            const amountOfGivenDenomination = billsList?.bills.filter(
+              (b: IBill) => b.value === bill.value
+            ).length;
+            DCDenomination = bill.value;
+
+            return (
+              <div key={bill.id + idx}>
+                {isNewDenomination && (
+                  <>
+                    {idx !== 0 && <Spacer mt={8} />}
+                    <div className="t-medium-small pad-24-h flex flex-align-c">
+                      Denomination: {bill.value}{" "}
+                      <span className="t-medium pad-8-l">
+                        (total of {amountOfGivenDenomination} bill{""}
+                        {amountOfGivenDenomination > 1 && "s"})
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div key={bill.id} className="dashboard__info-item-wrap small">
+                  <div className="dashboard__info-item-bill">
+                    <div className="flex t-small c-light">
+                      <span className="pad-8-r">ID:</span>{" "}
+                      <span>{base64ToHexPrefixed(bill.id)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <Spacer mt={16} />
+        <div className="t-medium-small pad-24-h">
           <Button
-            disabled={swapList.length <= 0}
+            disabled={DCBills.length <= 0}
             className="w-100p"
             small
             type="button"
             variant="primary"
-            onClick={() => handleSwap()}
+            onClick={() => {
+              if (password) {
+                handleSwap();
+              } else {
+                setPasswordFormType("swap");
+              }
+            }}
           >
-            Swap Bills
+            Swap Collected Bills
+          </Button>
+          <Spacer mt={8} />
+          <Button
+            disabled={DCBills.length <= 0}
+            className="w-100p"
+            small
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              queryClient.invalidateQueries(["billsList", account.pubKey])
+            }
+          >
+            Fetch Collected Bills
           </Button>
         </div>
-        <Spacer mt={16} />
-        <div>
-          {swapList.length > 0 && (
-            <>
-              <div className="t-medium pad-24-h">Bills ready to swap</div>
-              <Spacer mt={4} />
-            </>
-          )}
-
-          {sortedList
-            .filter((b: IBill) => swapList.includes(b.id))
-            .map((bill: IBill) => (
-              <div key={bill.id} className="dashboard__info-item-wrap small">
-                <div className="dashboard__info-item-bill">
-                  <div className="flex t-small c-light">
-                    <span className="pad-8-r">ID:</span>{" "}
-                    <span>{base64ToHexPrefixed(bill.id)}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-
         <div>
           {lockedKeys.length > 0 && (
             <>
-              <div className="t-medium pad-24-h">
-                Locked Bills{" "}
-                <span className="t-small">
-                  - Exempt from transfers unless sent directly
-                </span>
+              <Spacer mt={32} />
+              <div className="t-medium pad-24-h c-primary">
+                LOCKED BILLS{" "}
+                <span className="t-small">- Exempt from transfers</span>
               </div>
             </>
           )}
@@ -326,7 +380,7 @@ function BillsList(): JSX.Element | null {
                 <div
                   className={
                     visibleBillSettingID === bill.id
-                      ? "flex flex-align-c pad-24-h"
+                      ? "flex flex-align-c pad-24-h pad-16-t"
                       : "d-none"
                   }
                 >
@@ -385,12 +439,26 @@ function BillsList(): JSX.Element | null {
                       <span>{base64ToHexPrefixed(bill.id)}</span>
                     </div>
                     {lockedKeys.find((key) => key.key === bill.id) && (
-                      <div className="flex t-small t-bold c-light">
-                        <span className="pad-8-r">Desc:</span>{" "}
-                        <span>
-                          {lockedKeys?.find((key) => key.key === bill.id)?.desc}
-                        </span>
-                      </div>
+                      <>
+                        <div className="flex t-small t-bold c-light">
+                          <span className="pad-8-r">Desc:</span>{" "}
+                          <span>
+                            {
+                              lockedKeys?.find((key) => key.key === bill.id)
+                                ?.desc
+                            }
+                          </span>
+                        </div>
+                        <div className="flex t-small t-bold c-light">
+                          <span className="pad-8-r">Value:</span>{" "}
+                          <span>
+                            {
+                              lockedKeys?.find((key) => key.key === bill.id)
+                                ?.value
+                            }
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
                   <span className="pad-16-l">
@@ -414,12 +482,12 @@ function BillsList(): JSX.Element | null {
               </div>
             ))}
         </div>
-
         <Spacer mt={32} />
+        <div className="t-medium pad-24-h c-primary">UNCOLLECTED BILLS</div>
         {sortedList
           .filter(
             (b: IBill) =>
-              !swapList.includes(b.id) &&
+              b.isDCBill === false &&
               !lockedKeys.find((key) => key.key === b.id)
           )
           .map((bill: IBill, idx: number) => {
@@ -431,48 +499,51 @@ function BillsList(): JSX.Element | null {
 
             return (
               <div key={bill.id}>
-                {isNewDenomination && (
-                  <>
-                    {idx !== 0 && <Spacer mt={32} />}
-                    <div className="t-medium pad-24-h flex flex-align-c">
-                      Denomination: {bill.value}{" "}
-                      <span className="t-medium pad-8-l">
-                        (total of {amountOfGivenDenomination} bill{""}
-                        {amountOfGivenDenomination > 1 && "s"})
+                {isNewDenomination &&
+                  sortedList.filter(
+                    (bill: IBill) => bill.value === amountOfGivenDenomination
+                  ).length > 1 && (
+                    <>
+                      {idx !== 0 && <Spacer mt={32} />}
+                      <div className="t-medium-small pad-24-h flex flex-align-c">
+                        Denomination: {bill.value}{" "}
+                        <span className="t-medium pad-8-l">
+                          (total of {amountOfGivenDenomination} bill{""}
+                          {amountOfGivenDenomination > 1 && "s"})
+                        </span>
+                      </div>
+                      <Spacer mt={8} />
+                      <span className="pad-24-h flex">
+                        <Button
+                          onClick={() => {
+                            setIsLoadingID(bill.value);
+                            if (password) {
+                              handleDC(
+                                sortedList.filter(
+                                  (b: IBill) => b.value === bill.value
+                                )
+                              );
+                            } else {
+                              setFirstBills(
+                                sortedList.filter(
+                                  (b: IBill) => b.value === bill.value
+                                )
+                              );
+                              setPasswordFormType("DC");
+                            }
+                          }}
+                          small
+                          type="button"
+                          variant="secondary"
+                          className="w-100p"
+                          working={isLoadingID === bill.value}
+                        >
+                          DC All {bill.value} AB Bills
+                        </Button>
                       </span>
-                    </div>
-                    <Spacer mt={8} />
-                    <span className="pad-24-h flex">
-                      <Button
-                        onClick={() => {
-                          setIsLoadingID(bill.value);
-                          if (password) {
-                            handleDC(
-                              sortedList.filter(
-                                (b: IBill) => b.value === bill.value
-                              )
-                            );
-                          } else {
-                            setFirstBills(
-                              sortedList.filter(
-                                (b: IBill) => b.value === bill.value
-                              )
-                            );
-                            setIsFormVisible(true);
-                          }
-                        }}
-                        small
-                        type="button"
-                        variant="secondary"
-                        className="w-100p"
-                        working={isLoadingID === bill.value}
-                      >
-                        DC All {bill.value} AB Bills
-                      </Button>
-                    </span>
-                    <Spacer mt={4} />
-                  </>
-                )}
+                      <Spacer mt={4} />
+                    </>
+                  )}
                 <div
                   className={visibleBillSettingID === bill.id ? "" : "d-none"}
                 >
@@ -513,7 +584,7 @@ function BillsList(): JSX.Element | null {
                                 txHash: bill.txHash,
                               },
                             ]);
-                            setIsFormVisible(true);
+                            setPasswordFormType("DC");
                           }
                         }}
                         xSmall
@@ -558,6 +629,14 @@ function BillsList(): JSX.Element | null {
                       <span className="pad-8-r">ID:</span>{" "}
                       <span>{base64ToHexPrefixed(bill.id)}</span>
                     </div>
+                    {sortedList.filter(
+                      (bill: IBill) => bill.value === amountOfGivenDenomination
+                    ).length <= 1 && (
+                      <div className="flex t-small t-bold c-light">
+                        <span className="pad-8-r">Value:</span>{" "}
+                        <span>{bill.value}</span>
+                      </div>
+                    )}
                   </div>
                   <span className="pad-16-l">
                     <Button
@@ -580,6 +659,7 @@ function BillsList(): JSX.Element | null {
               </div>
             );
           })}
+        <Spacer mt={32} />
       </div>
       <div
         className={classNames("select__popover-wrap", {
@@ -613,16 +693,16 @@ function BillsList(): JSX.Element | null {
       </div>
       <div
         className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": isFormVisible,
+          "select__popover-wrap--open": Boolean(passwordFormType),
         })}
       >
         <div className="select__popover">
           <div className="select__popover-header">
-            <div>INSERT PASSWORD TO TRANSFER</div>
+            <div>INSERT PASSWORD FOR {passwordFormType?.toUpperCase()}</div>
             <Close
               onClick={() => {
                 setIsLoadingID(null);
-                setIsFormVisible(!isFormVisible);
+                setPasswordFormType(null);
               }}
             />
           </div>
@@ -639,10 +719,14 @@ function BillsList(): JSX.Element | null {
               ),
             })}
             onSubmit={(values) => {
-              if (firstBills) {
+              if (firstBills && passwordFormType === "DC") {
                 setPassword(values.password);
-                setIsFormVisible(false);
+                setPasswordFormType(null);
                 handleDC(firstBills, values.password);
+              } else if (passwordFormType === "swap") {
+                setPassword(values.password);
+                handleSwap(values.password);
+                setPasswordFormType(null);
               }
             }}
           >
@@ -704,11 +788,19 @@ function BillsList(): JSX.Element | null {
             validationSchema={Yup.object().shape({
               desc: Yup.string().required("Description is required"),
             })}
-            onSubmit={(values) => {
+            onSubmit={(values, { resetForm }) => {
               setLockedKeys([
                 ...lockedKeys,
-                { key: activeBillId, desc: values.desc },
+                {
+                  key: activeBillId,
+                  desc: values.desc,
+                  value: sortedList.find(
+                    (bill: IBill) => bill.id === activeBillId
+                  ).value,
+                },
               ]);
+              setVisibleBillSettingID(null);
+              resetForm();
               setIsLockFormVisible(false);
             }}
           >

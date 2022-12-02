@@ -338,13 +338,33 @@ function Send(): JSX.Element | null {
         return (
           <form className="pad-24" onSubmit={handleSubmit}>
             <Form>
-              {selectedSendKey && (
-                <div>
-                  You have selected to transfer Alphabill: <Spacer mt={8} />
-                  <div className="t-small t-bold">{selectedSendKey}</div>
-                </div>
-              )}
+              {selectedSendKey && <Spacer mt={8} />}
               <FormContent>
+                {selectedSendKey && (
+                  <>
+                    <Textfield
+                      id="selectedBillId"
+                      name="selectedBillId"
+                      label="You have selected a specific bill"
+                      type="selectedBillId"
+                      value={selectedSendKey}
+                    />
+                    <Spacer mb={8} />
+                    <Textfield
+                      id="selectedBillAmount"
+                      name="selectedBillAmount"
+                      label="With an amount of"
+                      type="selectedBillAmount"
+                      value={
+                        selectedSendKey &&
+                        billsList.bills.find(
+                          (bill: IBill) => bill.id === selectedSendKey
+                        ).value
+                      }
+                    />
+                    <Spacer mb={16} />
+                  </>
+                )}
                 <Select
                   label="Assets"
                   name="assets"
@@ -368,6 +388,13 @@ function Send(): JSX.Element | null {
                   error={extractFormikError(errors, touched, ["assets"])}
                 />
                 <Spacer mb={16} />
+                {selectedSendKey && (
+                  <div>
+                    <Spacer mt={8} />
+                    Add receiver address & Password
+                    <Spacer mb={16} />
+                  </div>
+                )}
                 <Textfield
                   id="address"
                   name="address"
@@ -376,23 +403,27 @@ function Send(): JSX.Element | null {
                   error={extractFormikError(errors, touched, ["address"])}
                 />
                 <Spacer mb={8} />
-                <Textfield
-                  id="amount"
-                  name="amount"
-                  label="Amount"
-                  type="number"
-                  step="any"
-                  floatingFixedPoint="2"
-                  error={extractFormikError(errors, touched, ["amount"])}
-                  disabled={!Boolean(values.assets) || Boolean(selectedSendKey)}
-                  value={
-                    selectedSendKey &&
-                    billsList.bills.find(
-                      (bill: IBill) => bill.id === selectedSendKey
-                    ).value
-                  }
-                />
-                <Spacer mb={8} />
+
+                <div className={selectedSendKey ? "d-none" : ""}>
+                  <Textfield
+                    id="amount"
+                    name="amount"
+                    label="Amount"
+                    type="number"
+                    step="any"
+                    floatingFixedPoint="2"
+                    error={extractFormikError(errors, touched, ["amount"])}
+                    disabled={
+                      !Boolean(values.assets) || Boolean(selectedSendKey)
+                    }
+                    value={
+                      selectedSendKey &&
+                      billsList.bills.find(
+                        (bill: IBill) => bill.id === selectedSendKey
+                      ).value
+                    }
+                  />
+                </div>
                 <Textfield
                   id="password"
                   name="password"
