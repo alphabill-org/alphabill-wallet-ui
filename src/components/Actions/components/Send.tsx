@@ -13,7 +13,13 @@ import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
 
 import Select from "../../Select/Select";
-import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
+import {
+  IAsset,
+  IBill,
+  IBlockStats,
+  ILockedBill,
+  ITransfer,
+} from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
@@ -86,9 +92,7 @@ function Send(): JSX.Element | null {
             ] as IBill[])
           : (billsList.bills.filter(
               (bill: IBill) =>
-                !lockedKeys.find(
-                  (b: { key: string; desc: string }) => b.key === bill.id
-                )
+                !lockedKeys.find((b: ILockedBill) => b.billId === bill.id)
             ) as IBill[]);
 
         let selectedBills: IBill[] = [];

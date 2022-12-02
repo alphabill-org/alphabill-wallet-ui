@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 
-import { IAccount } from "../types/Types";
+import { IAccount, ILockedBill } from "../types/Types";
 import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 
@@ -23,8 +23,8 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
   setActionsView: (e: string) => void;
-  lockedKeys: {key: string; desc: string; value: number}[];
-  setLockedKeys: (e: {key: string; desc: string; value: number}[]) => void;
+  lockedKeys: ILockedBill[];
+  setLockedKeys: (e: ILockedBill[]) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
 }
@@ -46,7 +46,7 @@ export const AppProvider: FunctionComponent<{
     [accountNames]
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
-  const [lockedKeys, setLockedKeys] = useState< {key: string; desc: string; value: number}[]>([]);
+  const [lockedKeys, setLockedKeys] = useState< ILockedBill[]>([]);
   const [selectedSendKey, setSelectedSendKey] = useState<string | null | undefined>();
   const balances: any = useGetBalances(keysArr);
   const { data: billsList } = useGetBillsList(activeAccountId);

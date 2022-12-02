@@ -23,6 +23,12 @@ export interface IBill {
   isDCBill?: boolean;
 }
 
+export interface ILockedBill {
+  billId: string;
+  desc: string;
+  value: number;
+}
+
 export interface IBillsList {
   total: number;
   bills: IBill[];

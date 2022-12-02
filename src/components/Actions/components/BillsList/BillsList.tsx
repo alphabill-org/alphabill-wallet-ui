@@ -363,7 +363,8 @@ function BillsList(): JSX.Element | null {
           </Button>
         </div>
         <div>
-          {lockedKeys.length > 0 && (
+          {sortedList
+            .filter((b: IBill) => lockedKeys.find((key) => key.billId === b.id)).length > 0 && (
             <>
               <Spacer mt={32} />
               <div className="t-medium pad-24-h c-primary">
@@ -374,7 +375,7 @@ function BillsList(): JSX.Element | null {
           )}
 
           {sortedList
-            .filter((b: IBill) => lockedKeys.find((key) => key.key === b.id))
+            .filter((b: IBill) => lockedKeys.find((key) => key.billId === b.id))
             .map((bill: IBill, idx: number) => (
               <div key={bill.id + idx}>
                 <div
@@ -405,7 +406,7 @@ function BillsList(): JSX.Element | null {
                     <Button
                       onClick={() => {
                         setLockedKeys(
-                          lockedKeys.filter((key) => key.key !== bill.id)
+                          lockedKeys.filter((key) => key.billId !== bill.id)
                         );
                         setActiveBillId(bill.id);
                       }}
@@ -438,13 +439,13 @@ function BillsList(): JSX.Element | null {
                       <span className="pad-8-r">ID:</span>{" "}
                       <span>{base64ToHexPrefixed(bill.id)}</span>
                     </div>
-                    {lockedKeys.find((key) => key.key === bill.id) && (
+                    {lockedKeys.find((key) => key.billId === bill.id) && (
                       <>
                         <div className="flex t-small t-bold c-light">
                           <span className="pad-8-r">Desc:</span>{" "}
                           <span>
                             {
-                              lockedKeys?.find((key) => key.key === bill.id)
+                              lockedKeys?.find((key) => key.billId === bill.id)
                                 ?.desc
                             }
                           </span>
@@ -453,7 +454,7 @@ function BillsList(): JSX.Element | null {
                           <span className="pad-8-r">Value:</span>{" "}
                           <span>
                             {
-                              lockedKeys?.find((key) => key.key === bill.id)
+                              lockedKeys?.find((key) => key.billId === bill.id)
                                 ?.value
                             }
                           </span>
@@ -482,13 +483,21 @@ function BillsList(): JSX.Element | null {
               </div>
             ))}
         </div>
-        <Spacer mt={32} />
-        <div className="t-medium pad-24-h c-primary">UNCOLLECTED BILLS</div>
+        {sortedList.filter(
+          (b: IBill) =>
+            b.isDCBill === false &&
+            !lockedKeys.find((key) => key.billId === b.id)
+        ).length >= 1 && (
+          <>
+            <Spacer mt={32} />
+            <div className="t-medium pad-24-h c-primary">UNCOLLECTED BILLS</div>
+          </>
+        )}
         {sortedList
           .filter(
             (b: IBill) =>
               b.isDCBill === false &&
-              !lockedKeys.find((key) => key.key === b.id)
+              !lockedKeys.find((key) => key.billId === b.id)
           )
           .map((bill: IBill, idx: number) => {
             const isNewDenomination = denomination !== bill.value && true;
@@ -792,7 +801,7 @@ function BillsList(): JSX.Element | null {
               setLockedKeys([
                 ...lockedKeys,
                 {
-                  key: activeBillId,
+                  billId: activeBillId,
                   desc: values.desc,
                   value: sortedList.find(
                     (bill: IBill) => bill.id === activeBillId
