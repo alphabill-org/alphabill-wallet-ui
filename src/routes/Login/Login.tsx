@@ -7,7 +7,11 @@ import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
+import {
+  extractFormikError,
+  getKeys,
+  unit8ToHexPrefixed,
+} from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
@@ -104,7 +108,9 @@ function Login(): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <Link to="/recover-wallet">{"Forgot password? Recover wallet"}</Link>
+        <Link to="/recover-wallet">
+          {"Recover wallet from your secret recovery phrase"}
+        </Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">
           {"Don't have an wallet? Create a wallet"}
