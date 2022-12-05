@@ -194,12 +194,12 @@ function Send(): JSX.Element | null {
           : null;
 
         const transferData = billsToTransfer.map((bill) => ({
-          system_id: "AAAAAA==",
-          unit_id: bill.id,
-          type: "TransferOrder",
-          attributes: {
-            new_bearer: newBearer,
-            target_value: bill.value,
+          systemId: "AAAAAA==",
+          unitId: bill.id,
+          transactionAttributes: {
+            "@type": "type.googleapis.com/rpc.TransferOrder",
+            newBearer: newBearer,
+            targetValue: bill.value,
             backlink: bill.txHash,
           },
         }));
@@ -207,29 +207,31 @@ function Send(): JSX.Element | null {
         if (billToSplit && splitBillAmount) {
           getBlockHeight().then(async (blockData) => {
             const splitData: ITransfer = {
-              system_id: "AAAAAA==",
-              unit_id: billToSplit.id,
-              type: "SplitOrder",
-              attributes: {
+              systemId: "AAAAAA==",
+              unitId: billToSplit.id,
+              transactionAttributes: {
+                "@type": "type.googleapis.com/rpc.SplitOrder",
                 amount: splitBillAmount,
-                target_bearer: newBearer,
-                remaining_value: billToSplit.value - splitBillAmount,
+                targetBearer: newBearer,
+                remainingValue: billToSplit.value - splitBillAmount,
                 backlink: billToSplit.txHash,
               },
               timeout: blockData.blockHeight + 42,
-              owner_proof: "",
+              ownerProof: "",
             };
             const msgHash = await secp.utils.sha256(
               secp.utils.concatBytes(
-                Buffer.from(splitData.system_id, "base64"),
-                Buffer.from(splitData.unit_id, "base64"),
+                Buffer.from(splitData.systemId, "base64"),
+                Buffer.from(splitData.unitId, "base64"),
                 new Uint64BE(splitData.timeout).toBuffer(),
-                new Uint64BE(splitData.attributes.amount).toBuffer(),
+                new Uint64BE(splitData.transactionAttributes.amount).toBuffer(),
                 Buffer.from(
-                  splitData.attributes.target_bearer as string,
+                  splitData.transactionAttributes.targetBearer as string,
                   "base64"
                 ),
-                new Uint64BE(splitData.attributes.remaining_value).toBuffer(),
+                new Uint64BE(
+                  splitData.transactionAttributes.remainingValue
+                ).toBuffer(),
                 Buffer.from(billToSplit.txHash, "base64")
               )
             );
@@ -242,12 +244,15 @@ function Send(): JSX.Element | null {
           getBlockHeight().then(async (blockData) => {
             const msgHash = await secp.utils.sha256(
               secp.utils.concatBytes(
-                Buffer.from(data.system_id, "base64"),
-                Buffer.from(data.unit_id, "base64"),
+                Buffer.from(data.systemId, "base64"),
+                Buffer.from(data.unitId, "base64"),
                 new Uint64BE(blockData.blockHeight + 42).toBuffer(),
-                Buffer.from(data.attributes.new_bearer as string, "base64"),
-                new Uint64BE(data.attributes.target_value).toBuffer(),
-                Buffer.from(data.attributes.backlink, "base64")
+                Buffer.from(
+                  data.transactionAttributes.newBearer as string,
+                  "base64"
+                ),
+                new Uint64BE(data.transactionAttributes.targetValue).toBuffer(),
+                Buffer.from(data.transactionAttributes.backlink, "base64")
               )
             );
 
@@ -284,7 +289,7 @@ function Send(): JSX.Element | null {
           ).toString("base64");
 
           const dataWithProof = Object.assign(billData, {
-            owner_proof: ownerProof,
+            ownerProof: ownerProof,
             timeout: blockData.blockHeight + 42,
           });
 
