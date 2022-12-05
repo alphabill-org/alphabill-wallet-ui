@@ -42,20 +42,20 @@ export interface ISwap {
 }
 
 export interface ITransfer {
-  system_id: string;
-  unit_id: string;
-  type: string;
-  attributes: {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
     backlink?: string;
-    new_bearer?: string;
-    target_value?: number;
-    remaining_value?: number;
-    target_bearer?: string;
+    newBearer?: string;
+    targetValue?: number;
+    remainingValue?: number;
+    targetBearer?: string;
     amount?: number;
     nonce?: string;
   };
   timeout: number;
-  owner_proof: string;
+  ownerProof: string;
 }
 
 export interface IActivity {
