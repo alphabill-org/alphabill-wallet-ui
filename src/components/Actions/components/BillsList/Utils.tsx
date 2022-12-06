@@ -28,7 +28,8 @@ export const handleSwapRequest = async (
   newBearer: string,
   transferMsgHashes: Uint8Array[],
   account: IAccount,
-  vault: string | null
+  vault: string | null,
+  invalidateBills: any
 ) => {
   const { hashingPrivateKey, hashingPublicKey } = getKeys(
     formPassword || password,
@@ -49,13 +50,16 @@ export const handleSwapRequest = async (
         dcTransfers: dcTransfers,
         ownerCondition: newBearer,
         proofs: proofs,
-        targetValue: dcTransfers.reduce(
-          (total, obj) => Number(obj.transactionAttributes.targetValue) + total,
-          0
-        ).toString(),
+        targetValue: dcTransfers
+          .reduce(
+            (total, obj) =>
+              Number(obj.transactionAttributes.targetValue) + total,
+            0
+          )
+          .toString(),
         "@type": "type.googleapis.com/rpc.SwapOrder",
       },
-      timeout: blockData.blockHeight + 42,
+      timeout: blockData.blockHeight + 10,
       ownerProof: "",
     };
 
@@ -115,7 +119,9 @@ export const handleSwapRequest = async (
         Buffer.concat(identifiersBuffer),
         Buffer.concat(transferMsgHashes),
         Buffer.concat(proofsBuffer),
-        new Uint64BE(Number(transferData.transactionAttributes.targetValue)).toBuffer()
+        new Uint64BE(
+          Number(transferData.transactionAttributes.targetValue)
+        ).toBuffer()
       )
     );
 
@@ -143,6 +149,6 @@ export const handleSwapRequest = async (
       ownerProof: ownerProof,
     });
 
-    isValid && makeTransaction(dataWithProof);
+    isValid && makeTransaction(dataWithProof).then(() => invalidateBills);
   });
 };

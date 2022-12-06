@@ -6,10 +6,12 @@ import {
   useMemo,
   useState,
 } from "react";
+import { isString } from "lodash";
 
 import { IAccount, ILockedBill } from "../types/Types";
 import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
+import { useLocalStorage } from "./useLocalStorage";
 
 interface IAppContextShape {
   balances: any;
@@ -23,8 +25,8 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
   setActionsView: (e: string) => void;
-  lockedKeys: ILockedBill[];
-  setLockedKeys: (e: ILockedBill[]) => void;
+  lockedBills: ILockedBill[];
+  setLockedBillsLocal: (e: string) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
 }
@@ -46,8 +48,18 @@ export const AppProvider: FunctionComponent<{
     [accountNames]
   );
   const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
-  const [lockedKeys, setLockedKeys] = useState< ILockedBill[]>([]);
-  const [selectedSendKey, setSelectedSendKey] = useState<string | null | undefined>();
+  const [selectedSendKey, setSelectedSendKey] = useState<
+    string | null | undefined
+  >();
+  const [lockedBillsLocal, setLockedBillsLocal] = useLocalStorage(
+    "ab_locked_bills",
+    null
+  );
+  const lockedBills: ILockedBill[] = lockedBillsLocal
+  ? isString(lockedBillsLocal)
+    ? JSON.parse(lockedBillsLocal)
+    : lockedBillsLocal
+  : [];
   const balances: any = useGetBalances(keysArr);
   const { data: billsList } = useGetBillsList(activeAccountId);
   const [accounts, setAccounts] = useState<IAccount[]>(
@@ -126,13 +138,7 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [
-    accounts,
-    keysArr,
-    accountNamesObj,
-    balances,
-    activeAccountId
-  ]);
+  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
 
   return (
     <AppContext.Provider
@@ -148,10 +154,10 @@ export const AppProvider: FunctionComponent<{
         setIsActionsViewVisible,
         actionsView,
         setActionsView,
-        lockedKeys,
-        setLockedKeys,
+        lockedBills,
+        setLockedBillsLocal,
         selectedSendKey,
-        setSelectedSendKey
+        setSelectedSendKey,
       }}
     >
       {children}

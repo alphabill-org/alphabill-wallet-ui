@@ -122,7 +122,6 @@
 .button--link {
   background: transparent;
   color: $color-link;
-  font-size: 16px;
   height: auto;
   padding: 0;
   white-space: normal;
@@ -132,7 +131,7 @@
 
   &:hover {
     opacity: 1;
-    color: $color-link;
+    color: $color-secondary;
   }
 }
 

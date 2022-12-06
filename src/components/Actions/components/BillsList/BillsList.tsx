@@ -9,8 +9,17 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
-import { extractFormikError, getNewBearer } from "../../../../utils/utils";
-import { IBill, IProofsProps, ITransfer } from "../../../../types/Types";
+import {
+  extractFormikError,
+  getNewBearer,
+  invalidateWithInterval,
+} from "../../../../utils/utils";
+import {
+  IBill,
+  ILockedBill,
+  IProofsProps,
+  ITransfer,
+} from "../../../../types/Types";
 import { useApp } from "../../../../hooks/appProvider";
 import { useAuth } from "../../../../hooks/useAuth";
 import Spacer from "../../../Spacer/Spacer";
@@ -45,8 +54,8 @@ function BillsList(): JSX.Element | null {
   const {
     billsList,
     account,
-    lockedKeys,
-    setLockedKeys,
+    lockedBills,
+    setLockedBillsLocal,
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
@@ -58,6 +67,8 @@ function BillsList(): JSX.Element | null {
   const DCBills = sortedList.filter((b: IBill) => b.isDCBill);
   const [activeBillId, setActiveBillId] = useState<string>(sortedList[0]?.id);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
+  const [isCollectLoading, setIsCollectLoading] = useState<boolean>(false);
+  const [isSwapLoading, setIsSwapLoading] = useState<boolean>(false);
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
     string | null
@@ -78,12 +89,15 @@ function BillsList(): JSX.Element | null {
       vault
     );
     let nonce: Buffer[] = [];
-
+    invalidateWithInterval(() =>
+      queryClient.invalidateQueries(["billsList", account.pubKey])
+    );
     sortBillsByID(collectableBills).map((bill: IBill) =>
       nonce.push(Buffer.from(bill.id, "base64"))
     );
 
     if (!hashingPublicKey || !hashingPrivateKey) return;
+
     let total = 0;
     sortBillsByID(bills).map((bill: IBill) =>
       getBlockHeight().then(async (blockData) => {
@@ -103,7 +117,7 @@ function BillsList(): JSX.Element | null {
             targetBearer: getNewBearer(account),
             targetValue: bill.value.toString(),
           },
-          timeout: blockData.blockHeight + 42,
+          timeout: blockData.blockHeight + 10,
           ownerProof: "",
         };
 
@@ -146,12 +160,21 @@ function BillsList(): JSX.Element | null {
 
         const dataWithProof = Object.assign(transferData, {
           ownerProof: ownerProof,
-          timeout: blockData.blockHeight + 42,
+          timeout: blockData.blockHeight + 10,
         });
 
         isValid &&
           makeTransaction(dataWithProof).then(() => {
-            queryClient.invalidateQueries(["billsList", account.pubKey]);
+            const invalidationItems = () => {
+              queryClient.invalidateQueries(["billsList", account.pubKey]);
+              queryClient.invalidateQueries([
+                "balance",
+                unit8ToHexPrefixed(hashingPublicKey),
+              ]);
+            };
+            invalidateWithInterval(() => invalidationItems()).then(() =>
+              setIsCollectLoading(false)
+            );
           });
       })
     );
@@ -163,6 +186,13 @@ function BillsList(): JSX.Element | null {
     let dcTransfers: any = [];
     let proofs: any = [];
     let billIdentifiers: string[] = [];
+    const { hashingPublicKey } = getKeys(
+      formPassword || password,
+      Number(account.idx),
+      vault
+    );
+
+    if (!hashingPublicKey) return;
 
     sortBillsByID(DCBills as IBill[]).map((bill: IBill) =>
       nonce.push(Buffer.from(bill.id, "base64"))
@@ -194,7 +224,19 @@ function BillsList(): JSX.Element | null {
               getNewBearer(account),
               transferMsgHashes,
               account,
-              vault
+              vault,
+              invalidateWithInterval(() => {
+                const invalidationItems = () => {
+                  queryClient.invalidateQueries(["billsList", account.pubKey]);
+                  queryClient.invalidateQueries([
+                    "balance",
+                    unit8ToHexPrefixed(hashingPublicKey),
+                  ]);
+                };
+                invalidateWithInterval(() => invalidationItems()).then(() =>
+                  setIsSwapLoading(false)
+                );
+              })
             );
           }
         })
@@ -262,7 +304,9 @@ function BillsList(): JSX.Element | null {
             small
             type="button"
             variant="primary"
+            working={isSwapLoading}
             onClick={() => {
+              setIsSwapLoading(true);
               if (password) {
                 handleSwap(DCBills);
               } else {
@@ -281,7 +325,9 @@ function BillsList(): JSX.Element | null {
                 small
                 type="button"
                 variant="primary"
+                working={isCollectLoading}
                 onClick={() => {
+                  setIsCollectLoading(true);
                   if (password) {
                     handleDC(collectableBills);
                   } else {
@@ -302,7 +348,9 @@ function BillsList(): JSX.Element | null {
               sortedList.filter(
                 (b: IBill) =>
                   b.isDCBill === false &&
-                  !lockedKeys.find((key) => key.billId === b.id) &&
+                  !lockedBills?.find(
+                    (key: ILockedBill) => key.billId === b.id
+                  ) &&
                   !collectableBills.find((key) => key.id === b.id)
               ).length < 1
                 ? setCollectableBills([])
@@ -311,7 +359,9 @@ function BillsList(): JSX.Element | null {
                       sortedList.filter(
                         (b: IBill) =>
                           b.isDCBill === false &&
-                          !lockedKeys.find((key) => key.billId === b.id) &&
+                          !lockedBills?.find(
+                            (key: ILockedBill) => key.billId === b.id
+                          ) &&
                           !collectableBills.find((key) => key.id === b.id)
                       )
                     )
@@ -326,27 +376,15 @@ function BillsList(): JSX.Element | null {
             {sortedList.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
-                !lockedKeys.find((key) => key.billId === b.id) &&
+                !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
                 !collectableBills.find((key) => key.id === b.id)
             ).length < 1
               ? "Unselect All Bills For Collection"
               : "Select All Bills For Collection"}
           </Button>
-          <Spacer mt={8} />
-          <Button
-            className="w-100p"
-            small
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              queryClient.invalidateQueries(["billsList", account.pubKey])
-            }
-          >
-            Fetch Collected Bills
-          </Button>
         </div>
         {sortedList.filter((b: IBill) =>
-          lockedKeys.find((key) => key.billId === b.id)
+          lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length > 0 && (
           <BillsListItem
             title={
@@ -356,7 +394,7 @@ function BillsList(): JSX.Element | null {
               </div>
             }
             filteredList={sortedList.filter((b: IBill) =>
-              lockedKeys.find((key) => key.billId === b.id)
+              lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             isLockedBills
             DCBills={DCBills}
@@ -370,14 +408,14 @@ function BillsList(): JSX.Element | null {
             setActionsView={(v) => setActionsView(v)}
             setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
             setSelectedSendKey={(v) => setSelectedSendKey(v)}
-            lockedKeys={lockedKeys}
-            setLockedKeys={(v) => setLockedKeys(v)}
+            lockedBills={lockedBills}
+            setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
           />
         )}
         {sortedList.filter(
           (b: IBill) =>
             b.isDCBill === false &&
-            !lockedKeys.find((key) => key.billId === b.id) &&
+            !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
             collectableBills.find((key) => key.id === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -394,11 +432,11 @@ function BillsList(): JSX.Element | null {
             filteredList={sortedList.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
-                !lockedKeys.find((key) => key.billId === b.id) &&
+                !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
                 collectableBills.find((key) => key.id === b.id)
             )}
-            lockedKeys={lockedKeys}
-            setLockedKeys={(v) => setLockedKeys(v)}
+            lockedBills={lockedBills}
+            setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
             isSelectedForCollection
             DCBills={DCBills}
             setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
@@ -416,7 +454,7 @@ function BillsList(): JSX.Element | null {
         {sortedList.filter(
           (b: IBill) =>
             b.isDCBill === false &&
-            !lockedKeys.find((key) => key.billId === b.id) &&
+            !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
             !collectableBills.find((key) => key.id === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -430,12 +468,12 @@ function BillsList(): JSX.Element | null {
                 )}
               </div>
             }
-            lockedKeys={lockedKeys}
-            setLockedKeys={(v) => setLockedKeys(v)}
+            lockedBills={lockedBills}
+            setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
             filteredList={sortedList.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
-                !lockedKeys.find((key) => key.billId === b.id) &&
+                !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
                 !collectableBills.find((key) => key.id === b.id)
             )}
             DCBills={DCBills}
@@ -582,16 +620,18 @@ function BillsList(): JSX.Element | null {
               desc: Yup.string().required("Description is required"),
             })}
             onSubmit={(values, { resetForm }) => {
-              setLockedKeys([
-                ...lockedKeys,
-                {
-                  billId: activeBillId,
-                  desc: values.desc,
-                  value: sortedList.find(
-                    (bill: IBill) => bill.id === activeBillId
-                  ).value,
-                },
-              ]);
+              setLockedBillsLocal(
+                JSON.stringify([
+                  ...lockedBills,
+                  {
+                    billId: activeBillId,
+                    desc: values.desc,
+                    value: sortedList.find(
+                      (bill: IBill) => bill.id === activeBillId
+                    ).value,
+                  },
+                ])
+              );
               setVisibleBillSettingID(null);
               resetForm();
               setIsLockFormVisible(false);

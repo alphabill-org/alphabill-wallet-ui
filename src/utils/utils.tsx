@@ -132,6 +132,20 @@ export const getKeys = (
   };
 };
 
+export const invalidateWithInterval = async (invalidate: () => void) => {
+  let iterations = 0;
+  const interval = await setInterval(iterate, 1000);
+  function iterate() {
+    iterations++;
+    if (iterations >= 10) {
+      clearInterval(interval);
+    } else {
+      invalidate();
+    }
+  }
+}
+
+
 export const startByte = "53";
 export const opPushSig = "54";
 export const opPushPubKey = "55";

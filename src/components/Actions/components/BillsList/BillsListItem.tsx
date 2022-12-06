@@ -1,8 +1,6 @@
 import { useQueryClient } from "react-query";
 
 import { IBill, ILockedBill } from "../../../../types/Types";
-import { useApp } from "../../../../hooks/appProvider";
-import { useAuth } from "../../../../hooks/useAuth";
 import Spacer from "../../../Spacer/Spacer";
 import Button from "../../../Button/Button";
 import { ReactComponent as MoreIco } from "../../../../images/more-ico.svg";
@@ -24,8 +22,8 @@ export interface IBillsListItemProps {
   setSelectedSendKey: (e: string) => void;
   isSelectedForCollection?: boolean;
   isLockedBills?: boolean;
-  lockedKeys: ILockedBill[];
-  setLockedKeys: (e: ILockedBill[]) => void;
+  lockedBills: ILockedBill[];
+  setLockedBillsLocal: (e: string) => void;
 }
 
 function BillsListItem({
@@ -44,8 +42,8 @@ function BillsListItem({
   isSelectedForCollection,
   title,
   isLockedBills,
-  setLockedKeys,
-  lockedKeys,
+  setLockedBillsLocal,
+  lockedBills,
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: number | null = null;
   const queryClient = useQueryClient();
@@ -68,21 +66,13 @@ function BillsListItem({
             {isNewDenomination && (
               <>
                 {idx !== 0 && <Spacer mt={16} />}
-                <div className="t-medium-small t-bold pad-24-h flex flex-align-c">
-                  Denomination: {bill.value}{" "}
-                  <span className="t-medium pad-8-l">
-                    (total of {amountOfGivenDenomination} bill{""}
-                    {amountOfGivenDenomination > 1 && "s"})
-                  </span>
-                </div>
-                {!isSelectedForCollection &&
-                  !isLockedBills &&
-                  DCBills.length < 1 &&
-                  amountOfGivenDenomination > 1 && (
-                    <>
-                      <Spacer mt={8} />
-
-                      <span className="pad-24-h flex">
+                <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
+                  <div>Denomination: {bill.value}</div>
+                  {!isSelectedForCollection &&
+                    !isLockedBills &&
+                    DCBills.length < 1 &&
+                    amountOfGivenDenomination > 1 && (
+                      <span className="flex">
                         <Button
                           onClick={() => {
                             setCollectableBills(
@@ -98,13 +88,11 @@ function BillsListItem({
                           variant="secondary"
                           className="w-100p"
                         >
-                          Select All {bill.value} AB Bills For DC
+                          Select all {amountOfGivenDenomination} for DC
                         </Button>
                       </span>
-
-                      <Spacer mt={4} />
-                    </>
-                  )}
+                    )}
+                </div>
               </>
             )}
             <div className={visibleBillSettingID === bill.id ? "" : "d-none"}>
@@ -130,21 +118,31 @@ function BillsListItem({
                   <span className="pad-8-l">
                     <Button
                       onClick={() => {
-                        setCollectableBills([
-                          ...collectableBills,
-                          {
-                            id: bill.id,
-                            value: bill.value,
-                            txHash: bill.txHash,
-                          },
-                        ]);
+                        collectableBills.find((b: IBill) => bill.id === b.id)
+                          ? setCollectableBills(
+                              collectableBills.filter(
+                                (b: IBill) => bill.id !== b.id
+                              )
+                            )
+                          : setCollectableBills([
+                              ...collectableBills,
+                              {
+                                id: bill.id,
+                                value: bill.value,
+                                txHash: bill.txHash,
+                              },
+                            ]);
+
+                        setVisibleBillSettingID(null);
                       }}
                       xSmall
                       type="button"
                       variant="primary"
                       disabled={DCBills.length > 0}
                     >
-                      Select For Collection
+                      {collectableBills.find((b: IBill) => bill.id === b.id)
+                        ? "Remove From DC"
+                        : "Select For DC"}
                     </Button>
                   </span>
                 )}
@@ -164,8 +162,10 @@ function BillsListItem({
                   ) : (
                     <Button
                       onClick={() => {
-                        setLockedKeys(
-                          lockedKeys.filter((key) => key.billId !== bill.id)
+                        setLockedBillsLocal(
+                          JSON.stringify(
+                            lockedBills.filter((key) => key.billId !== bill.id)
+                          )
                         );
                         setActiveBillId(bill.id);
                       }}
@@ -199,23 +199,14 @@ function BillsListItem({
                   <span className="pad-8-r">ID:</span>{" "}
                   <span>{base64ToHexPrefixed(bill.id)}</span>
                 </div>
-                {lockedKeys.find((key) => key.billId === bill.id) && (
+                {lockedBills?.find((key) => key.billId === bill.id) && (
                   <>
                     <div className="flex t-small t-bold c-light">
                       <span className="pad-8-r">Desc:</span>{" "}
                       <span>
                         {
-                          lockedKeys?.find((key) => key.billId === bill.id)
+                          lockedBills?.find((key) => key.billId === bill.id)
                             ?.desc
-                        }
-                      </span>
-                    </div>
-                    <div className="flex t-small t-bold c-light">
-                      <span className="pad-8-r">Value:</span>{" "}
-                      <span>
-                        {
-                          lockedKeys?.find((key) => key.billId === bill.id)
-                            ?.value
                         }
                       </span>
                     </div>

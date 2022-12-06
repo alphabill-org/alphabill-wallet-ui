@@ -12,7 +12,7 @@ export const API_URL =
   "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1";
 
 export const getBalance = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
@@ -27,7 +27,7 @@ export const getBalance = async (id: string): Promise<any> => {
 };
 
 export const getBillsList = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
@@ -39,7 +39,12 @@ export const getBillsList = async (id: string): Promise<any> => {
 };
 
 export const getProof = async (id: string, key: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x") || !key.startsWith("0x")) {
+  if (
+    !id ||
+    Number(id) === 0 ||
+    !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/)) ||
+    !Boolean(key.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
     return;
   }
 
