@@ -16,10 +16,11 @@ import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 import { API_URL } from "../../hooks/requests";
+import { useMemo } from "react";
 
 function CreateAccount(): JSX.Element | null {
   const { login, setUserKeys, setVault } = useAuth();
-  const mnemonic = generateMnemonic();
+  const mnemonic = useMemo(() => generateMnemonic(), []);
   const { setActiveAccountId } = useApp();
 
   const downloadTxtFile = () => {

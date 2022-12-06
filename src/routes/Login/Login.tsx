@@ -109,7 +109,7 @@ function Login(): JSX.Element | null {
 
       <div className="login__footer">
         <Link to="/recover-wallet">
-          {"Recover wallet from your secret recovery phrase"}
+          {"Recover wallet from recovery phrase"}
         </Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">

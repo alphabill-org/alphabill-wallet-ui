@@ -57,7 +57,7 @@ export interface ITransfer {
     "@type": string;
     backlink?: string;
     newBearer?: string;
-    targetValue?: number;
+    targetValue?: string;
     remainingValue?: number;
     targetBearer?: string;
     amount?: number;
@@ -89,18 +89,18 @@ export interface ITransferProps {
 }
 
 export interface ISwapProps {
-  system_id: string;
-  unit_id: string;
-  type: string;
-  attributes: {
-    bill_identifiers: string[]; // All the bills that are used in a swap
-    dc_transfers: IDCTransferProps[];
-    owner_condition: string;
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    billIdentifiers: string[]; // All the bills that are used in a swap
+    dcTransfers: IDCTransferProps[];
+    ownerCondition: string;
     proofs: ISwapProofProps[];
-    target_value: number;
+    targetValue: string;
   };
   timeout: number;
-  owner_proof: string;
+  ownerProof: string;
 }
 
 export interface IProofsProps {
@@ -157,11 +157,11 @@ export interface IProofProps {
 }
 
 export interface ISwapProofProps {
-  proof_type: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
-  block_header_hash: string;
-  transactions_hash: string;
-  hash_value: string;
-  block_tree_hash_chain: {
+  proofType: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
+  blockHeaderHash: string;
+  transactionsHash: string;
+  hashValue: string;
+  blockTreeHashChain: {
     items: [
       {
         val: string;
@@ -169,22 +169,22 @@ export interface ISwapProofProps {
       }
     ];
   };
-  unicity_certificate: {
-    input_record: {
-      previous_hash: string;
+  secTreeHashChain?: string;
+  unicityCertificate: {
+    inputRecord: {
+      previousHash: string;
       hash: string;
-      block_hash: string;
-      summary_value: string;
+      blockHash: string;
+      summaryValue: string;
     };
-    unicity_tree_certificate: {
-      system_identifier: string;
-      sibling_hashes: string[];
-
-      system_description_hash: string;
+    unicityTreeCertificate: {
+      systemIdentifier: string;
+      siblingHashes: string[];
+      systemDescriptionHash: string;
     };
-    unicity_seal: {
-      root_chain_round_number: 1;
-      previous_hash: string;
+    unicitySeal: {
+      rootChainRoundNumber: 1;
+      previousHash: string;
       hash: string;
       signatures: {
         test: string;
@@ -194,30 +194,30 @@ export interface ISwapProofProps {
 }
 
 export interface ISwapTransferProps {
-  system_id: string;
-  unit_id: string;
-  type: string;
-  attributes: {
-    bill_identifiers: string[];
-    dc_transfers: IDCTransferProps[];
-    owner_condition: string;
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    billIdentifiers: string[];
+    dcTransfers: IDCTransferProps[];
+    ownerCondition: string;
     proofs: ISwapProofProps[];
-    target_value: number;
+    targetValue: string;
   };
   timeout: number;
-  owner_proof: string;
+  ownerProof: string;
 }
 
 export interface IDCTransferProps {
-  system_id: string;
-  unit_id: string;
-  type: string;
-  attributes: {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
     backlink: string;
     nonce: string;
-    target_bearer: string;
-    target_value: number;
+    targetBearer: string;
+    targetValue: string;
   };
   timeout: number;
-  owner_proof: string;
+  ownerProof: string;
 }

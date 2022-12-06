@@ -199,7 +199,7 @@ function Send(): JSX.Element | null {
           transactionAttributes: {
             "@type": "type.googleapis.com/rpc.TransferOrder",
             newBearer: newBearer,
-            targetValue: bill.value,
+            targetValue: bill.value.toString(),
             backlink: bill.txHash,
           },
         }));

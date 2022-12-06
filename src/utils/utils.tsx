@@ -3,6 +3,9 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
+import { uniq } from "lodash";
+
+import { IAccount, IBill } from "../types/Types";
 
 export const extractFormikError = (
   errors: unknown,
@@ -45,6 +48,38 @@ export const unit8ToHexPrefixed = (key: Uint8Array) =>
 
 export const base64ToHexPrefixed = (key: string = "") =>
   "0x" + Buffer.from(key, "base64").toString("hex");
+
+export const sortBillsByID = (bills: IBill[]) =>
+  uniq(bills).sort((a: IBill, b: IBill) =>
+    BigInt(base64ToHexPrefixed(a.id)) < BigInt(base64ToHexPrefixed(b.id))
+      ? -1
+      : BigInt(base64ToHexPrefixed(a.id)) > BigInt(base64ToHexPrefixed(b.id))
+      ? 1
+      : 0
+  );
+
+export const getNewBearer = (account: IAccount) => {
+  const address = account.pubKey.startsWith("0x")
+    ? account.pubKey.substring(2)
+    : account.pubKey;
+  const addressHash = CryptoJS.enc.Hex.parse(address);
+  const SHA256 = CryptoJS.SHA256(addressHash);
+
+  return Buffer.from(
+    startByte +
+      opDup +
+      opHash +
+      sigScheme +
+      opPushHash +
+      sigScheme +
+      SHA256.toString(CryptoJS.enc.Hex) +
+      opEqual +
+      opVerify +
+      opCheckSig +
+      sigScheme,
+    "hex"
+  ).toString("base64");
+};
 
 export const getKeys = (
   password: string,
