@@ -132,19 +132,18 @@ export const getKeys = (
   };
 };
 
-export const invalidateWithInterval = async (invalidate: () => void) => {
+export const invalidateWithInterval = (invalidate: () => void) => {
   let iterations = 0;
-  const interval = await setInterval(iterate, 1000);
+  const interval = setInterval(iterate, 1000);
   function iterate() {
     iterations++;
     if (iterations >= 10) {
-      clearInterval(interval);
+        clearInterval(interval);
     } else {
       invalidate();
     }
   }
-}
-
+};
 
 export const startByte = "53";
 export const opPushSig = "54";

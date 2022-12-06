@@ -97,8 +97,9 @@ function Send(): JSX.Element | null {
                   (bill: IBill) => bill.id === selectedSendKey
                 ),
               ] as IBill[])
-            : (billsList.bills.filter((bill: IBill) =>
-                lockedBills?.find((b: ILockedBill) => b.billId !== bill.id)
+            : (billsList.bills.filter(
+                (bill: IBill) =>
+                  !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
           let selectedBills: IBill[] = [];
