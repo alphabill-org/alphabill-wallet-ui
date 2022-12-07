@@ -10,7 +10,11 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../../utils/utils";
+import {
+  extractFormikError,
+  getKeys,
+  unit8ToHexPrefixed,
+} from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
@@ -113,12 +117,8 @@ function AccountView(): JSX.Element | null {
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const {
-              error,
-              masterKey,
-              hashingPublicKey,
-              decryptedVault,
-            } = getKeys(values.password, accounts.length, vault);
+            const { error, masterKey, hashingPublicKey, decryptedVault } =
+              getKeys(values.password, accounts.length, vault);
             const accountIndex = accounts.length;
             const prefixedHashingPubKey = hashingPublicKey
               ? unit8ToHexPrefixed(hashingPublicKey)
@@ -163,17 +163,17 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };
 
-            if (unit8ToHexPrefixed(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
+            if (
+              unit8ToHexPrefixed(controlHashingPubKey!) !==
+              userKeys?.split(" ")[0]
+            ) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
             axios
-              .post<void>(
-                API_URL + "/admin/add-key",
-                {
-                  pubkey: prefixedHashingPubKey,
-                }
-              )
+              .post<void>(API_URL + "/admin/add-key", {
+                pubkey: prefixedHashingPubKey,
+              })
               .then(() => {
                 addAccount();
                 setIsAddAccountLoading(false);

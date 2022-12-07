@@ -38,7 +38,6 @@ import {
   opEqual,
   opVerify,
   sigScheme,
-  invalidateWithInterval,
   base64ToHexPrefixed,
 } from "../../../utils/utils";
 
@@ -310,16 +309,8 @@ function Send(): JSX.Element | null {
 
             isValid &&
               makeTransaction(dataWithProof).then(() => {
-                const invalidationItems = () => {
-                  queryClient.invalidateQueries(["billsList", activeAccountId]);
-                  queryClient.invalidateQueries([
-                    "balance",
-                    unit8ToHexPrefixed(hashingPublicKey),
-                  ]);
-                };
                 setSelectedSendKey(null);
                 setIsActionsViewVisible(false);
-                invalidateWithInterval(() => invalidationItems());
               });
           };
         }}
@@ -462,8 +453,6 @@ function Send(): JSX.Element | null {
                       name="amount"
                       label="Amount"
                       type="number"
-                      step="any"
-                      floatingFixedPoint="2"
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
                         !Boolean(values.assets) || Boolean(selectedSendKey)

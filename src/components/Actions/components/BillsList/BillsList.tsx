@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
@@ -9,11 +9,7 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
-import {
-  extractFormikError,
-  getNewBearer,
-  invalidateWithInterval,
-} from "../../../../utils/utils";
+import { extractFormikError, getNewBearer } from "../../../../utils/utils";
 import {
   IBill,
   ILockedBill,
@@ -79,7 +75,6 @@ function BillsList(): JSX.Element | null {
   );
   const queryClient = useQueryClient();
   const { vault } = useAuth();
-
   let DCDenomination: number | null = null;
 
   const handleDC = (bills: IBill[], formPassword?: string) => {
@@ -88,10 +83,8 @@ function BillsList(): JSX.Element | null {
       Number(account.idx),
       vault
     );
+
     let nonce: Buffer[] = [];
-    invalidateWithInterval(() =>
-      queryClient.invalidateQueries(["billsList", account.pubKey])
-    );
 
     sortBillsByID(bills).map((bill: IBill) =>
       nonce.push(Buffer.from(bill.id, "base64"))
@@ -173,10 +166,9 @@ function BillsList(): JSX.Element | null {
                 unit8ToHexPrefixed(hashingPublicKey),
               ]);
             };
-            invalidateWithInterval(() => invalidationItems());
             setTimeout(() => {
               setIsCollectLoading(false);
-            }, 2000);
+            }, 1000);
             setCollectableBills([]);
           });
       })
@@ -228,19 +220,9 @@ function BillsList(): JSX.Element | null {
               transferMsgHashes,
               account,
               vault,
-              invalidateWithInterval(() => {
-                const invalidationItems = () => {
-                  queryClient.invalidateQueries(["billsList", account.pubKey]);
-                  queryClient.invalidateQueries([
-                    "balance",
-                    unit8ToHexPrefixed(hashingPublicKey),
-                  ]);
-                };
-                invalidateWithInterval(() => invalidationItems());
-                setTimeout(() => {
-                  setIsSwapLoading(false);
-                }, 2000);
-              })
+              setTimeout(() => {
+                setIsSwapLoading(false);
+              }, 1000)
             );
           }
         })

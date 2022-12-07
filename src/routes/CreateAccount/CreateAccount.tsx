@@ -180,7 +180,7 @@ function CreateAccount(): JSX.Element | null {
         <Spacer mb={32} />
         <div className="t-medium-small">
           Memorize this phrase & never disclose your Secret Recovery Phrase.
-          Anyone with this phrase can take your Ether forever.
+          Anyone with this phrase can take your Alphabill forever.
         </div>
         <Spacer mb={16} />
         <Button
