@@ -48,6 +48,7 @@ function BillsList(): JSX.Element | null {
     "DC" | "swap" | null
   >(null);
   const {
+    activeNetwork,
     billsList,
     account,
     lockedBills,
@@ -71,7 +72,8 @@ function BillsList(): JSX.Element | null {
   >(null);
   const { data: proof } = useGetProof(
     base64ToHexPrefixed(activeBillId),
-    account.pubKey
+    account.pubKey,
+    activeNetwork?.backendAPI || ""
   );
   const queryClient = useQueryClient();
   const { vault } = useAuth();
@@ -158,7 +160,10 @@ function BillsList(): JSX.Element | null {
         });
 
         isValid &&
-          makeTransaction(dataWithProof).then(() => {
+          makeTransaction(
+            dataWithProof,
+            activeNetwork?.moneyPartitionAPI || ""
+          ).then(() => {
             setTimeout(() => {
               setIsCollectLoading(false);
             }, 1000);
@@ -215,7 +220,8 @@ function BillsList(): JSX.Element | null {
               vault,
               setTimeout(() => {
                 setIsSwapLoading(false);
-              }, 1000)
+              }, 1000),
+              activeNetwork
             );
           }
         })

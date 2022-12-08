@@ -51,6 +51,7 @@ function Send(): JSX.Element | null {
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
+    activeNetwork,
   } = useApp();
   const { vault } = useAuth();
   const queryClient = useQueryClient();
@@ -308,7 +309,10 @@ function Send(): JSX.Element | null {
             });
 
             isValid &&
-              makeTransaction(dataWithProof).then(() => {
+              makeTransaction(
+                dataWithProof,
+                activeNetwork?.moneyPartitionAPI || ""
+              ).then(() => {
                 setSelectedSendKey(null);
                 setIsActionsViewVisible(false);
               });

@@ -50,6 +50,14 @@ export interface ISwap {
   top: string;
 }
 
+export interface INetwork {
+  id: string;
+  isTestNetwork: boolean;
+  backendAPI: string | undefined;
+  moneyPartitionAPI: string | undefined;
+  isActive: boolean;
+}
+
 export interface ITransfer {
   systemId: string;
   unitId: string;

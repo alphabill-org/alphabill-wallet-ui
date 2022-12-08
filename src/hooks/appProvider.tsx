@@ -8,7 +8,7 @@ import {
 } from "react";
 import { isString } from "lodash";
 
-import { IAccount, ILockedBill } from "../types/Types";
+import { IAccount, ILockedBill, INetwork } from "../types/Types";
 import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
@@ -29,6 +29,10 @@ interface IAppContextShape {
   setLockedBillsLocal: (e: string) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
+  networksLocal: string;
+  setNetworksLocal: (e: string | null) => void;
+  networks: INetwork[];
+  activeNetwork: INetwork | undefined;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -55,13 +59,39 @@ export const AppProvider: FunctionComponent<{
     "ab_locked_bills",
     null
   );
+  const [networksLocal, setNetworksLocal] = useLocalStorage(
+    "ab_networks",
+    JSON.stringify([
+      {
+        id: "AB DevNet",
+        isTestNetwork: true,
+        moneyPartitionAPI:
+          "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
+        backendAPI: "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1",
+        isActive: true,
+      },
+    ])
+  );
   const lockedBills: ILockedBill[] = lockedBillsLocal
-  ? isString(lockedBillsLocal)
-    ? JSON.parse(lockedBillsLocal)
-    : lockedBillsLocal
-  : [];
-  const balances: any = useGetBalances(keysArr);
-  const { data: billsList } = useGetBillsList(activeAccountId);
+    ? isString(lockedBillsLocal)
+      ? JSON.parse(lockedBillsLocal)
+      : lockedBillsLocal
+    : [];
+  const networks: INetwork[] = networksLocal
+    ? isString(networksLocal)
+      ? JSON.parse(networksLocal)
+      : networksLocal
+    : [];
+  const activeNetwork = networks.find(
+    (network: INetwork) => network.isActive === true
+  );
+  console.log("activeNetwork", activeNetwork);
+
+  const balances: any = useGetBalances(keysArr, activeNetwork?.backendAPI || "");
+  const { data: billsList } = useGetBillsList(
+    activeAccountId,
+    activeNetwork?.backendAPI || ""
+  );
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
       pubKey: key,
@@ -71,21 +101,17 @@ export const AppProvider: FunctionComponent<{
         {
           id: "AB",
           name: "AlphaBill Token",
-          network: "AB Testnet",
+          network: "AB DevNet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
         },
       ],
-      activeNetwork: "AB Testnet",
-      networks: [
-        {
-          id: "AB Testnet",
-          isTestNetwork: true,
-        },
-      ],
+      activeNetwork: activeNetwork?.id,
+      networks: networks,
       activities: [],
     }))
   );
+
   const account = useMemo(
     () =>
       accounts?.find(
@@ -120,17 +146,12 @@ export const AppProvider: FunctionComponent<{
             {
               id: "AB",
               name: "AlphaBill Token",
-              network: "AB Testnet",
+              network: "AB DevNet",
               amount: abFetchedBalance,
             },
           ],
-          activeNetwork: "AB Testnet",
-          networks: [
-            {
-              id: "AB Testnet",
-              isTestNetwork: true,
-            },
-          ],
+          activeNetwork: activeNetwork?.id,
+          networks: networks,
           activities:
             accounts?.find((account: IAccount) => account?.pubKey === key)
               ?.activities || [],
@@ -138,11 +159,19 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
+  }, [
+    accounts,
+    keysArr,
+    accountNamesObj,
+    balances,
+    activeAccountId,
+    networksLocal,
+  ]);
 
   return (
     <AppContext.Provider
       value={{
+        activeNetwork,
         billsList,
         balances,
         activeAccountId,
@@ -158,6 +187,9 @@ export const AppProvider: FunctionComponent<{
         setLockedBillsLocal,
         selectedSendKey,
         setSelectedSendKey,
+        setNetworksLocal,
+        networksLocal,
+        networks,
       }}
     >
       {children}

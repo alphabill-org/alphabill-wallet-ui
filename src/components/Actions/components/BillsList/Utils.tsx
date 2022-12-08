@@ -12,6 +12,7 @@ import { Uint64BE } from "int64-buffer";
 import {
   IAccount,
   IDCTransferProps,
+  INetwork,
   ISwapProofProps,
   ISwapProps,
   ISwapTransferProps,
@@ -29,7 +30,8 @@ export const handleSwapRequest = async (
   transferMsgHashes: Uint8Array[],
   account: IAccount,
   vault: string | null,
-  invalidateBills: any
+  invalidateBills: any,
+  activeNetwork: INetwork | undefined
 ) => {
   const { hashingPrivateKey, hashingPublicKey } = getKeys(
     formPassword || password,
@@ -149,6 +151,10 @@ export const handleSwapRequest = async (
       ownerProof: ownerProof,
     });
 
-    isValid && makeTransaction(dataWithProof).then(() => invalidateBills);
+    isValid &&
+      makeTransaction(
+        dataWithProof,
+        activeNetwork?.moneyPartitionAPI || ""
+      ).then(() => invalidateBills);
   });
 };

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Checkbox, FormControlLabel } from "@material-ui/core";
 import classNames from "classnames";
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 import Button from "../Button/Button";
 import Logo from "../../images/ab-logo-ico.svg";
@@ -9,12 +11,23 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
+import { Form, FormFooter, FormContent } from "../Form/Form";
+import { extractFormikError } from "../../utils/utils";
+import Textfield from "../Textfield/Textfield";
+import Spacer from "../Spacer/Spacer";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } =
-    useApp();
+  const {
+    setIsActionsViewVisible,
+    setActionsView,
+    account,
+    accounts,
+    setAccounts,
+    networks,
+    setNetworksLocal
+  } = useApp();
 
   const testNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork === true
@@ -118,7 +131,80 @@ function Header(): JSX.Element | null {
                 );
               })}
             </div>
-          </div>{" "}
+          </div>
+          <Formik
+            initialValues={{
+              moneyPartition: "",
+              backend: "",
+              name: "",
+            }}
+            validationSchema={Yup.object().shape({
+              url: Yup.string().required("URL is required"),
+              name: Yup.string().required("Name is required"),
+            })}
+            onSubmit={(values, { resetForm }) => {
+              setNetworksLocal(
+                JSON.stringify([
+                  ...networks,
+                  {
+                    moneyPartitionAPI: values.moneyPartition,
+                    backendAPI: values.backend,
+                    id: values.name,
+                    isTestNetwork: true,
+                    isActive: true
+                  },
+                ])
+              );
+              resetForm();
+            }}
+          >
+            {(formikProps) => {
+              const { handleSubmit, errors, touched } = formikProps;
+
+              return (
+                <div className="pad-24-h bg-white">
+                  <Spacer mt={16} />
+                  <form onSubmit={handleSubmit}>
+                    <Form>
+                      <FormContent>
+                        <Textfield
+                          id="backend"
+                          name="backend"
+                          label="Add new network backend URL"
+                          type="backend"
+                          error={extractFormikError(errors, touched, ["backend"])}
+                        />
+                        <Textfield
+                          id="moneyPartition"
+                          name="moneyPartition"
+                          label="Add new money partition URL"
+                          type="moneyPartition"
+                          error={extractFormikError(errors, touched, ["moneyPartition"])}
+                        />
+                        <Textfield
+                          id="name"
+                          name="name"
+                          label="Add network name"
+                          type="name"
+                          error={extractFormikError(errors, touched, ["name"])}
+                        />
+                      </FormContent>
+                      <FormFooter>
+                        <Button
+                          big={true}
+                          block={true}
+                          type="submit"
+                          variant="primary"
+                        >
+                          Add Network
+                        </Button>
+                      </FormFooter>
+                    </Form>
+                  </form>
+                </div>
+              );
+            }}
+          </Formik>
         </div>
       </div>
       <Button

@@ -11,13 +11,13 @@ import {
 export const API_URL =
   "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1";
 
-export const getBalance = async (id: string): Promise<any> => {
+export const getBalance = async (id: string, url: string): Promise<any> => {
   if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
   const response = await axios.get<{ balance: number; id: string }>(
-    `${API_URL}/balance?pubkey=${id}`
+    `${url}/balance?pubkey=${id}`
   );
 
   let res = response.data;
@@ -26,19 +26,23 @@ export const getBalance = async (id: string): Promise<any> => {
   return res;
 };
 
-export const getBillsList = async (id: string): Promise<any> => {
+export const getBillsList = async (id: string, url: string): Promise<any> => {
   if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
   const response = await axios.get<IBillsList>(
-    `${API_URL}/list-bills?pubkey=${id}`
+    `${url}/list-bills?pubkey=${id}`
   );
 
   return response.data;
 };
 
-export const getProof = async (id: string, key: string): Promise<any> => {
+export const getProof = async (
+  id: string,
+  key: string,
+  url: string
+): Promise<any> => {
   if (
     !id ||
     Number(id) === 0 ||
@@ -49,7 +53,7 @@ export const getProof = async (id: string, key: string): Promise<any> => {
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/proof/${key}?bill_id=${id}`
+    `${url}/proof/${key}?bill_id=${id}`
   );
 
   return response.data;
@@ -64,10 +68,11 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
 };
 
 export const makeTransaction = async (
-  data: ITransfer
+  data: ITransfer,
+  url: string
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
+    url,
     {
       ...data,
     }
