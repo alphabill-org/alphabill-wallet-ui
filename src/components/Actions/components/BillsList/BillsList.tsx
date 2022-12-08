@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
@@ -159,13 +159,6 @@ function BillsList(): JSX.Element | null {
 
         isValid &&
           makeTransaction(dataWithProof).then(() => {
-            const invalidationItems = () => {
-              queryClient.invalidateQueries(["billsList", account.pubKey]);
-              queryClient.invalidateQueries([
-                "balance",
-                unit8ToHexPrefixed(hashingPublicKey),
-              ]);
-            };
             setTimeout(() => {
               setIsCollectLoading(false);
             }, 1000);
@@ -175,7 +168,7 @@ function BillsList(): JSX.Element | null {
     );
   };
 
-  const handleSwap = (bills: IBill[], formPassword?: string) => {
+  const handleSwap = (formPassword?: string) => {
     let total = 0;
     let nonce: Buffer[] = [];
     let dcTransfers: any = [];
@@ -294,7 +287,7 @@ function BillsList(): JSX.Element | null {
             onClick={() => {
               setIsSwapLoading(true);
               if (password) {
-                handleSwap(DCBills);
+                handleSwap();
               } else {
                 setPasswordFormType("swap");
               }
@@ -549,7 +542,7 @@ function BillsList(): JSX.Element | null {
                 handleDC(collectableBills, values.password);
               } else if (passwordFormType === "swap") {
                 setPassword(values.password);
-                handleSwap(DCBills, values.password);
+                handleSwap(values.password);
                 setPasswordFormType(null);
               }
             }}
