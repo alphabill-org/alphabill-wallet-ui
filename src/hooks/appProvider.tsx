@@ -43,23 +43,29 @@ export const AppProvider: FunctionComponent<{
   const { userKeys } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
+  const initialActiveAccount =
+    localStorage.getItem("ab_active_account") || keysArr[0] || "";
+  const initialLockedBills = localStorage.getItem("ab_locked_bills") || null;
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
   );
-  const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
+  const [activeAccountId, setActiveAccountId] = useLocalStorage(
+    "ab_active_account",
+    initialActiveAccount
+  );
   const [selectedSendKey, setSelectedSendKey] = useState<
     string | null | undefined
   >();
   const [lockedBillsLocal, setLockedBillsLocal] = useLocalStorage(
     "ab_locked_bills",
-    null
+    initialLockedBills
   );
   const lockedBills: ILockedBill[] = lockedBillsLocal
-  ? isString(lockedBillsLocal)
-    ? JSON.parse(lockedBillsLocal)
-    : lockedBillsLocal
-  : [];
+    ? isString(lockedBillsLocal)
+      ? JSON.parse(lockedBillsLocal)
+      : lockedBillsLocal
+    : [];
   const balances: any = useGetBalances(keysArr);
   const { data: billsList } = useGetBillsList(activeAccountId);
   const [accounts, setAccounts] = useState<IAccount[]>(
@@ -138,7 +144,14 @@ export const AppProvider: FunctionComponent<{
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }
-  }, [accounts, keysArr, accountNamesObj, balances, activeAccountId]);
+  }, [
+    accounts,
+    keysArr,
+    accountNamesObj,
+    balances,
+    activeAccountId,
+    setActiveAccountId,
+  ]);
 
   return (
     <AppContext.Provider
