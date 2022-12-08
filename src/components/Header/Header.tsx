@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, FormControlLabel } from "@material-ui/core";
+import { Checkbox, FormControlLabel } from "@mui/material";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
@@ -13,8 +13,13 @@ import { useApp } from "../../hooks/appProvider";
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } =
-    useApp();
+  const {
+    setIsActionsViewVisible,
+    setActionsView,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
 
   const testNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork === true

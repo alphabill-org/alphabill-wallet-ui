@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
@@ -17,7 +16,6 @@ function Actions(): JSX.Element | null {
     accounts,
     setSelectedSendKey,
   } = useApp();
-  const queryClient = useQueryClient();
 
   return (
     <div
