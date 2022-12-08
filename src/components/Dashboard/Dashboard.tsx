@@ -25,9 +25,12 @@ function Dashboard(): JSX.Element | null {
     account,
     accounts,
     setAccounts,
-    activeAccountId
+    activeAccountId,
+    activeNetwork,
   } = useApp();
-  const abBalance = account?.assets.find((asset: IAsset) => (asset.id = "AB"))?.amount;
+  const abBalance = account?.assets.find(
+    (asset: IAsset) => asset.id === "AB" && asset.network === activeNetwork?.id
+  )?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
@@ -133,7 +136,16 @@ function Dashboard(): JSX.Element | null {
           onClick={() => {
             setActionsView("Send");
             setIsActionsViewVisible(true);
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries([
+              "balance",
+              account?.pubKey,
+              activeNetwork?.backendAPI || "",
+            ]);
+            queryClient.invalidateQueries([
+              "billsList",
+              account?.pubKey,
+              activeNetwork?.backendAPI || "",
+            ]);
           }}
         >
           Send
@@ -145,7 +157,16 @@ function Dashboard(): JSX.Element | null {
           <div
             onClick={() => {
               setIsAssetsColActive(true);
-              queryClient.invalidateQueries(["balance", account?.pubKey]);
+              queryClient.invalidateQueries([
+                "balance",
+                account?.pubKey,
+                activeNetwork?.backendAPI || "",
+              ]);
+              queryClient.invalidateQueries([
+                "billsList",
+                account?.pubKey,
+                activeNetwork?.backendAPI || "",
+              ]);;
             }}
             className={classNames("dashboard__navbar-item", {
               active: isAssetsColActive === true,
@@ -170,7 +191,9 @@ function Dashboard(): JSX.Element | null {
           >
             {sortedAssets &&
               sortedAssets
-                .filter((asset: IAsset) => asset.network === account?.activeNetwork)
+                .filter(
+                  (asset: IAsset) => asset.network === account?.activeNetwork
+                )
                 .map((asset: IAsset, idx: number) => {
                   // API supports only AB balance at the moment
                   return (
@@ -202,7 +225,10 @@ function Dashboard(): JSX.Element | null {
                           onClick={() => {
                             setActionsView("Bills List");
                             setIsActionsViewVisible(true);
-                            queryClient.invalidateQueries(["billsList", activeAccountId]);
+                            queryClient.invalidateQueries([
+                              "billsList",
+                              activeAccountId,
+                            ]);
                           }}
                         >
                           Show Bills

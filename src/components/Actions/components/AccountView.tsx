@@ -25,7 +25,6 @@ import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
 import { useApp } from "../../../hooks/appProvider";
-import { API_URL } from "../../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -36,6 +35,7 @@ function AccountView(): JSX.Element | null {
     setIsActionsViewVisible,
     activeAccountId,
     setActiveAccountId,
+    activeNetwork
   } = useApp();
   const queryClient = useQueryClient();
 
@@ -59,8 +59,16 @@ function AccountView(): JSX.Element | null {
               onClick={() => {
                 setActiveAccountId(account?.pubKey);
                 setIsActionsViewVisible(false);
-                queryClient.invalidateQueries(["balance", account?.pubKey]);
-                queryClient.invalidateQueries(["billsList", activeAccountId]);
+                queryClient.invalidateQueries([
+                  "balance",
+                  account?.pubKey,
+                  activeNetwork?.backendAPI || "",
+                ]);
+                queryClient.invalidateQueries([
+                  "billsList",
+                  account?.pubKey,
+                  activeNetwork?.backendAPI || "",
+                ]);
               }}
             >
               <div className="account__item">
@@ -160,7 +168,16 @@ function AccountView(): JSX.Element | null {
 
               setActiveAccountId(prefixedHashingPubKey);
               setIsAddPopupVisible(false);
-              queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
+              queryClient.invalidateQueries([
+                "balance",
+                activeAccountId,
+                activeNetwork?.backendAPI || "",
+              ]);
+              queryClient.invalidateQueries([
+                "billsList",
+                activeAccountId,
+                activeNetwork?.backendAPI || "",
+              ]);
             };
 
             if (
@@ -171,7 +188,7 @@ function AccountView(): JSX.Element | null {
             }
 
             axios
-              .post<void>(API_URL + "/admin/add-key", {
+              .post<void>(activeNetwork + "/admin/add-key", {
                 pubkey: prefixedHashingPubKey,
               })
               .then(() => {

@@ -3,6 +3,7 @@ import { Checkbox, FormControlLabel } from "@mui/material";
 import classNames from "classnames";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Logo from "../../images/ab-logo-ico.svg";
@@ -15,6 +16,7 @@ import { Form, FormFooter, FormContent } from "../Form/Form";
 import { extractFormikError } from "../../utils/utils";
 import Textfield from "../Textfield/Textfield";
 import Spacer from "../Spacer/Spacer";
+import { INetwork } from "../../types/Types";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -26,12 +28,10 @@ function Header(): JSX.Element | null {
     accounts,
     setAccounts,
     networks,
-    setNetworksLocal
+    setNetworksLocal,
+    activeNetwork,
   } = useApp();
-
-  const testNetworks = account?.networks?.filter(
-    (network) => network.isTestNetwork === true
-  );
+  const queryClient = useQueryClient();
   const isTestNetworkActive = account?.networks?.find(
     (network) =>
       network.isTestNetwork === true && account?.activeNetwork === network.id
@@ -107,29 +107,41 @@ function Header(): JSX.Element | null {
               >
                 Test & Dev Networks
               </div>
-              {testNetworks?.map((network) => {
-                return (
-                  <div
-                    key={network.id}
-                    className={classNames("select__option", {
-                      "select__option--hidden":
-                        !showTestNetworks && !Boolean(isTestNetworkActive),
-                    })}
-                    onClick={() => {
-                      const updatedAccounts = accounts?.map((obj) => {
-                        if (account?.pubKey === obj?.pubKey) {
-                          return { ...obj, activeNetwork: network.id };
-                        } else return { ...obj };
-                      });
-                      setIsPopoverOpen(false);
-                      setAccounts(updatedAccounts);
-                    }}
-                  >
-                    {network.id}{" "}
-                    {network.id === account?.activeNetwork && <Check />}
-                  </div>
-                );
-              })}
+              {networks
+                .filter((network: INetwork) => network.isTestNetwork === true)
+                ?.map((network) => {
+                  return (
+                    <div
+                      key={network.id}
+                      className={classNames("select__option", {
+                        "select__option--hidden":
+                          !showTestNetworks && !Boolean(isTestNetworkActive),
+                      })}
+                      onClick={() => {
+                        const updatedNetworks = networks?.map((obj) => {
+                          if (network.id === obj?.id) {
+                            return { ...obj, isActive: true };
+                          } else return { ...obj, isActive: false };
+                        });
+                        setNetworksLocal(JSON.stringify(updatedNetworks));
+                        queryClient.invalidateQueries([
+                          "balance",
+                          account?.pubKey,
+                          activeNetwork?.backendAPI || "",
+                        ]);
+                        queryClient.invalidateQueries([
+                          "billsList",
+                          account?.pubKey,
+                          activeNetwork?.backendAPI || "",
+                        ]);
+                        setIsPopoverOpen(false);
+                      }}
+                    >
+                      {network.id}{" "}
+                      {network.id === account?.activeNetwork && <Check />}
+                    </div>
+                  );
+                })}
             </div>
           </div>
           <Formik
@@ -139,19 +151,25 @@ function Header(): JSX.Element | null {
               name: "",
             }}
             validationSchema={Yup.object().shape({
-              url: Yup.string().required("URL is required"),
+              moneyPartition: Yup.string().required("URL is required"),
               name: Yup.string().required("Name is required"),
+              backend: Yup.string().required("Name is required"),
             })}
             onSubmit={(values, { resetForm }) => {
+              const updatedNetworks = networks?.map((obj) => {
+                if (values.name === obj?.id) {
+                  return { ...obj, isActive: false };
+                } else return { ...obj };
+              });
+
               setNetworksLocal(
                 JSON.stringify([
-                  ...networks,
+                  ...updatedNetworks,
                   {
                     moneyPartitionAPI: values.moneyPartition,
                     backendAPI: values.backend,
                     id: values.name,
                     isTestNetwork: true,
-                    isActive: true
                   },
                 ])
               );
@@ -172,14 +190,18 @@ function Header(): JSX.Element | null {
                           name="backend"
                           label="Add new network backend URL"
                           type="backend"
-                          error={extractFormikError(errors, touched, ["backend"])}
+                          error={extractFormikError(errors, touched, [
+                            "backend",
+                          ])}
                         />
                         <Textfield
                           id="moneyPartition"
                           name="moneyPartition"
                           label="Add new money partition URL"
                           type="moneyPartition"
-                          error={extractFormikError(errors, touched, ["moneyPartition"])}
+                          error={extractFormikError(errors, touched, [
+                            "moneyPartition",
+                          ])}
                         />
                         <Textfield
                           id="name"

@@ -14,12 +14,10 @@ import {
 } from "./requests";
 
 export function useGetBalances(ids: string[] | undefined, url: string) {
-  console.log("useGetBalances", url);
-
   return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
     ids!.map((id) => {
       return {
-        queryKey: ["balance", id],
+        queryKey: ["balance", id, url],
         queryFn: async () => getBalance(id, url),
         enabled: !!id,
         staleTime: Infinity,
@@ -32,7 +30,7 @@ export function useGetBillsList(
   id: string,
   url: string
 ): QueryObserverResult<IBillsList, AxiosError> {
-  return useQuery([`billsList`, id], async () => getBillsList(id, url), {
+  return useQuery([`billsList`, id, url], async () => getBillsList(id, url), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
@@ -44,7 +42,7 @@ export function useGetProof(
   key: string,
   url: string
 ): QueryObserverResult<IProofsProps, AxiosError> {
-  return useQuery([`proof`, id], async () => getProof(id, key, url), {
+  return useQuery([`proof`, id, url], async () => getProof(id, key, url), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
@@ -55,7 +53,7 @@ export function useMakeTransaction(
   data: any,
   url: string
 ): QueryObserverResult<ITransfer | ISwapTransferProps, AxiosError> {
-  return useQuery([`transaction`], async () => makeTransaction(data, url), {
+  return useQuery([`transaction`, url], async () => makeTransaction(data, url), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,

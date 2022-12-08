@@ -12,6 +12,7 @@ import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { extractFormikError } from "../../../utils/utils";
 import { IAccount, IAsset } from "../../../types/Types";
+import { useApp } from "../../../hooks/appProvider";
 
 export interface IPopupsProps {
   setAccounts: (e: IAccount[]) => void;
@@ -34,6 +35,7 @@ function Popups({
 }: IPopupsProps): JSX.Element | null {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
+  const { activeNetwork } = useApp();
 
   return (
     <>
@@ -64,7 +66,16 @@ function Popups({
                 },
               })
                 .then((data) => {
-                  queryClient.invalidateQueries(["balance", account?.pubKey]);
+                  queryClient.invalidateQueries([
+                    "balance",
+                    account?.pubKey,
+                    activeNetwork?.backendAPI || "",
+                  ]);
+                  queryClient.invalidateQueries([
+                    "billsList",
+                    account?.pubKey,
+                    activeNetwork?.backendAPI || "",
+                  ]);
                   const updatedData = accounts?.map((obj) => {
                     if (obj?.pubKey === account.pubKey) {
                       const currentAsset = obj.assets?.find(

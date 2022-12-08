@@ -15,13 +15,12 @@ import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
-import { API_URL } from "../../hooks/requests";
 import { useMemo } from "react";
 
 function CreateAccount(): JSX.Element | null {
   const { login, setUserKeys, setVault } = useAuth();
   const mnemonic = useMemo(() => generateMnemonic(), []);
-  const { setActiveAccountId } = useApp();
+  const { setActiveAccountId, activeNetwork } = useApp();
 
   const downloadTxtFile = () => {
     const element = document.createElement("a");
@@ -91,7 +90,7 @@ function CreateAccount(): JSX.Element | null {
             ) {
               axios
                 .post<void>(
-                  API_URL + "/admin/add-key",
+                  activeNetwork + "/admin/add-key",
                   {
                     pubkey: decrypted.toString(CryptoJS.enc.Latin1),
                   }

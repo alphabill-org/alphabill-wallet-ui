@@ -88,12 +88,15 @@ export const AppProvider: FunctionComponent<{
       ? JSON.parse(networksLocal)
       : networksLocal
     : [];
+
   const activeNetwork = networks.find(
     (network: INetwork) => network.isActive === true
   );
-  console.log("activeNetwork", activeNetwork);
 
-  const balances: any = useGetBalances(keysArr, activeNetwork?.backendAPI || "");
+  const balances: any = useGetBalances(
+    keysArr,
+    activeNetwork?.backendAPI || ""
+  );
   const { data: billsList } = useGetBillsList(
     activeAccountId,
     activeNetwork?.backendAPI || ""
@@ -118,13 +121,10 @@ export const AppProvider: FunctionComponent<{
     }))
   );
 
-  const account = useMemo(
-    () =>
-      accounts?.find(
-        (account: IAccount) => account?.pubKey === activeAccountId
-      )!,
-    [accounts, activeAccountId]
-  );
+  const account = accounts?.find(
+    (account: IAccount) => account?.pubKey === activeAccountId
+  )!;
+
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
@@ -141,7 +141,10 @@ export const AppProvider: FunctionComponent<{
     if (
       (accounts.length <= 0 && keysArr.length >= 1) ||
       (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
-      keysArr.length > accounts.length
+      keysArr.length > accounts.length ||
+      !accounts.find(
+        (account: IAccount) => account.activeNetwork === activeNetwork?.id
+      )
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
@@ -173,6 +176,8 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     networksLocal,
     setActiveAccountId,
+    activeNetwork,
+    networks,
   ]);
 
   return (

@@ -20,11 +20,7 @@ import { useApp } from "../../../../hooks/appProvider";
 import { useAuth } from "../../../../hooks/useAuth";
 import Spacer from "../../../Spacer/Spacer";
 import Button from "../../../Button/Button";
-import {
-  API_URL,
-  getBlockHeight,
-  makeTransaction,
-} from "../../../../hooks/requests";
+import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
 import { ReactComponent as Close } from "../../../../images/close.svg";
 import Check from "../../../../images/checkmark.gif";
 import { ReactComponent as Sync } from "../../../../images/sync-ico.svg";
@@ -196,9 +192,9 @@ function BillsList(): JSX.Element | null {
     sortBillsByID(DCBills).map((bill: IBill) =>
       axios
         .get<IProofsProps>(
-          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
-            bill.id
-          )}`
+          `${activeNetwork}/proof/${
+            account.pubKey
+          }?bill_id=${base64ToHexPrefixed(bill.id)}`
         )
         .then(({ data }) => {
           total = total + 1;
@@ -241,8 +237,16 @@ function BillsList(): JSX.Element | null {
           <Spacer mt={8} />
           <Button
             onClick={() => {
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
-              queryClient.invalidateQueries(["balance", activeAccountId]);
+              queryClient.invalidateQueries([
+                "balance",
+                account?.pubKey,
+                activeNetwork?.backendAPI || "",
+              ]);
+              queryClient.invalidateQueries([
+                "billsList",
+                account?.pubKey,
+                activeNetwork?.backendAPI || "",
+              ]);;
             }}
             className="btn__refresh w-100p"
             small
