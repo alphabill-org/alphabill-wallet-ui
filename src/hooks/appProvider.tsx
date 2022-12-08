@@ -47,17 +47,23 @@ export const AppProvider: FunctionComponent<{
   const { userKeys } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
+  const initialActiveAccount =
+    localStorage.getItem("ab_active_account") || keysArr[0] || "";
+  const initialLockedBills = localStorage.getItem("ab_locked_bills") || null;
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
   );
-  const [activeAccountId, setActiveAccountId] = useState(keysArr[0] || "");
+  const [activeAccountId, setActiveAccountId] = useLocalStorage(
+    "ab_active_account",
+    initialActiveAccount
+  );
   const [selectedSendKey, setSelectedSendKey] = useState<
     string | null | undefined
   >();
   const [lockedBillsLocal, setLockedBillsLocal] = useLocalStorage(
     "ab_locked_bills",
-    null
+    initialLockedBills
   );
   const [networksLocal, setNetworksLocal] = useLocalStorage(
     "ab_networks",
@@ -166,6 +172,7 @@ export const AppProvider: FunctionComponent<{
     balances,
     activeAccountId,
     networksLocal,
+    setActiveAccountId,
   ]);
 
   return (

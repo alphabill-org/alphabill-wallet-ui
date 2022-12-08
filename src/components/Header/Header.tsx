@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, FormControlLabel } from "@material-ui/core";
+import { Checkbox, FormControlLabel } from "@mui/material";
 import classNames from "classnames";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -74,7 +74,7 @@ function Header(): JSX.Element | null {
                     color="primary"
                   />
                 }
-                label="Show Test Networks"
+                label="Show Test & Dev Networks"
               />
             </div>
             <div className="select__options">
@@ -105,7 +105,7 @@ function Header(): JSX.Element | null {
                     !showTestNetworks && !Boolean(isTestNetworkActive),
                 })}
               >
-                Test Networks
+                Test & Dev Networks
               </div>
               {testNetworks?.map((network) => {
                 return (

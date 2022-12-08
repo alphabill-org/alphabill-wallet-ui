@@ -16,7 +16,9 @@
     &:hover {
       opacity: 1 !important;
 
-      svg, path, g {
+      svg,
+      path,
+      g {
         fill: $color-primary;
       }
     }
@@ -144,7 +146,10 @@
 
   .spinner {
     margin-left: 8px;
-    > div {
+    height: 16px !important;
+    width: 16px !important;
+
+    span {
       height: 16px !important;
       width: 16px !important;
     }
