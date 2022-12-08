@@ -61,7 +61,7 @@ function Header(): JSX.Element | null {
                     color="primary"
                   />
                 }
-                label="Show Test Networks"
+                label="Show Test & Dev Networks"
               />
             </div>
             <div className="select__options">
@@ -92,7 +92,7 @@ function Header(): JSX.Element | null {
                     !showTestNetworks && !Boolean(isTestNetworkActive),
                 })}
               >
-                Test Networks
+                Test & Dev Networks
               </div>
               {testNetworks?.map((network) => {
                 return (

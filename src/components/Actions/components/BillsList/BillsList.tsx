@@ -27,6 +27,7 @@ import {
 } from "../../../../hooks/requests";
 import { ReactComponent as Close } from "../../../../images/close.svg";
 import Check from "../../../../images/checkmark.gif";
+import { ReactComponent as Sync } from "../../../../images/sync-ico.svg";
 import {
   getKeys,
   base64ToHexPrefixed,
@@ -55,6 +56,7 @@ function BillsList(): JSX.Element | null {
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
+    activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
   const sortedList = billsList?.bills?.sort(
@@ -73,8 +75,8 @@ function BillsList(): JSX.Element | null {
     base64ToHexPrefixed(activeBillId),
     account.pubKey
   );
-  const queryClient = useQueryClient();
   const { vault } = useAuth();
+  const queryClient = useQueryClient();
   let DCDenomination: number | null = null;
 
   const handleDC = (bills: IBill[], formPassword?: string) => {
@@ -224,11 +226,27 @@ function BillsList(): JSX.Element | null {
 
   return (
     <>
-      <div className="dashboard__info-col active relative">
+      <div className="dashboard__info-col active relative bills-list">
         <Spacer mt={16} />
         <div className="t-medium-small pad-24-h">
-          To swap your bills into one bigger bill click on the Dust Collection
-          button next to the given bill and then click on Swap Bills button.
+          To swap your bills into one bigger bill select the bills & click on
+          the <b>Collect Selected Bills</b> button and then{" "}
+          <b>Swap Collect Bills</b>.
+          <Spacer mt={8} />
+          <Button
+            onClick={() => {
+              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              queryClient.invalidateQueries(["balance", activeAccountId]);
+            }}
+            className="btn__refresh w-100p"
+            small
+            type="button"
+            variant="primary"
+          >
+            <div className="pad-8-r">Refresh list</div>
+            <Sync height="16" width="16" />
+            <div className="pad-8-l">before actions</div>
+          </Button>
           <Spacer mt={8} />
         </div>{" "}
         <div>
@@ -321,6 +339,7 @@ function BillsList(): JSX.Element | null {
               <Spacer mt={8} />
             </>
           )}
+
           {sortedList.filter(
             (b: IBill) =>
               b.isDCBill === false &&

@@ -54,17 +54,6 @@
       position: absolute;
       left: 24px;
     }
-
-    .btn__refresh {
-      position: absolute;
-      right: 24px;
-      transform: rotate(0deg);
-      transition: animation 1s linear;
-
-      &:active {
-        animation: pulsate 2s ease-in-out infinite;
-      }
-    }
   }
 
   &__title {

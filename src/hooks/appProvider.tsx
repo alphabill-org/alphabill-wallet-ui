@@ -71,15 +71,15 @@ export const AppProvider: FunctionComponent<{
         {
           id: "AB",
           name: "AlphaBill Token",
-          network: "AB Testnet",
+          network: "AB DevNet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
         },
       ],
-      activeNetwork: "AB Testnet",
+      activeNetwork: "AB DevNet",
       networks: [
         {
-          id: "AB Testnet",
+          id: "AB DevNet",
           isTestNetwork: true,
         },
       ],
@@ -120,14 +120,14 @@ export const AppProvider: FunctionComponent<{
             {
               id: "AB",
               name: "AlphaBill Token",
-              network: "AB Testnet",
+              network: "AB DevNet",
               amount: abFetchedBalance,
             },
           ],
-          activeNetwork: "AB Testnet",
+          activeNetwork: "AB DevNet",
           networks: [
             {
-              id: "AB Testnet",
+              id: "AB DevNet",
               isTestNetwork: true,
             },
           ],
