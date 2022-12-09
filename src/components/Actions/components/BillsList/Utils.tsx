@@ -43,7 +43,9 @@ export const handleSwapRequest = async (
 
   if (!nonce.length) return;
   const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-  getBlockHeight().then(async (blockData) => {
+  getBlockHeight(
+    Boolean(activeNetwork?.backendAPI?.includes("wallet-backend.testnet"))
+  ).then(async (blockData) => {
     const transferData: ISwapProps = {
       systemId: "AAAAAA==",
       unitId: Buffer.from(nonceHash).toString("base64"),

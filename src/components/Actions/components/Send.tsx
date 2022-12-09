@@ -57,12 +57,8 @@ function Send(): JSX.Element | null {
   const queryClient = useQueryClient();
   const defaultAsset = selectedSendKey
     ? {
-        value: account?.assets
-          .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "AB"),
-        label: account?.assets
-          .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "AB")?.name,
+        value: account?.assets.find((asset) => asset.id === "AB"),
+        label: account?.assets.find((asset) => asset.id === "AB")?.name,
       }
     : "";
   const [currentTokenId, setCurrentTokenId] = useState<any>(
@@ -212,7 +208,11 @@ function Send(): JSX.Element | null {
           }));
 
           if (billToSplit && splitBillAmount) {
-            getBlockHeight().then(async (blockData) => {
+            getBlockHeight(
+              Boolean(
+                activeNetwork?.backendAPI?.includes("wallet-backend.testnet")
+              )
+            ).then(async (blockData) => {
               const splitData: ITransfer = {
                 systemId: "AAAAAA==",
                 unitId: billToSplit.id,
@@ -250,7 +250,11 @@ function Send(): JSX.Element | null {
           }
 
           transferData.map(async (data) => {
-            getBlockHeight().then(async (blockData) => {
+            getBlockHeight(
+              Boolean(
+                activeNetwork?.backendAPI?.includes("wallet-backend.testnet")
+              )
+            ).then(async (blockData) => {
               const msgHash = await secp.utils.sha256(
                 secp.utils.concatBytes(
                   Buffer.from(data.systemId, "base64"),
@@ -347,9 +351,7 @@ function Send(): JSX.Element | null {
                 Number(value) <=
                 Number(
                   account?.assets?.find(
-                    (asset: IAsset) =>
-                      asset?.id === currentTokenId.id &&
-                      asset.network === account?.activeNetwork
+                    (asset: IAsset) => asset?.id === currentTokenId.id
                   )?.amount
                 )
             ),
@@ -412,9 +414,6 @@ function Send(): JSX.Element | null {
                     name="assets"
                     className={selectedSendKey ? "d-none" : ""}
                     options={account?.assets
-                      .filter(
-                        (asset) => account?.activeNetwork === asset.network
-                      )
                       .sort((a: IAsset, b: IAsset) => {
                         if (a?.id! < b?.id!) {
                           return -1;

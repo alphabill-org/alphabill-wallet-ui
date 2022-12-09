@@ -72,23 +72,31 @@ export const AppProvider: FunctionComponent<{
         id: "AB DevNet",
         isTestNetwork: true,
         moneyPartitionAPI:
-          "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
+          "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1",
         backendAPI: "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1",
         isActive: true,
       },
     ])
   );
-  const lockedBills: ILockedBill[] = lockedBillsLocal
-    ? isString(lockedBillsLocal)
-      ? JSON.parse(lockedBillsLocal)
-      : lockedBillsLocal
-    : [];
-  const networks: INetwork[] = networksLocal
-    ? isString(networksLocal)
-      ? JSON.parse(networksLocal)
-      : networksLocal
-    : [];
+  const lockedBills: ILockedBill[] = useMemo(
+    () =>
+      lockedBillsLocal
+        ? isString(lockedBillsLocal)
+          ? JSON.parse(lockedBillsLocal)
+          : lockedBillsLocal
+        : [],
+    [lockedBillsLocal]
+  );
 
+  const networks: INetwork[] = useMemo(
+    () =>
+      networksLocal
+        ? isString(networksLocal)
+          ? JSON.parse(networksLocal)
+          : networksLocal
+        : [],
+    [networksLocal]
+  );
   const activeNetwork = networks.find(
     (network: INetwork) => network.isActive === true
   );
@@ -101,6 +109,7 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeNetwork?.backendAPI || ""
   );
+
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
       pubKey: key,
@@ -142,9 +151,10 @@ export const AppProvider: FunctionComponent<{
       (accounts.length <= 0 && keysArr.length >= 1) ||
       (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
       keysArr.length > accounts.length ||
-      !accounts.find(
-        (account: IAccount) => account.activeNetwork === activeNetwork?.id
-      )
+      (accounts.length > 0 &&
+        !accounts.find(
+          (account: IAccount) => account.activeNetwork === activeNetwork?.id
+        ))
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({

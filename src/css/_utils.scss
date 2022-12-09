@@ -75,6 +75,11 @@
   padding-left: 16px;
 }
 
+.pad-24-b {
+  padding-bottom: 24px;
+}
+
+
 // Icons
 .icon-wrap {
   height: 32px;
@@ -144,6 +149,13 @@
   fill: $color-blue;
 }
 
+.f-blue--all {
+  fill: $color-blue;
+  * {
+    fill: $color-blue;
+  }
+}
+
 .bg-white {
   background-color: white;
 }
@@ -161,4 +173,31 @@
 
 .d-none {
   display: none;
+}
+
+.hidden {
+  max-height: 0;
+  overflow: hidden;
+  transition: all .6s ease;
+}
+
+.visible {
+  max-height: 100%;
+  transition: all .6s ease;
+}
+
+// Transforming
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.rotate-0 {
+  transform: rotate(0deg);
+}
+
+// Transition
+
+.transition-all {
+  transition: all .6s ease-in-out;
 }

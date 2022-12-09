@@ -25,6 +25,7 @@ import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
 import { useApp } from "../../../hooks/appProvider";
+import { INetwork } from "../../../types/Types";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -35,7 +36,8 @@ function AccountView(): JSX.Element | null {
     setIsActionsViewVisible,
     activeAccountId,
     setActiveAccountId,
-    activeNetwork
+    activeNetwork,
+    networks
   } = useApp();
   const queryClient = useQueryClient();
 
@@ -187,22 +189,25 @@ function AccountView(): JSX.Element | null {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            axios
-              .post<void>(activeNetwork + "/admin/add-key", {
-                pubkey: prefixedHashingPubKey,
-              })
-              .then(() => {
-                addAccount();
-                setIsAddAccountLoading(false);
-              })
-              .catch((e) => {
-                if (e.response?.data?.message === "pubkey already exists") {
+
+            networks.map((network: INetwork) =>
+              axios
+                .post<void>(network?.backendAPI + "/admin/add-key", {
+                  pubkey: prefixedHashingPubKey,
+                })
+                .then(() => {
                   addAccount();
-                } else {
-                  setErrors({ accountName: "Account creation failed" });
-                }
-                setIsAddAccountLoading(false);
-              });
+                  setIsAddAccountLoading(false);
+                })
+                .catch((e) => {
+                  if (e.response?.data?.message === "pubkey already exists") {
+                    addAccount();
+                  } else {
+                    setErrors({ accountName: "Account creation failed" });
+                  }
+                  setIsAddAccountLoading(false);
+                })
+            );
 
             resetForm();
           }}

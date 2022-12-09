@@ -40,11 +40,6 @@ export interface IBlockStats {
   blockHeight: number;
 }
 
-export interface INetwork {
-  id: string;
-  isTestNetwork: boolean;
-}
-
 export interface ISwap {
   from: string;
   top: string;

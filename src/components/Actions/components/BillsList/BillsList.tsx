@@ -94,7 +94,9 @@ function BillsList(): JSX.Element | null {
 
     let total = 0;
     sortBillsByID(bills).map((bill: IBill) =>
-      getBlockHeight().then(async (blockData) => {
+      getBlockHeight(
+        Boolean(activeNetwork?.backendAPI?.includes("wallet-backend.testnet"))
+      ).then(async (blockData) => {
         total = total + 1;
 
         if (!nonce.length) return;
@@ -192,7 +194,7 @@ function BillsList(): JSX.Element | null {
     sortBillsByID(DCBills).map((bill: IBill) =>
       axios
         .get<IProofsProps>(
-          `${activeNetwork}/proof/${
+          `${activeNetwork?.backendAPI}/proof/${
             account.pubKey
           }?bill_id=${base64ToHexPrefixed(bill.id)}`
         )
@@ -205,6 +207,25 @@ function BillsList(): JSX.Element | null {
           proofs.push(proof);
 
           if (total === DCBills.length) {
+            billIdentifiers = billIdentifiers.sort((a: string, b: string) =>
+              BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
+                ? -1
+                : BigInt(base64ToHexPrefixed(a)) >
+                  BigInt(base64ToHexPrefixed(b))
+                ? 1
+                : 0
+            );
+
+            dcTransfers = dcTransfers.sort((a: any, b: any) =>
+              BigInt(base64ToHexPrefixed(a.unitId)) <
+              BigInt(base64ToHexPrefixed(b.unitId))
+                ? -1
+                : BigInt(base64ToHexPrefixed(a.unitId)) >
+                  BigInt(base64ToHexPrefixed(b.unitId))
+                ? 1
+                : 0
+            );
+
             handleSwapRequest(
               nonce,
               proofs,
@@ -246,7 +267,7 @@ function BillsList(): JSX.Element | null {
                 "billsList",
                 account?.pubKey,
                 activeNetwork?.backendAPI || "",
-              ]);;
+              ]);
             }}
             className="btn__refresh w-100p"
             small
@@ -603,6 +624,7 @@ function BillsList(): JSX.Element | null {
                         >
                           Submit
                         </Button>
+                        <Spacer mt={24} />
                       </FormFooter>
                     </Form>
                   </form>

@@ -90,7 +90,7 @@ function CreateAccount(): JSX.Element | null {
             ) {
               axios
                 .post<void>(
-                  activeNetwork + "/admin/add-key",
+                  activeNetwork?.backendAPI + "/admin/add-key",
                   {
                     pubkey: decrypted.toString(CryptoJS.enc.Latin1),
                   }

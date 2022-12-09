@@ -8,20 +8,17 @@ import {
   ISwapTransferProps,
 } from "../types/Types";
 
-export const API_URL =
-  "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1";
-
 export const getBalance = async (id: string, url: string): Promise<any> => {
   if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
-  const response = await axios.get<{ balance: number; id: string }>(
+  const response = await axios.get<{ balance: number; id: string, url: string }>(
     `${url}/balance?pubkey=${id}`
   );
 
   let res = response.data;
-  res = { ...response.data, id: id };
+  res = { ...response.data, id: id, url: url };
 
   return res;
 };
@@ -59,9 +56,14 @@ export const getProof = async (
   return response.data;
 };
 
-export const getBlockHeight = async (): Promise<IBlockStats> => {
+export const getBlockHeight = async (
+  isTesTenet: boolean
+): Promise<IBlockStats> => {
+  const FAUCET_URL = isTesTenet
+    ? "faucet.testnet.alphabill.org"
+    : "dev-ab-faucet-api.abdev1.guardtime.com";
   const response = await axios.get<IBlockStats>(
-    `https://dev-ab-faucet-api.abdev1.guardtime.com/stats/block-height`
+    `https://${FAUCET_URL}/stats/block-height`
   );
 
   return response.data;
@@ -72,7 +74,7 @@ export const makeTransaction = async (
   url: string
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    url,
+    `${url}/transactions`,
     {
       ...data,
     }

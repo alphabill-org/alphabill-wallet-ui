@@ -56,11 +56,16 @@ function Popups({
           <Spacer mb={8} />
           <Button
             onClick={() => {
+              const FAUCET_URL = activeNetwork?.backendAPI?.includes(
+                "wallet-backend.testnet"
+              )
+                ? "faucet.testnet.alphabill.org"
+                : "dev-ab-faucet-api.abdev1.guardtime.com";
               setIsLoading(true);
               setIsRequestPopupVisible(false);
               axios({
                 method: "post",
-                url: "https://dev-ab-faucet-api.abdev1.guardtime.com/sendBills",
+                url: `https://${FAUCET_URL}/sendBills`,
                 data: {
                   pubKey: account?.pubKey,
                 },
@@ -79,9 +84,7 @@ function Popups({
                   const updatedData = accounts?.map((obj) => {
                     if (obj?.pubKey === account.pubKey) {
                       const currentAsset = obj.assets?.find(
-                        (asset: IAsset) =>
-                          asset?.id === "AB" &&
-                          asset.network === account?.activeNetwork
+                        (asset: IAsset) => asset?.id === "AB"
                       );
 
                       const filteredAsset = obj.assets?.filter(

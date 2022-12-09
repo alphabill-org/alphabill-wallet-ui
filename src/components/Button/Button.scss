@@ -10,6 +10,10 @@
   border: none;
   cursor: pointer;
 
+  &:active {
+    transform: scale(.9);
+  }
+
   &--icon {
     padding: 0;
 
