@@ -57,8 +57,8 @@ function Send(): JSX.Element | null {
   const queryClient = useQueryClient();
   const defaultAsset = selectedSendKey
     ? {
-        value: account?.assets.find((asset) => asset.id === "AB"),
-        label: account?.assets.find((asset) => asset.id === "AB")?.name,
+        value: account?.assets.find((asset) => asset.id === "ALPHA"),
+        label: account?.assets.find((asset) => asset.id === "ALPHA")?.name,
       }
     : "";
   const [currentTokenId, setCurrentTokenId] = useState<any>(

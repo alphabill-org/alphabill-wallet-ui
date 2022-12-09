@@ -117,8 +117,8 @@ export const AppProvider: FunctionComponent<{
       name: accountNamesObj["_" + idx],
       assets: [
         {
-          id: "AB",
-          name: "AlphaBill Token",
+          id: "ALPHA",
+          name: "ALPHA",
           network: "AB DevNet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
@@ -142,7 +142,7 @@ export const AppProvider: FunctionComponent<{
   useEffect(() => {
     const abAccountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets.find((asset) => asset.id === "AB")?.amount;
+      ?.assets.find((asset) => asset.id === "ALPHA")?.amount;
     const abFetchedBalance = balances?.find(
       (balance: any) => balance?.data?.id === activeAccountId
     )?.data?.balance;
@@ -163,8 +163,8 @@ export const AppProvider: FunctionComponent<{
           name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
           assets: [
             {
-              id: "AB",
-              name: "AlphaBill Token",
+              id: "ALPHA",
+              name: "ALPHA",
               network: "AB DevNet",
               amount: abFetchedBalance,
             },

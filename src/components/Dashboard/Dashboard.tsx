@@ -29,7 +29,7 @@ function Dashboard(): JSX.Element | null {
     activeNetwork,
   } = useApp();
   const abBalance = account?.assets.find(
-    (asset: IAsset) => asset.id === "AB"
+    (asset: IAsset) => asset.id === "ALPHA"
   )?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(false);
   const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
@@ -62,7 +62,7 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={40} />
       <div className="dashboard__balance">
         <h1>{abBalance || 0}</h1>
-        <h3>AB</h3>
+        <h3>alpha</h3>
       </div>
       <Spacer mb={8} />
 
@@ -193,7 +193,7 @@ function Dashboard(): JSX.Element | null {
                 return (
                   <div key={idx} className="dashboard__info-item-wrap">
                     <div className="dashboard__info-item-icon">
-                      {asset?.id === "AB" ? (
+                      {asset?.id === "ALPHA" ? (
                         <div className="icon-wrap ab-logo">
                           <ABLogo />
                         </div>
@@ -211,7 +211,7 @@ function Dashboard(): JSX.Element | null {
                       </div>
                       <div className="t-small c-light">{asset.name}</div>
                     </div>
-                    {asset?.id === "AB" && (
+                    {asset?.id === "ALPHA" && (
                       <Button
                         variant="primary"
                         className="m-auto-l"

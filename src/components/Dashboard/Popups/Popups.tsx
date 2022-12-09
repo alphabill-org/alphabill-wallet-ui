@@ -84,7 +84,7 @@ function Popups({
                   const updatedData = accounts?.map((obj) => {
                     if (obj?.pubKey === account.pubKey) {
                       const currentAsset = obj.assets?.find(
-                        (asset: IAsset) => asset?.id === "AB"
+                        (asset: IAsset) => asset?.id === "ALPHA"
                       );
 
                       const filteredAsset = obj.assets?.filter(
@@ -99,8 +99,8 @@ function Popups({
                         };
                       } else {
                         updatedAsset = {
-                          id: "AB",
-                          name: "AlphaBill Token",
+                          id: "ALPHA",
+                          name: "Alpha",
                           amount: 100,
                           network: account?.activeNetwork,
                         };
@@ -116,8 +116,8 @@ function Popups({
                         assets: updatedAssets,
                         activities: obj.activities.concat([
                           {
-                            id: "AB",
-                            name: "AlphaBill Token",
+                            id: "ALPHA",
+                            name: "Alpha",
                             amount: 100,
                             time: moment().format("ll LTS"),
                             address: account.pubKey,
@@ -129,7 +129,7 @@ function Popups({
                       };
                     } else if (obj?.pubKey === account?.pubKey) {
                       const currentAsset = obj.assets?.find(
-                        (asset: IAsset) => asset?.id === "AB"
+                        (asset: IAsset) => asset?.id === "ALPHA"
                       );
 
                       const filteredAsset = obj.assets?.filter(
@@ -144,8 +144,8 @@ function Popups({
                         };
                       } else {
                         updatedAsset = {
-                          id: "AB",
-                          name: "AlphaBill Token",
+                          id: "ALPHA",
+                          name: "Alpha",
                           amount: 100,
                         };
                       }
@@ -160,8 +160,8 @@ function Popups({
                         assets: updatedAssets,
                         activities: obj.activities.concat([
                           {
-                            id: "AB",
-                            name: "AlphaBill Token",
+                            id: "ALPHA",
+                            name: "Alpha",
                             amount: 100,
                             time: moment().format("ll LTS"),
                             address: account.pubKey,
