@@ -9,7 +9,7 @@ import {
 } from "../types/Types";
 
 export const API_URL =
-  "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1";
+  "https://wallet-backend.testnet.alphabill.org/api/v1";
 
 export const getBalance = async (id: string): Promise<any> => {
   if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
@@ -22,6 +22,7 @@ export const getBalance = async (id: string): Promise<any> => {
 
   let res = response.data;
   res = { ...response.data, id: id };
+  console.log(res);
 
   return res;
 };
@@ -57,7 +58,7 @@ export const getProof = async (id: string, key: string): Promise<any> => {
 
 export const getBlockHeight = async (): Promise<IBlockStats> => {
   const response = await axios.get<IBlockStats>(
-    `https://dev-ab-faucet-api.abdev1.guardtime.com/stats/block-height`
+    `https://faucet.testnet.alphabill.org/stats/block-height`
   );
 
   return response.data;
@@ -67,7 +68,7 @@ export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
+    "https://money-partition.testnet.alphabill.com/api/v1/transactions",
     {
       ...data,
     }

@@ -75,17 +75,17 @@ export const AppProvider: FunctionComponent<{
       name: accountNamesObj["_" + idx],
       assets: [
         {
-          id: "AB",
-          name: "AlphaBill Token",
-          network: "AB DevNet",
+          id: "ALPHA",
+          name: "Alphabill Token",
+          network: "AB Testnet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
         },
       ],
-      activeNetwork: "AB DevNet",
+      activeNetwork: "AB Testnet",
       networks: [
         {
-          id: "AB DevNet",
+          id: "AB Testnet",
           isTestNetwork: true,
         },
       ],
@@ -124,16 +124,16 @@ export const AppProvider: FunctionComponent<{
           name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
           assets: [
             {
-              id: "AB",
+              id: "ALPHA",
               name: "AlphaBill Token",
-              network: "AB DevNet",
+              network: "AB Testnet",
               amount: abFetchedBalance,
             },
           ],
-          activeNetwork: "AB DevNet",
+          activeNetwork: "AB Testnet",
           networks: [
             {
-              id: "AB DevNet",
+              id: "AB Testnet",
               isTestNetwork: true,
             },
           ],
