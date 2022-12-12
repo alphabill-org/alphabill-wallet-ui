@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import OutsideClickHandler from "react-outside-click-handler";
 import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
@@ -74,42 +73,35 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <OutsideClickHandler
-            display="flex"
-            onOutsideClick={() => {
-              setIsAccountSettingsVisible(false);
-            }}
+          <Button
+            onClick={() =>
+              setIsAccountSettingsVisible(!isAccountSettingsVisible)
+            }
+            variant="icon"
           >
-            <Button
-              onClick={() =>
-                setIsAccountSettingsVisible(!isAccountSettingsVisible)
-              }
-              variant="icon"
+            <MoreIco className="textfield__btn" height="12px" />
+            <div
+              className={classNames("dashboard__account-options", {
+                active: isAccountSettingsVisible === true,
+              })}
             >
-              <MoreIco className="textfield__btn" height="12px" />
               <div
-                className={classNames("dashboard__account-options", {
-                  active: isAccountSettingsVisible === true,
-                })}
+                onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
+                className="dashboard__account-option"
               >
-                <div
-                  onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
-                  className="dashboard__account-option"
-                >
-                  Rename
-                </div>
-                <div
-                  onClick={() => {
-                    setActionsView("Account");
-                    setIsActionsViewVisible(true);
-                  }}
-                  className="dashboard__account-option"
-                >
-                  Change Account
-                </div>
+                Rename
               </div>
-            </Button>
-          </OutsideClickHandler>
+              <div
+                onClick={() => {
+                  setActionsView("Account");
+                  setIsActionsViewVisible(true);
+                }}
+                className="dashboard__account-option"
+              >
+                Change Account
+              </div>
+            </div>
+          </Button>
         </div>
       </div>
       <Spacer mb={8} />

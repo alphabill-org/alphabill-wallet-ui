@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Checkbox, FormControlLabel } from "@mui/material";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
@@ -9,6 +8,7 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
+import Checkbox from "../Checkbox/Checkbox";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -57,16 +57,11 @@ function Header(): JSX.Element | null {
               <Close onClick={() => setIsPopoverOpen(!isPopoverOpen)} />
             </div>
             <div className="select__popover-checkbox">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showTestNetworks || Boolean(isTestNetworkActive)}
-                    onChange={() => setShowTestNetworks(!showTestNetworks)}
-                    name="TestNetworks"
-                    color="primary"
-                  />
-                }
+
+              <Checkbox
                 label="Show Test & Dev Networks"
+                isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
+                onChange={() => setShowTestNetworks(!showTestNetworks)}
               />
             </div>
             <div className="select__options">
