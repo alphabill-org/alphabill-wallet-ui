@@ -21,20 +21,16 @@ function Dashboard(): JSX.Element | null {
     account,
     accounts,
     setAccounts,
-    activeAccountId,
     activeNetwork,
   } = useApp();
   const abBalance = account?.assets.find(
     (asset: IAsset) => asset.id === "ALPHA"
   )?.amount;
-  const [isAssetsColActive, setIsAssetsColActive] = useState(false);
-  const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
+  const [isAssetsColActive, setIsAssetsColActive] = useState(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
-
-  const activities = account?.activities;
   const sortedAssets = account?.assets?.sort((a: IAsset, b: IAsset) => {
     if (a?.id! < b?.id!) {
       return -1;
@@ -204,7 +200,8 @@ function Dashboard(): JSX.Element | null {
                           setIsActionsViewVisible(true);
                           queryClient.invalidateQueries([
                             "billsList",
-                            activeAccountId,
+                            account?.pubKey,
+                            activeNetwork?.backendAPI || "",
                           ]);
                         }}
                       >

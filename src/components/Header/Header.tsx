@@ -133,7 +133,7 @@ function Header(): JSX.Element | null {
                         });
                         setNetworksLocal(JSON.stringify(updatedNetworks));
                         queryClient.invalidateQueries([
-                          "balance",
+                          "balances",
                           account?.pubKey,
                           activeNetwork?.backendAPI || "",
                         ]);

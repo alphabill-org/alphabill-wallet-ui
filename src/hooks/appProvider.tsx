@@ -65,15 +65,16 @@ export const AppProvider: FunctionComponent<{
     "ab_locked_bills",
     initialLockedBills
   );
+
   const [networksLocal, setNetworksLocal] = useLocalStorage(
     "ab_networks",
     JSON.stringify([
       {
-        id: "AB DevNet",
+        id: "AB Testnet",
         isTestNetwork: true,
         moneyPartitionAPI:
-          "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1",
-        backendAPI: "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1",
+          "https://money-partition.testnet.alphabill.org/api/v1",
+        backendAPI: "https://wallet-backend.testnet.alphabill.org/api/v1",
         isActive: true,
       },
     ])
@@ -165,7 +166,7 @@ export const AppProvider: FunctionComponent<{
             {
               id: "ALPHA",
               name: "ALPHA",
-              network: "AB DevNet",
+              network: activeNetwork?.id || "",
               amount: abFetchedBalance,
             },
           ],

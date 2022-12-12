@@ -53,7 +53,6 @@ function BillsList(): JSX.Element | null {
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
-    activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
   const sortedList = billsList?.bills?.sort(
