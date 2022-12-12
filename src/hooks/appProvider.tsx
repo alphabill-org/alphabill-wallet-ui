@@ -118,8 +118,8 @@ export const AppProvider: FunctionComponent<{
       assets: [
         {
           id: "ALPHA",
-          name: "ALPHA",
-          network: "AB DevNet",
+          name: "Alphabill Token",
+          network: "AB Testnet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
         },

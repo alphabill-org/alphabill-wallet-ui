@@ -6,6 +6,8 @@ import {
   ISwapTransferProps,
   ITransfer,
 } from "../types/Types";
+import axios from "axios";
+
 import {
   getBalance,
   getBillsList,
@@ -17,8 +19,15 @@ export function useGetBalances(ids: string[] | undefined, url: string) {
   return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
     ids!.map((id) => {
       return {
-        queryKey: ["balance", id, url],
-        queryFn: async () => getBalance(id, url),
+        queryKey: ["balance", id],
+        queryFn: async () =>
+          getBalance(id, url).catch((e) => {
+            if (e.response?.data?.message === "pubkey not indexed") {
+              axios.post<void>(url + "/admin/add-key", {
+                pubkey: id,
+              });
+            }
+          }),
         enabled: !!id,
         staleTime: Infinity,
       };
