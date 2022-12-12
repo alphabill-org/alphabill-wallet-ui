@@ -3,7 +3,7 @@
 
 ## Available Scripts
 
-### `npm install`
+### `npm install --openssl-legacy-provider`
 
 In the project directory, you can run:
 

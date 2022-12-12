@@ -1,15 +1,11 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import OutsideClickHandler from "react-outside-click-handler";
 import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccount, IActivity, IAsset } from "../../types/Types";
-import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
-import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
-import { ReactComponent as SwapIcon } from "../../images/swap-ico.svg";
+import { IAccount, IAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
@@ -79,56 +75,39 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <OutsideClickHandler
-            display="flex"
-            onOutsideClick={() => {
-              setIsAccountSettingsVisible(false);
-            }}
+          <Button
+            onClick={() =>
+              setIsAccountSettingsVisible(!isAccountSettingsVisible)
+            }
+            variant="icon"
           >
-            <Button
-              onClick={() =>
-                setIsAccountSettingsVisible(!isAccountSettingsVisible)
-              }
-              variant="icon"
+            <MoreIco className="textfield__btn" height="12px" />
+            <div
+              className={classNames("dashboard__account-options", {
+                active: isAccountSettingsVisible === true,
+              })}
             >
-              <MoreIco className="textfield__btn" height="12px" />
               <div
-                className={classNames("dashboard__account-options", {
-                  active: isAccountSettingsVisible === true,
-                })}
+                onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
+                className="dashboard__account-option"
               >
-                <div
-                  onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
-                  className="dashboard__account-option"
-                >
-                  Rename
-                </div>
-                <div
-                  onClick={() => {
-                    setActionsView("Account");
-                    setIsActionsViewVisible(true);
-                  }}
-                  className="dashboard__account-option"
-                >
-                  Change Account
-                </div>
+                Rename
               </div>
-            </Button>
-          </OutsideClickHandler>
+              <div
+                onClick={() => {
+                  setActionsView("Account");
+                  setIsActionsViewVisible(true);
+                }}
+                className="dashboard__account-option"
+              >
+                Change Account
+              </div>
+            </div>
+          </Button>
         </div>
       </div>
       <Spacer mb={8} />
       <div className="dashboard__buttons">
-        {/* Useful for testing & demoing for now & will be removed later */}
-        <Button
-          variant="primary"
-          onClick={() => {
-            setIsRequestPopupVisible(true);
-          }}
-        >
-          Request
-        </Button>
-        {/* Needs API integration */}
         <Button
           variant="primary"
           onClick={() => {
@@ -145,8 +124,9 @@ function Dashboard(): JSX.Element | null {
               activeNetwork?.backendAPI || "",
             ]);
           }}
+          className="w-100-p"
         >
-          Send
+          Send bills
         </Button>
       </div>
       <Spacer mb={32} />
@@ -172,14 +152,17 @@ function Dashboard(): JSX.Element | null {
           >
             Assets
           </div>
-          <div
-            onClick={() => setIsAssetsColActive(false)}
-            className={classNames("dashboard__navbar-item", {
-              active: isAssetsColActive !== true,
-            })}
-          >
-            Activity
-          </div>
+          {/* Activities need API or localStorage implementation */}
+          {/*
+            <div
+              onClick={() => setIsAssetsColActive(false)}
+              className={classNames("dashboard__navbar-item", {
+                active: isAssetsColActive !== true,
+              })}
+            >
+              Activity
+            </div>
+           */}
         </div>
         <div className="dashboard__info">
           <div
@@ -233,70 +216,72 @@ function Dashboard(): JSX.Element | null {
               })}
           </div>
           {/* Activities need API or localStorage implementation */}
-          <div
-            className={classNames("dashboard__info-col", {
-              active: isAssetsColActive !== true,
-            })}
-          >
-            {activities &&
-              activities
-                .sort((a: IActivity, b: IActivity) => {
-                  return (
-                    new Date(b.time).getTime() - new Date(a.time).getTime()
-                  );
-                })
-                .map((activity: IActivity, idx: number) => {
-                  if (account?.activeNetwork !== activity?.network) return null;
+          {/*
+            <div
+              className={classNames("dashboard__info-col", {
+                active: isAssetsColActive !== true,
+              })}
+            >
+              {activities &&
+                activities
+                  .sort((a: IActivity, b: IActivity) => {
+                    return (
+                      new Date(b.time).getTime() - new Date(a.time).getTime()
+                    );
+                  })
+                  .map((activity: IActivity, idx: number) => {
+                    if (account?.activeNetwork !== activity?.network) return null;
 
-                  return (
-                    <div key={idx} className="dashboard__info-item-wrap">
-                      <div className="dashboard__info-item-icon">
-                        {activity.type === "Buy" ? (
-                          <div className="icon-wrap">
-                            <BuyIcon />
-                          </div>
-                        ) : activity.type === "Send" ? (
-                          <div className="icon-wrap">
-                            <SendIcon />
-                          </div>
-                        ) : activity.type === "Receive" ? (
-                          <div className="icon-wrap receive">
-                            <SendIcon />
-                          </div>
-                        ) : (
-                          <div className="icon-wrap">
-                            <SwapIcon />
-                          </div>
-                        )}
-                      </div>
-                      <div className="dashboard__info-item-type">
-                        <div className="t-medium">
-                          {activity.type}{" "}
-                          {activity.fromID && activity.fromID + " to "}
-                          {activity.id}{" "}
+                    return (
+                      <div key={idx} className="dashboard__info-item-wrap">
+                        <div className="dashboard__info-item-icon">
+                          {activity.type === "Buy" ? (
+                            <div className="icon-wrap">
+                              <BuyIcon />
+                            </div>
+                          ) : activity.type === "Send" ? (
+                            <div className="icon-wrap">
+                              <SendIcon />
+                            </div>
+                          ) : activity.type === "Receive" ? (
+                            <div className="icon-wrap receive">
+                              <SendIcon />
+                            </div>
+                          ) : (
+                            <div className="icon-wrap">
+                              <SwapIcon />
+                            </div>
+                          )}
                         </div>
-                        <div className="t-small c-light">{activity.time}</div>
-                        {activity.type !== "Swap" && activity.type !== "Buy" && (
-                          <div className="t-small c-light t-ellipsis">
-                            {activity.type === "Send" ? "To: " : "From: "}{" "}
-                            {activity.fromAddress
-                              ? activity.fromAddress
-                              : activity.address}
+                        <div className="dashboard__info-item-type">
+                          <div className="t-medium">
+                            {activity.type}{" "}
+                            {activity.fromID && activity.fromID + " to "}
+                            {activity.id}{" "}
                           </div>
-                        )}
-                      </div>
-                      <div className="dashboard__info-item-amount">
-                        <div className="t-medium">{activity.amount}</div>
-                        <div className="t-small c-light">
-                          {activity.fromAmount
-                            ? activity.fromAmount
-                            : activity.amount}
+                          <div className="t-small c-light">{activity.time}</div>
+                          {activity.type !== "Swap" && activity.type !== "Buy" && (
+                            <div className="t-small c-light t-ellipsis">
+                              {activity.type === "Send" ? "To: " : "From: "}{" "}
+                              {activity.fromAddress
+                                ? activity.fromAddress
+                                : activity.address}
+                            </div>
+                          )}
+                        </div>
+                        <div className="dashboard__info-item-amount">
+                          <div className="t-medium">{activity.amount}</div>
+                          <div className="t-small c-light">
+                            {activity.fromAmount
+                              ? activity.fromAmount
+                              : activity.amount}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-          </div>
+                    );
+                  })}
+            </div>
+           */}
         </div>
       </div>
       <Popups
@@ -305,8 +290,6 @@ function Dashboard(): JSX.Element | null {
         setAccounts={setAccounts}
         isRenamePopupVisible={isRenamePopupVisible}
         setIsRenamePopupVisible={setIsRenamePopupVisible}
-        isRequestPopupVisible={isRequestPopupVisible}
-        setIsRequestPopupVisible={setIsRequestPopupVisible}
       />
     </div>
   );

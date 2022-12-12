@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Checkbox, FormControlLabel } from "@mui/material";
 import classNames from "classnames";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -20,6 +19,7 @@ import Spacer from "../Spacer/Spacer";
 import { INetwork } from "../../types/Types";
 import Select from "../Select/Select";
 import { useAuth } from "../../hooks/useAuth";
+import Checkbox from "../Checkbox/Checkbox";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -78,16 +78,11 @@ function Header(): JSX.Element | null {
               />
             </div>
             <div className="select__popover-checkbox">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showTestNetworks || Boolean(isTestNetworkActive)}
-                    onChange={() => setShowTestNetworks(!showTestNetworks)}
-                    name="TestNetworks"
-                    color="primary"
-                  />
-                }
+
+              <Checkbox
                 label="Show Test & Dev Networks"
+                isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
+                onChange={() => setShowTestNetworks(!showTestNetworks)}
               />
             </div>
             <div className="select__options">
