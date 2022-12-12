@@ -160,12 +160,14 @@ function BillsList(): JSX.Element | null {
         });
 
         isValid &&
-          makeTransaction(dataWithProof).then(() => {
-            setTimeout(() => {
-              setIsCollectLoading(false);
-            }, 1000);
-            setCollectableBills([]);
-          });
+          makeTransaction(dataWithProof)
+            .then(() => {
+              setTimeout(() => {
+                setIsCollectLoading(false);
+              }, 1000);
+              setCollectableBills([]);
+            })
+            .catch(() => setIsCollectLoading(false));
       })
     );
   };
@@ -215,9 +217,7 @@ function BillsList(): JSX.Element | null {
               transferMsgHashes,
               account,
               vault,
-              setTimeout(() => {
-                setIsSwapLoading(false);
-              }, 1000)
+              setIsSwapLoading(false)
             );
           }
         })
@@ -539,6 +539,8 @@ function BillsList(): JSX.Element | null {
             <Close
               onClick={() => {
                 setPasswordFormType(null);
+                setIsCollectLoading(false);
+                setIsSwapLoading(false);
               }}
             />
           </div>
