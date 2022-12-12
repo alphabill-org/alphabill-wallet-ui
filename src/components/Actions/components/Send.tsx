@@ -58,10 +58,10 @@ function Send(): JSX.Element | null {
     ? {
         value: account?.assets
           .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "AB"),
+          .find((asset) => asset.id === "ALPHA"),
         label: account?.assets
           .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "AB")?.name,
+          .find((asset) => asset.id === "ALPHA")?.name,
       }
     : "";
   const [currentTokenId, setCurrentTokenId] = useState<any>(

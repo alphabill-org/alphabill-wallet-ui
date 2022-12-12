@@ -107,7 +107,7 @@ export const AppProvider: FunctionComponent<{
   useEffect(() => {
     const abAccountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets.find((asset) => asset.id === "AB")?.amount;
+      ?.assets.find((asset) => asset.id === "ALPHA")?.amount;
     const abFetchedBalance = balances?.find(
       (balance: any) => balance?.data?.id === activeAccountId
     )?.data?.balance;
