@@ -142,17 +142,6 @@ function Dashboard(): JSX.Element | null {
           >
             Assets
           </div>
-          {/* Activities need API or localStorage implementation */}
-          {/*
-            <div
-              onClick={() => setIsAssetsColActive(false)}
-              className={classNames("dashboard__navbar-item", {
-                active: isAssetsColActive !== true,
-              })}
-            >
-              Activity
-            </div>
-           */}
         </div>
         <div className="dashboard__info">
           <div
@@ -209,73 +198,6 @@ function Dashboard(): JSX.Element | null {
                   );
                 })}
           </div>
-          {/* Activities need API or localStorage implementation */}
-          {/*
-            <div
-              className={classNames("dashboard__info-col", {
-                active: isAssetsColActive !== true,
-              })}
-            >
-              {activities &&
-                activities
-                  .sort((a: IActivity, b: IActivity) => {
-                    return (
-                      new Date(b.time).getTime() - new Date(a.time).getTime()
-                    );
-                  })
-                  .map((activity: IActivity, idx: number) => {
-                    if (account?.activeNetwork !== activity?.network) return null;
-
-                    return (
-                      <div key={idx} className="dashboard__info-item-wrap">
-                        <div className="dashboard__info-item-icon">
-                          {activity.type === "Buy" ? (
-                            <div className="icon-wrap">
-                              <BuyIcon />
-                            </div>
-                          ) : activity.type === "Send" ? (
-                            <div className="icon-wrap">
-                              <SendIcon />
-                            </div>
-                          ) : activity.type === "Receive" ? (
-                            <div className="icon-wrap receive">
-                              <SendIcon />
-                            </div>
-                          ) : (
-                            <div className="icon-wrap">
-                              <SwapIcon />
-                            </div>
-                          )}
-                        </div>
-                        <div className="dashboard__info-item-type">
-                          <div className="t-medium">
-                            {activity.type}{" "}
-                            {activity.fromID && activity.fromID + " to "}
-                            {activity.id}{" "}
-                          </div>
-                          <div className="t-small c-light">{activity.time}</div>
-                          {activity.type !== "Swap" && activity.type !== "Buy" && (
-                            <div className="t-small c-light t-ellipsis">
-                              {activity.type === "Send" ? "To: " : "From: "}{" "}
-                              {activity.fromAddress
-                                ? activity.fromAddress
-                                : activity.address}
-                            </div>
-                          )}
-                        </div>
-                        <div className="dashboard__info-item-amount">
-                          <div className="t-medium">{activity.amount}</div>
-                          <div className="t-small c-light">
-                            {activity.fromAmount
-                              ? activity.fromAmount
-                              : activity.amount}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-            </div>
-           */}
         </div>
       </div>
       <Popups
