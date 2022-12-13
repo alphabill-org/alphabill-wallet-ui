@@ -59,11 +59,15 @@ function BillsList(): JSX.Element | null {
     activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
-  const sortedList = billsList?.bills?.sort(
+  const sortedListByValue = billsList?.bills?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
-  const DCBills = sortedList.filter((b: IBill) => b.isDCBill);
-  const [activeBillId, setActiveBillId] = useState<string>(sortedList[0]?.id);
+  const DCBills = sortBillsByID(sortedListByValue).filter(
+    (b: IBill) => b.isDCBill
+  );
+  const [activeBillId, setActiveBillId] = useState<string>(
+    sortedListByValue[0]?.id
+  );
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
   const [isCollectLoading, setIsCollectLoading] = useState<boolean>(false);
   const [isSwapLoading, setIsSwapLoading] = useState<boolean>(false);
@@ -79,29 +83,29 @@ function BillsList(): JSX.Element | null {
   const queryClient = useQueryClient();
   let DCDenomination: number | null = null;
 
-  const handleDC = (bills: IBill[], formPassword?: string) => {
+  const handleDC = async (bills: IBill[], formPassword?: string) => {
     const { hashingPrivateKey, hashingPublicKey } = getKeys(
       formPassword || password,
       Number(account.idx),
       vault
     );
 
+    if (!hashingPublicKey || !hashingPrivateKey) return;
+    const sortedListByID = sortBillsByID(bills);
     let nonce: Buffer[] = [];
 
-    sortBillsByID(bills).map((bill: IBill) =>
+    sortedListByID.map((bill: IBill) =>
       nonce.push(Buffer.from(bill.id, "base64"))
     );
 
-    if (!hashingPublicKey || !hashingPrivateKey) return;
+    if (!nonce.length) return;
+
+    const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
     let total = 0;
-    sortBillsByID(bills).map((bill: IBill) =>
-      getBlockHeight().then(async (blockData) => {
+    getBlockHeight().then((blockData) =>
+      sortedListByID.map(async (bill: IBill) => {
         total = total + 1;
-
-        if (!nonce.length) return;
-
-        const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
         const transferData: ITransfer = {
           systemId: "AAAAAA==",
@@ -139,27 +143,28 @@ function BillsList(): JSX.Element | null {
           recovered: true,
         });
 
-        const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
+        if (secp.verify(signature[0], msgHash, hashingPublicKey)) {
+          const ownerProof = Buffer.from(
+            startByte +
+              opPushSig +
+              sigScheme +
+              Buffer.from(
+                secp.utils.concatBytes(
+                  signature[0],
+                  Buffer.from([signature[1]])
+                )
+              ).toString("hex") +
+              opPushPubKey +
+              sigScheme +
+              unit8ToHexPrefixed(hashingPublicKey).substring(2),
+            "hex"
+          ).toString("base64");
 
-        const ownerProof = Buffer.from(
-          startByte +
-            opPushSig +
-            sigScheme +
-            Buffer.from(
-              secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
-            ).toString("hex") +
-            opPushPubKey +
-            sigScheme +
-            unit8ToHexPrefixed(hashingPublicKey).substring(2),
-          "hex"
-        ).toString("base64");
+          const dataWithProof = Object.assign(transferData, {
+            ownerProof: ownerProof,
+            timeout: blockData.blockHeight + 10,
+          });
 
-        const dataWithProof = Object.assign(transferData, {
-          ownerProof: ownerProof,
-          timeout: blockData.blockHeight + 10,
-        });
-
-        isValid &&
           makeTransaction(dataWithProof)
             .then(() => {
               setTimeout(() => {
@@ -168,6 +173,7 @@ function BillsList(): JSX.Element | null {
               setCollectableBills([]);
             })
             .catch(() => setIsCollectLoading(false));
+        }
       })
     );
   };
@@ -186,11 +192,9 @@ function BillsList(): JSX.Element | null {
 
     if (!hashingPublicKey) return;
 
-    sortBillsByID(DCBills as IBill[]).map((bill: IBill) =>
-      nonce.push(Buffer.from(bill.id, "base64"))
-    );
+    DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
 
-    sortBillsByID(DCBills).map((bill: IBill) =>
+    DCBills.map((bill: IBill) =>
       axios
         .get<IProofsProps>(
           `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
@@ -340,14 +344,14 @@ function BillsList(): JSX.Element | null {
             </>
           )}
 
-          {sortedList.filter(
+          {sortedListByValue.filter(
             (b: IBill) =>
               b.isDCBill === false &&
               !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
           ).length > 0 && (
             <Button
               onClick={() => {
-                sortedList.filter(
+                sortedListByValue.filter(
                   (b: IBill) =>
                     b.isDCBill === false &&
                     !lockedBills?.find(
@@ -358,7 +362,7 @@ function BillsList(): JSX.Element | null {
                   ? setCollectableBills([])
                   : setCollectableBills(
                       collectableBills.concat(
-                        sortedList.filter(
+                        sortedListByValue.filter(
                           (b: IBill) =>
                             b.isDCBill === false &&
                             !lockedBills?.find(
@@ -375,7 +379,7 @@ function BillsList(): JSX.Element | null {
               type="button"
               variant="secondary"
             >
-              {sortedList.filter(
+              {sortedListByValue.filter(
                 (b: IBill) =>
                   b.isDCBill === false &&
                   !lockedBills?.find(
@@ -388,7 +392,7 @@ function BillsList(): JSX.Element | null {
             </Button>
           )}
         </div>
-        {sortedList.filter((b: IBill) =>
+        {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length > 0 && (
           <BillsListItem
@@ -398,7 +402,7 @@ function BillsList(): JSX.Element | null {
                 <span className="t-small">- Exempt from transfers</span>
               </div>
             }
-            filteredList={sortedList.filter((b: IBill) =>
+            filteredList={sortedListByValue.filter((b: IBill) =>
               lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             isLockedBills
@@ -417,7 +421,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
           />
         )}
-        {sortedList.filter(
+        {sortedListByValue.filter(
           (b: IBill) =>
             b.isDCBill === false &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
@@ -434,7 +438,7 @@ function BillsList(): JSX.Element | null {
                 )}
               </div>
             }
-            filteredList={sortedList.filter(
+            filteredList={sortedListByValue.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
@@ -456,7 +460,7 @@ function BillsList(): JSX.Element | null {
             setSelectedSendKey={(v) => setSelectedSendKey(v)}
           />
         )}
-        {sortedList.filter(
+        {sortedListByValue.filter(
           (b: IBill) =>
             b.isDCBill === false &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
@@ -475,7 +479,7 @@ function BillsList(): JSX.Element | null {
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
-            filteredList={sortedList.filter(
+            filteredList={sortedListByValue.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
@@ -633,7 +637,7 @@ function BillsList(): JSX.Element | null {
                   {
                     billId: activeBillId,
                     desc: values.desc,
-                    value: sortedList.find(
+                    value: sortedListByValue.find(
                       (bill: IBill) => bill.id === activeBillId
                     ).value,
                   },

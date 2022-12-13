@@ -67,7 +67,7 @@ export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    "https://money-partition.testnet.alphabill.com/api/v1/transactions",
+    "https://money-partition.testnet.alphabill.org/api/v1/transactions",
     {
       ...data,
     }

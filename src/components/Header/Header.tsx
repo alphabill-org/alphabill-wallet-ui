@@ -59,7 +59,7 @@ function Header(): JSX.Element | null {
             <div className="select__popover-checkbox">
 
               <Checkbox
-                label="Show Test & Dev Networks"
+                label="Show Test"
                 isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
                 onChange={() => setShowTestNetworks(!showTestNetworks)}
               />

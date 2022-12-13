@@ -125,7 +125,7 @@ export const AppProvider: FunctionComponent<{
           assets: [
             {
               id: "ALPHA",
-              name: "AlphaBill Token",
+              name: "Alphabill Token",
               network: "AB Testnet",
               amount: abFetchedBalance,
             },
