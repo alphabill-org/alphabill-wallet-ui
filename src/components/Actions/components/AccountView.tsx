@@ -5,14 +5,12 @@ import * as Yup from "yup";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 
-import { HDKey } from "@scure/bip32";
-import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import CryptoJS from "crypto-js";
 import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, pubKeyToHex } from "../../../utils/utils";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
@@ -23,6 +21,7 @@ import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
 import { useAuth } from "../../../hooks/useAuth";
 import { useApp } from "../../../hooks/appProvider";
+import { API_URL } from "../../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -33,14 +32,12 @@ function AccountView(): JSX.Element | null {
     setIsActionsViewVisible,
     activeAccountId,
     setActiveAccountId,
-    balances,
   } = useApp();
   const queryClient = useQueryClient();
 
   if (
     userKeys!.length <= 0 ||
     !vault ||
-    !Boolean(balances) ||
     vault === "null" ||
     userKeys === "null"
   ) {
@@ -59,6 +56,7 @@ function AccountView(): JSX.Element | null {
                 setActiveAccountId(account?.pubKey);
                 setIsActionsViewVisible(false);
                 queryClient.invalidateQueries(["balance", account?.pubKey]);
+                queryClient.invalidateQueries(["billsList", activeAccountId]);
               }}
             >
               <div className="account__item">
@@ -115,31 +113,24 @@ function AccountView(): JSX.Element | null {
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const decryptedVault = JSON.parse(
-              CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
-                CryptoJS.enc.Latin1
-              )
-            );
+            const {
+              error,
+              masterKey,
+              hashingPublicKey,
+              decryptedVault,
+            } = getKeys(values.password, accounts.length, vault);
+            const accountIndex = accounts.length;
+            const prefixedHashingPubKey = hashingPublicKey
+              ? unit8ToHexPrefixed(hashingPublicKey)
+              : "";
 
-            if (
-              decryptedVault?.entropy.length > 16 &&
-              decryptedVault?.entropy.length < 32 &&
-              decryptedVault?.entropy.length % 4 === 0
-            ) {
+            if (error || !masterKey) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
-            const seed = mnemonicToSeedSync(mnemonic);
-            const masterKey = HDKey.fromMasterSeed(seed);
-            const accountIndex = accounts.length;
-            const hashingKey = masterKey.derive(
-              `m/44'/634'/${accountIndex}'/0/0`
-            );
-            const hashingPubKey = hashingKey.publicKey;
-            const prefixedHashingPubKey = pubKeyToHex(hashingPubKey!);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
+
             const addAccount = () => {
               setVault(
                 CryptoJS.AES.encrypt(
@@ -172,15 +163,13 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };
 
-            if (
-              pubKeyToHex(controlHashingPubKey!) !== userKeys?.split(" ")[0]
-            ) {
+            if (unit8ToHexPrefixed(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
             axios
               .post<void>(
-                "https://dev-ab-wallet-backend.abdev1.guardtime.com/admin/add-key",
+                API_URL + "/admin/add-key",
                 {
                   pubkey: prefixedHashingPubKey,
                 }

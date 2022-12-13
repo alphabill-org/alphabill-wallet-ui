@@ -17,13 +17,18 @@ export interface IAsset {
 }
 
 export interface IBill {
-  id: string;
+  id: string; // base64
   value: number;
+  txHash: string;
 }
 
 export interface IBillsList {
   total: number;
   bills: IBill[];
+}
+
+export interface IBlockStats {
+  blockHeight: number;
 }
 
 export interface INetwork {
@@ -34,6 +39,23 @@ export interface INetwork {
 export interface ISwap {
   from: string;
   top: string;
+}
+
+export interface ITransfer {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    backlink?: string;
+    newBearer?: string;
+    targetValue?: number;
+    remainingValue?: number;
+    targetBearer?: string;
+    amount?: number;
+    nonce?: string;
+  };
+  timeout: number;
+  ownerProof: string;
 }
 
 export interface IActivity {

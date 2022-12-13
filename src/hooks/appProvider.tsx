@@ -18,7 +18,7 @@ interface IAppContextShape {
   setActiveAccountId: (e: string) => void;
   accounts: IAccount[];
   setAccounts: (e: IAccount[]) => void;
-  account: IAccount | undefined;
+  account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: string;
@@ -72,18 +72,12 @@ export const AppProvider: FunctionComponent<{
     () =>
       accounts?.find(
         (account: IAccount) => account?.pubKey === activeAccountId
-      ),
+      )!,
     [accounts, activeAccountId]
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState("Request");
-  const abAccountBalance = accounts
-    ?.find((account) => account?.pubKey === activeAccountId)
-    ?.assets.find((asset) => asset.id === "AB")?.amount;
-  const abFetchedBalance = balances?.find(
-    (balance: any) => balance?.data?.id === activeAccountId
-  )?.data?.balance;
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {

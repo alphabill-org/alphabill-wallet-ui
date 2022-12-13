@@ -1,16 +1,13 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
-import CryptoJS from "crypto-js";
 import { Link, Navigate } from "react-router-dom";
-import { HDKey } from "@scure/bip32";
-import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError, pubKeyToHex } from "../../utils/utils";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
@@ -50,36 +47,21 @@ function Login(): JSX.Element | null {
             });
           }
 
-          const decryptedVault = JSON.parse(
-            CryptoJS.AES.decrypt(vault.toString(), values.password).toString(
-              CryptoJS.enc.Latin1
-            )
+          const { hashingPublicKey, decryptedVault } = getKeys(
+            values.password,
+            0,
+            vault
           );
 
           if (
-            decryptedVault.entropy.length > 16 &&
-            decryptedVault.entropy.length < 32 &&
-            decryptedVault.entropy.length % 4 === 0
-          ) {
-            return setErrors({ password: "Password is incorrect!" });
-          }
-
-          const mnemonic = entropyToMnemonic(decryptedVault.entropy);
-          const seed = mnemonicToSeedSync(mnemonic);
-          const masterKey = HDKey.fromMasterSeed(seed);
-
-          const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
-          const controlHashingPubKey = controlHashingKey.publicKey;
-
-          if (
-            pubKeyToHex(controlHashingPubKey!) !==
+            unit8ToHexPrefixed(hashingPublicKey!) !==
             decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
 
           setUserKeys(decryptedVault.pub_keys);
-          setActiveAccountId(pubKeyToHex(controlHashingPubKey!));
+          setActiveAccountId(unit8ToHexPrefixed(hashingPublicKey!));
           login();
         }}
         validationSchema={Yup.object().shape({
