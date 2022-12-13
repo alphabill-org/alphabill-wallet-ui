@@ -87,6 +87,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
         )}
         <input
           {...inputProps}
+          autoComplete="off"
           onChange={handleChange}
           onBlur={handleBlur}
           value={
