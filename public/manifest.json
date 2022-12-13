@@ -16,8 +16,8 @@
     "storage"
   ],
   "host_permissions": [
-    "*://*.dev-ab-wallet-backend.abdev1.guardtime.com/*",
-    "*://*.dev-ab-faucet-api.abdev1.guardtime.com/*",
-    "*://*.dev-ab-money-partition.abdev1.guardtime.com/*"
+    "*://*.wallet-backend.testnet.alphabill.org/*",
+    "*://*.faucet.testnet.alphabill.org//*",
+    "*://*.money-partition.testnet.alphabill.org/*"
   ]
 }

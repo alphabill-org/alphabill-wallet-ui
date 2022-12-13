@@ -1,7 +1,7 @@
 import axios from "axios";
 import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
 
-export const API_URL = "https://dev-ab-wallet-backend.abdev1.guardtime.com/api/v1"
+export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1"
 
 export const getBalance = async (id: string): Promise<any> => {
   if (!id || Number(id) === 0 || !id.startsWith("0x")) {
@@ -32,7 +32,7 @@ export const getBillsList = async (id: string): Promise<any> => {
 
 export const getBlockHeight = async (): Promise<IBlockStats> => {
   const response = await axios.get<IBlockStats>(
-    `https://dev-ab-faucet-api.abdev1.guardtime.com/stats/block-height`
+    `https://faucet.testnet.alphabill.org/stats/block-height`
   );
 
   return response.data;
@@ -42,7 +42,7 @@ export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer }>(
-    "https://dev-ab-money-partition.abdev1.guardtime.com/api/v1/transactions",
+    "https://money-partition.testnet.alphabill.org/api/v1/transactions",
     {
       ...data,
     }
