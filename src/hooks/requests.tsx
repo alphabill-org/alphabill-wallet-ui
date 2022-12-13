@@ -32,7 +32,7 @@ export const getBillsList = async (id: string): Promise<any> => {
 
 export const getBlockHeight = async (): Promise<IBlockStats> => {
   const response = await axios.get<IBlockStats>(
-    `https://faucet.testnet.alphabill.org/stats/block-height`
+    `${API_URL}/block-height`
   );
 
   return response.data;

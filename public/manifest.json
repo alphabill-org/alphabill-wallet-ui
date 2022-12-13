@@ -17,7 +17,6 @@
   ],
   "host_permissions": [
     "*://*.wallet-backend.testnet.alphabill.org/*",
-    "*://*.faucet.testnet.alphabill.org//*",
     "*://*.money-partition.testnet.alphabill.org/*"
   ]
 }
