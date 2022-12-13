@@ -8,13 +8,13 @@ import { Link } from "react-router-dom";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError, pubKeyToHex } from "../../utils/utils";
+import { extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 
 function RecoverAccount(): JSX.Element | null {
-  const { login, userKeys } = useAuth();
+  const { login, userKeys, setVault } = useAuth();
 
   return (
     <div className="create-account">
@@ -89,10 +89,10 @@ function RecoverAccount(): JSX.Element | null {
                 const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
                 const hashingPubKey = hashingKey.publicKey;
                 const encrypted = CryptoJS.AES.encrypt(
-                  pubKeyToHex(hashingPubKey!),
+                  unit8ToHexPrefixed(hashingPubKey!),
                   values.password
                 ).toString();
-                const prefixedPubKey = pubKeyToHex(hashingPubKey!);
+                const prefixedPubKey = unit8ToHexPrefixed(hashingPubKey!);
                 const decrypted = CryptoJS.AES.decrypt(
                   encrypted,
                   values.password
@@ -107,13 +107,13 @@ function RecoverAccount(): JSX.Element | null {
                       ? userKeys
                       : prefixedPubKey,
                   };
-                  localStorage.setItem(
-                    "ab_wallet_vault",
+                  setVault(
                     CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password
                     ).toString()
                   );
+
                   login(!userKeys ? prefixedPubKey : null);
                 }
               })

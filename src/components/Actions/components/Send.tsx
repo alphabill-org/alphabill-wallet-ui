@@ -1,25 +1,45 @@
 import { useState } from "react";
-import moment from "moment";
 import { Formik } from "formik";
+import { differenceBy } from "lodash";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
+import CryptoJS from "crypto-js";
+import { Uint64BE } from "int64-buffer";
+import * as secp from "@noble/secp256k1";
+import { useQueryClient } from "react-query";
 
 import Button from "../../Button/Button";
 import Spacer from "../../Spacer/Spacer";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError } from "../../../utils/utils";
+
 import Select from "../../Select/Select";
-import { IAccount, IAsset } from "../../../types/Types";
+import { IAsset, IBill, IBlockStats, ITransfer } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
+import { useAuth } from "../../../hooks/useAuth";
+import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
+
+import {
+  extractFormikError,
+  getKeys,
+  unit8ToHexPrefixed,
+  startByte,
+  opPushSig,
+  opPushPubKey,
+  opDup,
+  opHash,
+  opPushHash,
+  opCheckSig,
+  opEqual,
+  opVerify,
+  sigScheme,
+} from "../../../utils/utils";
 
 function Send(): JSX.Element | null {
   const [currentTokenId, setCurrentTokenId] = useState<any>("");
-  const {
-    setIsActionsViewVisible,
-    account,
-    accounts,
-    setAccounts,
-  } = useApp();
+  const { setIsActionsViewVisible, account, billsList, activeAccountId } =
+    useApp();
+  const { vault } = useAuth();
+  const queryClient = useQueryClient();
 
   return (
     <Formik
@@ -27,104 +47,225 @@ function Send(): JSX.Element | null {
         assets: "",
         amount: 0,
         address: "",
+        password: "",
       }}
-      onSubmit={(values) => {
-        const updatedData = accounts?.map((obj) => {
-          if (obj?.pubKey === values.address) {
-            const currentAsset = obj.assets?.find(
-              (asset: IAsset) =>
-                asset?.id === currentTokenId.id &&
-                asset.network === account?.activeNetwork
-            );
+      onSubmit={(values, { setErrors }) => {
+        const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+          values.password,
+          Number(account.idx),
+          vault
+        );
 
-            const filteredAsset = obj.assets?.filter(
-              (asset: IAsset) => asset !== currentAsset
-            );
+        if (error || !hashingPrivateKey || !hashingPublicKey) {
+          return setErrors({ password: error || "Hashing keys are missing!" });
+        }
 
-            let updatedAsset;
-            if (currentAsset) {
-              updatedAsset = {
-                ...currentAsset,
-                amount: Number(currentAsset?.amount) + Number(values.amount),
-              };
+        const billsArr = billsList.bills as IBill[];
+        let selectedBills: IBill[] = [];
+        const findClosestBigger = (bills: IBill[], target: number) =>
+          bills
+            .sort(function (a: IBill, b: IBill) {
+              return a.value - b.value;
+            })
+            .find(({ value }) => value >= target);
+        const getClosestSmaller = (bills: IBill[], target: number) =>
+          bills.reduce((acc: IBill, obj: IBill) =>
+            Math.abs(target - obj.value) < Math.abs(target - acc.value)
+              ? obj
+              : acc
+          );
+
+        if (Number(findClosestBigger(billsArr, values.amount)?.value) > 0) {
+          selectedBills = selectedBills.concat([
+            findClosestBigger(billsArr, values.amount) as IBill,
+          ]);
+        } else {
+          const initialBill = getClosestSmaller(billsArr, values.amount);
+          selectedBills = selectedBills.concat([initialBill]);
+          let missingSum = Number(values.amount) - initialBill.value;
+
+          do {
+            const filteredBills = differenceBy(billsArr, selectedBills, "id");
+
+            const filteredBillsSum = filteredBills.reduce(
+              (acc: number, obj: IBill) => {
+                return acc + obj?.value;
+              },
+              0
+            );
+            let addedSum;
+
+            if (
+              Number(
+                findClosestBigger(filteredBills, Math.abs(missingSum))?.value
+              ) > 0
+            ) {
+              const currentBill = findClosestBigger(
+                filteredBills,
+                Math.abs(missingSum)
+              );
+              selectedBills = selectedBills.concat([currentBill as IBill]);
+              addedSum = currentBill?.value || 0;
             } else {
-              updatedAsset = {
-                id: currentTokenId.id,
-                name: currentTokenId.name,
-                amount: values.amount,
-                network: account?.activeNetwork,
-              };
+              const currentBill = getClosestSmaller(
+                filteredBills,
+                Math.abs(missingSum)
+              );
+              selectedBills = selectedBills.concat([currentBill]);
+              addedSum = currentBill?.value || 0;
             }
+            missingSum = missingSum - addedSum;
+            if (filteredBillsSum <= 0) {
+              break;
+            }
+          } while (missingSum > 0);
+        }
 
-            const updatedAssets =
-              filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset as IAsset])
-                : [updatedAsset];
+        const address = values.address.startsWith("0x")
+          ? values.address.substring(2)
+          : values.address;
+        const addressHash = CryptoJS.enc.Hex.parse(address);
+        const SHA256 = CryptoJS.SHA256(addressHash);
+        const newBearer = Buffer.from(
+          startByte +
+            opDup +
+            opHash +
+            sigScheme +
+            opPushHash +
+            sigScheme +
+            SHA256.toString(CryptoJS.enc.Hex) +
+            opEqual +
+            opVerify +
+            opCheckSig +
+            sigScheme,
+          "hex"
+        ).toString("base64");
 
-            return {
-              ...obj,
-              assets: updatedAssets,
-              activities: obj.activities.concat([
-                {
-                  id: currentTokenId.id,
-                  name: currentTokenId.name,
-                  amount: Number(values.amount),
-                  time: moment().format("ll LTS"),
-                  address: values.address,
-                  type: "Receive",
-                  network: account?.activeNetwork!,
-                  fromAddress: account?.pubKey,
-                },
-              ]),
+        const selectedBillsSum = selectedBills.reduce(
+          (acc: number, obj: IBill) => {
+            return acc + obj?.value;
+          },
+          0
+        );
+        const billsSumDifference = selectedBillsSum - values.amount;
+        const billToSplit =
+          billsSumDifference !== 0
+            ? findClosestBigger(selectedBills, billsSumDifference)
+            : null;
+        const billsToTransfer = billToSplit
+          ? selectedBills.filter((bill) => bill.id !== billToSplit?.id)
+          : selectedBills;
+        const splitBillAmount = billToSplit
+          ? billToSplit?.value - billsSumDifference
+          : null;
+
+        const transferData = billsToTransfer.map((bill) => ({
+          systemId: "AAAAAA==",
+          unitId: bill.id,
+          transactionAttributes: {
+            "@type": "type.googleapis.com/rpc.TransferOrder",
+            newBearer: newBearer,
+            targetValue: bill.value,
+            backlink: bill.txHash,
+          },
+        }));
+        getBlockHeight().then(async (blockData) => {
+          if (billToSplit && splitBillAmount) {
+            const splitData: ITransfer = {
+              systemId: "AAAAAA==",
+              unitId: billToSplit.id,
+              transactionAttributes: {
+                "@type": "type.googleapis.com/rpc.SplitOrder",
+                amount: splitBillAmount,
+                targetBearer: newBearer,
+                remainingValue: billToSplit.value - splitBillAmount,
+                backlink: billToSplit.txHash,
+              },
+              timeout: blockData.blockHeight + 42,
+              ownerProof: "",
             };
-          } else if (obj?.pubKey === account?.pubKey) {
-            const currentAsset = obj.assets?.find(
-              (asset: IAsset) => asset?.id === currentTokenId.id
+            const msgHash = await secp.utils.sha256(
+              secp.utils.concatBytes(
+                Buffer.from(splitData.systemId, "base64"),
+                Buffer.from(splitData.unitId, "base64"),
+                new Uint64BE(splitData.timeout).toBuffer(),
+                new Uint64BE(splitData.transactionAttributes.amount).toBuffer(),
+                Buffer.from(
+                  splitData.transactionAttributes.targetBearer as string,
+                  "base64"
+                ),
+                new Uint64BE(
+                  splitData.transactionAttributes.remainingValue
+                ).toBuffer(),
+                Buffer.from(billToSplit.txHash, "base64")
+              )
             );
 
-            const filteredAsset = obj.assets?.filter(
-              (asset: IAsset) => asset !== currentAsset
+            handleValidation(msgHash, blockData, splitData);
+          }
+
+          transferData.map(async (data) => {
+            const msgHash = await secp.utils.sha256(
+              secp.utils.concatBytes(
+                Buffer.from(data.systemId, "base64"),
+                Buffer.from(data.unitId, "base64"),
+                new Uint64BE(blockData.blockHeight + 42).toBuffer(),
+                Buffer.from(
+                  data.transactionAttributes.newBearer as string,
+                  "base64"
+                ),
+                new Uint64BE(data.transactionAttributes.targetValue).toBuffer(),
+                Buffer.from(data.transactionAttributes.backlink, "base64")
+              )
             );
 
-            let updatedAsset;
-            if (currentAsset) {
-              updatedAsset = {
-                ...currentAsset,
-                amount: Number(currentAsset?.amount) - Number(values.amount),
-              };
-            } else {
-              updatedAsset = {
-                id: currentTokenId.id,
-                name: currentTokenId.name,
-                amount: values.amount,
-              };
-            }
-
-            const updatedAssets =
-              filteredAsset.length >= 1
-                ? filteredAsset.concat([updatedAsset as IAsset])
-                : [updatedAsset];
-
-            return {
-              ...obj,
-              assets: updatedAssets,
-              activities: obj.activities.concat([
-                {
-                  id: currentTokenId.id,
-                  name: currentTokenId.name,
-                  amount: Number(values.amount),
-                  time: moment().format("ll LTS"),
-                  address: values.address,
-                  type: "Send",
-                  network: account?.activeNetwork!,
-                },
-              ]),
-            };
-          } else return { ...obj };
+            handleValidation(msgHash, blockData, data as ITransfer);
+          });
         });
 
-        setAccounts(updatedData as IAccount[]);
-        setIsActionsViewVisible(false);
+        const handleValidation = async (
+          msgHash: Uint8Array,
+          blockData: IBlockStats,
+          billData: ITransfer
+        ) => {
+          const signature = await secp.sign(msgHash, hashingPrivateKey, {
+            der: false,
+            recovered: true,
+          });
+
+          const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
+
+          const ownerProof = Buffer.from(
+            startByte +
+              opPushSig +
+              sigScheme +
+              Buffer.from(
+                secp.utils.concatBytes(
+                  signature[0],
+                  Buffer.from([signature[1]])
+                )
+              ).toString("hex") +
+              opPushPubKey +
+              sigScheme +
+              unit8ToHexPrefixed(hashingPublicKey).substring(2),
+            "hex"
+          ).toString("base64");
+
+          const dataWithProof = Object.assign(billData, {
+            ownerProof: ownerProof,
+            timeout: blockData.blockHeight + 42,
+          });
+
+          isValid &&
+            makeTransaction(dataWithProof).then(() => {
+              setIsActionsViewVisible(false);
+              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              queryClient.invalidateQueries([
+                "balance",
+                unit8ToHexPrefixed(hashingPublicKey),
+              ]);
+            });
+        };
       }}
       validationSchema={Yup.object().shape({
         assets: Yup.object().required("Selected asset is required"),
@@ -141,6 +282,11 @@ function Send(): JSX.Element | null {
               }
             }
           ),
+        password: Yup.string().test(
+          "empty-or-8-characters-check",
+          "password must be at least 8 characters",
+          (password) => !password || password.length >= 8
+        ),
         amount: Yup.number()
           .positive("Value must be greater than 0.")
           .test(
@@ -200,7 +346,17 @@ function Send(): JSX.Element | null {
                   name="amount"
                   label="Amount"
                   type="number"
+                  step="any"
+                  floatingFixedPoint="2"
                   error={extractFormikError(errors, touched, ["amount"])}
+                  disabled={!Boolean(values.assets)}
+                />
+                <Textfield
+                  id="password"
+                  name="password"
+                  label="Password"
+                  type="password"
+                  error={extractFormikError(errors, touched, ["password"])}
                   disabled={!Boolean(values.assets)}
                 />
               </FormContent>

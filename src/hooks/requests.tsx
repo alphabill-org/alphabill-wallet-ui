@@ -1,5 +1,7 @@
 import axios from "axios";
-import { IBillsList } from "../types/Types";
+import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
+
+export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1"
 
 export const getBalance = async (id: string): Promise<any> => {
   if (!id || Number(id) === 0 || !id.startsWith("0x")) {
@@ -7,7 +9,7 @@ export const getBalance = async (id: string): Promise<any> => {
   }
 
   const response = await axios.get<{ balance: number; id: string }>(
-    `https://dev-ab-wallet-backend.abdev1.guardtime.com/balance?pubkey=${id}`
+    `${API_URL}/balance?pubkey=${id}`
   );
 
   let res = response.data;
@@ -22,7 +24,28 @@ export const getBillsList = async (id: string): Promise<any> => {
   }
 
   const response = await axios.get<IBillsList>(
-    `https://dev-ab-wallet-backend.abdev1.guardtime.com/list-bills?pubkey=${id}`
+    `${API_URL}/list-bills?pubkey=${id}`
+  );
+
+  return response.data;
+};
+
+export const getBlockHeight = async (): Promise<IBlockStats> => {
+  const response = await axios.get<IBlockStats>(
+    `${API_URL}/block-height`
+  );
+
+  return response.data;
+};
+
+export const makeTransaction = async (
+  data: ITransfer
+): Promise<{ data: ITransfer }> => {
+  const response = await axios.post<{ data: ITransfer }>(
+    "https://money-partition.testnet.alphabill.org/api/v1/transactions",
+    {
+      ...data,
+    }
   );
 
   return response.data;

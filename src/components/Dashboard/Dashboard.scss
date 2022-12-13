@@ -97,7 +97,6 @@
       min-width: calc(50% - 54px);
       margin: 4px;
       flex: 1 1 auto;
-      max-width: calc(100% - 98px);
     }
   }
 
@@ -125,7 +124,7 @@
       font-size: 15px;
       line-height: 22px;
       color: $color-underpants;
-      width: 50%;
+      width: 100%;
       text-align: center;
       padding-bottom: 12px;
       cursor: pointer;

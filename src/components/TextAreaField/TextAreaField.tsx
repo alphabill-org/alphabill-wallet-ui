@@ -59,6 +59,7 @@ export default function TextAreaField(props: ITextAreaFieldProps): JSX.Element {
         )}
         <textarea
           {...textAreaProps}
+          autoComplete="off"
           onChange={handleChange}
           onBlur={handleBlur}
           value={isChanged ? field.value : value || field.value}

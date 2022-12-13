@@ -6,10 +6,7 @@ import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccount, IActivity, IAsset } from "../../types/Types";
-import { ReactComponent as BuyIcon } from "../../images/buy-ico.svg";
-import { ReactComponent as SendIcon } from "../../images/send-ico.svg";
-import { ReactComponent as SwapIcon } from "../../images/swap-ico.svg";
+import { IAccount, IAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
@@ -25,16 +22,16 @@ function Dashboard(): JSX.Element | null {
     account,
     accounts,
     setAccounts,
+    activeAccountId,
   } = useApp();
-  const abBalance = account?.assets.find((asset) => (asset.id = "AB"))?.amount;
-  const [isAssetsColActive, setIsAssetsColActive] = useState(false);
-  const [isRequestPopupVisible, setIsRequestPopupVisible] = useState(false);
+  const abBalance = account?.assets.find(
+    (asset: IAsset) => (asset.id = "AB")
+  )?.amount;
+  const [isAssetsColActive, setIsAssetsColActive] = useState(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
-
-  const activities = account?.activities;
   const sortedAssets = account?.assets
     ?.sort((a: IAsset, b: IAsset) => {
       if (a?.id! < b?.id!) {
@@ -117,24 +114,16 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Spacer mb={8} />
       <div className="dashboard__buttons">
-        {/* Useful for testing & demoing for now & will be removed later */}
-        <Button
-          variant="primary"
-          onClick={() => {
-            setIsRequestPopupVisible(true);
-          }}
-        >
-          Request
-        </Button>
-        {/* Needs API integration */}
         <Button
           variant="primary"
           onClick={() => {
             setActionsView("Send");
             setIsActionsViewVisible(true);
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
           }}
+          className="w-100-p"
         >
-          Send
+          Send bills
         </Button>
       </div>
       <Spacer mb={32} />
@@ -151,14 +140,6 @@ function Dashboard(): JSX.Element | null {
           >
             Assets
           </div>
-          <div
-            onClick={() => setIsAssetsColActive(false)}
-            className={classNames("dashboard__navbar-item", {
-              active: isAssetsColActive !== true,
-            })}
-          >
-            Activity
-          </div>
         </div>
         <div className="dashboard__info">
           <div
@@ -168,8 +149,10 @@ function Dashboard(): JSX.Element | null {
           >
             {sortedAssets &&
               sortedAssets
-                .filter((asset) => asset.network === account?.activeNetwork)
-                .map((asset: IAsset, idx) => {
+                .filter(
+                  (asset: IAsset) => asset.network === account?.activeNetwork
+                )
+                .map((asset: IAsset, idx: number) => {
                   // API supports only AB balance at the moment
                   return (
                     <div key={idx} className="dashboard__info-item-wrap">
@@ -200,77 +183,15 @@ function Dashboard(): JSX.Element | null {
                           onClick={() => {
                             setActionsView("Bills List");
                             setIsActionsViewVisible(true);
-                            queryClient.invalidateQueries(["billsList", account?.pubKey]);
+                            queryClient.invalidateQueries([
+                              "billsList",
+                              activeAccountId,
+                            ]);
                           }}
                         >
                           Show Bills
                         </Button>
                       )}
-                    </div>
-                  );
-                })}
-          </div>
-          {/* Activities need API or localStorage implementation */}
-          <div
-            className={classNames("dashboard__info-col", {
-              active: isAssetsColActive !== true,
-            })}
-          >
-            {activities &&
-              activities
-                .sort((a: IActivity, b: IActivity) => {
-                  return (
-                    new Date(b.time).getTime() - new Date(a.time).getTime()
-                  );
-                })
-                .map((activity: IActivity, idx) => {
-                  if (account?.activeNetwork !== activity?.network) return null;
-
-                  return (
-                    <div key={idx} className="dashboard__info-item-wrap">
-                      <div className="dashboard__info-item-icon">
-                        {activity.type === "Buy" ? (
-                          <div className="icon-wrap">
-                            <BuyIcon />
-                          </div>
-                        ) : activity.type === "Send" ? (
-                          <div className="icon-wrap">
-                            <SendIcon />
-                          </div>
-                        ) : activity.type === "Receive" ? (
-                          <div className="icon-wrap receive">
-                            <SendIcon />
-                          </div>
-                        ) : (
-                          <div className="icon-wrap">
-                            <SwapIcon />
-                          </div>
-                        )}
-                      </div>
-                      <div className="dashboard__info-item-type">
-                        <div className="t-medium">
-                          {activity.type}{" "}
-                          {activity.fromID && activity.fromID + " to "}
-                          {activity.id}{" "}
-                        </div>
-                        <div className="t-small c-light">{activity.time}</div>
-                        {activity.type !== "Swap" && activity.type !== "Buy" && (
-                          <div className="t-small c-light t-ellipsis">
-                            {activity.type === "Send" ? "To: " : "From: "}{" "}
-                            {activity.fromAddress
-                              ? activity.fromAddress
-                              : activity.address}
-                          </div>
-                        )}
-                      </div>
-                      <div className="dashboard__info-item-amount">
-                        <div className="t-medium">{activity.amount}</div>
-                        <div className="t-small c-light">
-                          {activity.fromAmount
-                            ? activity.fromAmount
-                            : activity.amount}
-                        </div>
-                      </div>
                     </div>
                   );
                 })}
@@ -283,8 +204,6 @@ function Dashboard(): JSX.Element | null {
         setAccounts={setAccounts}
         isRenamePopupVisible={isRenamePopupVisible}
         setIsRenamePopupVisible={setIsRenamePopupVisible}
-        isRequestPopupVisible={isRequestPopupVisible}
-        setIsRequestPopupVisible={setIsRequestPopupVisible}
       />
     </div>
   );

@@ -87,6 +87,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
         )}
         <input
           {...inputProps}
+          autoComplete="off"
           onChange={handleChange}
           onBlur={handleBlur}
           value={
@@ -100,7 +101,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
           onKeyDown={
             props.type === "number"
               ? (evt) =>
-                  ["e", "E", "+", "-", ",", "."].includes(evt.key) &&
+                  ["e", "E", "+", "-"].includes(evt.key) &&
                   evt.preventDefault()
               : undefined
           }
