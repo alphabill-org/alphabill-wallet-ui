@@ -153,7 +153,7 @@ function AccountView(): JSX.Element | null {
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]: values.accountName,
+                    ["_" + idx]: values.accountName || "Account " + (idx + 1),
                   })
                 )
               );
@@ -191,7 +191,6 @@ function AccountView(): JSX.Element | null {
           }}
           validationSchema={Yup.object().shape({
             accountName: Yup.string()
-              .required("Address is required")
               .test(
                 "account-name-taken",
                 `The account name is taken`,
@@ -229,7 +228,7 @@ function AccountView(): JSX.Element | null {
                     <Textfield
                       id="accountName"
                       name="accountName"
-                      label="Account Name"
+                      label="Account Name (Optional)"
                       type="accountName"
                       error={extractFormikError(errors, touched, [
                         "accountName",
