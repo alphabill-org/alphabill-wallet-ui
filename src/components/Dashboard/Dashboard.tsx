@@ -10,6 +10,7 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
+import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
@@ -107,13 +108,22 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={8} />
       <div className="dashboard__buttons">
         <Button
+          onClick={() => {
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
+          }}
+          variant="primary"
+        >
+          <div className="pad-8-r">Refresh</div>
+          <Sync height="16" width="16" />
+        </Button>
+        <Button
           variant="primary"
           onClick={() => {
             setActionsView("Send");
             setIsActionsViewVisible(true);
             queryClient.invalidateQueries(["billsList", activeAccountId]);
           }}
-          className="w-100-p"
         >
           Send bills
         </Button>

@@ -22,7 +22,6 @@ export const getBalance = async (id: string): Promise<any> => {
 
   let res = response.data;
   res = { ...response.data, id: id };
-  console.log(res);
 
   return res;
 };
