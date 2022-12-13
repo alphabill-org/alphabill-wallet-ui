@@ -169,9 +169,8 @@ function Send(): JSX.Element | null {
             backlink: bill.txHash,
           },
         }));
-
-        if (billToSplit && splitBillAmount) {
-          getBlockHeight().then(async (blockData) => {
+        getBlockHeight().then(async (blockData) => {
+          if (billToSplit && splitBillAmount) {
             const splitData: ITransfer = {
               systemId: "AAAAAA==",
               unitId: billToSplit.id,
@@ -203,11 +202,9 @@ function Send(): JSX.Element | null {
             );
 
             handleValidation(msgHash, blockData, splitData);
-          });
-        }
+          }
 
-        transferData.map(async (data) => {
-          getBlockHeight().then(async (blockData) => {
+          transferData.map(async (data) => {
             const msgHash = await secp.utils.sha256(
               secp.utils.concatBytes(
                 Buffer.from(data.systemId, "base64"),
