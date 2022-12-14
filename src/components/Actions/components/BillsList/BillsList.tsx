@@ -9,7 +9,12 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
-import { extractFormikError, getNewBearer, sortIDBySize, sortTxProofsByID } from "../../../../utils/utils";
+import {
+  extractFormikError,
+  getNewBearer,
+  sortIDBySize,
+  sortTxProofsByID,
+} from "../../../../utils/utils";
 import {
   IBill,
   ILockedBill,
@@ -357,6 +362,8 @@ function BillsList(): JSX.Element | null {
           ).length > 0 && (
             <Button
               onClick={() => {
+                queryClient.invalidateQueries(["billsList", activeAccountId]);
+                queryClient.invalidateQueries(["balance", activeAccountId]);
                 sortedListByValue.filter(
                   (b: IBill) =>
                     b.isDCBill === false &&
@@ -425,6 +432,7 @@ function BillsList(): JSX.Element | null {
             setSelectedSendKey={(v) => setSelectedSendKey(v)}
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
+            activeAccountId={activeAccountId}
           />
         )}
         {sortedListByValue.filter(
@@ -452,6 +460,7 @@ function BillsList(): JSX.Element | null {
             )}
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
+            activeAccountId={activeAccountId}
             isSelectedForCollection
             DCBills={DCBills}
             setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
@@ -485,6 +494,7 @@ function BillsList(): JSX.Element | null {
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
+            activeAccountId={activeAccountId}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
