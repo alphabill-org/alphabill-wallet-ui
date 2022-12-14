@@ -114,7 +114,7 @@ function Login(): JSX.Element | null {
         </Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">
-          {"Don't have an wallet? Create a wallet"}
+          {"Don't have a wallet? Create a wallet"}
         </Link>
       </div>
     </div>

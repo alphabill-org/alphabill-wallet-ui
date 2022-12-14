@@ -24,6 +24,7 @@ export interface IBillsListItemProps {
   isLockedBills?: boolean;
   lockedBills: ILockedBill[];
   setLockedBillsLocal: (e: string) => void;
+  activeAccountId: string;
 }
 
 function BillsListItem({
@@ -44,6 +45,7 @@ function BillsListItem({
   isLockedBills,
   setLockedBillsLocal,
   lockedBills,
+  activeAccountId
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: number | null = null;
   const queryClient = useQueryClient();
@@ -118,6 +120,14 @@ function BillsListItem({
                   <span className="pad-8-l">
                     <Button
                       onClick={() => {
+                        queryClient.invalidateQueries([
+                          "billsList",
+                          activeAccountId,
+                        ]);
+                        queryClient.invalidateQueries([
+                          "balance",
+                          activeAccountId,
+                        ]);
                         collectableBills.find((b: IBill) => bill.id === b.id)
                           ? setCollectableBills(
                               collectableBills.filter(
