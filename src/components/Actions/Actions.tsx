@@ -4,9 +4,8 @@ import Button from "../Button/Button";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
-import ImportAccount from "./components/ImportAccount";
 import { useApp } from "../../hooks/appProvider";
-import BillsList from "./components/BillsList";
+import BillsList from "./components/BillsList/BillsList";
 
 function Actions(): JSX.Element | null {
   const {
@@ -14,6 +13,7 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
+    setSelectedSendKey,
   } = useApp();
 
   return (
@@ -22,7 +22,11 @@ function Actions(): JSX.Element | null {
     >
       <div className="actions__header">
         <Button
-          onClick={() => setIsActionsViewVisible(!isActionsViewVisible)}
+          onClick={() => {
+            setIsActionsViewVisible(!isActionsViewVisible);
+            actionsView === "Send" && setSelectedSendKey(null);
+          }}
+          className="btn__back"
           variant="icon"
         >
           <Arrow />
@@ -36,8 +40,6 @@ function Actions(): JSX.Element | null {
           <BillsList />
         ) : actionsView === "Account" && accounts ? (
           <Account />
-        ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount />
         ) : (
           <></>
         )}

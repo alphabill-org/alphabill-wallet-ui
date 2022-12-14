@@ -7,7 +7,11 @@ import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
+import {
+  extractFormikError,
+  getKeys,
+  unit8ToHexPrefixed,
+} from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
@@ -47,15 +51,16 @@ function Login(): JSX.Element | null {
             });
           }
 
-          const { hashingPublicKey, decryptedVault } = getKeys(
+          const { error, hashingPublicKey, decryptedVault } = getKeys(
             values.password,
             0,
             vault
           );
 
           if (
+            error ||
             unit8ToHexPrefixed(hashingPublicKey!) !==
-            decryptedVault.pub_keys?.split(" ")[0]
+              decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
@@ -104,7 +109,9 @@ function Login(): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <Link to="/recover-wallet">{"Forgot password? Recover wallet"}</Link>
+        <Link to="/recover-wallet">
+          {"Recover wallet from recovery phrase"}
+        </Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">
           {"Don't have an wallet? Create a wallet"}

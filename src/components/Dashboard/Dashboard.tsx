@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import OutsideClickHandler from "react-outside-click-handler";
 import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
@@ -11,6 +10,7 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
+import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
@@ -25,7 +25,7 @@ function Dashboard(): JSX.Element | null {
     activeAccountId,
   } = useApp();
   const abBalance = account?.assets.find(
-    (asset: IAsset) => (asset.id = "AB")
+    (asset: IAsset) => (asset.id = "ALPHA")
   )?.amount;
   const [isAssetsColActive, setIsAssetsColActive] = useState(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
@@ -57,7 +57,7 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={40} />
       <div className="dashboard__balance">
         <h1>{abBalance || 0}</h1>
-        <h3>AB</h3>
+        <h3>ALPHA</h3>
       </div>
       <Spacer mb={8} />
 
@@ -74,54 +74,57 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <OutsideClickHandler
-            display="flex"
-            onOutsideClick={() => {
-              setIsAccountSettingsVisible(false);
-            }}
+          <Button
+            onClick={() =>
+              setIsAccountSettingsVisible(!isAccountSettingsVisible)
+            }
+            variant="icon"
           >
-            <Button
-              onClick={() =>
-                setIsAccountSettingsVisible(!isAccountSettingsVisible)
-              }
-              variant="icon"
+            <MoreIco className="textfield__btn" height="12px" />
+            <div
+              className={classNames("dashboard__account-options", {
+                active: isAccountSettingsVisible === true,
+              })}
             >
-              <MoreIco className="textfield__btn" height="12px" />
               <div
-                className={classNames("dashboard__account-options", {
-                  active: isAccountSettingsVisible === true,
-                })}
+                onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
+                className="dashboard__account-option"
               >
-                <div
-                  onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
-                  className="dashboard__account-option"
-                >
-                  Rename
-                </div>
-                <div
-                  onClick={() => {
-                    setActionsView("Account");
-                    setIsActionsViewVisible(true);
-                  }}
-                  className="dashboard__account-option"
-                >
-                  Change Account
-                </div>
+                Rename
               </div>
-            </Button>
-          </OutsideClickHandler>
+              <div
+                onClick={() => {
+                  setActionsView("Account");
+                  setIsActionsViewVisible(true);
+                }}
+                className="dashboard__account-option"
+              >
+                Change Account
+              </div>
+            </div>
+          </Button>
         </div>
       </div>
       <Spacer mb={8} />
       <div className="dashboard__buttons">
+        <Button
+          onClick={() => {
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
+          }}
+          variant="primary"
+        >
+          <div className="pad-8-r">Refresh</div>
+          <Sync height="16" width="16" />
+        </Button>
         <Button
           variant="primary"
           onClick={() => {
             setActionsView("Send");
             setIsActionsViewVisible(true);
             queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
           }}
-          className="w-100-p"
         >
           Send bills
         </Button>
@@ -157,7 +160,7 @@ function Dashboard(): JSX.Element | null {
                   return (
                     <div key={idx} className="dashboard__info-item-wrap">
                       <div className="dashboard__info-item-icon">
-                        {asset?.id === "AB" ? (
+                        {asset?.id === "ALPHA" ? (
                           <div className="icon-wrap ab-logo">
                             <ABLogo />
                           </div>
@@ -175,7 +178,7 @@ function Dashboard(): JSX.Element | null {
                         </div>
                         <div className="t-small c-light">{asset.name}</div>
                       </div>
-                      {asset?.id === "AB" && (
+                      {asset?.id === "ALPHA" && (
                         <Button
                           variant="primary"
                           className="m-auto-l"

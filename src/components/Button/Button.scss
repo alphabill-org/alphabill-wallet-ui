@@ -10,13 +10,19 @@
   border: none;
   cursor: pointer;
 
+  &:active {
+    transform: scale(.9);
+  }
+
   &--icon {
     padding: 0;
 
     &:hover {
       opacity: 1 !important;
 
-      svg, path, g {
+      svg,
+      path,
+      g {
         fill: $color-primary;
       }
     }
@@ -33,6 +39,12 @@
 
   &.button--small {
     height: 30px;
+  }
+
+  &.button--x-small {
+    height: 20px;
+    font-size: 14px;
+    padding: 6px;
   }
 
   &.is--bordered {
@@ -116,7 +128,6 @@
 .button--link {
   background: transparent;
   color: $color-link;
-  font-size: 16px;
   height: auto;
   padding: 0;
   white-space: normal;
@@ -126,7 +137,7 @@
 
   &:hover {
     opacity: 1;
-    color: $color-link;
+    color: $color-secondary;
   }
 }
 
@@ -139,7 +150,10 @@
 
   .spinner {
     margin-left: 8px;
-    > div {
+    height: 16px !important;
+    width: 16px !important;
+
+    span {
       height: 16px !important;
       width: 16px !important;
     }

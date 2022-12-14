@@ -2,9 +2,20 @@
   display: flex;
   align-items: center;
 
-  svg {
-    color: $color-white !important;
+  &__circle {
+    border: 2px solid #a0b3b363;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 2s linear infinite;
+    background: transparent;
   }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .spinner--absolute {
