@@ -94,9 +94,9 @@ export interface ISwapProps {
   transactionAttributes: {
     "@type": string;
     billIdentifiers: string[]; // All the bills that are used in a swap
-    dcTransfers: IDCTransferProps[];
+    dcTransfers: IProofTx[];
     ownerCondition: string;
-    proofs: ISwapProofProps[];
+    proofs: IProof[];
     targetValue: string;
   };
   timeout: number;
@@ -111,46 +111,55 @@ export interface IProofProps {
   id: string;
   value: number;
   txHash: string;
-  txProof: {
-    blockNumber: number;
-    tx: {
-      systemId: string;
-      unitId: string;
-      transactionAttributes: {
-        "@type": string;
-        nonce: string;
-        targetBearer: string;
-        targetValue: number;
-        backlink: string;
-      };
-      timeout: number;
-      ownerProof: string;
+  txProof: ITxProof;
+}
+
+export interface ITxProof {
+  blockNumber: number;
+  tx: IProofTx;
+  proof: IProof;
+}
+
+export interface IProofTx {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    nonce: string;
+    targetBearer: string;
+    targetValue: number;
+    backlink: string;
+  };
+  timeout: number;
+  ownerProof: string;
+}
+
+export interface IProof {
+  proofType: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
+  blockHeaderHash: string;
+  transactionsHash: string;
+  hashValue: string;
+  blockTreeHashChain: {
+    items: { val: string; hash: string }[];
+  };
+  unicityCertificate: {
+    inputRecord: {
+      previousHash: string;
+      hash: string;
+      blockHash: string;
+      summaryValue: string;
     };
-    proof: {
-      blockHeaderHash: string;
-      transactionsHash: string;
-      hashValue: string;
-      blockTreeHashChain: {
-        items: { val: string; hash: string }[];
-      };
-      unicityCertificate: {
-        inputRecord: {
-          previousHash: string;
-          hash: string;
-          blockHash: string;
-          summaryValue: string;
-        };
-        unicityTreeCertificate: {
-          systemIdentifier: string;
-          siblingHashes: string[];
-          systemDescriptionHash: string;
-        };
-        unicitySeal: {
-          rootChainRoundNumber: 1;
-          previousHash: string;
-          hash: string;
-          signatures: any;
-        };
+    unicityTreeCertificate: {
+      systemIdentifier: string;
+      siblingHashes: string[];
+      systemDescriptionHash: string;
+    };
+    unicitySeal: {
+      rootChainRoundNumber: number;
+      previousHash: string;
+      hash: string;
+      signatures: {
+        test: string;
       };
     };
   };
@@ -183,7 +192,7 @@ export interface ISwapProofProps {
       systemDescriptionHash: string;
     };
     unicitySeal: {
-      rootChainRoundNumber: 1;
+      rootChainRoundNumber: number;
       previousHash: string;
       hash: string;
       signatures: {
@@ -199,9 +208,9 @@ export interface ISwapTransferProps {
   transactionAttributes: {
     "@type": string;
     billIdentifiers: string[];
-    dcTransfers: IDCTransferProps[];
+    dcTransfers: IProofTx[];
     ownerCondition: string;
-    proofs: ISwapProofProps[];
+    proofs: IProof[];
     targetValue: string;
   };
   timeout: number;

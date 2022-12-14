@@ -51,15 +51,16 @@ function Login(): JSX.Element | null {
             });
           }
 
-          const { hashingPublicKey, decryptedVault } = getKeys(
+          const { error, hashingPublicKey, decryptedVault } = getKeys(
             values.password,
             0,
             vault
           );
 
           if (
+            error ||
             unit8ToHexPrefixed(hashingPublicKey!) !==
-            decryptedVault.pub_keys?.split(" ")[0]
+              decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }

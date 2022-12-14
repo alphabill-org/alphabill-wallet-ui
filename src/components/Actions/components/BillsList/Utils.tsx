@@ -11,17 +11,17 @@ import {
 import { Uint64BE } from "int64-buffer";
 import {
   IAccount,
-  IDCTransferProps,
-  ISwapProofProps,
+  IProof,
+  IProofTx,
   ISwapProps,
   ISwapTransferProps,
+  ITxProof,
 } from "../../../../types/Types";
 import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
 
 export const handleSwapRequest = async (
   nonce: Buffer[],
-  proofs: ISwapProofProps[],
-  dcTransfers: IDCTransferProps[],
+  txProofs: ITxProof[],
   formPassword: string | undefined,
   password: string,
   billIdentifiers: string[],
@@ -36,6 +36,16 @@ export const handleSwapRequest = async (
     Number(account.idx),
     vault
   );
+
+  let dcTransfers: IProofTx[] = [];
+  let proofs: IProof[] = [];
+
+  txProofs.forEach((txProof) => {
+    const tx = txProof.tx;
+    const proof = txProof.proof;
+    dcTransfers.push(tx);
+    proofs.push(proof);
+  });
 
   if (!hashingPublicKey || !hashingPrivateKey) return;
 
@@ -68,7 +78,7 @@ export const handleSwapRequest = async (
         Buffer.from(i, "base64")
       );
 
-    const proofsBuffer = proofs.map((p: ISwapProofProps) => {
+    const proofsBuffer = proofs.map((p: IProof) => {
       const chainItems = p.blockTreeHashChain.items.map((i) =>
         Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
       );
@@ -132,7 +142,7 @@ export const handleSwapRequest = async (
 
     const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
 
-    const ownerProof = Buffer.from(
+    const ownerProof = await Buffer.from(
       startByte +
         opPushSig +
         sigScheme +
@@ -145,13 +155,16 @@ export const handleSwapRequest = async (
       "hex"
     ).toString("base64");
 
-    const dataWithProof: ISwapTransferProps = Object.assign(transferData, {
-      ownerProof: ownerProof,
-    });
+    const dataWithProof: ISwapTransferProps = await Object.assign(
+      transferData,
+      {
+        ownerProof: ownerProof,
+      }
+    );
 
     isValid &&
-      makeTransaction(dataWithProof)
+      (await makeTransaction(dataWithProof)
         .then(() => resetLoader)
-        .catch(() => resetLoader);
+        .catch(() => resetLoader));
   });
 };

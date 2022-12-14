@@ -9,12 +9,13 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
-import { extractFormikError, getNewBearer } from "../../../../utils/utils";
+import { extractFormikError, getNewBearer, sortIDBySize, sortTxProofsByID } from "../../../../utils/utils";
 import {
   IBill,
   ILockedBill,
   IProofsProps,
   ITransfer,
+  ITxProof,
 } from "../../../../types/Types";
 import { useApp } from "../../../../hooks/appProvider";
 import { useAuth } from "../../../../hooks/useAuth";
@@ -84,13 +85,17 @@ function BillsList(): JSX.Element | null {
   let DCDenomination: number | null = null;
 
   const handleDC = async (bills: IBill[], formPassword?: string) => {
-    const { hashingPrivateKey, hashingPublicKey } = getKeys(
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
       formPassword || password,
       Number(account.idx),
       vault
     );
 
-    if (!hashingPublicKey || !hashingPrivateKey) return;
+    if (error || !hashingPublicKey || !hashingPrivateKey) {
+      setIsCollectLoading(false);
+      return;
+    }
+
     const sortedListByID = sortBillsByID(bills);
     let nonce: Buffer[] = [];
 
@@ -181,16 +186,18 @@ function BillsList(): JSX.Element | null {
   const handleSwap = (formPassword?: string) => {
     let total = 0;
     let nonce: Buffer[] = [];
-    let dcTransfers: any = [];
-    let proofs: any = [];
+    let txProofs: ITxProof[] = [];
     let billIdentifiers: string[] = [];
-    const { hashingPublicKey } = getKeys(
+    const { error, hashingPublicKey } = getKeys(
       formPassword || password,
       Number(account.idx),
       vault
     );
 
-    if (!hashingPublicKey) return;
+    if (error || !hashingPublicKey) {
+      setIsSwapLoading(false);
+      return;
+    }
 
     DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
 
@@ -203,25 +210,24 @@ function BillsList(): JSX.Element | null {
         )
         .then(({ data }) => {
           total = total + 1;
-          const tx = data.bills[0].txProof.tx;
-          const proof = data.bills[0].txProof.proof;
+          const txProof = data.bills[0].txProof;
           billIdentifiers.push(bill.id);
-          dcTransfers.push(tx);
-          proofs.push(proof);
+          txProofs.push(txProof);
 
           if (total === DCBills.length) {
             handleSwapRequest(
               nonce,
-              proofs,
-              dcTransfers,
+              sortTxProofsByID(txProofs),
               formPassword,
               password,
-              billIdentifiers,
+              sortIDBySize(billIdentifiers),
               getNewBearer(account),
               transferMsgHashes,
               account,
               vault,
-              setIsSwapLoading(false)
+              setTimeout(() => {
+                setIsSwapLoading(false);
+              }, 1000)
             );
           }
         })

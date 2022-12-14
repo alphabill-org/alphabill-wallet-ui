@@ -123,6 +123,7 @@ function Dashboard(): JSX.Element | null {
             setActionsView("Send");
             setIsActionsViewVisible(true);
             queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
           }}
         >
           Send bills

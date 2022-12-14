@@ -125,6 +125,7 @@ function AccountView(): JSX.Element | null {
               : "";
 
             if (error || !masterKey) {
+              setIsAddAccountLoading(false);
               return setErrors({ password: "Password is incorrect!" });
             }
 
@@ -164,8 +165,9 @@ function AccountView(): JSX.Element | null {
             };
 
             if (
+              error ||
               unit8ToHexPrefixed(controlHashingPubKey!) !==
-              userKeys?.split(" ")[0]
+                userKeys?.split(" ")[0]
             ) {
               return setErrors({ password: "Password is incorrect!" });
             }
@@ -190,18 +192,17 @@ function AccountView(): JSX.Element | null {
             resetForm();
           }}
           validationSchema={Yup.object().shape({
-            accountName: Yup.string()
-              .test(
-                "account-name-taken",
-                `The account name is taken`,
-                function (value) {
-                  if (value) {
-                    return !Boolean(accounts?.find((a) => a.name === value));
-                  } else {
-                    return true;
-                  }
+            accountName: Yup.string().test(
+              "account-name-taken",
+              `The account name is taken`,
+              function (value) {
+                if (value) {
+                  return !Boolean(accounts?.find((a) => a.name === value));
+                } else {
+                  return true;
                 }
-              ),
+              }
+            ),
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",

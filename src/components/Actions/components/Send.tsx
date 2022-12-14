@@ -77,7 +77,7 @@ function Send(): JSX.Element | null {
           address: "",
           password: "",
         }}
-        onSubmit={(values, { setErrors }) => {
+        onSubmit={(values, { setErrors, resetForm }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account.idx),
@@ -210,6 +210,25 @@ function Send(): JSX.Element | null {
             },
           }));
           getBlockHeight().then(async (blockData) => {
+            transferData.map(async (data, idx) => {
+              const msgHash = await secp.utils.sha256(
+                secp.utils.concatBytes(
+                  Buffer.from(data.systemId, "base64"),
+                  Buffer.from(data.unitId, "base64"),
+                  new Uint64BE(blockData.blockHeight + 10).toBuffer(),
+                  Buffer.from(
+                    data.transactionAttributes.newBearer as string,
+                    "base64"
+                  ),
+                  new Uint64BE(
+                    data.transactionAttributes.targetValue
+                  ).toBuffer(),
+                  Buffer.from(data.transactionAttributes.backlink, "base64")
+                )
+              );
+              handleValidation(msgHash, blockData, data as ITransfer);
+            });
+
             if (billToSplit && splitBillAmount) {
               const splitData: ITransfer = {
                 systemId: "AAAAAA==",
@@ -246,25 +265,9 @@ function Send(): JSX.Element | null {
               handleValidation(msgHash, blockData, splitData);
             }
 
-            transferData.map(async (data) => {
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(data.systemId, "base64"),
-                  Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(blockData.blockHeight + 10).toBuffer(),
-                  Buffer.from(
-                    data.transactionAttributes.newBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    data.transactionAttributes.targetValue
-                  ).toBuffer(),
-                  Buffer.from(data.transactionAttributes.backlink, "base64")
-                )
-              );
-
-              handleValidation(msgHash, blockData, data as ITransfer);
-            });
+            setSelectedSendKey(null);
+            setIsActionsViewVisible(false);
+            resetForm();
           });
 
           const handleValidation = async (
@@ -304,11 +307,9 @@ function Send(): JSX.Element | null {
               timeout: blockData.blockHeight + 10,
             });
 
-            isValid &&
-              makeTransaction(dataWithProof).then(() => {
-                setSelectedSendKey(null);
-                setIsActionsViewVisible(false);
-              });
+            isValid && makeTransaction(dataWithProof);
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
           };
         }}
         validationSchema={Yup.object().shape({
