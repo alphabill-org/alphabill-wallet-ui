@@ -91,12 +91,12 @@ function Popups({
                       <Textfield
                         id="accountName"
                         name="accountName"
-                        label="Account Name"
+                        label="Account Name (max 26 characters)"
                         type="accountName"
                         error={extractFormikError(errors, touched, [
                           "accountName",
                         ])}
-                        maxLength={16}
+                        maxLength={26}
                       />
                     </FormContent>
                     <FormFooter>
