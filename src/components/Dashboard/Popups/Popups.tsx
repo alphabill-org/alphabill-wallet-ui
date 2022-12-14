@@ -96,6 +96,7 @@ function Popups({
                         error={extractFormikError(errors, touched, [
                           "accountName",
                         ])}
+                        maxLength={16}
                       />
                     </FormContent>
                     <FormFooter>
