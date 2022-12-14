@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Checkbox, FormControlLabel } from "@material-ui/core";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
@@ -9,12 +8,18 @@ import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
+import Checkbox from "../Checkbox/Checkbox";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } =
-    useApp();
+  const {
+    setIsActionsViewVisible,
+    setActionsView,
+    account,
+    accounts,
+    setAccounts,
+  } = useApp();
 
   const testNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork === true
@@ -52,16 +57,11 @@ function Header(): JSX.Element | null {
               <Close onClick={() => setIsPopoverOpen(!isPopoverOpen)} />
             </div>
             <div className="select__popover-checkbox">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showTestNetworks || Boolean(isTestNetworkActive)}
-                    onChange={() => setShowTestNetworks(!showTestNetworks)}
-                    name="TestNetworks"
-                    color="primary"
-                  />
-                }
-                label="Show Test Networks"
+
+              <Checkbox
+                label="Show Test"
+                isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
+                onChange={() => setShowTestNetworks(!showTestNetworks)}
               />
             </div>
             <div className="select__options">
@@ -92,7 +92,7 @@ function Header(): JSX.Element | null {
                     !showTestNetworks && !Boolean(isTestNetworkActive),
                 })}
               >
-                Test Networks
+                Test & Dev Networks
               </div>
               {testNetworks?.map((network) => {
                 return (

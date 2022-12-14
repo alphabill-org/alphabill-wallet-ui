@@ -1,6 +1,3 @@
-import React from 'react';
-
-import { CircularProgress } from '@material-ui/core';
 import classNames from 'classnames';
 
 export interface ISpinnerProps {
@@ -12,8 +9,6 @@ export default function Spinner(props: ISpinnerProps) {
   const className = classNames('spinner', { 'spinner--absolute': props.absolute }, props.className);
 
   return (
-    <div className={className}>
-      <CircularProgress />
-    </div>
+    <div className={className}><span className="spinner__circle"></span></div>
   );
 }

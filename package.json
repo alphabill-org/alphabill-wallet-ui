@@ -1,10 +1,8 @@
 {
   "name": "alphabill-wallet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "dependencies": {
-    "@guardtime/common": "^1.1.0-rc.94b3e00",
-    "@material-ui/core": "^4.12.4",
     "@noble/secp256k1": "^1.7.0",
     "@scure/bip32": "^1.1.1",
     "@testing-library/jest-dom": "^5.16.4",
@@ -31,7 +29,6 @@
     "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",
-    "react-outside-click-handler": "^1.3.0",
     "react-query": "^3.39.2",
     "react-router-dom": "^6.4.2",
     "react-scripts": "5.0.1",
@@ -46,7 +43,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "react-app-rewired build && zip -r build-v0.1.1.zip build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },

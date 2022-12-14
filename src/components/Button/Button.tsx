@@ -16,6 +16,7 @@ export interface IButtonProps {
   block?: boolean;
   big?: boolean;
   small?: boolean;
+  xSmall?: boolean;
   url?: string;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
@@ -32,6 +33,7 @@ export default function Button(props: IButtonProps): JSX.Element {
       [`button--${props.variant}`]: props.variant,
       "button--big": props.big,
       "button--small": props.small,
+      "button--x-small": props.xSmall,
       "button--block": props.block,
       "button--working": props.working,
       "is--bordered": props.isBordered,

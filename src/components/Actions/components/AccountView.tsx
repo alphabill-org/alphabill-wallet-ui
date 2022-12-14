@@ -10,7 +10,11 @@ import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
-import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../../utils/utils";
+import {
+  extractFormikError,
+  getKeys,
+  unit8ToHexPrefixed,
+} from "../../../utils/utils";
 import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
@@ -113,18 +117,15 @@ function AccountView(): JSX.Element | null {
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const {
-              error,
-              masterKey,
-              hashingPublicKey,
-              decryptedVault,
-            } = getKeys(values.password, accounts.length, vault);
+            const { error, masterKey, hashingPublicKey, decryptedVault } =
+              getKeys(values.password, accounts.length, vault);
             const accountIndex = accounts.length;
             const prefixedHashingPubKey = hashingPublicKey
               ? unit8ToHexPrefixed(hashingPublicKey)
               : "";
 
             if (error || !masterKey) {
+              setIsAddAccountLoading(false);
               return setErrors({ password: "Password is incorrect!" });
             }
 
@@ -153,7 +154,7 @@ function AccountView(): JSX.Element | null {
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]: values.accountName,
+                    ["_" + idx]: values.accountName || "Account " + (idx + 1),
                   })
                 )
               );
@@ -163,17 +164,18 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
             };
 
-            if (unit8ToHexPrefixed(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
+            if (
+              error ||
+              unit8ToHexPrefixed(controlHashingPubKey!) !==
+                userKeys?.split(" ")[0]
+            ) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
             axios
-              .post<void>(
-                API_URL + "/admin/add-key",
-                {
-                  pubkey: prefixedHashingPubKey,
-                }
-              )
+              .post<void>(API_URL + "/admin/add-key", {
+                pubkey: prefixedHashingPubKey,
+              })
               .then(() => {
                 addAccount();
                 setIsAddAccountLoading(false);
@@ -190,19 +192,17 @@ function AccountView(): JSX.Element | null {
             resetForm();
           }}
           validationSchema={Yup.object().shape({
-            accountName: Yup.string()
-              .required("Address is required")
-              .test(
-                "account-name-taken",
-                `The account name is taken`,
-                function (value) {
-                  if (value) {
-                    return !Boolean(accounts?.find((a) => a.name === value));
-                  } else {
-                    return true;
-                  }
+            accountName: Yup.string().test(
+              "account-name-taken",
+              `The account name is taken`,
+              function (value) {
+                if (value) {
+                  return !Boolean(accounts?.find((a) => a.name === value));
+                } else {
+                  return true;
                 }
-              ),
+              }
+            ),
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
@@ -229,7 +229,7 @@ function AccountView(): JSX.Element | null {
                     <Textfield
                       id="accountName"
                       name="accountName"
-                      label="Account Name"
+                      label="Account Name (Optional)"
                       type="accountName"
                       error={extractFormikError(errors, touched, [
                         "accountName",

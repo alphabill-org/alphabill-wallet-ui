@@ -67,6 +67,14 @@
   padding-left: 8px;
 }
 
+.pad-16-t {
+  padding-top: 16px;
+}
+
+.pad-16-l {
+  padding-left: 16px;
+}
+
 // Icons
 .icon-wrap {
   height: 32px;
@@ -89,7 +97,7 @@
 .t-medium-small {
   font-weight: 400;
   font-size: 14px;
-  line-height: 18px;
+  line-height: 22px;
 }
 
 .t-medium {
@@ -108,6 +116,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: pre;
+}
+
+.t-w-s-nowrap {
+  white-space: nowrap;
 }
 
 .t-bold {
@@ -136,4 +148,14 @@
 
 .mw-100p {
   max-width: 100%;
+}
+
+.w-100p {
+  width: 100%;
+}
+
+// Displays
+
+.d-none {
+  display: none;
 }

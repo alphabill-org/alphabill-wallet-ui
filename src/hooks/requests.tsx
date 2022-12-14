@@ -1,10 +1,18 @@
 import axios from "axios";
-import { IBillsList, IBlockStats, ITransfer } from "../types/Types";
 
-export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1"
+import {
+  IBillsList,
+  IBlockStats,
+  ITransfer,
+  IProofsProps,
+  ISwapTransferProps,
+} from "../types/Types";
+
+export const API_URL =
+  "https://wallet-backend.testnet.alphabill.org/api/v1";
 
 export const getBalance = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
@@ -19,12 +27,29 @@ export const getBalance = async (id: string): Promise<any> => {
 };
 
 export const getBillsList = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !id.startsWith("0x")) {
+  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
   const response = await axios.get<IBillsList>(
     `${API_URL}/list-bills?pubkey=${id}`
+  );
+
+  return response.data;
+};
+
+export const getProof = async (id: string, key: string): Promise<any> => {
+  if (
+    !id ||
+    Number(id) === 0 ||
+    !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/)) ||
+    !Boolean(key.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
+    return;
+  }
+
+  const response = await axios.get<IProofsProps>(
+    `${API_URL}/proof/${key}?bill_id=${id}`
   );
 
   return response.data;
@@ -41,7 +66,7 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
 export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
-  const response = await axios.post<{ data: ITransfer }>(
+  const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
     "https://money-partition.testnet.alphabill.org/api/v1/transactions",
     {
       ...data,

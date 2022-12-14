@@ -97,6 +97,17 @@
       min-width: calc(50% - 54px);
       margin: 4px;
       flex: 1 1 auto;
+      max-width: calc(100% - 98px);
+
+      &:hover {
+        svg {
+          fill: $color-white;
+        }
+      }
+
+      svg {
+        fill: $color-blue;
+      }
     }
   }
 
@@ -178,7 +189,8 @@
         align-items: center;
 
         &.small {
-          padding: 8px 0 6px;
+          padding: 10px 0 8px;
+          align-items: baseline;
         }
       }
 
