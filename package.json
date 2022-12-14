@@ -43,7 +43,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "react-app-rewired build && zip -r build-v0.1.1.zip build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },

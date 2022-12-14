@@ -37,10 +37,12 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 ## Add wallet as Chrome extension
 
+Download the wallet build zip file `build-v0.1.1.zip` & unpack it.
+
 Open Your Extension in Chrome `chrome://extensions/`
 
 In the top-right corner, turn on developer mode. This will then render two buttons in the top-left corner. Load the unpacked extension and the packed extension.
 
-Click on “Load unpacked extension,” and select your `build` folder.
+Click on “Load unpacked extension,” and select your unpacked `build` folder.
 
-Your extension will now show up in your browser and will update automatically each time you use `npm run build`.
+You could also install the modules `npm install --openssl-legacy-provider` then build it by using `npm run build` & select your newly created `build` folder. Using this method enables you to change the build. It will update automatically each time you use `npm run build`.
