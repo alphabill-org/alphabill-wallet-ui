@@ -27,11 +27,20 @@
       max-width: 197px;
       white-space: pre;
 
-      span {
-        opacity: .7;
+      &-item {
         text-overflow: ellipsis;
         overflow: hidden;
+        flex: 1 0 0;
       }
+    }
+
+    &-name {
+      max-width: 178px;
+      display: flex;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      padding-right: 4px;
     }
 
     &-buttons {

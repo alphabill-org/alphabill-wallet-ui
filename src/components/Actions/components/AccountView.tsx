@@ -67,7 +67,7 @@ function AccountView(): JSX.Element | null {
                 <img height="32" width="32px" src={Profile} alt="Profile" />
               </div>
               <div className="account__item account__item-name">
-                <div className="t-medium">{account?.name}</div>
+                <div className="t-medium account__item-id">{account?.name}</div>
                 <div className="t-small c-light account__item-id">
                   {account?.pubKey}
                 </div>
