@@ -63,8 +63,8 @@ function Dashboard(): JSX.Element | null {
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
-          {account?.name}{" "}
-          <span>
+          <span className="dashboard__account-name">{account?.name}</span>
+          <span className="dashboard__account-id-item">
             {account?.name && "-"} {account?.pubKey}
           </span>
         </div>
