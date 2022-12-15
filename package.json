@@ -43,9 +43,10 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build && zip -r build-v0.1.1.zip build",
+    "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "zip-build": "rm build-v0.1.1.zip && zip -r build-v0.1.1.zip build"
   },
   "eslintConfig": {
     "extends": [
