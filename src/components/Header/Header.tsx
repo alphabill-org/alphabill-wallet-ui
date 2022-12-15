@@ -56,7 +56,7 @@ function Header(): JSX.Element | null {
               <div>Select Network</div>
               <Close onClick={() => setIsPopoverOpen(!isPopoverOpen)} />
             </div>
-            {mainNetworks.length >= 1 && (
+            {mainNetworks?.length >= 1 && (
               <div className="select__popover-checkbox">
                 <Checkbox
                   label="Show test networks"

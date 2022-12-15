@@ -28,8 +28,7 @@ export const handleSwapRequest = async (
   newBearer: string,
   transferMsgHashes: Uint8Array[],
   account: IAccount,
-  vault: string | null,
-  resetLoader: any
+  vault: string | null
 ) => {
   const { hashingPrivateKey, hashingPublicKey } = getKeys(
     formPassword || password,
@@ -162,9 +161,6 @@ export const handleSwapRequest = async (
       }
     );
 
-    isValid &&
-      (await makeTransaction(dataWithProof)
-        .then(() => resetLoader)
-        .catch(() => resetLoader));
+    isValid && makeTransaction(dataWithProof);
   });
 };

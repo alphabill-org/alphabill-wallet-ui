@@ -326,6 +326,17 @@ function Send(): JSX.Element | null {
                   return true;
                 }
               }
+            )
+            .test(
+              "account-id-correct",
+              `Address in not in valid format`,
+              function (value) {
+                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
+                  return false;
+                } else {
+                  return true;
+                }
+              }
             ),
           password: Yup.string().test(
             "empty-or-8-characters-check",

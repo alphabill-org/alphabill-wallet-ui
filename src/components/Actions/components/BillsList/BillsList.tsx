@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
@@ -68,8 +68,10 @@ function BillsList(): JSX.Element | null {
   const sortedListByValue = billsList?.bills?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
-  const DCBills = sortBillsByID(sortedListByValue).filter(
-    (b: IBill) => b.isDCBill
+  const DCBills = useMemo(
+    () =>
+      sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDCBill) || [],
+    [sortedListByValue]
   );
   const [activeBillId, setActiveBillId] = useState<string>(
     sortedListByValue[0]?.id
@@ -87,7 +89,28 @@ function BillsList(): JSX.Element | null {
   );
   const { vault } = useAuth();
   const queryClient = useQueryClient();
+  const swapInterval = useRef<NodeJS.Timeout | null>(null);
+  const collectInterval = useRef<NodeJS.Timeout | null>(null);
+  const swapTimer = useRef<NodeJS.Timeout | null>(null);
+  const collectTimer = useRef<NodeJS.Timeout | null>(null);
   let DCDenomination: number | null = null;
+
+  useEffect(() => {
+    if (DCBills.length < 1) {
+      swapInterval.current && clearInterval(swapInterval.current);
+      swapTimer.current && clearTimeout(swapTimer.current);
+      setIsSwapLoading(false);
+    }
+  }, [isSwapLoading, DCBills]);
+
+  useEffect(() => {
+    if (DCBills.length >= 1) {
+      collectInterval.current && clearInterval(collectInterval.current);
+      collectTimer.current && clearTimeout(collectTimer.current);
+      setCollectableBills([]);
+      setIsCollectLoading(false);
+    }
+  }, [isCollectLoading, DCBills]);
 
   const handleDC = async (bills: IBill[], formPassword?: string) => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
@@ -111,6 +134,18 @@ function BillsList(): JSX.Element | null {
     if (!nonce.length) return;
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+
+    let intervalIndex = 0;
+    collectInterval.current = setInterval(() => {
+      intervalIndex = intervalIndex + 1;
+      queryClient.invalidateQueries(["billsList", activeAccountId]);
+      if (intervalIndex === 1) {
+        collectTimer.current = setTimeout(() => {
+          collectInterval.current && clearInterval(collectInterval.current);
+          setCollectableBills([]);
+        }, 10000);
+      }
+    }, 1000);
 
     let total = 0;
     getBlockHeight().then((blockData) =>
@@ -175,14 +210,9 @@ function BillsList(): JSX.Element | null {
             timeout: blockData.blockHeight + 10,
           });
 
-          makeTransaction(dataWithProof)
-            .then(() => {
-              setTimeout(() => {
-                setIsCollectLoading(false);
-              }, 1000);
-              setCollectableBills([]);
-            })
-            .catch(() => setIsCollectLoading(false));
+          makeTransaction(dataWithProof).catch(() =>
+            setIsCollectLoading(false)
+          );
         }
       })
     );
@@ -198,11 +228,21 @@ function BillsList(): JSX.Element | null {
       Number(account.idx),
       vault
     );
-
     if (error || !hashingPublicKey) {
       setIsSwapLoading(false);
       return;
     }
+
+    let intervalIndex = 0;
+    swapInterval.current = setInterval(() => {
+      intervalIndex = intervalIndex + 1;
+      queryClient.invalidateQueries(["billsList", activeAccountId]);
+      if (intervalIndex === 1) {
+        swapTimer.current = setTimeout(() => {
+          swapInterval.current && clearInterval(swapInterval.current);
+        }, 10000);
+      }
+    }, 1000);
 
     DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
 
@@ -229,10 +269,7 @@ function BillsList(): JSX.Element | null {
               getNewBearer(account),
               transferMsgHashes,
               account,
-              vault,
-              setTimeout(() => {
-                setIsSwapLoading(false);
-              }, 1000)
+              vault
             );
           }
         })
@@ -242,26 +279,25 @@ function BillsList(): JSX.Element | null {
   return (
     <>
       <div className="dashboard__info-col active relative bills-list">
+        <Button
+          onClick={() => {
+            queryClient.invalidateQueries(["billsList", activeAccountId]);
+            queryClient.invalidateQueries(["balance", activeAccountId]);
+          }}
+          className="btn__refresh w-100p"
+          small
+          type="button"
+          variant="secondary"
+        >
+          <div className="pad-8-r">Refresh list</div>
+          <Sync height="16" width="16" />
+        </Button>
         <Spacer mt={16} />
         <div className="t-medium-small pad-24-h">
           To swap your bills into one bigger bill select the bills & click on
           the <b>Collect Selected Bills</b> button and then{" "}
           <b>Swap Collect Bills</b>.
           <Spacer mt={8} />
-          <Button
-            onClick={() => {
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
-              queryClient.invalidateQueries(["balance", activeAccountId]);
-            }}
-            className="btn__refresh w-100p"
-            small
-            type="button"
-            variant="primary"
-          >
-            <div className="pad-8-r">Refresh list</div>
-            <Sync height="16" width="16" />
-            <div className="pad-8-l">before actions</div>
-          </Button>
           <Spacer mt={8} />
         </div>{" "}
         <div>
@@ -355,16 +391,45 @@ function BillsList(): JSX.Element | null {
             </>
           )}
 
-          {sortedListByValue.filter(
-            (b: IBill) =>
-              b.isDCBill === false &&
-              !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-          ).length > 0 && (
-            <Button
-              onClick={() => {
-                queryClient.invalidateQueries(["billsList", activeAccountId]);
-                queryClient.invalidateQueries(["balance", activeAccountId]);
-                sortedListByValue.filter(
+          {!isCollectLoading &&
+            DCBills.length < 1 &&
+            sortedListByValue.filter(
+              (b: IBill) =>
+                !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+            ).length > 0 && (
+              <Button
+                onClick={() => {
+                  queryClient.invalidateQueries(["billsList", activeAccountId]);
+                  queryClient.invalidateQueries(["balance", activeAccountId]);
+                  sortedListByValue.filter(
+                    (b: IBill) =>
+                      b.isDCBill === false &&
+                      !lockedBills?.find(
+                        (key: ILockedBill) => key.billId === b.id
+                      ) &&
+                      !collectableBills.find((key) => key.id === b.id)
+                  ).length < 1
+                    ? setCollectableBills([])
+                    : setCollectableBills(
+                        collectableBills.concat(
+                          sortedListByValue.filter(
+                            (b: IBill) =>
+                              b.isDCBill === false &&
+                              !lockedBills?.find(
+                                (key: ILockedBill) => key.billId === b.id
+                              ) &&
+                              !collectableBills.find((key) => key.id === b.id)
+                          )
+                        )
+                      );
+                  setVisibleBillSettingID(null);
+                }}
+                className="w-100p"
+                small
+                type="button"
+                variant="secondary"
+              >
+                {sortedListByValue.filter(
                   (b: IBill) =>
                     b.isDCBill === false &&
                     !lockedBills?.find(
@@ -372,38 +437,10 @@ function BillsList(): JSX.Element | null {
                     ) &&
                     !collectableBills.find((key) => key.id === b.id)
                 ).length < 1
-                  ? setCollectableBills([])
-                  : setCollectableBills(
-                      collectableBills.concat(
-                        sortedListByValue.filter(
-                          (b: IBill) =>
-                            b.isDCBill === false &&
-                            !lockedBills?.find(
-                              (key: ILockedBill) => key.billId === b.id
-                            ) &&
-                            !collectableBills.find((key) => key.id === b.id)
-                        )
-                      )
-                    );
-                setVisibleBillSettingID(null);
-              }}
-              className="w-100p"
-              small
-              type="button"
-              variant="secondary"
-            >
-              {sortedListByValue.filter(
-                (b: IBill) =>
-                  b.isDCBill === false &&
-                  !lockedBills?.find(
-                    (key: ILockedBill) => key.billId === b.id
-                  ) &&
-                  !collectableBills.find((key) => key.id === b.id)
-              ).length < 1
-                ? "Unselect All Bills For Collection"
-                : "Select All Bills For Collection"}
-            </Button>
-          )}
+                  ? "Unselect All Bills For Collection"
+                  : "Select All Bills For Collection"}
+              </Button>
+            )}
         </div>
         {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
