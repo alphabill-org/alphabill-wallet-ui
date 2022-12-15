@@ -28,6 +28,7 @@ export interface ITextfieldProps {
   isNumberFloat?: boolean;
   min?: string;
   max?: string;
+  maxLength?: number;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
@@ -60,9 +61,14 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const regexNumber = /^[+-]?\d*(?:[.,]\d*)?$/;
+    const regexEmoji = /[^\p{L}\p{N}\p{P}\p{Z}^$\n]/gu;
     const fixedPoint = props.floatingFixedPoint || "2";
     const regexFloatString = "^\\d+(\\.\\d{0," + fixedPoint + "})?$";
     const regexFloat = new RegExp(regexFloatString);
+
+    if (regexEmoji.test(e.target.value)) {
+      return false;
+    }
 
     if (
       props.isNumberFloat &&
@@ -106,6 +112,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
               : undefined
           }
           min={props.type === "number" ? 0 : undefined}
+          maxLength={props?.maxLength}
           step={props.type === "number" ? props.step : undefined}
         />
       </div>
