@@ -37,7 +37,7 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 ## Add wallet as Chrome extension
 
-Download the wallet build zip file `build-v0.1.1.zip` & unpack it.
+Download the wallet build zip file under the given release assets & unpack it.
 
 Open Your Extension in Chrome `chrome://extensions/`
 
