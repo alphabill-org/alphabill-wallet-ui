@@ -47,6 +47,7 @@ import {
 import { useGetProof } from "../../../../hooks/api";
 import { handleSwapRequest } from "./Utils";
 import BillsListItem from "./BillsListItem";
+import Popup from "../../../Popup/Popup";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
@@ -666,80 +667,70 @@ function BillsList(): JSX.Element | null {
           </Formik>
         </div>
       </div>
-      <div
-        className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": isLockFormVisible,
-        })}
+      <Popup
+        isPopupVisible={isLockFormVisible}
+        setIsPopupVisible={setIsLockFormVisible}
+        title="Add locked bill description"
       >
-        <div className="select__popover">
-          <div className="select__popover-header">
-            <div>INSERT LOCKED BILL DESCRIPTION</div>
-            <Close
-              onClick={() => {
-                setIsLockFormVisible(!isLockFormVisible);
-              }}
-            />
-          </div>
-          <Spacer mt={16} />
-          <Formik
-            initialValues={{
-              desc: "",
-            }}
-            validationSchema={Yup.object().shape({
-              desc: Yup.string().required("Description is required"),
-            })}
-            onSubmit={(values, { resetForm }) => {
-              setLockedBillsLocal(
-                JSON.stringify([
-                  ...lockedBills,
-                  {
-                    billId: activeBillId,
-                    desc: values.desc,
-                    value: sortedListByValue.find(
-                      (bill: IBill) => bill.id === activeBillId
-                    ).value,
-                  },
-                ])
-              );
-              setVisibleBillSettingID(null);
-              resetForm();
-              setIsLockFormVisible(false);
-            }}
-          >
-            {(formikProps) => {
-              const { handleSubmit, errors, touched } = formikProps;
+        <Spacer mt={16} />
+        <Formik
+          initialValues={{
+            desc: "",
+          }}
+          validationSchema={Yup.object().shape({
+            desc: Yup.string().required("Description is required"),
+          })}
+          onSubmit={(values, { resetForm }) => {
+            setLockedBillsLocal(
+              JSON.stringify([
+                ...lockedBills,
+                {
+                  billId: activeBillId,
+                  desc: values.desc,
+                  value: sortedListByValue.find(
+                    (bill: IBill) => bill.id === activeBillId
+                  ).value,
+                },
+              ])
+            );
+            setVisibleBillSettingID(null);
+            resetForm();
+            setIsLockFormVisible(false);
+          }}
+        >
+          {(formikProps) => {
+            const { handleSubmit, errors, touched } = formikProps;
 
-              return (
-                <div className="pad-24-h">
-                  <form onSubmit={handleSubmit}>
-                    <Form>
-                      <FormContent>
-                        <Textfield
-                          id="desc"
-                          name="desc"
-                          label=""
-                          type="desc"
-                          error={extractFormikError(errors, touched, ["desc"])}
-                        />
-                      </FormContent>
-                      <FormFooter>
-                        <Button
-                          big={true}
-                          block={true}
-                          type="submit"
-                          variant="primary"
-                        >
-                          Lock
-                        </Button>
-                      </FormFooter>
-                    </Form>
-                  </form>
-                </div>
-              );
-            }}
-          </Formik>
-        </div>
-      </div>
+            return (
+              <div className="w-100p">
+                <form onSubmit={handleSubmit}>
+                  <Form>
+                    <FormContent>
+                      <Textfield
+                        id="desc"
+                        name="desc"
+                        label="Bill description visible in bills list"
+                        type="desc"
+                        error={extractFormikError(errors, touched, ["desc"])}
+                      />
+                    </FormContent>
+                    <FormFooter>
+                      <Button
+                        big={true}
+                        block={true}
+                        type="submit"
+                        variant="primary"
+                      >
+                        Lock & add description
+                      </Button>
+                    </FormFooter>
+                  </Form>
+                </form>
+              </div>
+            );
+          }}
+        </Formik>
+      </Popup>
     </>
   );
 }
