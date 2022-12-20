@@ -65,12 +65,14 @@ function BillsList(): JSX.Element | null {
     activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
-  const sortedListByValue = billsList?.bills?.sort(
+  const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
   const DCBills = useMemo(
     () =>
-      sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDCBill) || [],
+      sortedListByValue
+        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDCBill)
+        : [],
     [sortedListByValue]
   );
   const [activeBillId, setActiveBillId] = useState<string>(
@@ -104,7 +106,7 @@ function BillsList(): JSX.Element | null {
   }, [isSwapLoading, DCBills]);
 
   useEffect(() => {
-    if (DCBills.length >= 1) {
+    if (DCBills.length === collectableBills.length) {
       collectInterval.current && clearInterval(collectInterval.current);
       collectTimer.current && clearTimeout(collectTimer.current);
       setCollectableBills([]);
@@ -120,9 +122,10 @@ function BillsList(): JSX.Element | null {
     );
 
     if (error || !hashingPublicKey || !hashingPrivateKey) {
-      setIsCollectLoading(false);
       return;
     }
+
+    setIsCollectLoading(true);
 
     const sortedListByID = sortBillsByID(bills);
     let nonce: Buffer[] = [];
@@ -135,21 +138,9 @@ function BillsList(): JSX.Element | null {
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    let intervalIndex = 0;
-    collectInterval.current = setInterval(() => {
-      intervalIndex = intervalIndex + 1;
-      queryClient.invalidateQueries(["billsList", activeAccountId]);
-      if (intervalIndex === 1) {
-        collectTimer.current = setTimeout(() => {
-          collectInterval.current && clearInterval(collectInterval.current);
-          setCollectableBills([]);
-        }, 10000);
-      }
-    }, 1000);
-
     let total = 0;
     getBlockHeight().then((blockData) =>
-      sortedListByID.map(async (bill: IBill) => {
+      sortedListByID.map(async (bill: IBill, idx) => {
         total = total + 1;
 
         const transferData: ITransfer = {
@@ -210,9 +201,24 @@ function BillsList(): JSX.Element | null {
             timeout: blockData.blockHeight + 10,
           });
 
-          makeTransaction(dataWithProof).catch(() =>
-            setIsCollectLoading(false)
-          );
+          makeTransaction(dataWithProof);
+
+          if (sortedListByID.length === idx + 1) {
+            setIsCollectLoading(false);
+
+            let intervalIndex = 0;
+            collectInterval.current = setInterval(() => {
+              intervalIndex = intervalIndex + 1;
+              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              if (intervalIndex === 1) {
+                collectTimer.current = setTimeout(() => {
+                  collectInterval.current &&
+                    clearInterval(collectInterval.current);
+                  setCollectableBills([]);
+                }, 10000);
+              }
+            }, 1000);
+          }
         }
       })
     );
@@ -375,7 +381,6 @@ function BillsList(): JSX.Element | null {
                 variant="primary"
                 working={isCollectLoading}
                 onClick={() => {
-                  setIsCollectLoading(true);
                   if (password) {
                     handleDC(collectableBills);
                   } else {
