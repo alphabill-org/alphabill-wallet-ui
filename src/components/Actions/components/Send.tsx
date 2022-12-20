@@ -351,11 +351,17 @@ function Send(): JSX.Element | null {
               (value) =>
                 Number(value) <=
                 Number(
-                  account?.assets?.find(
-                    (asset: IAsset) =>
-                      asset?.id === currentTokenId.id &&
-                      asset.network === account?.activeNetwork
-                  )?.amount
+                  billsList.bills
+                    .filter(
+                      (bill: IBill) =>
+                        bill.isDCBill === false &&
+                        !lockedBills?.find(
+                          (b: ILockedBill) => b.billId === bill.id
+                        )
+                    )
+                    .reduce((acc: number, obj: IBill) => {
+                      return acc + obj?.value;
+                    }, 0)
                 )
             ),
         })}
