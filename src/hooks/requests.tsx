@@ -1,4 +1,5 @@
 import axios from "axios";
+import { off } from "node:process";
 
 import {
   IBillsList,
@@ -6,10 +7,10 @@ import {
   ITransfer,
   IProofsProps,
   ISwapTransferProps,
+  IBill,
 } from "../types/Types";
 
-export const API_URL =
-  "https://wallet-backend.testnet.alphabill.org/api/v1";
+export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
 
 export const getBalance = async (id: string): Promise<any> => {
   if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
@@ -31,11 +32,24 @@ export const getBillsList = async (id: string): Promise<any> => {
     return;
   }
 
-  const response = await axios.get<IBillsList>(
-    `${API_URL}/list-bills?pubkey=${id}`
-  );
+  const limit = 1;
+  let billsList: IBill[] = [];
+  let offset = 0;
+  let totalBills = null;
 
-  return response.data;
+  while (totalBills === null || billsList.length < totalBills) {
+    const response = await axios.get<IBillsList>(
+      `${API_URL}/list-bills?pubkey=${id}&limit=${limit}&offset=${offset}`
+    );
+
+    const { bills, total } = response.data;
+    totalBills = total;
+    billsList = billsList.concat(bills);
+
+    offset += limit;
+  }
+
+  return billsList;
 };
 
 export const getProof = async (id: string, key: string): Promise<any> => {
@@ -56,9 +70,7 @@ export const getProof = async (id: string, key: string): Promise<any> => {
 };
 
 export const getBlockHeight = async (): Promise<IBlockStats> => {
-  const response = await axios.get<IBlockStats>(
-    `${API_URL}/block-height`
-  );
+  const response = await axios.get<IBlockStats>(`${API_URL}/block-height`);
 
   return response.data;
 };
