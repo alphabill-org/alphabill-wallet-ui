@@ -92,11 +92,11 @@ function Send(): JSX.Element | null {
 
           const billsArr = selectedSendKey
             ? ([
-                billsList.bills.find(
+                billsList?.find(
                   (bill: IBill) => bill.id === selectedSendKey
                 ),
               ] as IBill[])
-            : (billsList.bills.filter(
+            : (billsList?.filter(
                 (bill: IBill) =>
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
@@ -373,7 +373,7 @@ function Send(): JSX.Element | null {
                         <div className="t-medium-small">
                           You have selected a specific bill with a value of{" "}
                           {
-                            billsList.bills.find(
+                            billsList?.find(
                               (bill: IBill) => bill.id === selectedSendKey
                             )?.value
                           }
@@ -468,7 +468,7 @@ function Send(): JSX.Element | null {
                       }
                       value={
                         selectedSendKey &&
-                        billsList.bills.find(
+                        billsList?.find(
                           (bill: IBill) => bill.id === selectedSendKey
                         )?.value
                       }
