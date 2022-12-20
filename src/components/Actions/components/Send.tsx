@@ -92,9 +92,7 @@ function Send(): JSX.Element | null {
 
           const billsArr = selectedSendKey
             ? ([
-                billsList?.find(
-                  (bill: IBill) => bill.id === selectedSendKey
-                ),
+                billsList?.find((bill: IBill) => bill.id === selectedSendKey),
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
@@ -351,7 +349,7 @@ function Send(): JSX.Element | null {
               (value) =>
                 Number(value) <=
                 Number(
-                  billsList.bills
+                  billsList
                     .filter(
                       (bill: IBill) =>
                         bill.isDCBill === false &&
