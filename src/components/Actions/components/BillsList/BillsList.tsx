@@ -101,11 +101,15 @@ function BillsList(): JSX.Element | null {
     "ab_last_nonce",
     ""
   );
-  const lastNonceIDs: string[] = lastNonceIDsLocal
-    ? isString(lastNonceIDsLocal)
-      ? JSON.parse(lastNonceIDsLocal)
-      : lastNonceIDsLocal
-    : [];
+  const lastNonceIDs: string[] = useMemo(
+    () =>
+      lastNonceIDsLocal
+        ? isString(lastNonceIDsLocal)
+          ? JSON.parse(lastNonceIDsLocal)
+          : lastNonceIDsLocal
+        : [],
+    [lastNonceIDsLocal]
+  );
 
   const handleSwap = useCallback(() => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
@@ -201,7 +205,13 @@ function BillsList(): JSX.Element | null {
       setIsConsolidationLoading(false);
       setLastNonceIDsLocal("");
     }
-  }, [isConsolidationLoading, DCBills, lastNonceIDs]);
+  }, [
+    isConsolidationLoading,
+    DCBills,
+    lastNonceIDs,
+    hasSwapBegun,
+    setLastNonceIDsLocal,
+  ]);
 
   const handleDC = async (formPassword?: string) => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
