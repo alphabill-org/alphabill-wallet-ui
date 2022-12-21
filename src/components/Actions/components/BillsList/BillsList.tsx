@@ -48,10 +48,11 @@ import { useGetProof } from "../../../../hooks/api";
 import { handleSwapRequest } from "./Utils";
 import BillsListItem from "./BillsListItem";
 import Popup from "../../../Popup/Popup";
+import { useLocalStorage } from "../../../../hooks/useLocalStorage";
+import { isString } from "lodash";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const [collectableBills, setCollectableBills] = useState<IBill[]>([]);
   const [isPasswordFormVisible, setIsPasswordFormVisible] =
     useState<boolean>(false);
   const {
@@ -81,6 +82,8 @@ function BillsList(): JSX.Element | null {
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
+  const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
+
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
     string | null
@@ -94,68 +97,94 @@ function BillsList(): JSX.Element | null {
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
   let DCDenomination: number | null = null;
-
-  const handleSwap = useCallback(
-    (
-      hashingPublicKey: Uint8Array,
-      hashingPrivateKey: Uint8Array,
-      nonce: Buffer[]
-    ) => {
-      let txProofs: ITxProof[] = [];
-      let billIdentifiers: string[] = [];
-
-      DCBills.map((bill: IBill, idx: number) =>
-        axios
-          .get<IProofsProps>(
-            `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
-              bill.id
-            )}`
-          )
-          .then(({ data }) => {
-            const txProof = data.bills[0].txProof;
-            billIdentifiers.push(bill.id);
-            txProofs.push(txProof);
-
-            if (idx + 1 === DCBills.length) {
-              handleSwapRequest(
-                nonce,
-                sortTxProofsByID(txProofs),
-                hashingPublicKey,
-                hashingPrivateKey,
-                sortIDBySize(billIdentifiers),
-                getNewBearer(account),
-                transferMsgHashes
-              );
-            }
-          })
-      );
-    },
-    [DCBills, account, transferMsgHashes]
+  const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
+    "ab_last_nonce",
+    ""
   );
+  const lastNonceIDs: string[] = lastNonceIDsLocal
+    ? isString(lastNonceIDsLocal)
+      ? JSON.parse(lastNonceIDsLocal)
+      : lastNonceIDsLocal
+    : [];
+
+  const handleSwap = useCallback(() => {
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      password,
+      Number(account.idx),
+      vault
+    );
+
+    if (error || !hashingPublicKey || !hashingPrivateKey) {
+      return;
+    }
+
+    setHasSwapBegun(true);
+
+    let nonce: Buffer[] = [];
+    let txProofs: ITxProof[] = [];
+    let billIdentifiers: string[] = [];
+
+    lastNonceIDs.forEach((id: string) => {
+      nonce.push(Buffer.from(id, "base64"));
+      billIdentifiers.push(id);
+    });
+
+    DCBills.map((bill: IBill, idx: number) =>
+      axios
+        .get<IProofsProps>(
+          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
+            bill.id
+          )}`
+        )
+        .then(({ data }) => {
+          const txProof = data.bills[0].txProof;
+
+          txProofs.push(txProof);
+
+          if (idx + 1 === DCBills.length) {
+            handleSwapRequest(
+              nonce,
+              sortTxProofsByID(txProofs),
+              hashingPublicKey,
+              hashingPrivateKey,
+              sortIDBySize(billIdentifiers),
+              getNewBearer(account),
+              transferMsgHashes
+            );
+          }
+        })
+    );
+  }, [DCBills, account, transferMsgHashes, lastNonceIDs, password, vault]);
+
+  const addInterval = () => {
+    let intervalIndex = 0;
+    setIsConsolidationLoading(true);
+
+    swapInterval.current = setInterval(() => {
+      intervalIndex = intervalIndex + 1;
+      queryClient.invalidateQueries(["billsList", activeAccountId]);
+      if (intervalIndex === 1) {
+        swapTimer.current = setTimeout(() => {
+          swapInterval.current && clearInterval(swapInterval.current);
+          setIsConsolidationLoading(false);
+        }, 10000);
+      }
+    }, 1000);
+  };
 
   useEffect(() => {
     if (
-      DCBills.length >= 1 &&
-      DCBills.length === collectableBills.length &&
+      DCBills?.length >= 1 &&
+      DCBills?.length === lastNonceIDs?.length &&
       password
     ) {
-      const { hashingPrivateKey, hashingPublicKey } = getKeys(
-        password,
-        Number(account.idx),
-        vault
-      );
-      let nonce: Buffer[] = [];
-      DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
-
-      hashingPublicKey &&
-        hashingPrivateKey &&
-        handleSwap(hashingPublicKey, hashingPrivateKey, nonce);
+      handleSwap();
     }
   }, [
     handleSwap,
     isConsolidationLoading,
     DCBills,
-    collectableBills,
+    lastNonceIDs,
     password,
     account.idx,
     vault,
@@ -163,15 +192,16 @@ function BillsList(): JSX.Element | null {
 
   useEffect(() => {
     if (
-      DCBills.length < 1 &&
-      collectableBills.length < 1 &&
-      isConsolidationLoading === true
+      DCBills?.length < 1 &&
+      isConsolidationLoading === true &&
+      hasSwapBegun
     ) {
       swapInterval.current && clearInterval(swapInterval.current);
       swapTimer.current && clearTimeout(swapTimer.current);
       setIsConsolidationLoading(false);
+      setLastNonceIDsLocal("");
     }
-  }, [isConsolidationLoading, DCBills, collectableBills]);
+  }, [isConsolidationLoading, DCBills, lastNonceIDs]);
 
   const handleDC = async (formPassword?: string) => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
@@ -184,42 +214,26 @@ function BillsList(): JSX.Element | null {
       return;
     }
 
-    setIsConsolidationLoading(true);
-    setCollectableBills([]);
-
     const unlockedBills = billsList.filter(
       (b: IBill) =>
         b.isDCBill === false &&
         !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
     );
-
     const sortedListByID = sortBillsByID(unlockedBills);
     let nonce: Buffer[] = [];
+    let IDs: string[] = [];
 
     if (DCBills.length >= 1) {
       DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
-      handleSwap(hashingPublicKey, hashingPrivateKey, nonce);
-      let intervalIndex = 0;
-      setIsConsolidationLoading(false);
-      setCollectableBills([]);
-      swapInterval.current = setInterval(() => {
-        intervalIndex = intervalIndex + 1;
-        queryClient.invalidateQueries(["billsList", activeAccountId]);
-        if (intervalIndex === 1) {
-          swapTimer.current = setTimeout(() => {
-            swapInterval.current && clearInterval(swapInterval.current);
-          }, 10000);
-        }
-      }, 1000);
+      handleSwap();
+      addInterval();
     } else {
-      sortedListByID.map((bill: IBill) =>
-        nonce.push(Buffer.from(bill.id, "base64"))
-      );
+      sortedListByID.forEach((bill: IBill) => {
+        nonce.push(Buffer.from(bill.id, "base64"));
+        IDs.push(bill.id);
+      });
 
-      if (!nonce.length) {
-        setIsConsolidationLoading(false);
-        return;
-      }
+      if (!nonce.length) return;
 
       const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
       let total = 0;
@@ -287,21 +301,11 @@ function BillsList(): JSX.Element | null {
             });
 
             makeTransaction(dataWithProof);
-            setCollectableBills(sortedListByID);
-            if (sortedListByID.length === idx + 1) {
-              let intervalIndex = 0;
 
-              swapInterval.current = setInterval(() => {
-                intervalIndex = intervalIndex + 1;
-                queryClient.invalidateQueries(["billsList", activeAccountId]);
-                if (intervalIndex === 1) {
-                  swapTimer.current = setTimeout(() => {
-                    swapInterval.current && clearInterval(swapInterval.current);
-                    setIsConsolidationLoading(false);
-                    setCollectableBills([]);
-                  }, 10000);
-                }
-              }, 1000);
+            if (sortedListByID.length === idx + 1) {
+              addInterval();
+              setLastNonceIDsLocal(JSON.stringify(IDs));
+              setHasSwapBegun(false);
             }
           }
         })
@@ -335,7 +339,7 @@ function BillsList(): JSX.Element | null {
             <>
               <Spacer mt={16} />
               <div className="t-medium pad-24-h c-primary">
-                COLLECTED BILLS FOR SWAP
+                BILLS READY FOR CONSOLIDATION
               </div>
               <Spacer mt={8} />
             </>
@@ -433,9 +437,7 @@ function BillsList(): JSX.Element | null {
         ).length >= 1 && (
           <BillsListItem
             title={
-              <div className="t-medium pad-24-h c-primary">
-                UNLOCKED BILLS
-              </div>
+              <div className="t-medium pad-24-h c-primary">UNLOCKED BILLS</div>
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
