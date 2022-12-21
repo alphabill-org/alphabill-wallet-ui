@@ -1,5 +1,4 @@
 import axios from "axios";
-import { off } from "node:process";
 
 import {
   IBillsList,
@@ -32,7 +31,7 @@ export const getBillsList = async (id: string): Promise<any> => {
     return;
   }
 
-  const limit = 1;
+  const limit = 100;
   let billsList: IBill[] = [];
   let offset = 0;
   let totalBills = null;
