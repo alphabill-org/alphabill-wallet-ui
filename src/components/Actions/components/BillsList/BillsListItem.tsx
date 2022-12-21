@@ -44,7 +44,7 @@ function BillsListItem({
     <>
       <Spacer mt={32} />
       {title}
-      <Spacer mt={12} />
+      <Spacer mt={8} />
 
       {filteredList.map((bill: IBill, idx: number) => {
         const isNewDenomination = denomination !== bill.value;
@@ -54,14 +54,14 @@ function BillsListItem({
           <div key={bill.id}>
             {isNewDenomination && (
               <>
-                {idx !== 0 && <Spacer mt={16} />}
+                {idx !== 0 && <Spacer mt={8} />}
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>Denomination: {bill.value}</div>
                 </div>
               </>
             )}
             <div className={visibleBillSettingID === bill.id ? "" : "d-none"}>
-              <Spacer mt={12} />
+              <Spacer mt={8} />
               <div className="flex flex-align-c pad-24-h">
                 <Spacer mt={8} />
                 <Button

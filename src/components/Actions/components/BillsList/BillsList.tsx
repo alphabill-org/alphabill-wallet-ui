@@ -351,15 +351,12 @@ function BillsList(): JSX.Element | null {
               <div className="t-medium pad-24-h c-primary">
                 BILLS READY FOR CONSOLIDATION
               </div>
-              <Spacer mt={8} />
+              <Spacer mt={3} />
             </>
           )}
 
           {DCBills.map((bill: IBill, idx: number) => {
             const isNewDenomination = DCDenomination !== bill.value && true;
-            const amountOfGivenDenomination = DCBills?.filter(
-              (b: IBill) => b.value === bill.value
-            ).length;
             DCDenomination = bill.value;
 
             return (
@@ -367,18 +364,15 @@ function BillsList(): JSX.Element | null {
                 {isNewDenomination && (
                   <>
                     {idx !== 0 && <Spacer mt={8} />}
-                    <div className="t-medium-small pad-24-h flex flex-align-c">
-                      Denomination: {bill.value}{" "}
-                      <span className="t-medium pad-8-l">
-                        (total of {amountOfGivenDenomination} bill{""}
-                        {amountOfGivenDenomination > 1 && "s"})
-                      </span>
+                    <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
+                      Denomination: {bill.value}
                     </div>
+                    <Spacer mb={2} />
                   </>
                 )}
                 <div key={bill.id} className="dashboard__info-item-wrap small">
                   <div className="dashboard__info-item-bill">
-                    <div className="flex t-small c-light">
+                    <div className="flex t-small t-bold c-light">
                       <span className="pad-8-r">ID:</span>{" "}
                       <span>{base64ToHexPrefixed(bill.id)}</span>
                     </div>
