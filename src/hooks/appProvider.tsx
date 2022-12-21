@@ -76,7 +76,7 @@ export const AppProvider: FunctionComponent<{
       assets: [
         {
           id: "ALPHA",
-          name: "Alphabill Token",
+          name: "ALPHA",
           network: "AB Testnet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
@@ -121,11 +121,11 @@ export const AppProvider: FunctionComponent<{
         keysArr.map((key, idx) => ({
           pubKey: key,
           idx: idx,
-          name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
+          name: accountNamesObj["_" + idx] || "Public Key " + (idx + 1),
           assets: [
             {
               id: "ALPHA",
-              name: "Alphabill Token",
+              name: "ALPHA",
               network: "AB Testnet",
               amount: abFetchedBalance,
             },
