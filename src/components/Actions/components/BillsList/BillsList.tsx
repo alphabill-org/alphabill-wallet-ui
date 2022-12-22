@@ -162,8 +162,6 @@ function BillsList(): JSX.Element | null {
 
   const addInterval = () => {
     let intervalIndex = 0;
-    setIsConsolidationLoading(true);
-
     swapInterval.current = setInterval(() => {
       intervalIndex = intervalIndex + 1;
       queryClient.invalidateQueries(["billsList", activeAccountId]);
@@ -171,6 +169,7 @@ function BillsList(): JSX.Element | null {
         swapTimer.current = setTimeout(() => {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
+          setHasSwapBegun(false);
         }, 10000);
       }
     }, 1000);
@@ -198,11 +197,12 @@ function BillsList(): JSX.Element | null {
     if (
       DCBills?.length < 1 &&
       isConsolidationLoading === true &&
-      hasSwapBegun
+      hasSwapBegun === true
     ) {
       swapInterval.current && clearInterval(swapInterval.current);
       swapTimer.current && clearTimeout(swapTimer.current);
       setIsConsolidationLoading(false);
+      setHasSwapBegun(false);
       setLastNonceIDsLocal("");
     }
   }, [
@@ -232,6 +232,8 @@ function BillsList(): JSX.Element | null {
     const sortedListByID = sortBillsByID(unlockedBills);
     let nonce: Buffer[] = [];
     let IDs: string[] = [];
+
+    setIsConsolidationLoading(true);
 
     if (DCBills.length >= 1) {
       DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
