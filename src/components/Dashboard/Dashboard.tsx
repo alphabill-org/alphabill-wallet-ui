@@ -94,12 +94,12 @@ function Dashboard(): JSX.Element | null {
               </div>
               <div
                 onClick={() => {
-                  setActionsView("Account");
+                  setActionsView("Profile");
                   setIsActionsViewVisible(true);
                 }}
                 className="dashboard__account-option"
               >
-                Change Account
+                Change public key
               </div>
             </div>
           </Button>

@@ -38,7 +38,7 @@ function Actions(): JSX.Element | null {
           <Send />
         ) : actionsView === "Bills List" ? (
           <BillsList />
-        ) : actionsView === "Account" && accounts ? (
+        ) : actionsView === "Profile" && accounts ? (
           <Account />
         ) : (
           <></>

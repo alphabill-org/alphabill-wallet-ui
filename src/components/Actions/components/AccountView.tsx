@@ -88,7 +88,7 @@ function AccountView(): JSX.Element | null {
           <div className="account__menu-item-icon">
             <AddIco />
           </div>
-          <div className="account__menu-item-title">Add New Account</div>
+          <div className="account__menu-item-title">Add new public key</div>
         </div>
 
         <div
@@ -109,7 +109,7 @@ function AccountView(): JSX.Element | null {
       <Popup
         isPopupVisible={isAddPopupVisible}
         setIsPopupVisible={setIsAddPopupVisible}
-        title="Add New Account"
+        title="Add new public key"
       >
         <Formik
           initialValues={{
@@ -194,7 +194,7 @@ function AccountView(): JSX.Element | null {
           validationSchema={Yup.object().shape({
             accountName: Yup.string().test(
               "account-name-taken",
-              `The account name is taken`,
+              `The public key name is taken`,
               function (value) {
                 if (value) {
                   return !Boolean(accounts?.find((a) => a.name === value));
@@ -229,7 +229,7 @@ function AccountView(): JSX.Element | null {
                     <Textfield
                       id="accountName"
                       name="accountName"
-                      label="Account Name (Optional)"
+                      label="Public key name (Optional)"
                       type="accountName"
                       error={extractFormikError(errors, touched, [
                         "accountName",
