@@ -125,7 +125,7 @@ function Header(): JSX.Element | null {
       <Button
         variant="icon"
         onClick={() => {
-          setActionsView("Account");
+          setActionsView("Profile");
           setIsActionsViewVisible(true);
         }}
       >
