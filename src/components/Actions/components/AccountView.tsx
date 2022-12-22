@@ -229,11 +229,12 @@ function AccountView(): JSX.Element | null {
                     <Textfield
                       id="accountName"
                       name="accountName"
-                      label="Public key name (Optional)"
+                      label="Key name (Optional - max 26 characters)"
                       type="accountName"
                       error={extractFormikError(errors, touched, [
                         "accountName",
                       ])}
+                      maxLength={26}
                     />
                   </FormContent>
                   <FormFooter>
