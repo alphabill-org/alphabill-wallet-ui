@@ -1,7 +1,6 @@
 import * as secp from "@noble/secp256k1";
 
 import {
-  getKeys,
   unit8ToHexPrefixed,
   startByte,
   opPushSig,
@@ -10,7 +9,6 @@ import {
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";
 import {
-  IAccount,
   IProof,
   IProofTx,
   ISwapProps,
@@ -22,20 +20,12 @@ import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
 export const handleSwapRequest = async (
   nonce: Buffer[],
   txProofs: ITxProof[],
-  formPassword: string | undefined,
-  password: string,
+  hashingPublicKey: Uint8Array,
+  hashingPrivateKey: Uint8Array,
   billIdentifiers: string[],
   newBearer: string,
-  transferMsgHashes: Uint8Array[],
-  account: IAccount,
-  vault: string | null
+  transferMsgHashes: Uint8Array[]
 ) => {
-  const { hashingPrivateKey, hashingPublicKey } = getKeys(
-    formPassword || password,
-    Number(account.idx),
-    vault
-  );
-
   let dcTransfers: IProofTx[] = [];
   let proofs: IProof[] = [];
 

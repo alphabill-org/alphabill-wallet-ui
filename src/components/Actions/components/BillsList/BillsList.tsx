@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
@@ -48,13 +48,13 @@ import { useGetProof } from "../../../../hooks/api";
 import { handleSwapRequest } from "./Utils";
 import BillsListItem from "./BillsListItem";
 import Popup from "../../../Popup/Popup";
+import { useLocalStorage } from "../../../../hooks/useLocalStorage";
+import { isString } from "lodash";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const [collectableBills, setCollectableBills] = useState<IBill[]>([]);
-  const [passwordFormType, setPasswordFormType] = useState<
-    "DC" | "swap" | null
-  >(null);
+  const [isPasswordFormVisible, setIsPasswordFormVisible] =
+    useState<boolean>(false);
   const {
     billsList,
     account,
@@ -80,8 +80,10 @@ function BillsList(): JSX.Element | null {
     sortedListByValue[0]?.id
   );
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
-  const [isCollectLoading, setIsCollectLoading] = useState<boolean>(false);
-  const [isSwapLoading, setIsSwapLoading] = useState<boolean>(false);
+  const [isConsolidationLoading, setIsConsolidationLoading] =
+    useState<boolean>(false);
+  const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
+
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
     string | null
@@ -93,29 +95,125 @@ function BillsList(): JSX.Element | null {
   const { vault } = useAuth();
   const queryClient = useQueryClient();
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
-  const collectInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const collectTimer = useRef<NodeJS.Timeout | null>(null);
   let DCDenomination: number | null = null;
+  const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
+    "ab_last_nonce",
+    ""
+  );
+  const lastNonceIDs: string[] = useMemo(
+    () =>
+      lastNonceIDsLocal
+        ? isString(lastNonceIDsLocal)
+          ? JSON.parse(lastNonceIDsLocal)
+          : lastNonceIDsLocal
+        : [],
+    [lastNonceIDsLocal]
+  );
+
+  const handleSwap = useCallback(() => {
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      password,
+      Number(account.idx),
+      vault
+    );
+
+    if (error || !hashingPublicKey || !hashingPrivateKey) {
+      return;
+    }
+
+    setHasSwapBegun(true);
+
+    let nonce: Buffer[] = [];
+    let txProofs: ITxProof[] = [];
+    let billIdentifiers: string[] = [];
+
+    lastNonceIDs.forEach((id: string) => {
+      nonce.push(Buffer.from(id, "base64"));
+      billIdentifiers.push(id);
+    });
+
+    DCBills.map((bill: IBill, idx: number) =>
+      axios
+        .get<IProofsProps>(
+          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
+            bill.id
+          )}`
+        )
+        .then(({ data }) => {
+          const txProof = data.bills[0].txProof;
+
+          txProofs.push(txProof);
+
+          if (idx + 1 === DCBills.length) {
+            handleSwapRequest(
+              nonce,
+              sortTxProofsByID(txProofs),
+              hashingPublicKey,
+              hashingPrivateKey,
+              sortIDBySize(billIdentifiers),
+              getNewBearer(account),
+              transferMsgHashes
+            );
+          }
+        })
+    );
+  }, [DCBills, account, transferMsgHashes, lastNonceIDs, password, vault]);
+
+  const addInterval = () => {
+    let intervalIndex = 0;
+    swapInterval.current = setInterval(() => {
+      intervalIndex = intervalIndex + 1;
+      queryClient.invalidateQueries(["billsList", activeAccountId]);
+      if (intervalIndex === 1) {
+        swapTimer.current = setTimeout(() => {
+          swapInterval.current && clearInterval(swapInterval.current);
+          setIsConsolidationLoading(false);
+          setHasSwapBegun(false);
+        }, 10000);
+      }
+    }, 1000);
+  };
 
   useEffect(() => {
-    if (DCBills.length < 1) {
+    if (
+      DCBills?.length >= 1 &&
+      DCBills?.length === lastNonceIDs?.length &&
+      password
+    ) {
+      handleSwap();
+    }
+  }, [
+    handleSwap,
+    isConsolidationLoading,
+    DCBills,
+    lastNonceIDs,
+    password,
+    account.idx,
+    vault,
+  ]);
+
+  useEffect(() => {
+    if (
+      DCBills?.length < 1 &&
+      isConsolidationLoading === true &&
+      hasSwapBegun === true
+    ) {
       swapInterval.current && clearInterval(swapInterval.current);
       swapTimer.current && clearTimeout(swapTimer.current);
-      setIsSwapLoading(false);
+      setIsConsolidationLoading(false);
+      setHasSwapBegun(false);
+      setLastNonceIDsLocal("");
     }
-  }, [isSwapLoading, DCBills]);
+  }, [
+    isConsolidationLoading,
+    DCBills,
+    lastNonceIDs,
+    hasSwapBegun,
+    setLastNonceIDsLocal,
+  ]);
 
-  useEffect(() => {
-    if (DCBills.length === collectableBills.length) {
-      collectInterval.current && clearInterval(collectInterval.current);
-      collectTimer.current && clearTimeout(collectTimer.current);
-      setCollectableBills([]);
-      setIsCollectLoading(false);
-    }
-  }, [isCollectLoading, DCBills]);
-
-  const handleDC = async (bills: IBill[], formPassword?: string) => {
+  const handleDC = async (formPassword?: string) => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
       formPassword || password,
       Number(account.idx),
@@ -126,161 +224,105 @@ function BillsList(): JSX.Element | null {
       return;
     }
 
-    setIsCollectLoading(true);
-
-    const sortedListByID = sortBillsByID(bills);
-    let nonce: Buffer[] = [];
-
-    sortedListByID.map((bill: IBill) =>
-      nonce.push(Buffer.from(bill.id, "base64"))
+    const unlockedBills = billsList.filter(
+      (b: IBill) =>
+        b.isDCBill === false &&
+        !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
     );
+    const sortedListByID = sortBillsByID(unlockedBills);
+    let nonce: Buffer[] = [];
+    let IDs: string[] = [];
 
-    if (!nonce.length) return;
+    setIsConsolidationLoading(true);
 
-    const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+    if (DCBills.length >= 1) {
+      DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
+      handleSwap();
+      addInterval();
+    } else {
+      sortedListByID.forEach((bill: IBill) => {
+        nonce.push(Buffer.from(bill.id, "base64"));
+        IDs.push(bill.id);
+      });
 
-    let total = 0;
-    getBlockHeight().then((blockData) =>
-      sortedListByID.map(async (bill: IBill, idx) => {
-        total = total + 1;
+      if (!nonce.length) return;
 
-        const transferData: ITransfer = {
-          systemId: "AAAAAA==",
-          unitId: bill.id,
-          transactionAttributes: {
-            "@type": "type.googleapis.com/rpc.TransferDCOrder",
-            backlink: bill.txHash,
-            nonce: Buffer.from(nonceHash).toString("base64"),
-            targetBearer: getNewBearer(account),
-            targetValue: bill.value.toString(),
-          },
-          timeout: blockData.blockHeight + 10,
-          ownerProof: "",
-        };
+      const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+      let total = 0;
 
-        const msgHash = await secp.utils.sha256(
-          secp.utils.concatBytes(
-            Buffer.from(transferData.systemId, "base64"),
-            Buffer.from(transferData.unitId, "base64"),
-            new Uint64BE(transferData.timeout).toBuffer(),
-            Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
-            Buffer.from(
-              transferData.transactionAttributes.targetBearer as string,
-              "base64"
-            ),
-            new Uint64BE(bill.value).toBuffer(),
-            Buffer.from(bill.txHash, "base64")
-          )
-        );
+      getBlockHeight().then((blockData) =>
+        sortedListByID.map(async (bill: IBill, idx) => {
+          total = total + 1;
 
-        setTransferMsgHashes([...transferMsgHashes, msgHash]);
-
-        const signature = await secp.sign(msgHash, hashingPrivateKey, {
-          der: false,
-          recovered: true,
-        });
-
-        if (secp.verify(signature[0], msgHash, hashingPublicKey)) {
-          const ownerProof = Buffer.from(
-            startByte +
-              opPushSig +
-              sigScheme +
-              Buffer.from(
-                secp.utils.concatBytes(
-                  signature[0],
-                  Buffer.from([signature[1]])
-                )
-              ).toString("hex") +
-              opPushPubKey +
-              sigScheme +
-              unit8ToHexPrefixed(hashingPublicKey).substring(2),
-            "hex"
-          ).toString("base64");
-
-          const dataWithProof = Object.assign(transferData, {
-            ownerProof: ownerProof,
+          const transferData: ITransfer = {
+            systemId: "AAAAAA==",
+            unitId: bill.id,
+            transactionAttributes: {
+              "@type": "type.googleapis.com/rpc.TransferDCOrder",
+              backlink: bill.txHash,
+              nonce: Buffer.from(nonceHash).toString("base64"),
+              targetBearer: getNewBearer(account),
+              targetValue: bill.value.toString(),
+            },
             timeout: blockData.blockHeight + 10,
+            ownerProof: "",
+          };
+
+          const msgHash = await secp.utils.sha256(
+            secp.utils.concatBytes(
+              Buffer.from(transferData.systemId, "base64"),
+              Buffer.from(transferData.unitId, "base64"),
+              new Uint64BE(transferData.timeout).toBuffer(),
+              Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
+              Buffer.from(
+                transferData.transactionAttributes.targetBearer as string,
+                "base64"
+              ),
+              new Uint64BE(bill.value).toBuffer(),
+              Buffer.from(bill.txHash, "base64")
+            )
+          );
+
+          setTransferMsgHashes([...transferMsgHashes, msgHash]);
+
+          const signature = await secp.sign(msgHash, hashingPrivateKey, {
+            der: false,
+            recovered: true,
           });
 
-          makeTransaction(dataWithProof);
+          if (secp.verify(signature[0], msgHash, hashingPublicKey)) {
+            const ownerProof = Buffer.from(
+              startByte +
+                opPushSig +
+                sigScheme +
+                Buffer.from(
+                  secp.utils.concatBytes(
+                    signature[0],
+                    Buffer.from([signature[1]])
+                  )
+                ).toString("hex") +
+                opPushPubKey +
+                sigScheme +
+                unit8ToHexPrefixed(hashingPublicKey).substring(2),
+              "hex"
+            ).toString("base64");
 
-          if (sortedListByID.length === idx + 1) {
-            setIsCollectLoading(false);
+            const dataWithProof = Object.assign(transferData, {
+              ownerProof: ownerProof,
+              timeout: blockData.blockHeight + 10,
+            });
 
-            let intervalIndex = 0;
-            collectInterval.current = setInterval(() => {
-              intervalIndex = intervalIndex + 1;
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
-              if (intervalIndex === 1) {
-                collectTimer.current = setTimeout(() => {
-                  collectInterval.current &&
-                    clearInterval(collectInterval.current);
-                  setCollectableBills([]);
-                }, 10000);
-              }
-            }, 1000);
-          }
-        }
-      })
-    );
-  };
+            makeTransaction(dataWithProof);
 
-  const handleSwap = (formPassword?: string) => {
-    let total = 0;
-    let nonce: Buffer[] = [];
-    let txProofs: ITxProof[] = [];
-    let billIdentifiers: string[] = [];
-    const { error, hashingPublicKey } = getKeys(
-      formPassword || password,
-      Number(account.idx),
-      vault
-    );
-    if (error || !hashingPublicKey) {
-      setIsSwapLoading(false);
-      return;
-    }
-
-    let intervalIndex = 0;
-    swapInterval.current = setInterval(() => {
-      intervalIndex = intervalIndex + 1;
-      queryClient.invalidateQueries(["billsList", activeAccountId]);
-      if (intervalIndex === 1) {
-        swapTimer.current = setTimeout(() => {
-          swapInterval.current && clearInterval(swapInterval.current);
-        }, 10000);
-      }
-    }, 1000);
-
-    DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
-
-    DCBills.map((bill: IBill) =>
-      axios
-        .get<IProofsProps>(
-          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
-            bill.id
-          )}`
-        )
-        .then(({ data }) => {
-          total = total + 1;
-          const txProof = data.bills[0].txProof;
-          billIdentifiers.push(bill.id);
-          txProofs.push(txProof);
-
-          if (total === DCBills.length) {
-            handleSwapRequest(
-              nonce,
-              sortTxProofsByID(txProofs),
-              formPassword,
-              password,
-              sortIDBySize(billIdentifiers),
-              getNewBearer(account),
-              transferMsgHashes,
-              account,
-              vault
-            );
+            if (sortedListByID.length === idx + 1) {
+              addInterval();
+              setLastNonceIDsLocal(JSON.stringify(IDs));
+              setHasSwapBegun(false);
+            }
           }
         })
-    );
+      );
+    }
   };
 
   return (
@@ -301,28 +343,22 @@ function BillsList(): JSX.Element | null {
         </Button>
         <Spacer mt={16} />
         <div className="t-medium-small pad-24-h">
-          To swap your bills into one bigger bill select the bills & click on
-          the <b>Collect Selected Bills</b> button and then{" "}
-          <b>Swap Collect Bills</b>.
-          <Spacer mt={8} />
-          <Spacer mt={8} />
-        </div>{" "}
+          To consolidate your bills into one larger bill click on the{" "}
+          <b>Consolidate Bills</b> button.
+        </div>
         <div>
           {DCBills.length > 0 && (
             <>
               <Spacer mt={16} />
               <div className="t-medium pad-24-h c-primary">
-                COLLECTED BILLS FOR SWAP
+                BILLS READY FOR CONSOLIDATION
               </div>
-              <Spacer mt={8} />
+              <Spacer mt={3} />
             </>
           )}
 
           {DCBills.map((bill: IBill, idx: number) => {
             const isNewDenomination = DCDenomination !== bill.value && true;
-            const amountOfGivenDenomination = DCBills?.filter(
-              (b: IBill) => b.value === bill.value
-            ).length;
             DCDenomination = bill.value;
 
             return (
@@ -330,18 +366,15 @@ function BillsList(): JSX.Element | null {
                 {isNewDenomination && (
                   <>
                     {idx !== 0 && <Spacer mt={8} />}
-                    <div className="t-medium-small pad-24-h flex flex-align-c">
-                      Denomination: {bill.value}{" "}
-                      <span className="t-medium pad-8-l">
-                        (total of {amountOfGivenDenomination} bill{""}
-                        {amountOfGivenDenomination > 1 && "s"})
-                      </span>
+                    <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
+                      Denomination: {bill.value}
                     </div>
+                    <Spacer mb={2} />
                   </>
                 )}
                 <div key={bill.id} className="dashboard__info-item-wrap small">
                   <div className="dashboard__info-item-bill">
-                    <div className="flex t-small c-light">
+                    <div className="flex t-small t-bold c-light">
                       <span className="pad-8-r">ID:</span>{" "}
                       <span>{base64ToHexPrefixed(bill.id)}</span>
                     </div>
@@ -351,206 +384,76 @@ function BillsList(): JSX.Element | null {
             );
           })}
         </div>
-        <Spacer mt={16} />
         <div className="t-medium-small pad-24-h">
+          <Spacer mt={16} />
+
           <Button
-            disabled={DCBills.length <= 0}
             className="w-100p"
             small
             type="button"
             variant="primary"
-            working={isSwapLoading}
+            working={isConsolidationLoading}
             onClick={() => {
-              setIsSwapLoading(true);
               if (password) {
-                handleSwap();
+                handleDC();
               } else {
-                setPasswordFormType("swap");
+                setIsPasswordFormVisible(true);
               }
             }}
           >
-            Swap Collected Bills
+            Consolidate Bills
           </Button>
-          <Spacer mt={8} />
-          {collectableBills.length > 0 && (
-            <>
-              <Button
-                disabled={collectableBills.length <= 0 || DCBills.length > 0}
-                className="w-100p"
-                small
-                type="button"
-                variant="primary"
-                working={isCollectLoading}
-                onClick={() => {
-                  if (password) {
-                    handleDC(collectableBills);
-                  } else {
-                    setPasswordFormType("DC");
-                  }
-                }}
-              >
-                {DCBills.length > 0
-                  ? "Swap Before Collecting New Bills"
-                  : "Collect Selected Bills"}
-              </Button>
-              <Spacer mt={8} />
-            </>
-          )}
-
-          {!isCollectLoading &&
-            DCBills.length < 1 &&
-            sortedListByValue.filter(
-              (b: IBill) =>
-                !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-            ).length > 0 && (
-              <Button
-                onClick={() => {
-                  queryClient.invalidateQueries(["billsList", activeAccountId]);
-                  queryClient.invalidateQueries(["balance", activeAccountId]);
-                  sortedListByValue.filter(
-                    (b: IBill) =>
-                      b.isDCBill === false &&
-                      !lockedBills?.find(
-                        (key: ILockedBill) => key.billId === b.id
-                      ) &&
-                      !collectableBills.find((key) => key.id === b.id)
-                  ).length < 1
-                    ? setCollectableBills([])
-                    : setCollectableBills(
-                        collectableBills.concat(
-                          sortedListByValue.filter(
-                            (b: IBill) =>
-                              b.isDCBill === false &&
-                              !lockedBills?.find(
-                                (key: ILockedBill) => key.billId === b.id
-                              ) &&
-                              !collectableBills.find((key) => key.id === b.id)
-                          )
-                        )
-                      );
-                  setVisibleBillSettingID(null);
-                }}
-                className="w-100p"
-                small
-                type="button"
-                variant="secondary"
-              >
-                {sortedListByValue.filter(
-                  (b: IBill) =>
-                    b.isDCBill === false &&
-                    !lockedBills?.find(
-                      (key: ILockedBill) => key.billId === b.id
-                    ) &&
-                    !collectableBills.find((key) => key.id === b.id)
-                ).length < 1
-                  ? "Unselect All Bills For Collection"
-                  : "Select All Bills For Collection"}
-              </Button>
-            )}
         </div>
         {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length > 0 && (
-          <BillsListItem
-            title={
-              <div className="t-medium pad-24-h c-primary">
-                LOCKED BILLS{" "}
-                <span className="t-small">- Exempt from transfers</span>
-              </div>
-            }
-            filteredList={sortedListByValue.filter((b: IBill) =>
-              lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-            )}
-            isLockedBills
-            DCBills={DCBills}
-            setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
-            visibleBillSettingID={visibleBillSettingID}
-            setCollectableBills={(v) => setCollectableBills(v)}
-            collectableBills={collectableBills}
-            setActiveBillId={(v) => setActiveBillId(v)}
-            setIsProofVisible={(v) => setIsProofVisible(v)}
-            setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
-            setActionsView={(v) => setActionsView(v)}
-            setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
-            setSelectedSendKey={(v) => setSelectedSendKey(v)}
-            lockedBills={lockedBills}
-            setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
-            activeAccountId={activeAccountId}
-          />
+          <>
+            <Spacer mt={8} />
+            <BillsListItem
+              title={
+                <div className="t-medium pad-24-h c-primary">
+                  LOCKED BILLS
+                  <br />
+                  <span className="t-small">
+                    Exempt from transfers & consolidation
+                  </span>
+                </div>
+              }
+              filteredList={sortedListByValue.filter((b: IBill) =>
+                lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+              )}
+              isLockedBills
+              setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
+              visibleBillSettingID={visibleBillSettingID}
+              setActiveBillId={(v) => setActiveBillId(v)}
+              setIsProofVisible={(v) => setIsProofVisible(v)}
+              setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
+              setActionsView={(v) => setActionsView(v)}
+              setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
+              setSelectedSendKey={(v) => setSelectedSendKey(v)}
+              lockedBills={lockedBills}
+              setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
+            />
+          </>
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
             b.isDCBill === false &&
-            !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
-            collectableBills.find((key) => key.id === b.id)
+            !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
             title={
-              <div className="t-medium pad-24-h c-primary">
-                SELECTED FOR COLLECTION
-                {DCBills.length > 0 && (
-                  <div className="t-small">
-                    Swap Before Collecting New Bills
-                  </div>
-                )}
-              </div>
-            }
-            filteredList={sortedListByValue.filter(
-              (b: IBill) =>
-                b.isDCBill === false &&
-                !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
-                collectableBills.find((key) => key.id === b.id)
-            )}
-            lockedBills={lockedBills}
-            setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
-            activeAccountId={activeAccountId}
-            isSelectedForCollection
-            DCBills={DCBills}
-            setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
-            visibleBillSettingID={visibleBillSettingID}
-            setCollectableBills={(v) => setCollectableBills(v)}
-            collectableBills={collectableBills}
-            setActiveBillId={(v) => setActiveBillId(v)}
-            setIsProofVisible={(v) => setIsProofVisible(v)}
-            setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
-            setActionsView={(v) => setActionsView(v)}
-            setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
-            setSelectedSendKey={(v) => setSelectedSendKey(v)}
-          />
-        )}
-        {sortedListByValue.filter(
-          (b: IBill) =>
-            b.isDCBill === false &&
-            !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
-            !collectableBills.find((key) => key.id === b.id)
-        ).length >= 1 && (
-          <BillsListItem
-            title={
-              <div className="t-medium pad-24-h c-primary">
-                UNCOLLECTED BILLS
-                {DCBills.length > 0 && (
-                  <div className="t-small">
-                    Swap Before Selecting New Bills For Collection
-                  </div>
-                )}
-              </div>
+              <div className="t-medium pad-24-h c-primary">UNLOCKED BILLS</div>
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={(v) => setLockedBillsLocal(v)}
-            activeAccountId={activeAccountId}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
                 b.isDCBill === false &&
-                !lockedBills?.find((key: ILockedBill) => key.billId === b.id) &&
-                !collectableBills.find((key) => key.id === b.id)
+                !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
-            DCBills={DCBills}
             setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
             visibleBillSettingID={visibleBillSettingID}
-            setCollectableBills={(v) => {
-              setCollectableBills(v);
-            }}
-            collectableBills={collectableBills}
             setActiveBillId={(v) => setActiveBillId(v)}
             setIsProofVisible={(v) => setIsProofVisible(v)}
             setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
@@ -593,17 +496,15 @@ function BillsList(): JSX.Element | null {
       </div>
       <div
         className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": Boolean(passwordFormType),
+          "select__popover-wrap--open": isPasswordFormVisible === true,
         })}
       >
         <div className="select__popover">
           <div className="select__popover-header">
-            <div>INSERT PASSWORD FOR {passwordFormType?.toUpperCase()}</div>
+            <div>INSERT PASSWORD</div>
             <Close
               onClick={() => {
-                setPasswordFormType(null);
-                setIsCollectLoading(false);
-                setIsSwapLoading(false);
+                setIsPasswordFormVisible(false);
               }}
             />
           </div>
@@ -620,15 +521,9 @@ function BillsList(): JSX.Element | null {
               ),
             })}
             onSubmit={(values) => {
-              if (collectableBills && passwordFormType === "DC") {
-                setPassword(values.password);
-                setPasswordFormType(null);
-                handleDC(collectableBills, values.password);
-              } else if (passwordFormType === "swap") {
-                setPassword(values.password);
-                handleSwap(values.password);
-                setPasswordFormType(null);
-              }
+              setPassword(values.password);
+              handleDC(values.password);
+              setIsPasswordFormVisible(false);
             }}
           >
             {(formikProps) => {
