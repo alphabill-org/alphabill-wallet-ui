@@ -313,10 +313,10 @@ function BillsList(): JSX.Element | null {
             });
 
             makeTransaction(dataWithProof);
+            setLastNonceIDsLocal(JSON.stringify(IDs));
 
             if (sortedListByID.length === idx + 1) {
               addInterval();
-              setLastNonceIDsLocal(JSON.stringify(IDs));
               setHasSwapBegun(false);
             }
           }
