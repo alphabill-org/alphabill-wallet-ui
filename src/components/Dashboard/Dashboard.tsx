@@ -176,7 +176,6 @@ function Dashboard(): JSX.Element | null {
                         <div>
                           {asset.amount} {asset?.id}
                         </div>
-                        <div className="t-small c-light">{asset.name}</div>
                       </div>
                       {asset?.id === "ALPHA" && (
                         <Button

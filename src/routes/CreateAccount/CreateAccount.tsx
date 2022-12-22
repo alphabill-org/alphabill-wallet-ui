@@ -111,7 +111,7 @@ function CreateAccount(): JSX.Element | null {
                   localStorage.setItem(
                     "ab_wallet_account_names",
                     JSON.stringify({
-                      ["_" + 0]: "Account 1",
+                      ["_" + 0]: "Public Key 1",
                     })
                   );
                   setActiveAccountId(prefixedHashingPubKey);
