@@ -154,7 +154,7 @@ function AccountView(): JSX.Element | null {
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]: values.accountName || "Public Key " + (idx + 1),
+                    ["_" + idx]: values.accountName || "Public key " + (idx + 1),
                   })
                 )
               );

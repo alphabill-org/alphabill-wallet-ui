@@ -121,7 +121,7 @@ export const AppProvider: FunctionComponent<{
         keysArr.map((key, idx) => ({
           pubKey: key,
           idx: idx,
-          name: accountNamesObj["_" + idx] || "Public Key " + (idx + 1),
+          name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
           assets: [
             {
               id: "ALPHA",
