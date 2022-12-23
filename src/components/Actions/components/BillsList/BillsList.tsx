@@ -100,15 +100,15 @@ function BillsList(): JSX.Element | null {
   let DCDenomination: number | null = null;
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
     "ab_last_nonce",
-    ""
+    null
   );
-  const lastNonceIDs: string[] = useMemo(
+  const lastNonceIDs = useMemo(
     () =>
       lastNonceIDsLocal
         ? isString(lastNonceIDsLocal)
           ? JSON.parse(lastNonceIDsLocal)
           : lastNonceIDsLocal
-        : [],
+        : {},
     [lastNonceIDsLocal]
   );
 
@@ -129,7 +129,7 @@ function BillsList(): JSX.Element | null {
     let txProofs: ITxProof[] = [];
     let billIdentifiers: string[] = [];
 
-    lastNonceIDs.forEach((id: string) => {
+    sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
       nonce.push(Buffer.from(id, "base64"));
       billIdentifiers.push(id);
     });
@@ -146,7 +146,7 @@ function BillsList(): JSX.Element | null {
 
           txProofs.push(txProof);
 
-          if (idx + 1 === DCBills.length) {
+          if (txProofs.length === DCBills.length) {
             handleSwapRequest(
               nonce,
               sortTxProofsByID(txProofs),
@@ -159,7 +159,15 @@ function BillsList(): JSX.Element | null {
           }
         })
     );
-  }, [DCBills, account, transferMsgHashes, lastNonceIDs, password, vault]);
+  }, [
+    DCBills,
+    account,
+    transferMsgHashes,
+    lastNonceIDs,
+    password,
+    vault,
+    activeAccountId,
+  ]);
 
   const addInterval = () => {
     let intervalIndex = 0;
@@ -171,7 +179,7 @@ function BillsList(): JSX.Element | null {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
-        }, 10000);
+        }, 20000);
       }
     }, 1000);
   };
@@ -179,7 +187,7 @@ function BillsList(): JSX.Element | null {
   useEffect(() => {
     if (
       DCBills?.length >= 1 &&
-      DCBills?.length === lastNonceIDs?.length &&
+      DCBills?.length === lastNonceIDs?.[activeAccountId]?.length &&
       password
     ) {
       handleSwap();
@@ -192,6 +200,7 @@ function BillsList(): JSX.Element | null {
     password,
     account.idx,
     vault,
+    activeAccountId,
   ]);
 
   useEffect(() => {
@@ -204,7 +213,10 @@ function BillsList(): JSX.Element | null {
       swapTimer.current && clearTimeout(swapTimer.current);
       setIsConsolidationLoading(false);
       setHasSwapBegun(false);
-      setLastNonceIDsLocal("");
+
+      let remainingNonce = lastNonceIDs;
+      delete remainingNonce?.[activeAccountId];
+      setLastNonceIDsLocal(JSON.stringify(remainingNonce));
     }
   }, [
     isConsolidationLoading,
@@ -212,6 +224,7 @@ function BillsList(): JSX.Element | null {
     lastNonceIDs,
     hasSwapBegun,
     setLastNonceIDsLocal,
+    activeAccountId,
   ]);
 
   const handleDC = async (formPassword?: string) => {
@@ -230,6 +243,7 @@ function BillsList(): JSX.Element | null {
         b.isDCBill === false &&
         !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
     );
+
     const sortedListByID = sortBillsByID(unlockedBills);
     let nonce: Buffer[] = [];
     let IDs: string[] = [];
@@ -313,13 +327,24 @@ function BillsList(): JSX.Element | null {
               timeout: blockData.blockHeight + 10,
             });
 
-            makeTransaction(dataWithProof);
-            setLastNonceIDsLocal(JSON.stringify(IDs));
+            makeTransaction(dataWithProof)
+              .then(() => handleTransactionEnd())
+              .catch(() => handleTransactionEnd());
 
-            if (sortedListByID.length === idx + 1) {
-              addInterval();
-              setHasSwapBegun(false);
-            }
+            const handleTransactionEnd = () => {
+              setLastNonceIDsLocal(
+                JSON.stringify(
+                  Object.assign(lastNonceIDs, {
+                    [activeAccountId]: IDs,
+                  })
+                )
+              );
+
+              if (sortedListByID.length === idx + 1) {
+                addInterval();
+                setHasSwapBegun(false);
+              }
+            };
           }
         })
       );
@@ -521,7 +546,17 @@ function BillsList(): JSX.Element | null {
                 (password) => checkPassword(password)
               ),
             })}
-            onSubmit={(values) => {
+            onSubmit={(values, {setErrors}) => {
+              const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+                values.password,
+                Number(account.idx),
+                vault
+              );
+
+              if (error || !hashingPublicKey || !hashingPrivateKey) {
+                return setErrors({ password: "Password is incorrect!" });
+              }
+
               setPassword(values.password);
               handleDC(values.password);
               setIsPasswordFormVisible(false);
