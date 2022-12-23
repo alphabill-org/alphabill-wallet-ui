@@ -8,6 +8,7 @@ import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
 import {
+  checkPassword,
   extractFormikError,
   getKeys,
   unit8ToHexPrefixed,
@@ -73,13 +74,7 @@ function Login(): JSX.Element | null {
           password: Yup.string().test(
             "empty-or-8-characters-check",
             "password must be at least 8 characters",
-            (password) => {
-              if (!password) {
-                return false;
-              } else if (password.length < 8) {
-                return false;
-              } else return true;
-            }
+            (password) => checkPassword(password)
           ),
         })}
       >

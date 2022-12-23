@@ -10,7 +10,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import { checkPassword, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -60,24 +60,12 @@ function CreateAccount(): JSX.Element | null {
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => {
-                if (!password) {
-                  return false;
-                } else if (password.length < 8) {
-                  return false;
-                } else return true;
-              }
+              (password) => checkPassword(password)
             ),
             passwordConfirm: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => {
-                if (!password) {
-                  return false;
-                } else if (password.length < 8) {
-                  return false;
-                } else return true;
-              }
+              (password) => checkPassword(password)
             ),
           })}
           onSubmit={(values, { setErrors }) => {

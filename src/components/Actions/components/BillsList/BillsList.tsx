@@ -10,6 +10,7 @@ import { useQueryClient } from "react-query";
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
 import {
+  checkPassword,
   extractFormikError,
   getNewBearer,
   sortIDBySize,
@@ -517,13 +518,7 @@ function BillsList(): JSX.Element | null {
               password: Yup.string().test(
                 "empty-or-8-characters-check",
                 "password must be at least 8 characters",
-                (password) => {
-                  if (!password) {
-                    return false;
-                  } else if (password.length < 8) {
-                    return false;
-                  } else return true;
-                }
+                (password) => checkPassword(password)
               ),
             })}
             onSubmit={(values) => {

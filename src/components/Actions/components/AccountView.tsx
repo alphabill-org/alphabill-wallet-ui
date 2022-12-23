@@ -11,6 +11,7 @@ import { useQueryClient } from "react-query";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import {
+  checkPassword,
   extractFormikError,
   getKeys,
   unit8ToHexPrefixed,
@@ -127,7 +128,7 @@ function AccountView(): JSX.Element | null {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            setIsAddAccountLoading(true)
+            setIsAddAccountLoading(true);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
 
@@ -153,7 +154,8 @@ function AccountView(): JSX.Element | null {
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]: values.accountName || "Public key " + (idx + 1),
+                    ["_" + idx]:
+                      values.accountName || "Public key " + (idx + 1),
                   })
                 )
               );
@@ -205,13 +207,7 @@ function AccountView(): JSX.Element | null {
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => {
-                if (!password) {
-                  return false;
-                } else if (password.length < 8) {
-                  return false;
-                } else return true;
-              }
+              (password) => checkPassword(password)
             ),
           })}
         >
