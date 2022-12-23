@@ -145,7 +145,7 @@ function BillsList(): JSX.Element | null {
 
           txProofs.push(txProof);
 
-          if (idx + 1 === DCBills.length) {
+          if (txProofs.length === DCBills.length) {
             handleSwapRequest(
               nonce,
               sortTxProofsByID(txProofs),
