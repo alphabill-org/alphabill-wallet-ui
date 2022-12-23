@@ -12,10 +12,11 @@ import { extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
+import { useApp } from "../../hooks/appProvider";
 
 function RecoverAccount(): JSX.Element | null {
   const { login, userKeys, setVault } = useAuth();
-
+  const { setActiveAccountId } = useApp();
   return (
     <div className="create-account">
       <div className="actions__header">
@@ -113,7 +114,7 @@ function RecoverAccount(): JSX.Element | null {
                       values.password
                     ).toString()
                   );
-
+                  setActiveAccountId(prefixedPubKey);
                   login(!userKeys ? prefixedPubKey : null);
                 }
               })
