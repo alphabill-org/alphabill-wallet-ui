@@ -101,6 +101,13 @@ export const getNewBearer = (account: IAccount) => {
   ).toString("base64");
 };
 
+export const checkPassword = (password: string | undefined) => {
+  if (!password) {
+    return false;
+  }
+  return password.length >= 8;
+};
+
 export const getKeys = (
   password: string,
   accountIndex: number,

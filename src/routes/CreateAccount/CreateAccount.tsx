@@ -10,7 +10,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import { checkPassword, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -60,12 +60,12 @@ function CreateAccount(): JSX.Element | null {
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
+              (password) => checkPassword(password)
             ),
             passwordConfirm: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
+              (password) => checkPassword(password)
             ),
           })}
           onSubmit={(values, { setErrors }) => {
@@ -90,12 +90,9 @@ function CreateAccount(): JSX.Element | null {
               prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)
             ) {
               axios
-                .post<void>(
-                  API_URL + "/admin/add-key",
-                  {
-                    pubkey: decrypted.toString(CryptoJS.enc.Latin1),
-                  }
-                )
+                .post<void>(API_URL + "/admin/add-key", {
+                  pubkey: decrypted.toString(CryptoJS.enc.Latin1),
+                })
                 .then(() => {
                   const vaultData = {
                     entropy: mnemonicToEntropy(mnemonic),
@@ -111,7 +108,7 @@ function CreateAccount(): JSX.Element | null {
                   localStorage.setItem(
                     "ab_wallet_account_names",
                     JSON.stringify({
-                      ["_" + 0]: "Public key 1",
+                      ["_" + 0]: "Public Key 1",
                     })
                   );
                   setActiveAccountId(prefixedHashingPubKey);
