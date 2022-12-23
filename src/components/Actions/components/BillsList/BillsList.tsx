@@ -517,7 +517,13 @@ function BillsList(): JSX.Element | null {
               password: Yup.string().test(
                 "empty-or-8-characters-check",
                 "password must be at least 8 characters",
-                (password) => !password || password.length >= 8
+                (password) => {
+                  if (!password) {
+                    return false;
+                  } else if (password.length < 8) {
+                    return false;
+                  } else return true;
+                }
               ),
             })}
             onSubmit={(values) => {

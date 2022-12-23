@@ -66,7 +66,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     const regexFloatString = "^\\d+(\\.\\d{0," + fixedPoint + "})?$";
     const regexFloat = new RegExp(regexFloatString);
 
-    if (regexEmoji.test(e.target.value)) {
+    if (props.type !== "password" && regexEmoji.test(e.target.value)) {
       return false;
     }
 

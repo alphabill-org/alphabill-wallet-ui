@@ -60,12 +60,24 @@ function CreateAccount(): JSX.Element | null {
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
+              (password) => {
+                if (!password) {
+                  return false;
+                } else if (password.length < 8) {
+                  return false;
+                } else return true;
+              }
             ),
             passwordConfirm: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
+              (password) => {
+                if (!password) {
+                  return false;
+                } else if (password.length < 8) {
+                  return false;
+                } else return true;
+              }
             ),
           })}
           onSubmit={(values, { setErrors }) => {
@@ -90,12 +102,9 @@ function CreateAccount(): JSX.Element | null {
               prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)
             ) {
               axios
-                .post<void>(
-                  API_URL + "/admin/add-key",
-                  {
-                    pubkey: decrypted.toString(CryptoJS.enc.Latin1),
-                  }
-                )
+                .post<void>(API_URL + "/admin/add-key", {
+                  pubkey: decrypted.toString(CryptoJS.enc.Latin1),
+                })
                 .then(() => {
                   const vaultData = {
                     entropy: mnemonicToEntropy(mnemonic),
@@ -111,7 +120,7 @@ function CreateAccount(): JSX.Element | null {
                   localStorage.setItem(
                     "ab_wallet_account_names",
                     JSON.stringify({
-                      ["_" + 0]: "Public key 1",
+                      ["_" + 0]: "Public Key 1",
                     })
                   );
                   setActiveAccountId(prefixedHashingPubKey);
