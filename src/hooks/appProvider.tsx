@@ -113,9 +113,8 @@ export const AppProvider: FunctionComponent<{
     )?.data?.balance;
 
     if (
-      (accounts.length <= 0 && keysArr.length >= 1) ||
       (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
-      keysArr.length > accounts.length
+      keysArr.length !== accounts.length
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
