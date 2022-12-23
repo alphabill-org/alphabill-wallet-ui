@@ -96,6 +96,7 @@ function Send(): JSX.Element | null {
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
+                  bill.isDCBill === false &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
