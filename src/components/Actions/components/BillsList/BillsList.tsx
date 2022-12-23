@@ -520,7 +520,17 @@ function BillsList(): JSX.Element | null {
                 (password) => !password || password.length >= 8
               ),
             })}
-            onSubmit={(values) => {
+            onSubmit={(values, {setErrors}) => {
+              const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+                values.password,
+                Number(account.idx),
+                vault
+              );
+
+              if (error || !hashingPublicKey || !hashingPrivateKey) {
+                return setErrors({ password: "Password is incorrect!" });
+              }
+
               setPassword(values.password);
               handleDC(values.password);
               setIsPasswordFormVisible(false);
