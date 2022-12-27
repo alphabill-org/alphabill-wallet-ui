@@ -1,6 +1,6 @@
 {
   "name": "alphabill-wallet",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "dependencies": {
     "@noble/secp256k1": "^1.7.0",
@@ -46,7 +46,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "zip-build": "rm -f build-v0.1.1.zip && npm run build && zip -r build-v0.1.1.zip build"
+    "zip-build": "rm -f build-v0.1.2.zip && npm run build && zip -r build-v0.1.2.zip build"
   },
   "eslintConfig": {
     "extends": [
