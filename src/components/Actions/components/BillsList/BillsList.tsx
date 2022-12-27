@@ -180,7 +180,7 @@ function BillsList(): JSX.Element | null {
 
   const addInterval = () => {
     initialBlockHeight.current = null;
-    swapInterval.current = swapInterval.current = setInterval(() => {
+    swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       getBlockHeight().then((blockData) => {
         if (!initialBlockHeight?.current) {
