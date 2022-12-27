@@ -7,6 +7,7 @@ import {
   opPushPubKey,
   sigScheme,
   timeoutBlocks,
+  swapTimeout,
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";
 import {
@@ -59,7 +60,7 @@ export const handleSwapRequest = async (
           .toString(),
         "@type": "type.googleapis.com/rpc.SwapOrder",
       },
-      timeout: blockData.blockHeight + timeoutBlocks * 4,
+      timeout: blockData.blockHeight + swapTimeout,
       ownerProof: "",
     };
 

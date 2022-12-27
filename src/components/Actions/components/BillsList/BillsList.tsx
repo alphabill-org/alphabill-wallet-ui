@@ -16,6 +16,7 @@ import {
   getNewBearer,
   sortIDBySize,
   sortTxProofsByID,
+  swapTimeout,
   timeoutBlocks,
 } from "../../../../utils/utils";
 import {
@@ -187,7 +188,7 @@ function BillsList(): JSX.Element | null {
         }
 
         if (
-          Number(initialBlockHeight?.current) + timeoutBlocks * 4 <
+          Number(initialBlockHeight?.current) + swapTimeout <
           blockData.blockHeight
         ) {
           swapInterval.current && clearInterval(swapInterval.current);
