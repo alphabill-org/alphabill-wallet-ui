@@ -48,8 +48,8 @@ export interface ISwap {
 export interface INetwork {
   id: string;
   isTestNetwork: boolean;
-  backendAPI: string | undefined;
-  moneyPartitionAPI: string | undefined;
+  backendAPI: string;
+  moneyPartitionAPI: string;
   isActive: boolean;
 }
 

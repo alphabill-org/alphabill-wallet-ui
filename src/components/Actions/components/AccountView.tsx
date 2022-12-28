@@ -65,12 +65,12 @@ function AccountView(): JSX.Element | null {
                 queryClient.invalidateQueries([
                   "balance",
                   account?.pubKey,
-                  activeNetwork?.backendAPI || "",
+                  activeNetwork.backendAPI,
                 ]);
                 queryClient.invalidateQueries([
                   "billsList",
                   account?.pubKey,
-                  activeNetwork?.backendAPI || "",
+                  activeNetwork.backendAPI,
                 ]);
               }}
             >
@@ -175,12 +175,12 @@ function AccountView(): JSX.Element | null {
               queryClient.invalidateQueries([
                 "balance",
                 activeAccountId,
-                activeNetwork?.backendAPI || "",
+                activeNetwork.backendAPI,
               ]);
               queryClient.invalidateQueries([
                 "billsList",
                 activeAccountId,
-                activeNetwork?.backendAPI || "",
+                activeNetwork.backendAPI,
               ]);
             };
 

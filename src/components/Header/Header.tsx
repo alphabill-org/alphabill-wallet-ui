@@ -136,12 +136,12 @@ function Header(): JSX.Element | null {
                         queryClient.invalidateQueries([
                           "balances",
                           account?.pubKey,
-                          activeNetwork?.backendAPI || "",
+                          activeNetwork.backendAPI,
                         ]);
                         queryClient.invalidateQueries([
                           "billsList",
                           account?.pubKey,
-                          activeNetwork?.backendAPI || "",
+                          activeNetwork.backendAPI,
                         ]);
                         setIsPopoverOpen(false);
                       }}
