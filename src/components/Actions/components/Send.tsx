@@ -40,6 +40,7 @@ import {
   sigScheme,
   base64ToHexPrefixed,
   checkPassword,
+  timeoutBlocks,
 } from "../../../utils/utils";
 
 function Send(): JSX.Element | null {
@@ -215,7 +216,7 @@ function Send(): JSX.Element | null {
                 secp.utils.concatBytes(
                   Buffer.from(data.systemId, "base64"),
                   Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(blockData.blockHeight + 10).toBuffer(),
+                  new Uint64BE(blockData.blockHeight + timeoutBlocks).toBuffer(),
                   Buffer.from(
                     data.transactionAttributes.newBearer as string,
                     "base64"
@@ -240,7 +241,7 @@ function Send(): JSX.Element | null {
                   remainingValue: billToSplit.value - splitBillAmount,
                   backlink: billToSplit.txHash,
                 },
-                timeout: blockData.blockHeight + 10,
+                timeout: blockData.blockHeight + timeoutBlocks,
                 ownerProof: "",
               };
               const msgHash = await secp.utils.sha256(
@@ -304,7 +305,7 @@ function Send(): JSX.Element | null {
 
             const dataWithProof = Object.assign(billData, {
               ownerProof: ownerProof,
-              timeout: blockData.blockHeight + 10,
+              timeout: blockData.blockHeight + timeoutBlocks,
             });
 
             isValid && makeTransaction(dataWithProof);

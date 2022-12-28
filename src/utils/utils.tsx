@@ -190,3 +190,7 @@ export const opCheckSig = "ac";
 export const opEqual = "87";
 export const opVerify = "69";
 export const sigScheme = "01";
+
+export const timeoutBlocks = 10;
+export const swapTimeout = 40;
+export const DCTransfersLimit = 100;

@@ -11,10 +11,13 @@ import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
 import {
   checkPassword,
+  DCTransfersLimit,
   extractFormikError,
   getNewBearer,
   sortIDBySize,
   sortTxProofsByID,
+  swapTimeout,
+  timeoutBlocks,
 } from "../../../../utils/utils";
 import {
   IBill,
@@ -77,6 +80,11 @@ function BillsList(): JSX.Element | null {
         : [],
     [sortedListByValue]
   );
+  const unlockedBills = billsList.filter(
+    (b: IBill) =>
+      b.isDCBill === false &&
+      !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+  );
   const [activeBillId, setActiveBillId] = useState<string>(
     sortedListByValue[0]?.id
   );
@@ -97,6 +105,7 @@ function BillsList(): JSX.Element | null {
   const queryClient = useQueryClient();
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
+  const initialBlockHeight = useRef<number | null | undefined>(null);
   let DCDenomination: number | null = null;
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
     "ab_last_nonce",
@@ -170,17 +179,23 @@ function BillsList(): JSX.Element | null {
   ]);
 
   const addInterval = () => {
-    let intervalIndex = 0;
+    initialBlockHeight.current = null;
     swapInterval.current = setInterval(() => {
-      intervalIndex = intervalIndex + 1;
       queryClient.invalidateQueries(["billsList", activeAccountId]);
-      if (intervalIndex === 1) {
-        swapTimer.current = setTimeout(() => {
+      getBlockHeight().then((blockData) => {
+        if (!initialBlockHeight?.current) {
+          initialBlockHeight.current = blockData.blockHeight;
+        }
+
+        if (
+          Number(initialBlockHeight?.current) + swapTimeout <
+          blockData.blockHeight
+        ) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
-        }, 20000);
-      }
+        }
+      });
     }, 1000);
   };
 
@@ -238,13 +253,9 @@ function BillsList(): JSX.Element | null {
       return;
     }
 
-    const unlockedBills = billsList.filter(
-      (b: IBill) =>
-        b.isDCBill === false &&
-        !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-    );
+    const limitedUnlockedBills = unlockedBills.slice(0, DCTransfersLimit);
 
-    const sortedListByID = sortBillsByID(unlockedBills);
+    const sortedListByID = sortBillsByID(limitedUnlockedBills);
     let nonce: Buffer[] = [];
     let IDs: string[] = [];
 
@@ -279,7 +290,7 @@ function BillsList(): JSX.Element | null {
               targetBearer: getNewBearer(account),
               targetValue: bill.value.toString(),
             },
-            timeout: blockData.blockHeight + 10,
+            timeout: blockData.blockHeight + timeoutBlocks,
             ownerProof: "",
           };
 
@@ -324,7 +335,7 @@ function BillsList(): JSX.Element | null {
 
             const dataWithProof = Object.assign(transferData, {
               ownerProof: ownerProof,
-              timeout: blockData.blockHeight + 10,
+              timeout: blockData.blockHeight + timeoutBlocks,
             });
 
             makeTransaction(dataWithProof)
@@ -371,6 +382,10 @@ function BillsList(): JSX.Element | null {
         <div className="t-medium-small pad-24-h">
           To consolidate your bills into one larger bill click on the{" "}
           <b>Consolidate Bills</b> button.
+          {unlockedBills.length > DCTransfersLimit &&
+            " There is a limit of " +
+              DCTransfersLimit +
+              " bills per consolidation."}
         </div>
         <div>
           {DCBills.length > 0 && (
@@ -546,7 +561,7 @@ function BillsList(): JSX.Element | null {
                 (password) => checkPassword(password)
               ),
             })}
-            onSubmit={(values, {setErrors}) => {
+            onSubmit={(values, { setErrors }) => {
               const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
                 values.password,
                 Number(account.idx),
