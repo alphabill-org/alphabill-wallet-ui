@@ -32,7 +32,7 @@ interface IAppContextShape {
   networksLocal: string;
   setNetworksLocal: (e: string | null) => void;
   networks: INetwork[];
-  activeNetwork: INetwork | undefined;
+  activeNetwork: INetwork;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -100,15 +100,15 @@ export const AppProvider: FunctionComponent<{
   );
   const activeNetwork = networks.find(
     (network: INetwork) => network.isActive === true
-  );
+  ) || networks[0];
 
   const balances: any = useGetBalances(
     keysArr,
-    activeNetwork?.backendAPI || ""
+    activeNetwork.backendAPI
   );
   const { data: billsList } = useGetBillsList(
     activeAccountId,
-    activeNetwork?.backendAPI || ""
+    activeNetwork.backendAPI
   );
 
   const [accounts, setAccounts] = useState<IAccount[]>(
@@ -119,13 +119,13 @@ export const AppProvider: FunctionComponent<{
       assets: [
         {
           id: "ALPHA",
-          name: "Alphabill Token",
+          name: "ALPHA",
           network: "AB Testnet",
           amount: balances?.find((balance: any) => balance?.data?.id === key)
             ?.data?.balance,
         },
       ],
-      activeNetwork: activeNetwork?.id,
+      activeNetwork: activeNetwork.id,
       networks: networks,
       activities: [],
     }))
@@ -149,28 +149,27 @@ export const AppProvider: FunctionComponent<{
     )?.data?.balance;
 
     if (
-      (accounts.length <= 0 && keysArr.length >= 1) ||
       (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
       keysArr.length > accounts.length ||
       (accounts.length > 0 &&
         !accounts.find(
-          (account: IAccount) => account.activeNetwork === activeNetwork?.id
+          (account: IAccount) => account.activeNetwork === activeNetwork.id
         ))
     ) {
       setAccounts(
         keysArr.map((key, idx) => ({
           pubKey: key,
           idx: idx,
-          name: accountNamesObj["_" + idx] || "Account " + (idx + 1),
+          name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
           assets: [
             {
               id: "ALPHA",
               name: "ALPHA",
-              network: activeNetwork?.id || "",
+              network: activeNetwork.id || "",
               amount: abFetchedBalance,
             },
           ],
-          activeNetwork: activeNetwork?.id,
+          activeNetwork: activeNetwork.id,
           networks: networks,
           activities:
             accounts?.find((account: IAccount) => account?.pubKey === key)

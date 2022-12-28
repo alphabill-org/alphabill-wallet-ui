@@ -8,6 +8,7 @@ import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
 import {
+  checkPassword,
   extractFormikError,
   getKeys,
   unit8ToHexPrefixed,
@@ -51,15 +52,16 @@ function Login(): JSX.Element | null {
             });
           }
 
-          const { hashingPublicKey, decryptedVault } = getKeys(
+          const { error, hashingPublicKey, decryptedVault } = getKeys(
             values.password,
             0,
             vault
           );
 
           if (
+            error ||
             unit8ToHexPrefixed(hashingPublicKey!) !==
-            decryptedVault.pub_keys?.split(" ")[0]
+              decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
@@ -72,7 +74,7 @@ function Login(): JSX.Element | null {
           password: Yup.string().test(
             "empty-or-8-characters-check",
             "password must be at least 8 characters",
-            (password) => !password || password.length >= 8
+            (password) => checkPassword(password)
           ),
         })}
       >
@@ -113,7 +115,7 @@ function Login(): JSX.Element | null {
         </Link>
         <Spacer mb={16} />
         <Link to="/create-wallet">
-          {"Don't have an wallet? Create a wallet"}
+          {"Don't have a wallet? Create a wallet"}
         </Link>
       </div>
     </div>

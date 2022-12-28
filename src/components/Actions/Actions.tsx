@@ -4,7 +4,6 @@ import Button from "../Button/Button";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import Send from "./components/Send";
 import Account from "./components/AccountView";
-import ImportAccount from "./components/ImportAccount";
 import { useApp } from "../../hooks/appProvider";
 import BillsList from "./components/BillsList/BillsList";
 
@@ -39,10 +38,8 @@ function Actions(): JSX.Element | null {
           <Send />
         ) : actionsView === "Bills List" ? (
           <BillsList />
-        ) : actionsView === "Account" && accounts ? (
+        ) : actionsView === "Profile" && accounts ? (
           <Account />
-        ) : actionsView === "Import Account" && accounts ? (
-          <ImportAccount />
         ) : (
           <></>
         )}

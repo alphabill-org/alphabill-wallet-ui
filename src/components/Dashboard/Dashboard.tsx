@@ -10,6 +10,7 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
+import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
@@ -22,6 +23,7 @@ function Dashboard(): JSX.Element | null {
     accounts,
     setAccounts,
     activeNetwork,
+    activeAccountId
   } = useApp();
   const abBalance = account?.assets.find(
     (asset: IAsset) => asset.id === "ALPHA"
@@ -60,8 +62,8 @@ function Dashboard(): JSX.Element | null {
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
-          {account?.name}{" "}
-          <span>
+          <span className="dashboard__account-name">{account?.name}</span>
+          <span className="dashboard__account-id-item">
             {account?.name && "-"} {account?.pubKey}
           </span>
         </div>
@@ -91,12 +93,12 @@ function Dashboard(): JSX.Element | null {
               </div>
               <div
                 onClick={() => {
-                  setActionsView("Account");
+                  setActionsView("Profile");
                   setIsActionsViewVisible(true);
                 }}
                 className="dashboard__account-option"
               >
-                Change Account
+                Change public key
               </div>
             </div>
           </Button>
@@ -105,6 +107,16 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={8} />
       <div className="dashboard__buttons">
         <Button
+          onClick={() => {
+            queryClient.invalidateQueries(["billsList", activeAccountId, activeNetwork.backendAPI]);
+            queryClient.invalidateQueries(["balance", activeAccountId, activeNetwork.backendAPI]);
+          }}
+          variant="primary"
+        >
+          <div className="pad-8-r">Refresh</div>
+          <Sync height="16" width="16" />
+        </Button>
+        <Button
           variant="primary"
           onClick={() => {
             setActionsView("Send");
@@ -112,15 +124,14 @@ function Dashboard(): JSX.Element | null {
             queryClient.invalidateQueries([
               "balance",
               account?.pubKey,
-              activeNetwork?.backendAPI || "",
+              activeNetwork.backendAPI,
             ]);
             queryClient.invalidateQueries([
               "billsList",
               account?.pubKey,
-              activeNetwork?.backendAPI || "",
+              activeNetwork.backendAPI,
             ]);
           }}
-          className="w-100-p"
         >
           Send bills
         </Button>
@@ -134,12 +145,12 @@ function Dashboard(): JSX.Element | null {
               queryClient.invalidateQueries([
                 "balance",
                 account?.pubKey,
-                activeNetwork?.backendAPI || "",
+                activeNetwork.backendAPI,
               ]);
               queryClient.invalidateQueries([
                 "billsList",
                 account?.pubKey,
-                activeNetwork?.backendAPI || "",
+                activeNetwork.backendAPI,
               ]);
             }}
             className={classNames("dashboard__navbar-item", {
@@ -148,17 +159,6 @@ function Dashboard(): JSX.Element | null {
           >
             Assets
           </div>
-          {/* Activities need API or localStorage implementation */}
-          {/*
-            <div
-              onClick={() => setIsAssetsColActive(false)}
-              className={classNames("dashboard__navbar-item", {
-                active: isAssetsColActive !== true,
-              })}
-            >
-              Activity
-            </div>
-           */}
         </div>
         <div className="dashboard__info">
           <div
@@ -188,7 +188,6 @@ function Dashboard(): JSX.Element | null {
                       <div>
                         {asset.amount} {asset?.id}
                       </div>
-                      <div className="t-small c-light">{asset.name}</div>
                     </div>
                     {asset?.id === "ALPHA" && (
                       <Button
@@ -201,7 +200,7 @@ function Dashboard(): JSX.Element | null {
                           queryClient.invalidateQueries([
                             "billsList",
                             account?.pubKey,
-                            activeNetwork?.backendAPI || "",
+                            activeNetwork.backendAPI,
                           ]);
                         }}
                       >
@@ -212,73 +211,6 @@ function Dashboard(): JSX.Element | null {
                 );
               })}
           </div>
-          {/* Activities need API or localStorage implementation */}
-          {/*
-            <div
-              className={classNames("dashboard__info-col", {
-                active: isAssetsColActive !== true,
-              })}
-            >
-              {activities &&
-                activities
-                  .sort((a: IActivity, b: IActivity) => {
-                    return (
-                      new Date(b.time).getTime() - new Date(a.time).getTime()
-                    );
-                  })
-                  .map((activity: IActivity, idx: number) => {
-                    if (account?.activeNetwork !== activity?.network) return null;
-
-                    return (
-                      <div key={idx} className="dashboard__info-item-wrap">
-                        <div className="dashboard__info-item-icon">
-                          {activity.type === "Buy" ? (
-                            <div className="icon-wrap">
-                              <BuyIcon />
-                            </div>
-                          ) : activity.type === "Send" ? (
-                            <div className="icon-wrap">
-                              <SendIcon />
-                            </div>
-                          ) : activity.type === "Receive" ? (
-                            <div className="icon-wrap receive">
-                              <SendIcon />
-                            </div>
-                          ) : (
-                            <div className="icon-wrap">
-                              <SwapIcon />
-                            </div>
-                          )}
-                        </div>
-                        <div className="dashboard__info-item-type">
-                          <div className="t-medium">
-                            {activity.type}{" "}
-                            {activity.fromID && activity.fromID + " to "}
-                            {activity.id}{" "}
-                          </div>
-                          <div className="t-small c-light">{activity.time}</div>
-                          {activity.type !== "Swap" && activity.type !== "Buy" && (
-                            <div className="t-small c-light t-ellipsis">
-                              {activity.type === "Send" ? "To: " : "From: "}{" "}
-                              {activity.fromAddress
-                                ? activity.fromAddress
-                                : activity.address}
-                            </div>
-                          )}
-                        </div>
-                        <div className="dashboard__info-item-amount">
-                          <div className="t-medium">{activity.amount}</div>
-                          <div className="t-small c-light">
-                            {activity.fromAmount
-                              ? activity.fromAmount
-                              : activity.amount}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-            </div>
-           */}
         </div>
       </div>
       <Popups

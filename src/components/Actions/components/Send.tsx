@@ -39,6 +39,8 @@ import {
   opVerify,
   sigScheme,
   base64ToHexPrefixed,
+  checkPassword,
+  timeoutBlocks,
 } from "../../../utils/utils";
 
 function Send(): JSX.Element | null {
@@ -74,7 +76,7 @@ function Send(): JSX.Element | null {
           address: "",
           password: "",
         }}
-        onSubmit={(values, { setErrors }) => {
+        onSubmit={(values, { setErrors, resetForm }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account.idx),
@@ -89,12 +91,11 @@ function Send(): JSX.Element | null {
 
           const billsArr = selectedSendKey
             ? ([
-                billsList.bills.find(
-                  (bill: IBill) => bill.id === selectedSendKey
-                ),
+                billsList?.find((bill: IBill) => bill.id === selectedSendKey),
               ] as IBill[])
-            : (billsList.bills.filter(
+            : (billsList?.filter(
                 (bill: IBill) =>
+                  bill.isDCBill === false &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
@@ -206,13 +207,27 @@ function Send(): JSX.Element | null {
               backlink: bill.txHash,
             },
           }));
+          getBlockHeight(activeNetwork.backendAPI).then(async (blockData) => {
+            transferData.map(async (data, idx) => {
+              const msgHash = await secp.utils.sha256(
+                secp.utils.concatBytes(
+                  Buffer.from(data.systemId, "base64"),
+                  Buffer.from(data.unitId, "base64"),
+                  new Uint64BE(blockData.blockHeight + timeoutBlocks).toBuffer(),
+                  Buffer.from(
+                    data.transactionAttributes.newBearer as string,
+                    "base64"
+                  ),
+                  new Uint64BE(
+                    data.transactionAttributes.targetValue
+                  ).toBuffer(),
+                  Buffer.from(data.transactionAttributes.backlink, "base64")
+                )
+              );
+              handleValidation(msgHash, blockData, data as ITransfer);
+            });
 
-          if (billToSplit && splitBillAmount) {
-            getBlockHeight(
-              Boolean(
-                activeNetwork?.backendAPI?.includes("wallet-backend.testnet")
-              )
-            ).then(async (blockData) => {
+            if (billToSplit && splitBillAmount) {
               const splitData: ITransfer = {
                 systemId: "AAAAAA==",
                 unitId: billToSplit.id,
@@ -223,7 +238,7 @@ function Send(): JSX.Element | null {
                   remainingValue: billToSplit.value - splitBillAmount,
                   backlink: billToSplit.txHash,
                 },
-                timeout: blockData.blockHeight + 10,
+                timeout: blockData.blockHeight + timeoutBlocks,
                 ownerProof: "",
               };
               const msgHash = await secp.utils.sha256(
@@ -246,33 +261,11 @@ function Send(): JSX.Element | null {
               );
 
               handleValidation(msgHash, blockData, splitData);
-            });
-          }
+            }
 
-          transferData.map(async (data) => {
-            getBlockHeight(
-              Boolean(
-                activeNetwork?.backendAPI?.includes("wallet-backend.testnet")
-              )
-            ).then(async (blockData) => {
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(data.systemId, "base64"),
-                  Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(blockData.blockHeight + 10).toBuffer(),
-                  Buffer.from(
-                    data.transactionAttributes.newBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    data.transactionAttributes.targetValue
-                  ).toBuffer(),
-                  Buffer.from(data.transactionAttributes.backlink, "base64")
-                )
-              );
-
-              handleValidation(msgHash, blockData, data as ITransfer);
-            });
+            setSelectedSendKey(null);
+            setIsActionsViewVisible(false);
+            resetForm();
           });
 
           const handleValidation = async (
@@ -309,13 +302,13 @@ function Send(): JSX.Element | null {
 
             const dataWithProof = Object.assign(billData, {
               ownerProof: ownerProof,
-              timeout: blockData.blockHeight + 10,
+              timeout: blockData.blockHeight + timeoutBlocks,
             });
 
             isValid &&
               makeTransaction(
                 dataWithProof,
-                activeNetwork?.moneyPartitionAPI || ""
+                activeNetwork.moneyPartitionAPI || ""
               ).then(() => {
                 setSelectedSendKey(null);
                 setIsActionsViewVisible(false);
@@ -336,11 +329,22 @@ function Send(): JSX.Element | null {
                   return true;
                 }
               }
+            )
+            .test(
+              "account-id-correct",
+              `Address in not in valid format`,
+              function (value) {
+                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
+                  return false;
+                } else {
+                  return true;
+                }
+              }
             ),
           password: Yup.string().test(
             "empty-or-8-characters-check",
             "password must be at least 8 characters",
-            (password) => !password || password.length >= 8
+            (password) => checkPassword(password)
           ),
           amount: Yup.number()
             .positive("Value must be greater than 0.")
@@ -350,9 +354,17 @@ function Send(): JSX.Element | null {
               (value) =>
                 Number(value) <=
                 Number(
-                  account?.assets?.find(
-                    (asset: IAsset) => asset?.id === currentTokenId.id
-                  )?.amount
+                  billsList
+                    .filter(
+                      (bill: IBill) =>
+                        bill.isDCBill === false &&
+                        !lockedBills?.find(
+                          (b: ILockedBill) => b.billId === bill.id
+                        )
+                    )
+                    .reduce((acc: number, obj: IBill) => {
+                      return acc + obj?.value;
+                    }, 0)
                 )
             ),
         })}
@@ -370,7 +382,7 @@ function Send(): JSX.Element | null {
                         <div className="t-medium-small">
                           You have selected a specific bill with a value of{" "}
                           {
-                            billsList.bills.find(
+                            billsList?.find(
                               (bill: IBill) => bill.id === selectedSendKey
                             )?.value
                           }
@@ -462,7 +474,7 @@ function Send(): JSX.Element | null {
                       }
                       value={
                         selectedSendKey &&
-                        billsList.bills.find(
+                        billsList?.find(
                           (bill: IBill) => bill.id === selectedSendKey
                         )?.value
                       }
@@ -503,7 +515,7 @@ function Send(): JSX.Element | null {
             onClick={() => {
               setActionsView("Bills List");
               setIsActionsViewVisible(true);
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              queryClient.invalidateQueries(["billsList", activeAccountId, activeNetwork.backendAPI]);
             }}
             variant="link"
           >

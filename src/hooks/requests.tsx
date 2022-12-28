@@ -6,6 +6,7 @@ import {
   ITransfer,
   IProofsProps,
   ISwapTransferProps,
+  IBill,
 } from "../types/Types";
 
 export const getBalance = async (id: string, url: string): Promise<any> => {
@@ -28,11 +29,24 @@ export const getBillsList = async (id: string, url: string): Promise<any> => {
     return;
   }
 
-  const response = await axios.get<IBillsList>(
-    `${url}/list-bills?pubkey=${id}`
-  );
+  const limit = 100;
+  let billsList: IBill[] = [];
+  let offset = 0;
+  let totalBills = null;
 
-  return response.data;
+  while (totalBills === null || billsList.length < totalBills) {
+    const response = await axios.get<IBillsList>(
+      `${url}/list-bills?pubkey=${id}&limit=${limit}&offset=${offset}`
+    );
+
+    const { bills, total } = response.data;
+    totalBills = total;
+    billsList = billsList.concat(bills);
+
+    offset += limit;
+  }
+
+  return billsList;
 };
 
 export const getProof = async (
@@ -56,15 +70,8 @@ export const getProof = async (
   return response.data;
 };
 
-export const getBlockHeight = async (
-  isTesTenet: boolean
-): Promise<IBlockStats> => {
-  const FAUCET_URL = isTesTenet
-    ? "faucet.testnet.alphabill.org"
-    : "dev-ab-faucet-api.abdev1.guardtime.com";
-  const response = await axios.get<IBlockStats>(
-    `https://${FAUCET_URL}/stats/block-height`
-  );
+export const getBlockHeight = async (url: string): Promise<IBlockStats> => {
+  const response = await axios.get<IBlockStats>(`${url}/block-height`);
 
   return response.data;
 };

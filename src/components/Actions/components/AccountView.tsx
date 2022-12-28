@@ -11,6 +11,7 @@ import { useQueryClient } from "react-query";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import Textfield from "../../Textfield/Textfield";
 import {
+  checkPassword,
   extractFormikError,
   getKeys,
   unit8ToHexPrefixed,
@@ -77,7 +78,7 @@ function AccountView(): JSX.Element | null {
                 <img height="32" width="32px" src={Profile} alt="Profile" />
               </div>
               <div className="account__item account__item-name">
-                <div className="t-medium">{account?.name}</div>
+                <div className="t-medium account__item-id">{account?.name}</div>
                 <div className="t-small c-light account__item-id">
                   {account?.pubKey}
                 </div>
@@ -98,7 +99,7 @@ function AccountView(): JSX.Element | null {
           <div className="account__menu-item-icon">
             <AddIco />
           </div>
-          <div className="account__menu-item-title">Add New Account</div>
+          <div className="account__menu-item-title">Add new public key</div>
         </div>
 
         <div
@@ -119,7 +120,7 @@ function AccountView(): JSX.Element | null {
       <Popup
         isPopupVisible={isAddPopupVisible}
         setIsPopupVisible={setIsAddPopupVisible}
-        title="Add New Account"
+        title="Add new public key"
       >
         <Formik
           initialValues={{
@@ -133,11 +134,11 @@ function AccountView(): JSX.Element | null {
             const prefixedHashingPubKey = hashingPublicKey
               ? unit8ToHexPrefixed(hashingPublicKey)
               : "";
-
             if (error || !masterKey) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
+            setIsAddAccountLoading(true);
             const controlHashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
             const controlHashingPubKey = controlHashingKey.publicKey;
 
@@ -163,7 +164,8 @@ function AccountView(): JSX.Element | null {
                 "ab_wallet_account_names",
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]: values.accountName,
+                    ["_" + idx]:
+                      values.accountName || "Public key " + (idx + 1),
                   })
                 )
               );
@@ -183,8 +185,9 @@ function AccountView(): JSX.Element | null {
             };
 
             if (
+              error ||
               unit8ToHexPrefixed(controlHashingPubKey!) !==
-              userKeys?.split(" ")[0]
+                userKeys?.split(" ")[0]
             ) {
               return setErrors({ password: "Password is incorrect!" });
             }
@@ -212,23 +215,21 @@ function AccountView(): JSX.Element | null {
             resetForm();
           }}
           validationSchema={Yup.object().shape({
-            accountName: Yup.string()
-              .required("Address is required")
-              .test(
-                "account-name-taken",
-                `The account name is taken`,
-                function (value) {
-                  if (value) {
-                    return !Boolean(accounts?.find((a) => a.name === value));
-                  } else {
-                    return true;
-                  }
+            accountName: Yup.string().test(
+              "account-name-taken",
+              `The public key name is taken`,
+              function (value) {
+                if (value) {
+                  return !Boolean(accounts?.find((a) => a.name === value));
+                } else {
+                  return true;
                 }
-              ),
+              }
+            ),
             password: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
-              (password) => !password || password.length >= 8
+              (password) => checkPassword(password)
             ),
           })}
         >
@@ -251,11 +252,12 @@ function AccountView(): JSX.Element | null {
                     <Textfield
                       id="accountName"
                       name="accountName"
-                      label="Account Name"
+                      label="Key name (Optional - max 26 characters)"
                       type="accountName"
                       error={extractFormikError(errors, touched, [
                         "accountName",
                       ])}
+                      maxLength={26}
                     />
                   </FormContent>
                   <FormFooter>
@@ -275,7 +277,6 @@ function AccountView(): JSX.Element | null {
                         type="submit"
                         variant="primary"
                         working={isAddAccountLoading}
-                        onClick={() => setIsAddAccountLoading(true)}
                       >
                         Confirm
                       </Button>

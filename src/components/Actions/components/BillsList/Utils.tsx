@@ -1,51 +1,50 @@
 import * as secp from "@noble/secp256k1";
 
 import {
-  getKeys,
   unit8ToHexPrefixed,
   startByte,
   opPushSig,
   opPushPubKey,
   sigScheme,
+  timeoutBlocks,
+  swapTimeout,
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";
 import {
-  IAccount,
-  IDCTransferProps,
   INetwork,
-  ISwapProofProps,
+  IProof,
+  IProofTx,
   ISwapProps,
   ISwapTransferProps,
+  ITxProof,
 } from "../../../../types/Types";
 import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
 
 export const handleSwapRequest = async (
   nonce: Buffer[],
-  proofs: ISwapProofProps[],
-  dcTransfers: IDCTransferProps[],
-  formPassword: string | undefined,
-  password: string,
+  txProofs: ITxProof[],
+  hashingPublicKey: Uint8Array,
+  hashingPrivateKey: Uint8Array,
   billIdentifiers: string[],
   newBearer: string,
   transferMsgHashes: Uint8Array[],
-  account: IAccount,
-  vault: string | null,
-  invalidateBills: any,
-  activeNetwork: INetwork | undefined
+  activeNetwork: INetwork
 ) => {
-  const { hashingPrivateKey, hashingPublicKey } = getKeys(
-    formPassword || password,
-    Number(account.idx),
-    vault
-  );
+  let dcTransfers: IProofTx[] = [];
+  let proofs: IProof[] = [];
+
+  txProofs.forEach((txProof) => {
+    const tx = txProof.tx;
+    const proof = txProof.proof;
+    dcTransfers.push(tx);
+    proofs.push(proof);
+  });
 
   if (!hashingPublicKey || !hashingPrivateKey) return;
 
   if (!nonce.length) return;
   const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-  getBlockHeight(
-    Boolean(activeNetwork?.backendAPI?.includes("wallet-backend.testnet"))
-  ).then(async (blockData) => {
+  getBlockHeight(activeNetwork.backendAPI).then(async (blockData) => {
     const transferData: ISwapProps = {
       systemId: "AAAAAA==",
       unitId: Buffer.from(nonceHash).toString("base64"),
@@ -63,7 +62,7 @@ export const handleSwapRequest = async (
           .toString(),
         "@type": "type.googleapis.com/rpc.SwapOrder",
       },
-      timeout: blockData.blockHeight + 10,
+      timeout: blockData.blockHeight + swapTimeout,
       ownerProof: "",
     };
 
@@ -72,7 +71,7 @@ export const handleSwapRequest = async (
         Buffer.from(i, "base64")
       );
 
-    const proofsBuffer = proofs.map((p: ISwapProofProps) => {
+    const proofsBuffer = proofs.map((p: IProof) => {
       const chainItems = p.blockTreeHashChain.items.map((i) =>
         Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
       );
@@ -136,7 +135,7 @@ export const handleSwapRequest = async (
 
     const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
 
-    const ownerProof = Buffer.from(
+    const ownerProof = await Buffer.from(
       startByte +
         opPushSig +
         sigScheme +
@@ -149,14 +148,13 @@ export const handleSwapRequest = async (
       "hex"
     ).toString("base64");
 
-    const dataWithProof: ISwapTransferProps = Object.assign(transferData, {
-      ownerProof: ownerProof,
-    });
+    const dataWithProof: ISwapTransferProps = await Object.assign(
+      transferData,
+      {
+        ownerProof: ownerProof,
+      }
+    );
 
-    isValid &&
-      makeTransaction(
-        dataWithProof,
-        activeNetwork?.moneyPartitionAPI || ""
-      ).then(() => invalidateBills);
+    isValid && makeTransaction(dataWithProof, activeNetwork.moneyPartitionAPI);
   });
 };

@@ -77,14 +77,15 @@ function Header(): JSX.Element | null {
                 onClick={() => setIsPopoverOpen(!isPopoverOpen)}
               />
             </div>
-            <div className="select__popover-checkbox">
-
-              <Checkbox
-                label="Show Test & Dev Networks"
-                isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
-                onChange={() => setShowTestNetworks(!showTestNetworks)}
-              />
-            </div>
+            {mainNetworks?.length >= 1 && (
+              <div className="select__popover-checkbox">
+                <Checkbox
+                  label="Show test networks"
+                  isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
+                  onChange={() => setShowTestNetworks(!showTestNetworks)}
+                />
+              </div>
+            )}
             <div className="select__options">
               {mainNetworks?.map((network) => {
                 return (
@@ -113,7 +114,7 @@ function Header(): JSX.Element | null {
                     !showTestNetworks && !Boolean(isTestNetworkActive),
                 })}
               >
-                Test & Dev Networks
+                Test networks
               </div>
               {networks
                 .filter((network: INetwork) => network.isTestNetwork === true)
@@ -342,7 +343,7 @@ function Header(): JSX.Element | null {
       <Button
         variant="icon"
         onClick={() => {
-          setActionsView("Account");
+          setActionsView("Profile");
           setIsActionsViewVisible(true);
         }}
       >

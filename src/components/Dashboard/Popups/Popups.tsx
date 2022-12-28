@@ -30,7 +30,7 @@ function Popups({
         <Popup
           isPopupVisible={isRenamePopupVisible}
           setIsPopupVisible={setIsRenamePopupVisible}
-          title="Rename Account"
+          title="Rename public key"
         >
           <Formik
             initialValues={{
@@ -68,7 +68,7 @@ function Popups({
                 .required("Address is required")
                 .test(
                   "account-name-taken",
-                  `The account name is taken`,
+                  `The public key name is taken`,
                   function (value) {
                     if (value) {
                       return !Boolean(accounts?.find((a) => a.name === value));
@@ -91,11 +91,12 @@ function Popups({
                       <Textfield
                         id="accountName"
                         name="accountName"
-                        label="Account Name"
+                        label="Public key name (max 26 characters)"
                         type="accountName"
                         error={extractFormikError(errors, touched, [
                           "accountName",
                         ])}
+                        maxLength={26}
                       />
                     </FormContent>
                     <FormFooter>
