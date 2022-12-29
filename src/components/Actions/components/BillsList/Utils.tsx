@@ -6,7 +6,6 @@ import {
   opPushSig,
   opPushPubKey,
   sigScheme,
-  timeoutBlocks,
   swapTimeout,
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";

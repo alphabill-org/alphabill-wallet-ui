@@ -34,18 +34,7 @@ function RecoverAccount(): JSX.Element | null {
         <Spacer mb={16} />
         <Formik
           initialValues={{
-            mnemonic0: "",
-            mnemonic1: "",
-            mnemonic2: "",
-            mnemonic3: "",
-            mnemonic4: "",
-            mnemonic5: "",
-            mnemonic6: "",
-            mnemonic7: "",
-            mnemonic8: "",
-            mnemonic9: "",
-            mnemonic10: "",
-            mnemonic11: "",
+            mnemonicRecovery: "",
             password: "",
             passwordConfirm: "",
           }}
