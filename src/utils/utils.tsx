@@ -122,54 +122,13 @@ export const getKeys = (
       masterKey: null,
     };
 
-  if (
-    /^[\],:{}\s]*$/.test(
-      CryptoJS.AES.decrypt(vault.toString(), password)
-        .toString(CryptoJS.enc.Latin1)
-        .replace(/\\["\\bfnrtu]/g, "@")
-        .replace(
-          /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+]?\d+)?/g,
-          "]"
-        )
-        .replace(/(?:^|:|,)(?:\s*\[)+/g, "")
-    )
-  ) {
-    const decryptedVault = JSON.parse(
+  try {
+    JSON.parse(
       CryptoJS.AES.decrypt(vault.toString(), password).toString(
         CryptoJS.enc.Latin1
       )
     );
-
-    if (
-      decryptedVault?.entropy.length > 16 &&
-      decryptedVault?.entropy.length < 32 &&
-      decryptedVault?.entropy.length % 4 === 0
-    ) {
-      return {
-        hashingPublicKey: null,
-        hashingPrivateKey: null,
-        error: "Password is incorrect!",
-        decryptedVault: null,
-        masterKey: null,
-      };
-    }
-
-    const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
-    const seed = mnemonicToSeedSync(mnemonic);
-    const masterKey = HDKey.fromMasterSeed(seed);
-    const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
-    const hashingPrivateKey = hashingKey.privateKey;
-    const hashingPublicKey = hashingKey.publicKey;
-
-    return {
-      hashingPublicKey: hashingPublicKey,
-      hashingPrivateKey: hashingPrivateKey,
-      decryptedVault: decryptedVault,
-      error: null,
-      masterKey: masterKey,
-      hashingKey: hashingKey,
-    };
-  } else {
+  } catch {
     return {
       hashingPublicKey: null,
       hashingPrivateKey: null,
@@ -178,6 +137,42 @@ export const getKeys = (
       masterKey: null,
     };
   }
+
+  const decryptedVault = JSON.parse(
+    CryptoJS.AES.decrypt(vault.toString(), password).toString(
+      CryptoJS.enc.Latin1
+    )
+  );
+
+  if (
+    decryptedVault?.entropy.length > 16 &&
+    decryptedVault?.entropy.length < 32 &&
+    decryptedVault?.entropy.length % 4 === 0
+  ) {
+    return {
+      hashingPublicKey: null,
+      hashingPrivateKey: null,
+      error: "Password is incorrect!",
+      decryptedVault: null,
+      masterKey: null,
+    };
+  }
+
+  const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
+  const seed = mnemonicToSeedSync(mnemonic);
+  const masterKey = HDKey.fromMasterSeed(seed);
+  const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
+  const hashingPrivateKey = hashingKey.privateKey;
+  const hashingPublicKey = hashingKey.publicKey;
+
+  return {
+    hashingPublicKey: hashingPublicKey,
+    hashingPrivateKey: hashingPrivateKey,
+    decryptedVault: decryptedVault,
+    error: null,
+    masterKey: masterKey,
+    hashingKey: hashingKey,
+  };
 };
 
 export const startByte = "53";

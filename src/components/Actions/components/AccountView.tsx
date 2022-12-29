@@ -30,6 +30,8 @@ import { API_URL } from "../../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
+  const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] =
+    useState(false);
   const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
   const {
@@ -92,6 +94,17 @@ function AccountView(): JSX.Element | null {
           <div className="account__menu-item-title">Add new public key</div>
         </div>
 
+        <div
+          onClick={() => {
+            setIsChangePasswordPopupVisible(true);
+          }}
+          className="account__menu-item"
+        >
+          <div className="account__menu-item-icon">
+            <LockIco />
+          </div>
+          <div className="account__menu-item-title">Change password</div>
+        </div>
         <div
           onClick={() => {
             setIsActionsViewVisible(false);
@@ -243,6 +256,128 @@ function AccountView(): JSX.Element | null {
                       <Button
                         type="reset"
                         onClick={() => setIsAddPopupVisible(false)}
+                        big={true}
+                        block={true}
+                        variant="secondary"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        big={true}
+                        block={true}
+                        type="submit"
+                        variant="primary"
+                        working={isAddAccountLoading}
+                      >
+                        Confirm
+                      </Button>
+                    </div>
+                  </FormFooter>
+                </Form>
+              </form>
+            );
+          }}
+        </Formik>
+      </Popup>
+      <Popup
+        isPopupVisible={isChangePasswordPopupVisible}
+        setIsPopupVisible={setIsChangePasswordPopupVisible}
+        title="Add new public key"
+      >
+        <Formik
+          initialValues={{
+            currentPassword: "",
+            passwordConfirm: "",
+            password: "",
+          }}
+          onSubmit={(values, { setErrors, resetForm }) => {
+            const { error, masterKey, decryptedVault } = getKeys(
+              values.currentPassword,
+              accounts.length,
+              vault
+            );
+            console.log(error, error);
+
+            if (error || !masterKey) {
+              return setErrors({ currentPassword: "Password is incorrect!" });
+            }
+
+            if (values.currentPassword === values.passwordConfirm) {
+              return setErrors({
+                passwordConfirm:
+                  "New passwords is the same as current password",
+              });
+            }
+
+            if (values.password !== values.passwordConfirm) {
+              return setErrors({ passwordConfirm: "Passwords don't match" });
+            }
+
+            setVault(
+              CryptoJS.AES.encrypt(
+                JSON.stringify(decryptedVault),
+                values.password
+              ).toString()
+            );
+
+            setIsChangePasswordPopupVisible(false);
+
+            resetForm();
+          }}
+          validationSchema={Yup.object().shape({
+            passwordConfirm: Yup.string().test(
+              "empty-or-8-characters-check",
+              "password must be at least 8 characters",
+              (password) => checkPassword(password)
+            ),
+            password: Yup.string().test(
+              "empty-or-8-characters-check",
+              "password must be at least 8 characters",
+              (password) => checkPassword(password)
+            ),
+          })}
+        >
+          {(formikProps) => {
+            const { handleSubmit, errors, touched } = formikProps;
+
+            return (
+              <form onSubmit={handleSubmit}>
+                <Spacer mb={16} />
+
+                <Form>
+                  <FormContent>
+                    <Textfield
+                      id="currentPassword"
+                      name="currentPassword"
+                      label="Insert current password"
+                      type="password"
+                      error={extractFormikError(errors, touched, [
+                        "currentPassword",
+                      ])}
+                    />
+                    <Textfield
+                      id="passwordChange"
+                      name="password"
+                      label="Add new password"
+                      type="password"
+                      error={extractFormikError(errors, touched, ["password"])}
+                    />
+                    <Textfield
+                      id="passwordChangeConfirm"
+                      name="passwordConfirm"
+                      label="Confirm new password"
+                      type="password"
+                      error={extractFormikError(errors, touched, [
+                        "passwordConfirm",
+                      ])}
+                      maxLength={26}
+                    />
+                  </FormContent>
+                  <FormFooter>
+                    <div className="button__group">
+                      <Button
+                        type="reset"
+                        onClick={() => setIsChangePasswordPopupVisible(false)}
                         big={true}
                         block={true}
                         variant="secondary"
