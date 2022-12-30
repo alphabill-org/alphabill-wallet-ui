@@ -217,11 +217,7 @@ function AccountView(): JSX.Element | null {
                 }
               }
             ),
-            password: Yup.string().test(
-              "empty-or-8-characters-check",
-              "password must be at least 8 characters",
-              (password) => checkPassword(password)
-            ),
+            password: Yup.string().required("Password is required"),
           })}
         >
           {(formikProps) => {
@@ -296,7 +292,6 @@ function AccountView(): JSX.Element | null {
               accounts.length,
               vault
             );
-            console.log(error, error);
 
             if (error || !masterKey) {
               return setErrors({ currentPassword: "Password is incorrect!" });
@@ -325,6 +320,7 @@ function AccountView(): JSX.Element | null {
             resetForm();
           }}
           validationSchema={Yup.object().shape({
+            currentPassword: Yup.string().required("Password is required"),
             passwordConfirm: Yup.string().test(
               "empty-or-8-characters-check",
               "password must be at least 8 characters",
