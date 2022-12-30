@@ -66,9 +66,13 @@ function Login(): JSX.Element | null {
             return setErrors({ password: "Password is incorrect!" });
           }
 
-          setUserKeys(decryptedVault.pub_keys);
-          setActiveAccountId(unit8ToHexPrefixed(hashingPublicKey!));
-          login();
+          chrome?.storage?.local
+            .set({ ab_is_wallet_locked: "unlocked" })
+            .then(() => {
+              setUserKeys(decryptedVault.pub_keys);
+              setActiveAccountId(unit8ToHexPrefixed(hashingPublicKey!));
+              login();
+            });
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().test(
