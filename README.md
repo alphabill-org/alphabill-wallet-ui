@@ -3,9 +3,8 @@
 
 ## Available Scripts
 
-### `npm install --openssl-legacy-provider`
-
-In the project directory, you can run:
+### `npm install` & for Node.js version 17 & up add `--openssl-legacy-provider` flag.
+Installs dependencies for the project.
 
 ### `npm start`
 
