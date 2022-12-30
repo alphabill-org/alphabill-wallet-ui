@@ -164,10 +164,6 @@ function Dashboard(): JSX.Element | null {
                           <div className="icon-wrap ab-logo">
                             <ABLogo />
                           </div>
-                        ) : asset?.id === "ETH" ? (
-                          <div className="icon-wrap">
-                            <ETHLogo />
-                          </div>
                         ) : (
                           <></>
                         )}

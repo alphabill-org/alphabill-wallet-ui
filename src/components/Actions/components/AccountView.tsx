@@ -20,7 +20,7 @@ import Button from "../../Button/Button";
 import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
 import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
 import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
-
+import { ReactComponent as PasswordIco } from "../../../images/password-ico.svg";
 import Profile from "../../../images/profile.svg";
 import Spacer from "../../Spacer/Spacer";
 import Popup from "../../Popup/Popup";
@@ -93,7 +93,6 @@ function AccountView(): JSX.Element | null {
           </div>
           <div className="account__menu-item-title">Add new public key</div>
         </div>
-
         <div
           onClick={() => {
             setIsChangePasswordPopupVisible(true);
@@ -101,7 +100,7 @@ function AccountView(): JSX.Element | null {
           className="account__menu-item"
         >
           <div className="account__menu-item-icon">
-            <LockIco />
+            <PasswordIco />
           </div>
           <div className="account__menu-item-title">Change password</div>
         </div>
