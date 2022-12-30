@@ -62,7 +62,7 @@ function BillsListItem({
             )}
             <div className={visibleBillSettingID === bill.id ? "" : "d-none"}>
               <Spacer mt={8} />
-              <div className="flex flex-align-c pad-24-h">
+              <div className="flex flex-align-c pad-24-h pad-8-b">
                 <Spacer mt={8} />
                 <Button
                   onClick={() => {

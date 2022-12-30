@@ -433,6 +433,7 @@ function BillsList(): JSX.Element | null {
             type="button"
             variant="primary"
             working={isConsolidationLoading}
+            disabled={unlockedBills?.length <= 1}
             onClick={() => {
               if (password) {
                 handleDC();
