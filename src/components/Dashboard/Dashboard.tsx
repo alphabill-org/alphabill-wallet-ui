@@ -7,7 +7,6 @@ import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
 import { IAccount, IAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
-import { ReactComponent as ETHLogo } from "../../images/eth-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import { ReactComponent as Sync } from "../../images/sync-ico.svg";

@@ -122,12 +122,13 @@ export const getKeys = (
       masterKey: null,
     };
 
+  const decryptedVault = CryptoJS.AES.decrypt(
+    vault.toString(),
+    password
+  ).toString(CryptoJS.enc.Latin1);
+
   try {
-    JSON.parse(
-      CryptoJS.AES.decrypt(vault.toString(), password).toString(
-        CryptoJS.enc.Latin1
-      )
-    );
+    JSON.parse(decryptedVault);
   } catch {
     return {
       hashingPublicKey: null,
@@ -138,16 +139,12 @@ export const getKeys = (
     };
   }
 
-  const decryptedVault = JSON.parse(
-    CryptoJS.AES.decrypt(vault.toString(), password).toString(
-      CryptoJS.enc.Latin1
-    )
-  );
+  const decryptedVaultJSON = JSON.parse(decryptedVault);
 
   if (
-    decryptedVault?.entropy.length > 16 &&
-    decryptedVault?.entropy.length < 32 &&
-    decryptedVault?.entropy.length % 4 === 0
+    decryptedVaultJSON?.entropy.length > 16 &&
+    decryptedVaultJSON?.entropy.length < 32 &&
+    decryptedVaultJSON?.entropy.length % 4 === 0
   ) {
     return {
       hashingPublicKey: null,
@@ -158,7 +155,7 @@ export const getKeys = (
     };
   }
 
-  const mnemonic = entropyToMnemonic(decryptedVault?.entropy);
+  const mnemonic = entropyToMnemonic(decryptedVaultJSON?.entropy);
   const seed = mnemonicToSeedSync(mnemonic);
   const masterKey = HDKey.fromMasterSeed(seed);
   const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
@@ -168,7 +165,7 @@ export const getKeys = (
   return {
     hashingPublicKey: hashingPublicKey,
     hashingPrivateKey: hashingPrivateKey,
-    decryptedVault: decryptedVault,
+    decryptedVault: decryptedVaultJSON,
     error: null,
     masterKey: masterKey,
     hashingKey: hashingKey,
