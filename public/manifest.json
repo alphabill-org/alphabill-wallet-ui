@@ -17,7 +17,8 @@
   },
   "permissions": [
     "storage",
-    "idle"
+    "idle",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "*://*.wallet-backend.testnet.alphabill.org/*",

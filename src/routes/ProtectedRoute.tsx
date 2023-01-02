@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useApp } from "../hooks/appProvider";
 
@@ -10,7 +10,8 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
   const { balances } = useApp();
   const vault = localStorage.getItem("ab_wallet_vault");
   const userKeys = localStorage.getItem("ab_wallet_pub_keys");
-  const isLocked = useRef<"locked" | "unlocked">();
+  const [isLocked, setIsLocked] = useState<"locked" | "unlocked">();
+
   const isRedirect =
     !Boolean(userKeys) ||
     !Boolean(vault) ||
@@ -18,22 +19,35 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
     vault === "null" ||
     userKeys === "null";
 
-  chrome?.storage?.local.get(["ab_is_wallet_locked"]).then((result) => {
-    if (result.ab_is_wallet_locked === "locked") {
-      localStorage.setItem("ab_wallet_pub_keys", "");
-      return <Navigate to="/login" />;
+  useEffect(() => {
+    chrome?.storage?.local
+      .get(["ab_is_wallet_locked"])
+      .then((result) => {
+        if (result.ab_is_wallet_locked !== "unlocked") {
+          localStorage.setItem("ab_wallet_pub_keys", "");
+        }
+
+        setIsLocked(result.ab_is_wallet_locked || "locked");
+      })
+      .catch(() => {
+        setIsLocked("locked");
+        localStorage.setItem("ab_wallet_pub_keys", "");
+      });
+  }, [isLocked]);
+
+  if (chrome?.storage && !isLocked) {
+    return <></>;
+  }
+
+  chrome?.runtime?.onMessage.addListener((request) => {
+    if (request.isLocked === true) {
+      chrome.storage.local
+        .set({ ab_is_wallet_locked: "locked" })
+        .then(() => window.close());
     }
-    isLocked.current = result.ab_is_wallet_locked;
   });
 
-  chrome?.runtime?.onMessage.addListener(function (request) {
-    if (request === "close") {
-      isLocked.current = "locked";
-      window.close();
-    }
-  });
-
-  if (isRedirect || (isLocked.current === "locked" && chrome?.storage)) {
+  if (isRedirect || (isLocked === "locked" && chrome?.storage)) {
     return <Navigate to="/login" />;
   }
 
