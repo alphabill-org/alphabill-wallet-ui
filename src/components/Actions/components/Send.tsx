@@ -269,6 +269,7 @@ function Send(): JSX.Element | null {
                 transferData.length === idx + 1 &&
                 !billToSplit &&
                 !splitBillAmount;
+
               handleValidation(
                 msgHash,
                 blockData,
