@@ -39,7 +39,6 @@ import {
   opVerify,
   sigScheme,
   base64ToHexPrefixed,
-  checkPassword,
   timeoutBlocks,
 } from "../../../utils/utils";
 
@@ -339,11 +338,7 @@ function Send(): JSX.Element | null {
                 }
               }
             ),
-          password: Yup.string().test(
-            "empty-or-8-characters-check",
-            "password must be at least 8 characters",
-            (password) => checkPassword(password)
-          ),
+          password: Yup.string().required("Password is required"),
           amount: Yup.number()
             .positive("Value must be greater than 0.")
             .test(

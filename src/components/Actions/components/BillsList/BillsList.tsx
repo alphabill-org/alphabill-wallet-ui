@@ -10,7 +10,6 @@ import { useQueryClient } from "react-query";
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
 import {
-  checkPassword,
   DCTransfersLimit,
   extractFormikError,
   getNewBearer,
@@ -556,11 +555,7 @@ function BillsList(): JSX.Element | null {
               password: "",
             }}
             validationSchema={Yup.object().shape({
-              password: Yup.string().test(
-                "empty-or-8-characters-check",
-                "password must be at least 8 characters",
-                (password) => checkPassword(password)
-              ),
+              password: Yup.string().required("Password is required"),
             })}
             onSubmit={(values, { setErrors }) => {
               const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
