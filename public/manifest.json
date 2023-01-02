@@ -12,8 +12,13 @@
     "48": "logo192.png",
     "128": "logo192.png"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "permissions": [
-    "storage"
+    "storage",
+    "idle",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "*://*.wallet-backend.testnet.alphabill.org/*",
