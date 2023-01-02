@@ -6,8 +6,16 @@ import Login from "./routes/Login/Login";
 import Home from "./routes/Home";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    chrome?.runtime?.sendMessage({ isPopupOpen: true });
+    return () => {
+      chrome?.runtime?.sendMessage({ isPopupOpen: false });
+    };
+  }, []);
+
   return (
     <div className="app">
       <Animations />
