@@ -265,11 +265,15 @@ function Send(): JSX.Element | null {
                 )
               );
 
+              const isLastTransaction =
+                transferData.length === idx + 1 &&
+                !billToSplit &&
+                !splitBillAmount;
               handleValidation(
                 msgHash,
                 blockData,
                 data as ITransfer,
-                !billToSplit && !splitBillAmount
+                isLastTransaction
               );
             });
 
@@ -318,7 +322,7 @@ function Send(): JSX.Element | null {
             msgHash: Uint8Array,
             blockData: IBlockStats,
             billData: ITransfer,
-            isLastTransfer?: boolean
+            isLastTransfer: boolean
           ) => {
             const signature = await secp.sign(msgHash, hashingPrivateKey, {
               der: false,
