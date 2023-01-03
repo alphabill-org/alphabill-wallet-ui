@@ -10,7 +10,11 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { checkPassword, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import {
+  checkPassword,
+  extractFormikError,
+  unit8ToHexPrefixed,
+} from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -111,9 +115,20 @@ function CreateAccount(): JSX.Element | null {
                       ["_" + 0]: "Public Key 1",
                     })
                   );
-                  setActiveAccountId(prefixedHashingPubKey);
-                  setUserKeys(prefixedHashingPubKey);
-                  login(prefixedHashingPubKey);
+
+                  const initiateLogin = () => {
+                    setActiveAccountId(prefixedHashingPubKey);
+                    setUserKeys(prefixedHashingPubKey);
+                    login(prefixedHashingPubKey);
+                  };
+
+                  if (chrome?.storage) {
+                    chrome?.storage?.local
+                      .set({ ab_is_wallet_locked: "unlocked" })
+                      .then(() => initiateLogin());
+                  } else {
+                    initiateLogin();
+                  }
                 })
                 .catch(() =>
                   setErrors({ passwordConfirm: "Key was not added" })

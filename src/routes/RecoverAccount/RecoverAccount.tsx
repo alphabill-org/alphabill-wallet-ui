@@ -103,8 +103,19 @@ function RecoverAccount(): JSX.Element | null {
                       values.password
                     ).toString()
                   );
-                  setActiveAccountId(prefixedPubKey);
-                  login(!userKeys ? prefixedPubKey : null);
+
+                  const initiateLogin = () => {
+                    setActiveAccountId(prefixedPubKey);
+                    login(!userKeys ? prefixedPubKey : null);
+                  };
+
+                  if (chrome?.storage) {
+                    chrome?.storage?.local
+                      .set({ ab_is_wallet_locked: "unlocked" })
+                      .then(() => initiateLogin());
+                  } else {
+                    initiateLogin();
+                  }
                 }
               })
               .catch((e) => setErrors({ passwordConfirm: e }));
