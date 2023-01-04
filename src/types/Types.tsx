@@ -129,6 +129,13 @@ export interface IProofTx {
     targetBearer: string;
     targetValue: number;
     backlink: string;
+    newBearer?: string;
+    amount?: number;
+    ownerCondition?: string;
+    billIdentifiers?: string[];
+    remainingValue?: number;
+    proofs?: IProof[]
+    dcTransfers: IProofTx[]
   };
   timeout: number;
   ownerProof: string;

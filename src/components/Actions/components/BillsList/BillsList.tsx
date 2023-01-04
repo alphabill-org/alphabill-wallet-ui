@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
 import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
+import axios from "axios";
 
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
@@ -17,6 +17,7 @@ import {
   sortTxProofsByID,
   swapTimeout,
   timeoutBlocks,
+  Verify,
 } from "../../../../utils/utils";
 import {
   IBill,
@@ -37,6 +38,7 @@ import {
 import { ReactComponent as Close } from "../../../../images/close.svg";
 import Check from "../../../../images/checkmark.gif";
 import { ReactComponent as Sync } from "../../../../images/sync-ico.svg";
+import { ReactComponent as Fail } from "../../../../images/fail-ico.svg";
 import {
   getKeys,
   base64ToHexPrefixed,
@@ -56,8 +58,9 @@ import { isString } from "lodash";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const [isPasswordFormVisible, setIsPasswordFormVisible] =
-    useState<boolean>(false);
+  const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
+    "proofCheck" | "handleDC" | null
+  >();
   const {
     billsList,
     account,
@@ -84,12 +87,13 @@ function BillsList(): JSX.Element | null {
       b.isDCBill === false &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
-  const [activeBillId, setActiveBillId] = useState<string>(
-    sortedListByValue[0]?.id
-  );
+  const [activeBill, setActiveBill] = useState<IBill>(sortedListByValue[0]);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
+  const [proofCheckStatus, setProofCheckStatus] = useState<
+    string | null | undefined
+  >();
   const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
 
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
@@ -97,9 +101,10 @@ function BillsList(): JSX.Element | null {
     string | null
   >(null);
   const { data: proof } = useGetProof(
-    base64ToHexPrefixed(activeBillId),
+    base64ToHexPrefixed(activeBill.id),
     account.pubKey
   );
+
   const { vault } = useAuth();
   const queryClient = useQueryClient();
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
@@ -438,7 +443,7 @@ function BillsList(): JSX.Element | null {
               if (password) {
                 handleDC();
               } else {
-                setIsPasswordFormVisible(true);
+                setIsPasswordFormVisible("handleDC");
               }
             }}
           >
@@ -466,8 +471,36 @@ function BillsList(): JSX.Element | null {
               isLockedBills
               setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
               visibleBillSettingID={visibleBillSettingID}
-              setActiveBillId={(v) => setActiveBillId(v)}
-              setIsProofVisible={(v) => setIsProofVisible(v)}
+              setActiveBill={(v) => setActiveBill(v)}
+              setIsProofVisible={(bill) => {
+                password
+                  ? axios
+                      .get<IProofsProps>(
+                        `${API_URL}/proof/${
+                          account.pubKey
+                        }?bill_id=${base64ToHexPrefixed(bill.id)}`
+                      )
+                      .then(async ({ data }) => {
+                        const { error, hashingPrivateKey, hashingPublicKey } =
+                          getKeys(password, Number(account.idx), vault);
+
+                        if (error || !hashingPublicKey || !hashingPrivateKey) {
+                          return;
+                        }
+
+                        data?.bills[0] &&
+                          setProofCheckStatus(
+                            await Verify(
+                              data.bills[0],
+                              bill,
+                              hashingPrivateKey,
+                              hashingPublicKey
+                            )
+                          );
+                        await setIsProofVisible(true);
+                      })
+                  : setIsPasswordFormVisible("proofCheck");
+              }}
               setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
               setActionsView={(v) => setActionsView(v)}
               setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
@@ -495,8 +528,36 @@ function BillsList(): JSX.Element | null {
             )}
             setVisibleBillSettingID={(v) => setVisibleBillSettingID(v)}
             visibleBillSettingID={visibleBillSettingID}
-            setActiveBillId={(v) => setActiveBillId(v)}
-            setIsProofVisible={(v) => setIsProofVisible(v)}
+            setActiveBill={(v) => setActiveBill(v)}
+            setIsProofVisible={(bill) => {
+              password
+                ? axios
+                    .get<IProofsProps>(
+                      `${API_URL}/proof/${
+                        account.pubKey
+                      }?bill_id=${base64ToHexPrefixed(bill.id)}`
+                    )
+                    .then(async ({ data }) => {
+                      const { error, hashingPrivateKey, hashingPublicKey } =
+                        getKeys(password, Number(account.idx), vault);
+
+                      if (error || !hashingPublicKey || !hashingPrivateKey) {
+                        return;
+                      }
+
+                      data?.bills[0] &&
+                        setProofCheckStatus(
+                          await Verify(
+                            data.bills[0],
+                            bill,
+                            hashingPrivateKey,
+                            hashingPublicKey
+                          )
+                        );
+                      await setIsProofVisible(true);
+                    })
+                : setIsPasswordFormVisible("proofCheck");
+            }}
             setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
             setActionsView={(v) => setActionsView(v)}
             setIsActionsViewVisible={(v) => setIsActionsViewVisible(v)}
@@ -515,7 +576,8 @@ function BillsList(): JSX.Element | null {
             <div>BILL PROOF</div>
             <Close
               onClick={() => {
-                setIsProofVisible(!isProofVisible);
+                setProofCheckStatus(null);
+                setIsProofVisible(false);
               }}
             />
           </div>
@@ -525,11 +587,17 @@ function BillsList(): JSX.Element | null {
               <b>txHash:</b> {proof?.bills[0]?.txHash}
             </div>
             <Spacer mt={16} />
-            {proof?.bills[0]?.txHash ===
-              proof?.bills[0]?.txProof?.proof?.transactionsHash && (
+            {!proofCheckStatus ? (
               <div className="t-medium flex">
                 <img height="32" src={Check} alt="Matches" />{" "}
-                <span className="pad-8-l">Transaction hash matches!</span>
+                <span className="pad-8-l">
+                  Transaction hash matches & signature is valid!
+                </span>
+              </div>
+            ) : (
+              <div className="t-medium flex">
+                <Fail height="42" width="70" />{" "}
+                <span className="pad-8-l">{proofCheckStatus}</span>
               </div>
             )}
           </div>
@@ -537,7 +605,7 @@ function BillsList(): JSX.Element | null {
       </div>
       <div
         className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": isPasswordFormVisible === true,
+          "select__popover-wrap--open": Boolean(isPasswordFormVisible),
         })}
       >
         <div className="select__popover">
@@ -545,7 +613,7 @@ function BillsList(): JSX.Element | null {
             <div>INSERT PASSWORD</div>
             <Close
               onClick={() => {
-                setIsPasswordFormVisible(false);
+                setIsPasswordFormVisible(null);
               }}
             />
           </div>
@@ -557,7 +625,7 @@ function BillsList(): JSX.Element | null {
             validationSchema={Yup.object().shape({
               password: Yup.string().required("Password is required"),
             })}
-            onSubmit={(values, { setErrors }) => {
+            onSubmit={async (values, { setErrors }) => {
               const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
                 values.password,
                 Number(account.idx),
@@ -569,8 +637,27 @@ function BillsList(): JSX.Element | null {
               }
 
               setPassword(values.password);
-              handleDC(values.password);
-              setIsPasswordFormVisible(false);
+              isPasswordFormVisible === "proofCheck"
+                ? axios
+                    .get<IProofsProps>(
+                      `${API_URL}/proof/${
+                        account.pubKey
+                      }?bill_id=${base64ToHexPrefixed(activeBill.id)}`
+                    )
+                    .then(async ({ data }) => {
+                      data?.bills[0] &&
+                        setProofCheckStatus(
+                          await Verify(
+                            data.bills[0],
+                            activeBill,
+                            hashingPrivateKey,
+                            hashingPublicKey
+                          )
+                        );
+                      await setIsProofVisible(true);
+                    })
+                : handleDC(values.password);
+              setIsPasswordFormVisible(null);
             }}
           >
             {(formikProps) => {
@@ -627,10 +714,10 @@ function BillsList(): JSX.Element | null {
               JSON.stringify([
                 ...lockedBills,
                 {
-                  billId: activeBillId,
+                  billId: activeBill.id,
                   desc: values.desc,
                   value: sortedListByValue.find(
-                    (bill: IBill) => bill.id === activeBillId
+                    (bill: IBill) => bill.id === activeBill.id
                   ).value,
                 },
               ])

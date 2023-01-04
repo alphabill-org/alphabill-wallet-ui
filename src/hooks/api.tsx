@@ -50,7 +50,7 @@ export function useGetProof(
   id: string,
   key: string
 ): QueryObserverResult<IProofsProps, AxiosError> {
-  return useQuery([`proof`, id], async () => getProof(id, key), {
+  return useQuery([`proof`, id, key], async () => getProof(id, key), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
