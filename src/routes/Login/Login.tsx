@@ -16,8 +16,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 
 function Login(): JSX.Element | null {
-  const { setUserKeys, login } = useAuth();
-  const { setActiveAccountId, balances } = useApp();
+  const { login } = useAuth();
+  const { balances } = useApp();
   const vault = localStorage.getItem("ab_wallet_vault");
   const userKeys = localStorage.getItem("ab_wallet_pub_keys");
 
@@ -65,19 +65,7 @@ function Login(): JSX.Element | null {
             return setErrors({ password: "Password is incorrect!" });
           }
 
-          const initiateLogin = () => {
-            setUserKeys(decryptedVault.pub_keys);
-            setActiveAccountId(unit8ToHexPrefixed(hashingPublicKey!));
-            login();
-          };
-
-          if (chrome?.storage) {
-            chrome?.storage?.local
-              .set({ ab_is_wallet_locked: "unlocked" })
-              .then(() => initiateLogin());
-          } else {
-            initiateLogin();
-          }
+          login(unit8ToHexPrefixed(hashingPublicKey!), decryptedVault.pub_keys);
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().required("Password is required"),

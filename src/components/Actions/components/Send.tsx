@@ -47,13 +47,12 @@ function Send(): JSX.Element | null {
     setIsActionsViewVisible,
     account,
     billsList,
-    activeAccountId,
     lockedBills,
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault } = useAuth();
+  const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const defaultAsset = selectedSendKey
     ? {
@@ -215,7 +214,9 @@ function Send(): JSX.Element | null {
                 secp.utils.concatBytes(
                   Buffer.from(data.systemId, "base64"),
                   Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(blockData.blockHeight + timeoutBlocks).toBuffer(),
+                  new Uint64BE(
+                    blockData.blockHeight + timeoutBlocks
+                  ).toBuffer(),
                   Buffer.from(
                     data.transactionAttributes.newBearer as string,
                     "base64"

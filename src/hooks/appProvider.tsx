@@ -16,8 +16,6 @@ import { useLocalStorage } from "./useLocalStorage";
 interface IAppContextShape {
   balances: any;
   billsList: any;
-  activeAccountId: string;
-  setActiveAccountId: (e: string) => void;
   accounts: IAccount[];
   setAccounts: (e: IAccount[]) => void;
   account: IAccount;
@@ -40,19 +38,13 @@ export const useApp = (): IAppContextShape => useContext(AppContext);
 export const AppProvider: FunctionComponent<{
   children: JSX.Element | null;
 }> = ({ children }) => {
-  const { userKeys } = useAuth();
+  const { userKeys, setActiveAccountId, activeAccountId } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
-  const initialActiveAccount =
-    localStorage.getItem("ab_active_account") || keysArr[0] || "";
   const initialLockedBills = localStorage.getItem("ab_locked_bills") || null;
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
-  );
-  const [activeAccountId, setActiveAccountId] = useLocalStorage(
-    "ab_active_account",
-    initialActiveAccount
   );
   const [selectedSendKey, setSelectedSendKey] = useState<
     string | null | undefined
@@ -157,8 +149,6 @@ export const AppProvider: FunctionComponent<{
       value={{
         billsList,
         balances,
-        activeAccountId,
-        setActiveAccountId,
         accounts,
         setAccounts,
         account,
