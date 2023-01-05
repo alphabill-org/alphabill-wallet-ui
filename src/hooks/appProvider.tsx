@@ -78,8 +78,9 @@ export const AppProvider: FunctionComponent<{
           id: "ALPHA",
           name: "ALPHA",
           network: "AB Testnet",
-          amount: balances?.find((balance: any) => balance?.data?.id === key)
-            ?.data?.balance,
+          amount: balances?.find(
+            (balance: any) => balance?.data?.pubKey === key
+          )?.data?.balance,
         },
       ],
       activeNetwork: "AB Testnet",
@@ -109,7 +110,7 @@ export const AppProvider: FunctionComponent<{
       ?.find((account) => account?.pubKey === activeAccountId)
       ?.assets.find((asset) => asset.id === "ALPHA")?.amount;
     const abFetchedBalance = balances?.find(
-      (balance: any) => balance?.data?.id === activeAccountId
+      (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
     if (

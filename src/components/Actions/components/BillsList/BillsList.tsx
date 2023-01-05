@@ -34,6 +34,7 @@ import {
   API_URL,
   getBlockHeight,
   makeTransaction,
+  getProof,
 } from "../../../../hooks/requests";
 import { ReactComponent as Close } from "../../../../images/close.svg";
 import Check from "../../../../images/checkmark.gif";
@@ -101,8 +102,8 @@ function BillsList(): JSX.Element | null {
     string | null
   >(null);
   const { data: proof } = useGetProof(
-    base64ToHexPrefixed(activeBill.id),
-    account.pubKey
+    account.pubKey,
+    base64ToHexPrefixed(activeBill.id)
   );
 
   const { vault } = useAuth();
@@ -124,6 +125,35 @@ function BillsList(): JSX.Element | null {
         : {},
     [lastNonceIDsLocal]
   );
+
+  const handleProof = (bill: IBill) => {
+    password
+      ? getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then(
+          async (data) => {
+            const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+              password,
+              Number(account.idx),
+              vault
+            );
+
+            if (error || !hashingPublicKey || !hashingPrivateKey) {
+              return;
+            }
+
+            data?.bills[0] &&
+              setProofCheckStatus(
+                await Verify(
+                  data.bills[0],
+                  bill,
+                  hashingPrivateKey,
+                  hashingPublicKey
+                )
+              );
+            await setIsProofVisible(true);
+          }
+        )
+      : setIsPasswordFormVisible("proofCheck");
+  };
 
   const handleSwap = useCallback(() => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
@@ -148,13 +178,8 @@ function BillsList(): JSX.Element | null {
     });
 
     DCBills.map((bill: IBill, idx: number) =>
-      axios
-        .get<IProofsProps>(
-          `${API_URL}/proof/${account.pubKey}?bill_id=${base64ToHexPrefixed(
-            bill.id
-          )}`
-        )
-        .then(({ data }) => {
+      getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then(
+        async (data) => {
           const txProof = data.bills[0].txProof;
 
           txProofs.push(txProof);
@@ -170,7 +195,8 @@ function BillsList(): JSX.Element | null {
               transferMsgHashes
             );
           }
-        })
+        }
+      )
     );
   }, [
     DCBills,
@@ -473,33 +499,7 @@ function BillsList(): JSX.Element | null {
               visibleBillSettingID={visibleBillSettingID}
               setActiveBill={(v) => setActiveBill(v)}
               setIsProofVisible={(bill) => {
-                password
-                  ? axios
-                      .get<IProofsProps>(
-                        `${API_URL}/proof/${
-                          account.pubKey
-                        }?bill_id=${base64ToHexPrefixed(bill.id)}`
-                      )
-                      .then(async ({ data }) => {
-                        const { error, hashingPrivateKey, hashingPublicKey } =
-                          getKeys(password, Number(account.idx), vault);
-
-                        if (error || !hashingPublicKey || !hashingPrivateKey) {
-                          return;
-                        }
-
-                        data?.bills[0] &&
-                          setProofCheckStatus(
-                            await Verify(
-                              data.bills[0],
-                              bill,
-                              hashingPrivateKey,
-                              hashingPublicKey
-                            )
-                          );
-                        await setIsProofVisible(true);
-                      })
-                  : setIsPasswordFormVisible("proofCheck");
+                handleProof(bill);
               }}
               setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
               setActionsView={(v) => setActionsView(v)}
@@ -530,33 +530,7 @@ function BillsList(): JSX.Element | null {
             visibleBillSettingID={visibleBillSettingID}
             setActiveBill={(v) => setActiveBill(v)}
             setIsProofVisible={(bill) => {
-              password
-                ? axios
-                    .get<IProofsProps>(
-                      `${API_URL}/proof/${
-                        account.pubKey
-                      }?bill_id=${base64ToHexPrefixed(bill.id)}`
-                    )
-                    .then(async ({ data }) => {
-                      const { error, hashingPrivateKey, hashingPublicKey } =
-                        getKeys(password, Number(account.idx), vault);
-
-                      if (error || !hashingPublicKey || !hashingPrivateKey) {
-                        return;
-                      }
-
-                      data?.bills[0] &&
-                        setProofCheckStatus(
-                          await Verify(
-                            data.bills[0],
-                            bill,
-                            hashingPrivateKey,
-                            hashingPublicKey
-                          )
-                        );
-                      await setIsProofVisible(true);
-                    })
-                : setIsPasswordFormVisible("proofCheck");
+              handleProof(bill);
             }}
             setIsLockFormVisible={(v) => setIsLockFormVisible(v)}
             setActionsView={(v) => setActionsView(v)}
@@ -583,9 +557,10 @@ function BillsList(): JSX.Element | null {
           </div>
           <Spacer mt={16} />
           <div className="pad-24-h bills-list__proof">
-            <div>
-              <b>txHash:</b> {proof?.bills[0]?.txHash}
-            </div>
+            <span className="t-small flex">
+              <b>txHash:</b>
+              <span className="pad-8-l"> {proof?.bills[0]?.txHash}</span>
+            </span>
             <Spacer mt={16} />
             {!proofCheckStatus ? (
               <div className="t-medium flex">

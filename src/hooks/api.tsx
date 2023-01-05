@@ -16,20 +16,20 @@ import {
   makeTransaction,
 } from "./requests";
 
-export function useGetBalances(ids: string[] | undefined) {
+export function useGetBalances(pubKeys: string[] | undefined) {
   return useQueries<Array<QueryObserverResult<any, AxiosError>>>(
-    ids!.map((id) => {
+    pubKeys!.map((pubKey) => {
       return {
-        queryKey: ["balance", id],
+        queryKey: ["balance", pubKey],
         queryFn: async () =>
-          getBalance(id).catch((e) => {
+          getBalance(pubKey).catch((e) => {
             if (e.response?.data?.message === "pubkey not indexed") {
               axios.post<void>(API_URL + "/admin/add-key", {
-                pubkey: id,
+                pubkey: pubKey,
               });
             }
           }),
-        enabled: !!id,
+        enabled: !!pubKey,
         staleTime: Infinity,
       };
     })
@@ -37,9 +37,9 @@ export function useGetBalances(ids: string[] | undefined) {
 }
 
 export function useGetBillsList(
-  id: string
+  pubKey: string
 ): QueryObserverResult<IBillsList, AxiosError> {
-  return useQuery([`billsList`, id], async () => getBillsList(id), {
+  return useQuery([`billsList`, pubKey], async () => getBillsList(pubKey), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
@@ -47,14 +47,18 @@ export function useGetBillsList(
 }
 
 export function useGetProof(
-  id: string,
-  key: string
+  pubKey: string,
+  billID: string
 ): QueryObserverResult<IProofsProps, AxiosError> {
-  return useQuery([`proof`, id, key], async () => getProof(id, key), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
+  return useQuery(
+    [`proof`, pubKey, billID],
+    async () => getProof(pubKey, billID),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
 }
 
 export function useMakeTransaction(

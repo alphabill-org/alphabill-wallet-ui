@@ -330,12 +330,6 @@ export const Verify = async (
     )
   );
 
-  console.log(
-    bill.txHash,
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder",
-    Buffer.from(primHash).toString("base64")
-  );
-
   return verifyChainHead(proof, bill.id, unitHash);
 };
 
@@ -345,11 +339,6 @@ const verifyChainHead = (
   unitHash: Uint8Array
 ) => {
   const chain = proof.txProof.proof.blockTreeHashChain.items;
-  console.log(
-    chain[0].val === billID,
-    chain[0].hash,
-    Buffer.from(unitHash).toString("base64")
-  );
 
   if (
     chain.length > 0 &&
