@@ -182,6 +182,22 @@ export const getKeys = (
   };
 };
 
+const baseBufferProof = (tx: IProofTx) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.systemId, "base64"),
+    Buffer.from(tx.unitId, "base64"),
+    Buffer.from(tx.ownerProof, "base64"),
+    new Uint64BE(Number(tx.timeout)).toBuffer()
+  );
+
+const baseBuffer = (tx: IProofTx) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.systemId, "base64"),
+    Buffer.from(tx.unitId, "base64"),
+    Buffer.from(tx.ownerProof, "base64"),
+    new Uint64BE(Number(tx.timeout)).toBuffer()
+  );
+
 // Verify verifies the proof against given transaction, returns error if verification failed, or nil if verification succeeded.
 export const Verify = async (
   proof: IProofProps,
@@ -206,10 +222,7 @@ export const Verify = async (
   ) {
     primHash = await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.systemId, "base64"),
-        Buffer.from(tx.unitId, "base64"),
-        Buffer.from(tx.ownerProof, "base64"),
-        new Uint64BE(Number(tx.timeout)).toBuffer(),
+        baseBufferProof(tx),
         Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
         new Uint64BE(Number(tx.transactionAttributes.targetValue!)).toBuffer(),
         Buffer.from(tx.transactionAttributes.backlink, "base64")
@@ -220,10 +233,7 @@ export const Verify = async (
   ) {
     primHash = await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.systemId, "base64"),
-        Buffer.from(tx.unitId, "base64"),
-        Buffer.from(tx.ownerProof, "base64"),
-        new Uint64BE(Number(tx.timeout)).toBuffer(),
+        baseBufferProof(tx),
         new Uint64BE(Number(tx.transactionAttributes.amount)).toBuffer(),
         Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
         new Uint64BE(
@@ -235,79 +245,13 @@ export const Verify = async (
   } else if (
     tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SwapOrder"
   ) {
-    const identifiersBuffer = tx.transactionAttributes.billIdentifiers!.map(
-      (i) => Buffer.from(i, "base64")
-    );
-
-    const transferMsgHashes =
-      Buffer.concat(
-        tx.transactionAttributes?.dcTransfers!.map((tx: IProofTx) => {
-          return Buffer.concat([
-            Buffer.from(tx.systemId, "base64"),
-            Buffer.from(tx.unitId, "base64"),
-            Buffer.from(tx.ownerProof, "base64"),
-            new Uint64BE(Number(tx.timeout)).toBuffer(),
-            Buffer.from(
-              tx.transactionAttributes.targetBearer as string,
-              "base64"
-            ),
-            new Uint64BE(
-              Number(tx.transactionAttributes.targetValue!)
-            ).toBuffer(),
-            Buffer.from(tx.transactionAttributes.backlink, "base64"),
-          ]);
-        })
-
-    );
-    const proofsBuffer = tx.transactionAttributes?.proofs!.map((p: IProof) => {
-      const chainItems = p.blockTreeHashChain.items.map((i) =>
-        Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
-      );
-      const treeHashes =
-        p.unicityCertificate.unicityTreeCertificate.siblingHashes.map((i) =>
-          Buffer.from(i)
-        );
-      const signatureHashes = Object.values(
-        p.unicityCertificate.unicitySeal.signatures
-      ).map((s) => Buffer.from(s));
-
-      return Buffer.concat([
-        Buffer.from(p.proofType),
-        Buffer.from(p.blockHeaderHash, "base64"),
-        Buffer.from(p.transactionsHash, "base64"),
-        Buffer.concat(chainItems),
-        Buffer.from(p.unicityCertificate.inputRecord.previousHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.hash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.blockHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.summaryValue, "base64"),
-        Buffer.from(
-          p.unicityCertificate.unicityTreeCertificate.systemIdentifier,
-          "base64"
-        ),
-        Buffer.concat(treeHashes),
-        Buffer.from(
-          p.unicityCertificate.unicityTreeCertificate.systemDescriptionHash,
-          "base64"
-        ),
-        new Uint64BE(
-          p.unicityCertificate.unicitySeal.rootChainRoundNumber
-        ).toBuffer(),
-        Buffer.from(p.unicityCertificate.unicitySeal.previousHash, "base64"),
-        Buffer.from(p.unicityCertificate.unicitySeal.hash, "base64"),
-        Buffer.concat(signatureHashes),
-      ]);
-    });
-
     primHash = await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.systemId, "base64"),
-        Buffer.from(tx.unitId, "base64"),
-        Buffer.from(tx.ownerProof, "base64"),
-        new Uint64BE(tx.timeout).toBuffer(),
+        baseBufferProof(tx),
         Buffer.from(tx.transactionAttributes.ownerCondition!, "base64"),
-        Buffer.concat(identifiersBuffer),
-        transferMsgHashes,
-        Buffer.concat(proofsBuffer),
+        identifiersBuffer(tx.transactionAttributes.billIdentifiers!),
+        dcTransfersBuffer(tx.transactionAttributes.dcTransfers!, true),
+        swapProofsBuffer(tx.transactionAttributes?.proofs!),
         new Uint64BE(Number(tx.transactionAttributes.targetValue)).toBuffer()
       )
     );
@@ -347,7 +291,89 @@ const verifyChainHead = (
   ) {
     return null;
   }
-  return "Block tree hash chain item does not match with given bill";
+  return "Block tree hash chain item does not match";
+};
+
+export const swapProofsBuffer = (proofs: IProof[]) =>
+  Buffer.concat(
+    proofs.map((p: IProof) => {
+      const chainItems = p.blockTreeHashChain.items.map((i) =>
+        Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
+      );
+      const treeHashes =
+        p.unicityCertificate.unicityTreeCertificate.siblingHashes.map((i) =>
+          Buffer.from(i)
+        );
+      const signatureHashes = Object.values(
+        p.unicityCertificate.unicitySeal.signatures
+      ).map((s) => Buffer.from(s));
+
+      return Buffer.concat([
+        Buffer.alloc(4),
+        Buffer.from(p.blockHeaderHash, "base64"),
+        Buffer.from(p.transactionsHash, "base64"),
+        Buffer.from(p.hashValue, "base64"),
+        Buffer.concat(chainItems),
+        Buffer.from(p.unicityCertificate.inputRecord.previousHash, "base64"),
+        Buffer.from(p.unicityCertificate.inputRecord.hash, "base64"),
+        Buffer.from(p.unicityCertificate.inputRecord.blockHash, "base64"),
+        Buffer.from(p.unicityCertificate.inputRecord.summaryValue, "base64"),
+        Buffer.from(
+          p.unicityCertificate.unicityTreeCertificate.systemIdentifier,
+          "base64"
+        ),
+        Buffer.from(
+          p.unicityCertificate.unicityTreeCertificate.systemDescriptionHash,
+          "base64"
+        ),
+        Buffer.concat(treeHashes),
+        new Uint64BE(
+          p.unicityCertificate.unicitySeal.rootChainRoundNumber
+        ).toBuffer(),
+        Buffer.from(p.unicityCertificate.unicitySeal.previousHash, "base64"),
+        Buffer.from(p.unicityCertificate.unicitySeal.hash, "base64"),
+      ]);
+    })
+  );
+
+export const identifiersBuffer = (billIdentifiers: string[]) =>
+  Buffer.concat(billIdentifiers.map((i) => Buffer.from(i, "base64")));
+
+export const dcTransfersBuffer = (
+  dcTransfers: IProofTx[],
+  isProof?: boolean
+) => {
+  if (isProof) {
+    return Buffer.concat(
+      dcTransfers!.map((tx: IProofTx) => {
+        return Buffer.concat([
+          baseBufferProof(tx),
+          Buffer.from(tx.transactionAttributes.nonce, "base64"),
+          Buffer.from(
+            tx.transactionAttributes.targetBearer as string,
+            "base64"
+          ),
+          new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
+          Buffer.from(tx.transactionAttributes.backlink, "base64"),
+        ]);
+      })
+    );
+  } else {
+    return Buffer.concat(
+      dcTransfers!.map((tx: IProofTx) => {
+        return Buffer.concat([
+          baseBuffer(tx),
+          Buffer.from(tx.transactionAttributes.nonce, "base64"),
+          Buffer.from(
+            tx.transactionAttributes.targetBearer as string,
+            "base64"
+          ),
+          new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
+          Buffer.from(tx.transactionAttributes.backlink, "base64"),
+        ]);
+      })
+    );
+  }
 };
 
 export const startByte = "53";

@@ -103,7 +103,7 @@ function BillsList(): JSX.Element | null {
   >(null);
   const { data: proof } = useGetProof(
     account.pubKey,
-    base64ToHexPrefixed(activeBill.id)
+    base64ToHexPrefixed(activeBill?.id)
   );
 
   const { vault } = useAuth();
@@ -464,7 +464,11 @@ function BillsList(): JSX.Element | null {
             type="button"
             variant="primary"
             working={isConsolidationLoading}
-            disabled={unlockedBills?.length <= 1}
+            disabled={
+              unlockedBills?.length <= 1 &&
+              DCBills.length <= 1 &&
+              !isConsolidationLoading
+            }
             onClick={() => {
               if (password) {
                 handleDC();

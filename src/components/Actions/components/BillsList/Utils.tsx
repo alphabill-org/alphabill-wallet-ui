@@ -7,6 +7,9 @@ import {
   opPushPubKey,
   sigScheme,
   swapTimeout,
+  swapProofsBuffer,
+  dcTransfersBuffer,
+  identifiersBuffer,
 } from "../../../../utils/utils";
 import { Uint64BE } from "int64-buffer";
 import {
@@ -63,50 +66,6 @@ export const handleSwapRequest = async (
       ownerProof: "",
     };
 
-    const identifiersBuffer =
-      transferData.transactionAttributes.billIdentifiers.map((i) =>
-        Buffer.from(i, "base64")
-      );
-
-    const proofsBuffer = proofs.map((p: IProof) => {
-      const chainItems = p.blockTreeHashChain.items.map((i) =>
-        Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
-      );
-      const treeHashes =
-        p.unicityCertificate.unicityTreeCertificate.siblingHashes.map((i) =>
-          Buffer.from(i)
-        );
-      const signatureHashes = Object.values(
-        p.unicityCertificate.unicitySeal.signatures
-      ).map((s) => Buffer.from(s));
-
-      return Buffer.concat([
-        Buffer.from(p.proofType),
-        Buffer.from(p.blockHeaderHash, "base64"),
-        Buffer.from(p.transactionsHash, "base64"),
-        Buffer.concat(chainItems),
-        Buffer.from(p.unicityCertificate.inputRecord.previousHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.hash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.blockHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.summaryValue, "base64"),
-        Buffer.from(
-          p.unicityCertificate.unicityTreeCertificate.systemIdentifier,
-          "base64"
-        ),
-        Buffer.concat(treeHashes),
-        Buffer.from(
-          p.unicityCertificate.unicityTreeCertificate.systemDescriptionHash,
-          "base64"
-        ),
-        new Uint64BE(
-          p.unicityCertificate.unicitySeal.rootChainRoundNumber
-        ).toBuffer(),
-        Buffer.from(p.unicityCertificate.unicitySeal.previousHash, "base64"),
-        Buffer.from(p.unicityCertificate.unicitySeal.hash, "base64"),
-        Buffer.concat(signatureHashes),
-      ]);
-    });
-
     const msgHash = await secp.utils.sha256(
       secp.utils.concatBytes(
         Buffer.from(transferData.systemId, "base64"),
@@ -116,9 +75,10 @@ export const handleSwapRequest = async (
           transferData.transactionAttributes.ownerCondition,
           "base64"
         ),
-        Buffer.concat(identifiersBuffer),
+        identifiersBuffer(transferData.transactionAttributes.billIdentifiers),
+        dcTransfersBuffer(transferData.transactionAttributes.dcTransfers),
         Buffer.concat(transferMsgHashes),
-        Buffer.concat(proofsBuffer),
+        swapProofsBuffer(proofs),
         new Uint64BE(
           Number(transferData.transactionAttributes.targetValue)
         ).toBuffer()
