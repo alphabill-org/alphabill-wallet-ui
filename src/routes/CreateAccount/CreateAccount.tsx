@@ -10,18 +10,20 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import { checkPassword, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import {
+  checkPassword,
+  extractFormikError,
+  unit8ToHexPrefixed,
+} from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { useApp } from "../../hooks/appProvider";
 import { API_URL } from "../../hooks/requests";
 import { useMemo } from "react";
 
 function CreateAccount(): JSX.Element | null {
-  const { login, setUserKeys, setVault } = useAuth();
+  const { login } = useAuth();
   const mnemonic = useMemo(() => generateMnemonic(), []);
-  const { setActiveAccountId } = useApp();
 
   const downloadTxtFile = () => {
     const element = document.createElement("a");
@@ -99,21 +101,14 @@ function CreateAccount(): JSX.Element | null {
                     pub_keys: prefixedHashingPubKey,
                   };
 
-                  setVault(
+                  login(
+                    prefixedHashingPubKey,
+                    prefixedHashingPubKey,
                     CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password
                     ).toString()
                   );
-                  localStorage.setItem(
-                    "ab_wallet_account_names",
-                    JSON.stringify({
-                      ["_" + 0]: "Public Key 1",
-                    })
-                  );
-                  setActiveAccountId(prefixedHashingPubKey);
-                  setUserKeys(prefixedHashingPubKey);
-                  login(prefixedHashingPubKey);
                 })
                 .catch(() =>
                   setErrors({ passwordConfirm: "Key was not added" })

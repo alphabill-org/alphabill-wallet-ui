@@ -58,6 +58,7 @@ function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
   const [isPasswordFormVisible, setIsPasswordFormVisible] =
     useState<boolean>(false);
+  const { vault, activeAccountId } = useAuth();
   const {
     billsList,
     account,
@@ -66,7 +67,6 @@ function BillsList(): JSX.Element | null {
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
-    activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
   const sortedListByValue = billsList?.sort(
@@ -100,7 +100,6 @@ function BillsList(): JSX.Element | null {
     base64ToHexPrefixed(activeBillId),
     account.pubKey
   );
-  const { vault } = useAuth();
   const queryClient = useQueryClient();
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
