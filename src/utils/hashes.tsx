@@ -1,12 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { Uint64BE } from "int64-buffer";
 
-import {
-  IProof,
-  IProofTx,
-  ISwapProps,
-  ITransfer,
-} from "../types/Types";
+import { IProof, IProofTx, ISwapProps, ITransfer } from "../types/Types";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -40,15 +35,15 @@ export const swapProofsBuffer = (proofs: IProof[]) =>
   Buffer.concat(
     proofs.map((p: IProof) => {
       const chainItems = p.blockTreeHashChain.items.map((i) =>
-        Buffer.concat([Buffer.from(i.val), Buffer.from(i.hash)])
+        Buffer.concat([
+          Buffer.from(i.val, "base64"),
+          Buffer.from(i.hash, "base64"),
+        ])
       );
       const treeHashes =
         p.unicityCertificate.unicityTreeCertificate.siblingHashes.map((i) =>
-          Buffer.from(i)
+          Buffer.from(i, "base64")
         );
-      const signatureHashes = Object.values(
-        p.unicityCertificate.unicitySeal.signatures
-      ).map((s) => Buffer.from(s));
 
       return Buffer.concat([
         Buffer.alloc(4),
@@ -118,22 +113,23 @@ export const swapAttributesBuffer = (
 export const transferOrderHash = async (tx: IProofTx, isProof?: boolean) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(
-    secp.utils.concatBytes(baseBufferProof(tx), transferAttributesBuffer(tx))
+    secp.utils.concatBytes(transferBaseBuffer, transferAttributesBuffer(tx))
   );
 };
 
 export const splitOrderHash = async (tx: IProofTx, isProof?: boolean) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(
-    secp.utils.concatBytes(baseBufferProof(tx), splitAttributesBuffer(tx))
+    secp.utils.concatBytes(transferBaseBuffer, splitAttributesBuffer(tx))
   );
 };
 
 export const swapOrderHash = async (tx: ISwapProps, isProof?: boolean) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+
   return await secp.utils.sha256(
     secp.utils.concatBytes(
-      baseBufferProof(tx),
+      transferBaseBuffer,
       swapAttributesBuffer(tx, isProof)
     )
   );
