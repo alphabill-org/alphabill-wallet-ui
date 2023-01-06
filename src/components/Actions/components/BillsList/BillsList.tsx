@@ -72,7 +72,7 @@ function BillsList(): JSX.Element | null {
     setSelectedSendKey,
     activeAccountId,
   } = useApp();
-  const [transferMsgHashes, setTransferMsgHashes] = useState<Uint8Array[]>([]);
+  const [transferMsgHashes, setTransferMsgHashes] = useState<ITransfer[]>([]);
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
@@ -191,8 +191,7 @@ function BillsList(): JSX.Element | null {
               hashingPublicKey,
               hashingPrivateKey,
               sortIDBySize(billIdentifiers),
-              getNewBearer(account),
-              transferMsgHashes
+              getNewBearer(account)
             );
           }
         }
@@ -339,7 +338,7 @@ function BillsList(): JSX.Element | null {
             )
           );
 
-          setTransferMsgHashes([...transferMsgHashes, msgHash]);
+          setTransferMsgHashes([...transferMsgHashes, transferData]);
 
           const signature = await secp.sign(msgHash, hashingPrivateKey, {
             der: false,

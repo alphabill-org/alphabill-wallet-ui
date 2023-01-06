@@ -7,11 +7,7 @@ import {
   opPushPubKey,
   sigScheme,
   swapTimeout,
-  swapProofsBuffer,
-  dcTransfersBuffer,
-  identifiersBuffer,
 } from "../../../../utils/utils";
-import { Uint64BE } from "int64-buffer";
 import {
   IProof,
   IProofTx,
@@ -20,6 +16,7 @@ import {
   ITxProof,
 } from "../../../../types/Types";
 import { getBlockHeight, makeTransaction } from "../../../../hooks/requests";
+import { swapOrderHash } from "../../../../utils/hashes";
 
 export const handleSwapRequest = async (
   nonce: Buffer[],
@@ -27,8 +24,7 @@ export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
   hashingPrivateKey: Uint8Array,
   billIdentifiers: string[],
-  newBearer: string,
-  transferMsgHashes: Uint8Array[]
+  newBearer: string
 ) => {
   let dcTransfers: IProofTx[] = [];
   let proofs: IProof[] = [];
@@ -65,31 +61,11 @@ export const handleSwapRequest = async (
       timeout: blockData.blockHeight + swapTimeout,
       ownerProof: "",
     };
-
-    const msgHash = await secp.utils.sha256(
-      secp.utils.concatBytes(
-        Buffer.from(transferData.systemId, "base64"),
-        Buffer.from(transferData.unitId, "base64"),
-        new Uint64BE(transferData.timeout).toBuffer(),
-        Buffer.from(
-          transferData.transactionAttributes.ownerCondition,
-          "base64"
-        ),
-        identifiersBuffer(transferData.transactionAttributes.billIdentifiers),
-        dcTransfersBuffer(transferData.transactionAttributes.dcTransfers),
-        Buffer.concat(transferMsgHashes),
-        swapProofsBuffer(proofs),
-        new Uint64BE(
-          Number(transferData.transactionAttributes.targetValue)
-        ).toBuffer()
-      )
-    );
-
+    const msgHash = await swapOrderHash(transferData);
     const signature = await secp.sign(msgHash, hashingPrivateKey, {
       der: false,
       recovered: true,
     });
-
     const isValid = secp.verify(signature[0], msgHash, hashingPublicKey);
 
     const ownerProof = await Buffer.from(

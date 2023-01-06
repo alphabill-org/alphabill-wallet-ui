@@ -4,7 +4,6 @@ import { differenceBy } from "lodash";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
 import CryptoJS from "crypto-js";
-import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
 import { useQueryClient } from "react-query";
 
@@ -18,6 +17,7 @@ import {
   IBill,
   IBlockStats,
   ILockedBill,
+  IProofTx,
   ITransfer,
 } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -41,6 +41,7 @@ import {
   base64ToHexPrefixed,
   timeoutBlocks,
 } from "../../../utils/utils";
+import { splitOrderHash, transferOrderHash } from "../../../utils/hashes";
 
 function Send(): JSX.Element | null {
   const {
@@ -199,38 +200,30 @@ function Send(): JSX.Element | null {
             ? billToSplit?.value - billsSumDifference
             : null;
 
-          const transferData = billsToTransfer.map((bill) => ({
-            systemId: "AAAAAA==",
-            unitId: bill.id,
-            transactionAttributes: {
-              "@type": "type.googleapis.com/rpc.TransferOrder",
-              newBearer: newBearer,
-              targetValue: bill.value.toString(),
-              backlink: bill.txHash,
-            },
-          }));
           getBlockHeight().then(async (blockData) => {
-            transferData.map(async (data, idx) => {
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(data.systemId, "base64"),
-                  Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(blockData.blockHeight + timeoutBlocks).toBuffer(),
-                  Buffer.from(
-                    data.transactionAttributes.newBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    data.transactionAttributes.targetValue
-                  ).toBuffer(),
-                  Buffer.from(data.transactionAttributes.backlink, "base64")
-                )
+            billsToTransfer.map(async (bill, idx) => {
+              const transferData: IProofTx = {
+                systemId: "AAAAAA==",
+                unitId: bill.id,
+                transactionAttributes: {
+                  "@type": "type.googleapis.com/rpc.TransferOrder",
+                  newBearer: newBearer,
+                  targetValue: bill.value.toString(),
+                  backlink: bill.txHash,
+                },
+                timeout: blockData.blockHeight + timeoutBlocks,
+                ownerProof: "",
+              };
+
+              handleValidation(
+                await transferOrderHash(transferData),
+                blockData,
+                transferData as ITransfer
               );
-              handleValidation(msgHash, blockData, data as ITransfer);
             });
 
             if (billToSplit && splitBillAmount) {
-              const splitData: ITransfer = {
+              const splitData: IProofTx = {
                 systemId: "AAAAAA==",
                 unitId: billToSplit.id,
                 transactionAttributes: {
@@ -243,26 +236,12 @@ function Send(): JSX.Element | null {
                 timeout: blockData.blockHeight + timeoutBlocks,
                 ownerProof: "",
               };
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(splitData.systemId, "base64"),
-                  Buffer.from(splitData.unitId, "base64"),
-                  new Uint64BE(splitData.timeout).toBuffer(),
-                  new Uint64BE(
-                    splitData.transactionAttributes.amount
-                  ).toBuffer(),
-                  Buffer.from(
-                    splitData.transactionAttributes.targetBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    splitData.transactionAttributes.remainingValue
-                  ).toBuffer(),
-                  Buffer.from(billToSplit.txHash, "base64")
-                )
-              );
 
-              handleValidation(msgHash, blockData, splitData);
+              handleValidation(
+                await splitOrderHash(splitData),
+                blockData,
+                splitData as ITransfer
+              );
             }
 
             setSelectedSendKey(null);

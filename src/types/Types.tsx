@@ -125,9 +125,9 @@ export interface IProofTx {
   unitId: string;
   transactionAttributes: {
     "@type": string;
-    nonce: string;
-    targetBearer: string;
-    targetValue: number;
+    nonce?: string;
+    targetBearer?: string;
+    targetValue?: number | string;
     backlink: string;
     newBearer?: string;
     amount?: number;
@@ -135,7 +135,7 @@ export interface IProofTx {
     billIdentifiers?: string[];
     remainingValue?: number;
     proofs?: IProof[]
-    dcTransfers: IProofTx[]
+    dcTransfers?: IProofTx[]
   };
   timeout: number;
   ownerProof: string;
