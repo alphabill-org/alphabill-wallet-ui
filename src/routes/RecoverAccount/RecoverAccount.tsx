@@ -8,15 +8,17 @@ import { Link } from "react-router-dom";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
-import { checkPassword, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import {
+  checkPassword,
+  extractFormikError,
+  unit8ToHexPrefixed,
+} from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { useApp } from "../../hooks/appProvider";
 
 function RecoverAccount(): JSX.Element | null {
-  const { login, userKeys, setVault } = useAuth();
-  const { setActiveAccountId } = useApp();
+  const { login } = useAuth();
   return (
     <div className="create-account">
       <div className="actions__header">
@@ -93,18 +95,17 @@ function RecoverAccount(): JSX.Element | null {
                 ) {
                   const vaultData = {
                     entropy: mnemonicToEntropy(values.mnemonicRecovery),
-                    pub_keys: userKeys?.includes(prefixedPubKey)
-                      ? userKeys
-                      : prefixedPubKey,
+                    pub_keys: prefixedPubKey,
                   };
-                  setVault(
+
+                  login(
+                    prefixedPubKey,
+                    prefixedPubKey,
                     CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password
                     ).toString()
                   );
-                  setActiveAccountId(prefixedPubKey);
-                  login(!userKeys ? prefixedPubKey : null);
                 }
               })
               .catch((e) => setErrors({ passwordConfirm: e }));

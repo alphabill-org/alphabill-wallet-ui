@@ -33,13 +33,16 @@ function AccountView(): JSX.Element | null {
   const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] =
     useState(false);
   const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
-  const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
   const {
-    accounts,
-    setIsActionsViewVisible,
+    logout,
+    userKeys,
+    setUserKeys,
+    vault,
     activeAccountId,
     setActiveAccountId,
-  } = useApp();
+    setVault,
+  } = useAuth();
+  const { accounts, setIsActionsViewVisible } = useApp();
   const queryClient = useQueryClient();
 
   if (

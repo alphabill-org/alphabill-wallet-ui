@@ -47,13 +47,12 @@ function Send(): JSX.Element | null {
     setIsActionsViewVisible,
     account,
     billsList,
-    activeAccountId,
     lockedBills,
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault } = useAuth();
+  const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const defaultAsset = selectedSendKey
     ? {
