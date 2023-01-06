@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import { differenceBy } from "lodash";
 import * as Yup from "yup";
@@ -48,13 +48,12 @@ function Send(): JSX.Element | null {
     setIsActionsViewVisible,
     account,
     billsList,
-    activeAccountId,
     lockedBills,
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault } = useAuth();
+  const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const defaultAsset = selectedSendKey
     ? {
@@ -66,9 +65,45 @@ function Send(): JSX.Element | null {
           .find((asset) => asset.id === "ALPHA")?.name,
       }
     : "";
+  const abBalance =
+    account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
+
   const [currentTokenId, setCurrentTokenId] = useState<any>(
     defaultAsset ? defaultAsset?.value : ""
   );
+
+  const [balanceAfterSending, setBalanceAfterSending] = useState<number | null>(
+    null
+  );
+
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const initialBlockHeight = useRef<number | null | undefined>(null);
+
+  const addPollingInterval = () => {
+    initialBlockHeight.current = null;
+    pollingInterval.current = setInterval(() => {
+      queryClient.invalidateQueries(["balance", activeAccountId]);
+      getBlockHeight().then((blockData) => {
+        if (!initialBlockHeight?.current) {
+          initialBlockHeight.current = blockData.blockHeight;
+        }
+
+        if (
+          Number(initialBlockHeight?.current) + timeoutBlocks <
+          blockData.blockHeight
+        ) {
+          pollingInterval.current && clearInterval(pollingInterval.current);
+        }
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (abBalance === balanceAfterSending) {
+      pollingInterval.current && clearInterval(pollingInterval.current);
+      setBalanceAfterSending(null);
+    }
+  }, [abBalance, balanceAfterSending]);
 
   return (
     <div className="w-100p">
@@ -215,10 +250,16 @@ function Send(): JSX.Element | null {
                 ownerProof: "",
               };
 
+              const isLastTransaction =
+                billsToTransfer.length === idx + 1 &&
+                !billToSplit &&
+                !splitBillAmount;
+
               handleValidation(
                 await transferOrderHash(transferData),
                 blockData,
-                transferData as ITransfer
+                transferData as ITransfer,
+                isLastTransaction
               );
             });
 
@@ -240,7 +281,8 @@ function Send(): JSX.Element | null {
               handleValidation(
                 await splitOrderHash(splitData),
                 blockData,
-                splitData as ITransfer
+                splitData as ITransfer,
+                true
               );
             }
 
@@ -252,7 +294,8 @@ function Send(): JSX.Element | null {
           const handleValidation = async (
             msgHash: Uint8Array,
             blockData: IBlockStats,
-            billData: ITransfer
+            billData: ITransfer,
+            isLastTransfer: boolean
           ) => {
             const signature = await secp.sign(msgHash, hashingPrivateKey, {
               der: false,
@@ -286,9 +329,19 @@ function Send(): JSX.Element | null {
               timeout: blockData.blockHeight + timeoutBlocks,
             });
 
-            isValid && makeTransaction(dataWithProof);
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
+            isValid &&
+              makeTransaction(dataWithProof).then(() => {
+                isLastTransfer && addPollingInterval();
+                const amount: number = Number(
+                  billData?.transactionAttributes?.amount ||
+                    billData?.transactionAttributes?.targetValue
+                );
+                setBalanceAfterSending(
+                  balanceAfterSending
+                    ? balanceAfterSending - amount
+                    : abBalance - amount
+                );
+              });
           };
         }}
         validationSchema={Yup.object().shape({

@@ -13,15 +13,16 @@ import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
+import { useAuth } from "../../hooks/useAuth";
 
 function Dashboard(): JSX.Element | null {
+  const { activeAccountId } = useAuth();
   const {
     setIsActionsViewVisible,
     setActionsView,
     account,
     accounts,
     setAccounts,
-    activeAccountId,
   } = useApp();
   const abBalance = account?.assets.find(
     (asset: IAsset) => (asset.id = "ALPHA")

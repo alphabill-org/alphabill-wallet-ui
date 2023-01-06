@@ -70,7 +70,6 @@ function BillsList(): JSX.Element | null {
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
-    activeAccountId,
   } = useApp();
   const [transferMsgHashes, setTransferMsgHashes] = useState<ITransfer[]>([]);
   const sortedListByValue = billsList?.sort(
@@ -106,7 +105,7 @@ function BillsList(): JSX.Element | null {
     base64ToHexPrefixed(activeBill?.id)
   );
 
-  const { vault } = useAuth();
+  const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
@@ -465,7 +464,7 @@ function BillsList(): JSX.Element | null {
             working={isConsolidationLoading}
             disabled={
               unlockedBills?.length <= 1 &&
-              DCBills.length <= 1 &&
+              DCBills.length <= 0 &&
               !isConsolidationLoading
             }
             onClick={() => {
