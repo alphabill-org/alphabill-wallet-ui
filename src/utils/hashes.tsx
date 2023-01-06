@@ -1,7 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { Uint64BE } from "int64-buffer";
 
-import { IProof, IProofTx, ISwapProps, ITransfer } from "../types/Types";
+import { IBill, IProof, IProofTx, ISwapProps, ITransfer } from "../types/Types";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -131,6 +131,23 @@ export const swapOrderHash = async (tx: ISwapProps, isProof?: boolean) => {
     secp.utils.concatBytes(
       transferBaseBuffer,
       swapAttributesBuffer(tx, isProof)
+    )
+  );
+};
+
+export const dcOrderHash = async (tx: ITransfer, bill: IBill, nonceHash: Uint8Array) => {
+  return await secp.utils.sha256(
+    secp.utils.concatBytes(
+      Buffer.from(tx.systemId, "base64"),
+      Buffer.from(tx.unitId, "base64"),
+      new Uint64BE(tx.timeout).toBuffer(),
+      Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
+      Buffer.from(
+        tx.transactionAttributes.targetBearer as string,
+        "base64"
+      ),
+      new Uint64BE(bill.value).toBuffer(),
+      Buffer.from(bill.txHash, "base64")
     )
   );
 };

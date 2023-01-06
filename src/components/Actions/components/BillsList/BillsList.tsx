@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Uint64BE } from "int64-buffer";
 import * as secp from "@noble/secp256k1";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -10,11 +9,11 @@ import axios from "axios";
 import { Form, FormFooter, FormContent } from "../../../Form/Form";
 import Textfield from "../../../Textfield/Textfield";
 import {
+  createOwnerProof,
   DCTransfersLimit,
   extractFormikError,
   getNewBearer,
   sortIDBySize,
-  sortTxProofsByID,
   swapTimeout,
   timeoutBlocks,
   Verify,
@@ -22,7 +21,11 @@ import {
 import {
   IBill,
   ILockedBill,
+  IProof,
   IProofsProps,
+  IProofTx,
+  ISwapProps,
+  ISwapTransferProps,
   ITransfer,
   ITxProof,
 } from "../../../../types/Types";
@@ -43,19 +46,14 @@ import { ReactComponent as Fail } from "../../../../images/fail-ico.svg";
 import {
   getKeys,
   base64ToHexPrefixed,
-  unit8ToHexPrefixed,
-  startByte,
-  opPushSig,
-  opPushPubKey,
-  sigScheme,
   sortBillsByID,
 } from "../../../../utils/utils";
 import { useGetProof } from "../../../../hooks/api";
-import { handleSwapRequest } from "./Utils";
 import BillsListItem from "./BillsListItem";
 import Popup from "../../../Popup/Popup";
 import { useLocalStorage } from "../../../../hooks/useLocalStorage";
 import { isString } from "lodash";
+import { dcOrderHash, swapOrderHash } from "../../../../utils/hashes";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
@@ -71,7 +69,6 @@ function BillsList(): JSX.Element | null {
     setIsActionsViewVisible,
     setSelectedSendKey,
   } = useApp();
-  const [transferMsgHashes, setTransferMsgHashes] = useState<ITransfer[]>([]);
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
@@ -184,14 +181,57 @@ function BillsList(): JSX.Element | null {
           txProofs.push(txProof);
 
           if (txProofs.length === DCBills.length) {
-            handleSwapRequest(
-              nonce,
-              sortTxProofsByID(txProofs),
-              hashingPublicKey,
-              hashingPrivateKey,
-              sortIDBySize(billIdentifiers),
-              getNewBearer(account)
-            );
+            let dcTransfers: IProofTx[] = [];
+            let proofs: IProof[] = [];
+
+            txProofs.forEach((txProof) => {
+              const tx = txProof.tx;
+              const proof = txProof.proof;
+              dcTransfers.push(tx);
+              proofs.push(proof);
+            });
+
+            if (!hashingPublicKey || !hashingPrivateKey) return;
+
+            if (!nonce.length) return;
+            const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+            getBlockHeight().then(async (blockData) => {
+              const transferData: ISwapProps = {
+                systemId: "AAAAAA==",
+                unitId: Buffer.from(nonceHash).toString("base64"),
+                transactionAttributes: {
+                  billIdentifiers: billIdentifiers,
+                  dcTransfers: dcTransfers,
+                  ownerCondition: getNewBearer(account),
+                  proofs: proofs,
+                  targetValue: dcTransfers
+                    .reduce(
+                      (total, obj) =>
+                        Number(obj.transactionAttributes.targetValue) + total,
+                      0
+                    )
+                    .toString(),
+                  "@type": "type.googleapis.com/rpc.SwapOrder",
+                },
+                timeout: blockData.blockHeight + swapTimeout,
+                ownerProof: "",
+              };
+              const msgHash = await swapOrderHash(transferData);
+              const proof = await createOwnerProof(
+                msgHash,
+                hashingPrivateKey,
+                hashingPublicKey
+              );
+
+              const dataWithProof: ISwapTransferProps = await Object.assign(
+                transferData,
+                {
+                  ownerProof: proof.ownerProof,
+                }
+              );
+
+              proof.isSignatureValid && makeTransaction(dataWithProof);
+            });
           }
         }
       )
@@ -199,7 +239,6 @@ function BillsList(): JSX.Element | null {
   }, [
     DCBills,
     account,
-    transferMsgHashes,
     lastNonceIDs,
     password,
     vault,
@@ -322,69 +361,38 @@ function BillsList(): JSX.Element | null {
             ownerProof: "",
           };
 
-          const msgHash = await secp.utils.sha256(
-            secp.utils.concatBytes(
-              Buffer.from(transferData.systemId, "base64"),
-              Buffer.from(transferData.unitId, "base64"),
-              new Uint64BE(transferData.timeout).toBuffer(),
-              Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
-              Buffer.from(
-                transferData.transactionAttributes.targetBearer as string,
-                "base64"
-              ),
-              new Uint64BE(bill.value).toBuffer(),
-              Buffer.from(bill.txHash, "base64")
-            )
+          const msgHash = await dcOrderHash(transferData, bill, nonceHash);
+          const proof = await createOwnerProof(
+            msgHash,
+            hashingPrivateKey,
+            hashingPublicKey
           );
 
-          setTransferMsgHashes([...transferMsgHashes, transferData]);
+          if (proof.isSignatureValid !== true) return;
 
-          const signature = await secp.sign(msgHash, hashingPrivateKey, {
-            der: false,
-            recovered: true,
+          const dataWithProof = Object.assign(transferData, {
+            ownerProof: proof.ownerProof,
+            timeout: blockData.blockHeight + timeoutBlocks,
           });
 
-          if (secp.verify(signature[0], msgHash, hashingPublicKey)) {
-            const ownerProof = Buffer.from(
-              startByte +
-                opPushSig +
-                sigScheme +
-                Buffer.from(
-                  secp.utils.concatBytes(
-                    signature[0],
-                    Buffer.from([signature[1]])
-                  )
-                ).toString("hex") +
-                opPushPubKey +
-                sigScheme +
-                unit8ToHexPrefixed(hashingPublicKey).substring(2),
-              "hex"
-            ).toString("base64");
+          makeTransaction(dataWithProof)
+            .then(() => handleTransactionEnd())
+            .catch(() => handleTransactionEnd());
 
-            const dataWithProof = Object.assign(transferData, {
-              ownerProof: ownerProof,
-              timeout: blockData.blockHeight + timeoutBlocks,
-            });
+          const handleTransactionEnd = () => {
+            setLastNonceIDsLocal(
+              JSON.stringify(
+                Object.assign(lastNonceIDs, {
+                  [activeAccountId]: IDs,
+                })
+              )
+            );
 
-            makeTransaction(dataWithProof)
-              .then(() => handleTransactionEnd())
-              .catch(() => handleTransactionEnd());
-
-            const handleTransactionEnd = () => {
-              setLastNonceIDsLocal(
-                JSON.stringify(
-                  Object.assign(lastNonceIDs, {
-                    [activeAccountId]: IDs,
-                  })
-                )
-              );
-
-              if (sortedListByID.length === idx + 1) {
-                addInterval();
-                setHasSwapBegun(false);
-              }
-            };
-          }
+            if (sortedListByID.length === idx + 1) {
+              addInterval();
+              setHasSwapBegun(false);
+            }
+          };
         })
       );
     }

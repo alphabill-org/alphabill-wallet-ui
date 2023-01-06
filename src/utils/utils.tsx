@@ -5,6 +5,7 @@ import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
+import { differenceBy } from "lodash";
 
 import {
   IAccount,
@@ -181,8 +182,6 @@ export const getKeys = (
   };
 };
 
-
-
 // Verify verifies the proof against given transaction, returns error if verification failed, or nil if verification succeeded.
 export const Verify = async (
   proof: IProofProps,
@@ -236,6 +235,57 @@ export const Verify = async (
   return verifyChainHead(proof, bill.id, unitHash);
 };
 
+export const createNewBearer = (address: string) => {
+  const checkedAddress = address.startsWith("0x")
+    ? address.substring(2)
+    : address;
+  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
+  const SHA256 = CryptoJS.SHA256(addressHash);
+  return Buffer.from(
+    startByte +
+      opDup +
+      opHash +
+      sigScheme +
+      opPushHash +
+      sigScheme +
+      SHA256.toString(CryptoJS.enc.Hex) +
+      opEqual +
+      opVerify +
+      opCheckSig +
+      sigScheme,
+    "hex"
+  ).toString("base64");
+};
+
+export const createOwnerProof = async (
+  msgHash: Uint8Array,
+  hashingPrivateKey: Uint8Array,
+  pubKey: Uint8Array
+) => {
+  const signature = await secp.sign(msgHash, hashingPrivateKey, {
+    der: false,
+    recovered: true,
+  });
+
+  const isValid = secp.verify(signature[0], msgHash, pubKey);
+
+  return {
+    isSignatureValid: isValid,
+    ownerProof: Buffer.from(
+      startByte +
+        opPushSig +
+        sigScheme +
+        Buffer.from(
+          secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
+        ).toString("hex") +
+        opPushPubKey +
+        sigScheme +
+        unit8ToHexPrefixed(pubKey).substring(2),
+      "hex"
+    ).toString("base64"),
+  };
+};
+
 const verifyChainHead = (
   proof: IProofProps,
   billID: string,
@@ -252,6 +302,74 @@ const verifyChainHead = (
   }
   return "Block tree hash chain item does not match";
 };
+
+export const findClosestBigger = (bills: IBill[], target: number) =>
+  bills
+    .sort(function (a: IBill, b: IBill) {
+      return a.value - b.value;
+    })
+    .find(({ value }) => value >= target);
+
+export const getClosestSmaller = (bills: IBill[], target: number) =>
+  bills.reduce((acc: IBill, obj: IBill) =>
+    Math.abs(target - obj.value) < Math.abs(target - acc.value) ? obj : acc
+  );
+
+export const getOptimalBills = (amount: number, billsArr: IBill[]) => {
+  let selectedBills: IBill[] = [];
+
+  if (Number(findClosestBigger(billsArr, amount)?.value) > 0) {
+    selectedBills = selectedBills.concat([
+      findClosestBigger(billsArr, amount) as IBill,
+    ]);
+  } else {
+    const initialBill = getClosestSmaller(billsArr, amount);
+    selectedBills = selectedBills.concat([initialBill]);
+    let missingSum = Number(amount) - initialBill.value;
+
+    do {
+      const filteredBills = differenceBy(billsArr, selectedBills, "id");
+
+      const filteredBillsSum = filteredBills.reduce(
+        (acc: number, obj: IBill) => {
+          return acc + obj?.value;
+        },
+        0
+      );
+      let addedSum;
+
+      if (
+        Number(findClosestBigger(filteredBills, Math.abs(missingSum))?.value) >
+        0
+      ) {
+        const currentBill = findClosestBigger(
+          filteredBills,
+          Math.abs(missingSum)
+        );
+        selectedBills = selectedBills.concat([currentBill as IBill]);
+        addedSum = currentBill?.value || 0;
+      } else {
+        const currentBill = getClosestSmaller(
+          filteredBills,
+          Math.abs(missingSum)
+        );
+        selectedBills = selectedBills.concat([currentBill]);
+        addedSum = currentBill?.value || 0;
+      }
+      missingSum = missingSum - addedSum;
+      if (filteredBillsSum <= 0) {
+        break;
+      }
+    } while (missingSum > 0);
+  }
+
+  return selectedBills;
+};
+
+export const getBillsSum = (bills: IBill[]) =>
+  bills.reduce((acc: number, obj: IBill) => {
+    return acc + obj?.value;
+  }, 0);
 
 export const startByte = "53";
 export const opPushSig = "54";

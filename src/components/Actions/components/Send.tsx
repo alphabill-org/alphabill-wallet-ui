@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
-import { differenceBy } from "lodash";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../Form/Form";
-import CryptoJS from "crypto-js";
-import * as secp from "@noble/secp256k1";
 import { useQueryClient } from "react-query";
 
 import Button from "../../Button/Button";
@@ -27,19 +24,13 @@ import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
 import {
   extractFormikError,
   getKeys,
-  unit8ToHexPrefixed,
-  startByte,
-  opPushSig,
-  opPushPubKey,
-  opDup,
-  opHash,
-  opPushHash,
-  opCheckSig,
-  opEqual,
-  opVerify,
-  sigScheme,
   base64ToHexPrefixed,
   timeoutBlocks,
+  createOwnerProof,
+  createNewBearer,
+  findClosestBigger,
+  getOptimalBills,
+  getBillsSum,
 } from "../../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../../utils/hashes";
 
@@ -95,7 +86,7 @@ function Send(): JSX.Element | null {
           pollingInterval.current && clearInterval(pollingInterval.current);
         }
       });
-    }, 1000);
+    }, 500);
   };
 
   useEffect(() => {
@@ -137,93 +128,9 @@ function Send(): JSX.Element | null {
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
-          let selectedBills: IBill[] = [];
-          const findClosestBigger = (bills: IBill[], target: number) =>
-            bills
-              .sort(function (a: IBill, b: IBill) {
-                return a.value - b.value;
-              })
-              .find(({ value }) => value >= target);
-          const getClosestSmaller = (bills: IBill[], target: number) =>
-            bills.reduce((acc: IBill, obj: IBill) =>
-              Math.abs(target - obj.value) < Math.abs(target - acc.value)
-                ? obj
-                : acc
-            );
-
-          if (Number(findClosestBigger(billsArr, values.amount)?.value) > 0) {
-            selectedBills = selectedBills.concat([
-              findClosestBigger(billsArr, values.amount) as IBill,
-            ]);
-          } else {
-            const initialBill = getClosestSmaller(billsArr, values.amount);
-            selectedBills = selectedBills.concat([initialBill]);
-            let missingSum = Number(values.amount) - initialBill.value;
-
-            do {
-              const filteredBills = differenceBy(billsArr, selectedBills, "id");
-
-              const filteredBillsSum = filteredBills.reduce(
-                (acc: number, obj: IBill) => {
-                  return acc + obj?.value;
-                },
-                0
-              );
-              let addedSum;
-
-              if (
-                Number(
-                  findClosestBigger(filteredBills, Math.abs(missingSum))?.value
-                ) > 0
-              ) {
-                const currentBill = findClosestBigger(
-                  filteredBills,
-                  Math.abs(missingSum)
-                );
-                selectedBills = selectedBills.concat([currentBill as IBill]);
-                addedSum = currentBill?.value || 0;
-              } else {
-                const currentBill = getClosestSmaller(
-                  filteredBills,
-                  Math.abs(missingSum)
-                );
-                selectedBills = selectedBills.concat([currentBill]);
-                addedSum = currentBill?.value || 0;
-              }
-              missingSum = missingSum - addedSum;
-              if (filteredBillsSum <= 0) {
-                break;
-              }
-            } while (missingSum > 0);
-          }
-
-          const address = values.address.startsWith("0x")
-            ? values.address.substring(2)
-            : values.address;
-          const addressHash = CryptoJS.enc.Hex.parse(address);
-          const SHA256 = CryptoJS.SHA256(addressHash);
-          const newBearer = Buffer.from(
-            startByte +
-              opDup +
-              opHash +
-              sigScheme +
-              opPushHash +
-              sigScheme +
-              SHA256.toString(CryptoJS.enc.Hex) +
-              opEqual +
-              opVerify +
-              opCheckSig +
-              sigScheme,
-            "hex"
-          ).toString("base64");
-
-          const selectedBillsSum = selectedBills.reduce(
-            (acc: number, obj: IBill) => {
-              return acc + obj?.value;
-            },
-            0
-          );
-          const billsSumDifference = selectedBillsSum - values.amount;
+          const selectedBills = getOptimalBills(values.amount, billsArr);
+          const newBearer = createNewBearer(values.address);
+          const billsSumDifference = getBillsSum(selectedBills) - values.amount;
           const billToSplit =
             billsSumDifference !== 0
               ? findClosestBigger(selectedBills, billsSumDifference)
@@ -297,39 +204,18 @@ function Send(): JSX.Element | null {
             billData: ITransfer,
             isLastTransfer: boolean
           ) => {
-            const signature = await secp.sign(msgHash, hashingPrivateKey, {
-              der: false,
-              recovered: true,
-            });
-
-            const isValid = secp.verify(
-              signature[0],
+            const proof = await createOwnerProof(
               msgHash,
+              hashingPrivateKey,
               hashingPublicKey
             );
 
-            const ownerProof = Buffer.from(
-              startByte +
-                opPushSig +
-                sigScheme +
-                Buffer.from(
-                  secp.utils.concatBytes(
-                    signature[0],
-                    Buffer.from([signature[1]])
-                  )
-                ).toString("hex") +
-                opPushPubKey +
-                sigScheme +
-                unit8ToHexPrefixed(hashingPublicKey).substring(2),
-              "hex"
-            ).toString("base64");
-
             const dataWithProof = Object.assign(billData, {
-              ownerProof: ownerProof,
+              ownerProof: proof.ownerProof,
               timeout: blockData.blockHeight + timeoutBlocks,
             });
 
-            isValid &&
+            proof.isSignatureValid &&
               makeTransaction(dataWithProof).then(() => {
                 isLastTransfer && addPollingInterval();
                 const amount: number = Number(
