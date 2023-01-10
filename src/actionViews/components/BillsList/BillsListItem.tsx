@@ -1,10 +1,10 @@
 import { useQueryClient } from "react-query";
 
-import { IBill, ILockedBill } from "../../../../types/Types";
-import Spacer from "../../../Spacer/Spacer";
-import Button from "../../../Button/Button";
-import { ReactComponent as MoreIco } from "../../../../images/more-ico.svg";
-import { base64ToHexPrefixed } from "../../../../utils/utils";
+import { IBill, ILockedBill } from "../../../types/Types";
+import Spacer from "../../../components/Spacer/Spacer";
+import Button from "../../../components/Button/Button";
+import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
+import { base64ToHexPrefixed } from "../../../utils/utils";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;

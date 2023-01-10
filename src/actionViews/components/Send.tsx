@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { Form, FormFooter, FormContent } from "../../Form/Form";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
 
-import Button from "../../Button/Button";
-import Spacer from "../../Spacer/Spacer";
-import Textfield from "../../Textfield/Textfield";
+import Button from "../../components/Button/Button";
+import Spacer from "../../components/Spacer/Spacer";
+import Textfield from "../../components/Textfield/Textfield";
 
-import Select from "../../Select/Select";
+import Select from "../../components/Select/Select";
 import {
   IAsset,
   IBill,
@@ -16,10 +16,10 @@ import {
   ILockedBill,
   IProofTx,
   ITransfer,
-} from "../../../types/Types";
-import { useApp } from "../../../hooks/appProvider";
-import { useAuth } from "../../../hooks/useAuth";
-import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
+} from "../../types/Types";
+import { useApp } from "../../hooks/appProvider";
+import { useAuth } from "../../hooks/useAuth";
+import { getBlockHeight, makeTransaction } from "../../hooks/requests";
 
 import {
   extractFormikError,
@@ -31,8 +31,8 @@ import {
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
-} from "../../../utils/utils";
-import { splitOrderHash, transferOrderHash } from "../../../utils/hashes";
+} from "../../utils/utils";
+import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
 function Send(): JSX.Element | null {
   const {
@@ -193,9 +193,7 @@ function Send(): JSX.Element | null {
               );
             }
 
-            setSelectedSendKey(null);
-            setIsActionsViewVisible(false);
-            resetForm();
+
           });
 
           const handleValidation = async (

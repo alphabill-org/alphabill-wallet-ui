@@ -16,7 +16,7 @@ import {
   splitOrderHash,
   swapOrderHash,
   transferOrderHash,
-} from "./hashes";
+} from "./hashers";
 
 // Fixed constants
 const signingPublicKey = "AswruvQ9RghmioVBQu43Mk//acFrHdJ1raMbvbZBvdKl";
