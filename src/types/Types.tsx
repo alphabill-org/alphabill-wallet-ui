@@ -134,8 +134,8 @@ export interface IProofTx {
     ownerCondition?: string;
     billIdentifiers?: string[];
     remainingValue?: number;
-    proofs?: IProof[]
-    dcTransfers?: IProofTx[]
+    proofs?: IProof[];
+    dcTransfers?: IProofTx[];
   };
   timeout: number;
   ownerProof: string;
@@ -149,27 +149,35 @@ export interface IProof {
   blockTreeHashChain: {
     items: { val: string; hash: string }[];
   };
-  unicityCertificate: {
-    inputRecord: {
-      previousHash: string;
-      hash: string;
-      blockHash: string;
-      summaryValue: string;
-    };
-    unicityTreeCertificate: {
-      systemIdentifier: string;
-      siblingHashes: string[];
-      systemDescriptionHash: string;
-    };
-    unicitySeal: {
-      rootChainRoundNumber: number;
-      previousHash: string;
-      hash: string;
-      signatures: {
-        test: string;
-      };
-    };
-  };
+  unicityCertificate: IUnicityCertificate;
+}
+
+export interface IInputRecord {
+  previousHash: string;
+  hash: string;
+  blockHash: string;
+  summaryValue: string;
+}
+
+export interface IUnicityCertificate {
+  inputRecord: IInputRecord;
+  unicityTreeCertificate: IUnicityTreeCertificate;
+  unicitySeal: IUnicitySeal;
+}
+
+export interface IUnicitySeal {
+  rootChainRoundNumber: number;
+  previousHash: string;
+  hash: string;
+  signatures: {
+    test: string;
+  }[];
+}
+
+export interface IUnicityTreeCertificate {
+  systemIdentifier: string;
+  siblingHashes: string[];
+  systemDescriptionHash: string;
 }
 
 export interface ISwapProofProps {
@@ -178,35 +186,19 @@ export interface ISwapProofProps {
   transactionsHash: string;
   hashValue: string;
   blockTreeHashChain: {
-    items: [
-      {
-        val: string;
-        hash: string;
-      }
-    ];
+    items: IChainItems[];
   };
   secTreeHashChain?: string;
   unicityCertificate: {
-    inputRecord: {
-      previousHash: string;
-      hash: string;
-      blockHash: string;
-      summaryValue: string;
-    };
-    unicityTreeCertificate: {
-      systemIdentifier: string;
-      siblingHashes: string[];
-      systemDescriptionHash: string;
-    };
-    unicitySeal: {
-      rootChainRoundNumber: number;
-      previousHash: string;
-      hash: string;
-      signatures: {
-        test: string;
-      };
-    };
+    inputRecord: IInputRecord;
+    unicityTreeCertificate: IUnicityTreeCertificate;
+    unicitySeal: IUnicitySeal;
   };
+}
+
+export interface IChainItems {
+  val: string;
+  hash: string;
 }
 
 export interface ISwapTransferProps {

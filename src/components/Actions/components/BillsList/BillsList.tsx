@@ -16,7 +16,6 @@ import {
   sortIDBySize,
   swapTimeout,
   timeoutBlocks,
-  Verify,
 } from "../../../../utils/utils";
 import {
   IBill,
@@ -54,6 +53,7 @@ import Popup from "../../../Popup/Popup";
 import { useLocalStorage } from "../../../../hooks/useLocalStorage";
 import { isString } from "lodash";
 import { dcOrderHash, swapOrderHash } from "../../../../utils/hashes";
+import { Verify } from "../../../../utils/validation";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
@@ -557,7 +557,7 @@ function BillsList(): JSX.Element | null {
       >
         <div className="select__popover">
           <div className="select__popover-header">
-            <div>BILL PROOF</div>
+            <div>BILL PROOF VERIFICATION</div>
             <Close
               onClick={() => {
                 setProofCheckStatus(null);
@@ -566,23 +566,23 @@ function BillsList(): JSX.Element | null {
             />
           </div>
           <Spacer mt={16} />
-          <div className="pad-24-h bills-list__proof">
+          <div className="pad-16-h bills-list__proof">
             <span className="t-small flex">
-              <b>txHash:</b>
+              <b>Hash:</b>
               <span className="pad-8-l"> {proof?.bills[0]?.txHash}</span>
             </span>
             <Spacer mt={16} />
             {!proofCheckStatus ? (
               <div className="t-medium flex">
                 <img height="32" src={Check} alt="Matches" />{" "}
-                <span className="pad-8-l">
-                  Transaction hash matches & signature is valid!
+                <span className="pad-8-l t-medium-small t-bold">
+                  Transaction hash matches & <br/> signature is valid!
                 </span>
               </div>
             ) : (
-              <div className="t-medium flex">
-                <Fail height="42" width="70" />{" "}
-                <span className="pad-8-l">{proofCheckStatus}</span>
+              <div className="t-medium flex flex-align-c">
+                <Fail height="42" width="42" />{" "}
+                <span className="pad-8-l t-medium-small t-bold c-error">{proofCheckStatus}</span>
               </div>
             )}
           </div>

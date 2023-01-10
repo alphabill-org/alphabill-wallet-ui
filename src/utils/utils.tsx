@@ -10,12 +10,8 @@ import { differenceBy } from "lodash";
 import {
   IAccount,
   IBill,
-  IProofProps,
-  IProofTx,
-  ISwapProps,
   ITxProof,
 } from "../types/Types";
-import { splitOrderHash, swapOrderHash, transferOrderHash } from "./hashes";
 
 export const extractFormikError = (
   errors: unknown,
@@ -182,59 +178,6 @@ export const getKeys = (
   };
 };
 
-// Verify verifies the proof against given transaction, returns error if verification failed, or nil if verification succeeded.
-export const Verify = async (
-  proof: IProofProps,
-  bill: IBill,
-  hashingPrivateKey: Uint8Array,
-  hashingPublicKey: Uint8Array
-) => {
-  const tx: IProofTx | ISwapProps = proof.txProof.tx;
-  if (bill.id?.length <= 0) {
-    return "No bill ID";
-  }
-
-  if (tx === null || bill.id.length <= 0) {
-    return "No transaction information";
-  }
-
-  let primHash;
-
-  if (
-    tx.transactionAttributes["@type"] ===
-    "type.googleapis.com/rpc.TransferOrder"
-  ) {
-    primHash = await transferOrderHash(tx, true);
-  } else if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
-  ) {
-    primHash = await splitOrderHash(tx, true);
-  } else if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SwapOrder"
-  ) {
-    primHash = await swapOrderHash(tx as ISwapProps, true);
-  }
-
-  if (!primHash) return "Primary hash is missing";
-
-  const signature = await secp.sign(primHash, hashingPrivateKey, {
-    der: false,
-    recovered: true,
-  });
-
-  if (!secp.verify(signature[0], primHash, hashingPublicKey))
-    return "Signature is not valid";
-
-  const unitHash = await secp.utils.sha256(
-    secp.utils.concatBytes(
-      Buffer.from(primHash),
-      Buffer.from(proof.txProof.proof.hashValue, "base64")
-    )
-  );
-
-  return verifyChainHead(proof, bill.id, unitHash);
-};
-
 export const createNewBearer = (address: string) => {
   const checkedAddress = address.startsWith("0x")
     ? address.substring(2)
@@ -284,23 +227,6 @@ export const createOwnerProof = async (
       "hex"
     ).toString("base64"),
   };
-};
-
-const verifyChainHead = (
-  proof: IProofProps,
-  billID: string,
-  unitHash: Uint8Array
-) => {
-  const chain = proof.txProof.proof.blockTreeHashChain.items;
-
-  if (
-    chain.length > 0 &&
-    chain[0].val === billID &&
-    chain[0].hash === Buffer.from(unitHash).toString("base64")
-  ) {
-    return null;
-  }
-  return "Block tree hash chain item does not match";
 };
 
 export const findClosestBigger = (bills: IBill[], target: number) =>

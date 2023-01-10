@@ -1,7 +1,14 @@
 import * as secp from "@noble/secp256k1";
 import { Uint64BE } from "int64-buffer";
 
-import { IBill, IProof, IProofTx, ISwapProps, ITransfer } from "../types/Types";
+import {
+  IBill,
+  IInputRecord,
+  IProof,
+  IProofTx,
+  ISwapProps,
+  ITransfer,
+} from "../types/Types";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -31,6 +38,14 @@ export const dcTransfersBuffer = (
   );
 };
 
+export const inputRecordBuffer = (inputRecord: IInputRecord) =>
+  secp.utils.concatBytes(
+    Buffer.from(inputRecord.previousHash, "base64"),
+    Buffer.from(inputRecord.hash, "base64"),
+    Buffer.from(inputRecord.blockHash, "base64"),
+    Buffer.from(inputRecord.summaryValue, "base64")
+  );
+
 export const swapProofsBuffer = (proofs: IProof[]) =>
   Buffer.concat(
     proofs.map((p: IProof) => {
@@ -51,10 +66,7 @@ export const swapProofsBuffer = (proofs: IProof[]) =>
         Buffer.from(p.transactionsHash, "base64"),
         Buffer.from(p.hashValue, "base64"),
         Buffer.concat(chainItems),
-        Buffer.from(p.unicityCertificate.inputRecord.previousHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.hash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.blockHash, "base64"),
-        Buffer.from(p.unicityCertificate.inputRecord.summaryValue, "base64"),
+        inputRecordBuffer(p.unicityCertificate.inputRecord),
         Buffer.from(
           p.unicityCertificate.unicityTreeCertificate.systemIdentifier,
           "base64"
@@ -135,17 +147,18 @@ export const swapOrderHash = async (tx: ISwapProps, isProof?: boolean) => {
   );
 };
 
-export const dcOrderHash = async (tx: ITransfer, bill: IBill, nonceHash: Uint8Array) => {
+export const dcOrderHash = async (
+  tx: ITransfer,
+  bill: IBill,
+  nonceHash: Uint8Array
+) => {
   return await secp.utils.sha256(
     secp.utils.concatBytes(
       Buffer.from(tx.systemId, "base64"),
       Buffer.from(tx.unitId, "base64"),
       new Uint64BE(tx.timeout).toBuffer(),
       Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
-      Buffer.from(
-        tx.transactionAttributes.targetBearer as string,
-        "base64"
-      ),
+      Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
       new Uint64BE(bill.value).toBuffer(),
       Buffer.from(bill.txHash, "base64")
     )

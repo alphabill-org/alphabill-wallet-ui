@@ -1,6 +1,5 @@
 .bills-list {
   &__proof {
-    width: calc(100% - 42px);
     display: flex;
     flex-direction: column;
     overflow: auto;
