@@ -1,18 +1,18 @@
 import { useQueryClient } from "react-query";
 
-import { IBill, ILockedBill } from "../../../../types/Types";
-import Spacer from "../../../Spacer/Spacer";
-import Button from "../../../Button/Button";
-import { ReactComponent as MoreIco } from "../../../../images/more-ico.svg";
-import { base64ToHexPrefixed } from "../../../../utils/utils";
+import { IBill, ILockedBill } from "../../../types/Types";
+import Spacer from "../../../components/Spacer/Spacer";
+import Button from "../../../components/Button/Button";
+import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
+import { base64ToHexPrefixed } from "../../../utils/utils";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;
   filteredList: IBill[];
   setVisibleBillSettingID: (e: string | null) => void;
   visibleBillSettingID: string | null;
-  setActiveBillId: (e: string) => void;
-  setIsProofVisible: (e: boolean) => void;
+  setActiveBill: (e: IBill) => void;
+  setIsProofVisible: (e: IBill) => void;
   setIsLockFormVisible: (e: boolean) => void;
   setActionsView: (e: string) => void;
   setIsActionsViewVisible: (e: boolean) => void;
@@ -26,7 +26,7 @@ function BillsListItem({
   filteredList,
   setVisibleBillSettingID,
   visibleBillSettingID,
-  setActiveBillId,
+  setActiveBill,
   setIsProofVisible,
   setIsLockFormVisible,
   setActionsView,
@@ -66,8 +66,8 @@ function BillsListItem({
                 <Spacer mt={8} />
                 <Button
                   onClick={() => {
-                    setActiveBillId(bill.id);
-                    setIsProofVisible(true);
+                    setActiveBill(bill);
+                    setIsProofVisible(bill);
                     queryClient.invalidateQueries([
                       "proof",
                       base64ToHexPrefixed(bill.id),
@@ -85,7 +85,7 @@ function BillsListItem({
                     <Button
                       onClick={() => {
                         setIsLockFormVisible(true);
-                        setActiveBillId(bill.id);
+                        setActiveBill(bill);
                       }}
                       xSmall
                       type="button"
@@ -101,7 +101,7 @@ function BillsListItem({
                             lockedBills.filter((key) => key.billId !== bill.id)
                           )
                         );
-                        setActiveBillId(bill.id);
+                        setActiveBill(bill);
                       }}
                       xSmall
                       type="button"

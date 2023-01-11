@@ -59,6 +59,10 @@
   padding: 0 8px;
 }
 
+.pad-16-h {
+  padding: 0 16px;
+}
+
 .pad-8-b {
   padding-bottom: 8px;
 }
@@ -138,6 +142,10 @@
 
 .c-primary {
   color: $color-primary;
+}
+
+.c-error {
+  color: $color-error
 }
 
 .c-blue {

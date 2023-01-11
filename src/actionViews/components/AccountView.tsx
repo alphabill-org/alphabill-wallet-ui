@@ -8,25 +8,25 @@ import { Navigate } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useQueryClient } from "react-query";
 
-import { Form, FormFooter, FormContent } from "../../Form/Form";
-import Textfield from "../../Textfield/Textfield";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import Textfield from "../../components/Textfield/Textfield";
 import {
   checkPassword,
   extractFormikError,
   getKeys,
   unit8ToHexPrefixed,
-} from "../../../utils/utils";
-import Button from "../../Button/Button";
-import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
-import { ReactComponent as LockIco } from "../../../images/lock-ico.svg";
-import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
-import { ReactComponent as PasswordIco } from "../../../images/password-ico.svg";
-import Profile from "../../../images/profile.svg";
-import Spacer from "../../Spacer/Spacer";
-import Popup from "../../Popup/Popup";
-import { useAuth } from "../../../hooks/useAuth";
-import { useApp } from "../../../hooks/appProvider";
-import { API_URL } from "../../../hooks/requests";
+} from "../../utils/utils";
+import Button from "../../components/Button/Button";
+import { ReactComponent as AddIco } from "./../../images/add-ico.svg";
+import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
+import { ReactComponent as CheckIco } from "./../../images/check-ico.svg";
+import { ReactComponent as PasswordIco } from "./../../images/password-ico.svg";
+import Profile from "./../../images/profile.svg";
+import Spacer from "../../components/Spacer/Spacer";
+import Popup from "../../components/Popup/Popup";
+import { useAuth } from "../../hooks/useAuth";
+import { useApp } from "../../hooks/appProvider";
+import { API_URL } from "../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);

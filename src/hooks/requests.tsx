@@ -11,23 +11,23 @@ import {
 
 export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
 
-export const getBalance = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
+export const getBalance = async (pubKey: string): Promise<any> => {
+  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
-  const response = await axios.get<{ balance: number; id: string }>(
-    `${API_URL}/balance?pubkey=${id}`
+  const response = await axios.get<{ balance: number; pubKey: string }>(
+    `${API_URL}/balance?pubkey=${pubKey}`
   );
 
   let res = response.data;
-  res = { ...response.data, id: id };
+  res = { ...response.data, pubKey: pubKey };
 
   return res;
 };
 
-export const getBillsList = async (id: string): Promise<any> => {
-  if (!id || Number(id) === 0 || !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/))) {
+export const getBillsList = async (pubKey: string): Promise<any> => {
+  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
     return;
   }
 
@@ -38,7 +38,7 @@ export const getBillsList = async (id: string): Promise<any> => {
 
   while (totalBills === null || billsList.length < totalBills) {
     const response = await axios.get<IBillsList>(
-      `${API_URL}/list-bills?pubkey=${id}&limit=${limit}&offset=${offset}`
+      `${API_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
     );
 
     const { bills, total } = response.data;
@@ -51,18 +51,18 @@ export const getBillsList = async (id: string): Promise<any> => {
   return billsList;
 };
 
-export const getProof = async (id: string, key: string): Promise<any> => {
+export const getProof = async (pubKey: string, billID: string): Promise<any> => {
   if (
-    !id ||
-    Number(id) === 0 ||
-    !Boolean(id.match(/^0x[0-9A-Fa-f]{66}$/)) ||
-    !Boolean(key.match(/^0x[0-9A-Fa-f]{66}$/))
+    !pubKey ||
+    Number(pubKey) === 0 ||
+    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/)) ||
+    !Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))
   ) {
     return;
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/proof/${key}?bill_id=${id}`
+    `${API_URL}/proof/${pubKey}?bill_id=${billID}`
   );
 
   return response.data;

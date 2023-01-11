@@ -1,46 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
-import { differenceBy } from "lodash";
 import * as Yup from "yup";
-import { Form, FormFooter, FormContent } from "../../Form/Form";
-import CryptoJS from "crypto-js";
-import { Uint64BE } from "int64-buffer";
-import * as secp from "@noble/secp256k1";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
 
-import Button from "../../Button/Button";
-import Spacer from "../../Spacer/Spacer";
-import Textfield from "../../Textfield/Textfield";
+import Button from "../../components/Button/Button";
+import Spacer from "../../components/Spacer/Spacer";
+import Textfield from "../../components/Textfield/Textfield";
 
-import Select from "../../Select/Select";
+import Select from "../../components/Select/Select";
 import {
   IAsset,
   IBill,
   IBlockStats,
   ILockedBill,
+  IProofTx,
   ITransfer,
-} from "../../../types/Types";
-import { useApp } from "../../../hooks/appProvider";
-import { useAuth } from "../../../hooks/useAuth";
-import { getBlockHeight, makeTransaction } from "../../../hooks/requests";
+} from "../../types/Types";
+import { useApp } from "../../hooks/appProvider";
+import { useAuth } from "../../hooks/useAuth";
+import { getBlockHeight, makeTransaction } from "../../hooks/requests";
 
 import {
   extractFormikError,
   getKeys,
-  unit8ToHexPrefixed,
-  startByte,
-  opPushSig,
-  opPushPubKey,
-  opDup,
-  opHash,
-  opPushHash,
-  opCheckSig,
-  opEqual,
-  opVerify,
-  sigScheme,
   base64ToHexPrefixed,
   timeoutBlocks,
-} from "../../../utils/utils";
+  createOwnerProof,
+  createNewBearer,
+  findClosestBigger,
+  getOptimalBills,
+  getBillsSum,
+} from "../../utils/utils";
+import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
 function Send(): JSX.Element | null {
   const {
@@ -94,13 +86,15 @@ function Send(): JSX.Element | null {
           pollingInterval.current && clearInterval(pollingInterval.current);
         }
       });
-    }, 1000);
+    }, 500);
   };
 
   useEffect(() => {
     if (abBalance === balanceAfterSending) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       setBalanceAfterSending(null);
+    } else if (!balanceAfterSending) {
+      pollingInterval.current && clearInterval(pollingInterval.current);
     }
   }, [abBalance, balanceAfterSending]);
 
@@ -136,93 +130,9 @@ function Send(): JSX.Element | null {
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
-          let selectedBills: IBill[] = [];
-          const findClosestBigger = (bills: IBill[], target: number) =>
-            bills
-              .sort(function (a: IBill, b: IBill) {
-                return a.value - b.value;
-              })
-              .find(({ value }) => value >= target);
-          const getClosestSmaller = (bills: IBill[], target: number) =>
-            bills.reduce((acc: IBill, obj: IBill) =>
-              Math.abs(target - obj.value) < Math.abs(target - acc.value)
-                ? obj
-                : acc
-            );
-
-          if (Number(findClosestBigger(billsArr, values.amount)?.value) > 0) {
-            selectedBills = selectedBills.concat([
-              findClosestBigger(billsArr, values.amount) as IBill,
-            ]);
-          } else {
-            const initialBill = getClosestSmaller(billsArr, values.amount);
-            selectedBills = selectedBills.concat([initialBill]);
-            let missingSum = Number(values.amount) - initialBill.value;
-
-            do {
-              const filteredBills = differenceBy(billsArr, selectedBills, "id");
-
-              const filteredBillsSum = filteredBills.reduce(
-                (acc: number, obj: IBill) => {
-                  return acc + obj?.value;
-                },
-                0
-              );
-              let addedSum;
-
-              if (
-                Number(
-                  findClosestBigger(filteredBills, Math.abs(missingSum))?.value
-                ) > 0
-              ) {
-                const currentBill = findClosestBigger(
-                  filteredBills,
-                  Math.abs(missingSum)
-                );
-                selectedBills = selectedBills.concat([currentBill as IBill]);
-                addedSum = currentBill?.value || 0;
-              } else {
-                const currentBill = getClosestSmaller(
-                  filteredBills,
-                  Math.abs(missingSum)
-                );
-                selectedBills = selectedBills.concat([currentBill]);
-                addedSum = currentBill?.value || 0;
-              }
-              missingSum = missingSum - addedSum;
-              if (filteredBillsSum <= 0) {
-                break;
-              }
-            } while (missingSum > 0);
-          }
-
-          const address = values.address.startsWith("0x")
-            ? values.address.substring(2)
-            : values.address;
-          const addressHash = CryptoJS.enc.Hex.parse(address);
-          const SHA256 = CryptoJS.SHA256(addressHash);
-          const newBearer = Buffer.from(
-            startByte +
-              opDup +
-              opHash +
-              sigScheme +
-              opPushHash +
-              sigScheme +
-              SHA256.toString(CryptoJS.enc.Hex) +
-              opEqual +
-              opVerify +
-              opCheckSig +
-              sigScheme,
-            "hex"
-          ).toString("base64");
-
-          const selectedBillsSum = selectedBills.reduce(
-            (acc: number, obj: IBill) => {
-              return acc + obj?.value;
-            },
-            0
-          );
-          const billsSumDifference = selectedBillsSum - values.amount;
+          const selectedBills = getOptimalBills(values.amount, billsArr);
+          const newBearer = createNewBearer(values.address);
+          const billsSumDifference = getBillsSum(selectedBills) - values.amount;
           const billToSplit =
             billsSumDifference !== 0
               ? findClosestBigger(selectedBills, billsSumDifference)
@@ -234,51 +144,36 @@ function Send(): JSX.Element | null {
             ? billToSplit?.value - billsSumDifference
             : null;
 
-          const transferData = billsToTransfer.map((bill) => ({
-            systemId: "AAAAAA==",
-            unitId: bill.id,
-            transactionAttributes: {
-              "@type": "type.googleapis.com/rpc.TransferOrder",
-              newBearer: newBearer,
-              targetValue: bill.value.toString(),
-              backlink: bill.txHash,
-            },
-          }));
           getBlockHeight().then(async (blockData) => {
-            transferData.map(async (data, idx) => {
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(data.systemId, "base64"),
-                  Buffer.from(data.unitId, "base64"),
-                  new Uint64BE(
-                    blockData.blockHeight + timeoutBlocks
-                  ).toBuffer(),
-                  Buffer.from(
-                    data.transactionAttributes.newBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    data.transactionAttributes.targetValue
-                  ).toBuffer(),
-                  Buffer.from(data.transactionAttributes.backlink, "base64")
-                )
-              );
+            billsToTransfer.map(async (bill, idx) => {
+              const transferData: IProofTx = {
+                systemId: "AAAAAA==",
+                unitId: bill.id,
+                transactionAttributes: {
+                  "@type": "type.googleapis.com/rpc.TransferOrder",
+                  newBearer: newBearer,
+                  targetValue: bill.value.toString(),
+                  backlink: bill.txHash,
+                },
+                timeout: blockData.blockHeight + timeoutBlocks,
+                ownerProof: "",
+              };
 
               const isLastTransaction =
-                transferData.length === idx + 1 &&
+                billsToTransfer.length === idx + 1 &&
                 !billToSplit &&
                 !splitBillAmount;
 
               handleValidation(
-                msgHash,
+                await transferOrderHash(transferData),
                 blockData,
-                data as ITransfer,
+                transferData as ITransfer,
                 isLastTransaction
               );
             });
 
             if (billToSplit && splitBillAmount) {
-              const splitData: ITransfer = {
+              const splitData: IProofTx = {
                 systemId: "AAAAAA==",
                 unitId: billToSplit.id,
                 transactionAttributes: {
@@ -291,26 +186,13 @@ function Send(): JSX.Element | null {
                 timeout: blockData.blockHeight + timeoutBlocks,
                 ownerProof: "",
               };
-              const msgHash = await secp.utils.sha256(
-                secp.utils.concatBytes(
-                  Buffer.from(splitData.systemId, "base64"),
-                  Buffer.from(splitData.unitId, "base64"),
-                  new Uint64BE(splitData.timeout).toBuffer(),
-                  new Uint64BE(
-                    splitData.transactionAttributes.amount
-                  ).toBuffer(),
-                  Buffer.from(
-                    splitData.transactionAttributes.targetBearer as string,
-                    "base64"
-                  ),
-                  new Uint64BE(
-                    splitData.transactionAttributes.remainingValue
-                  ).toBuffer(),
-                  Buffer.from(billToSplit.txHash, "base64")
-                )
-              );
 
-              handleValidation(msgHash, blockData, splitData, true);
+              handleValidation(
+                await splitOrderHash(splitData),
+                blockData,
+                splitData as ITransfer,
+                true
+              );
             }
 
             setSelectedSendKey(null);
@@ -324,39 +206,18 @@ function Send(): JSX.Element | null {
             billData: ITransfer,
             isLastTransfer: boolean
           ) => {
-            const signature = await secp.sign(msgHash, hashingPrivateKey, {
-              der: false,
-              recovered: true,
-            });
-
-            const isValid = secp.verify(
-              signature[0],
+            const proof = await createOwnerProof(
               msgHash,
+              hashingPrivateKey,
               hashingPublicKey
             );
 
-            const ownerProof = Buffer.from(
-              startByte +
-                opPushSig +
-                sigScheme +
-                Buffer.from(
-                  secp.utils.concatBytes(
-                    signature[0],
-                    Buffer.from([signature[1]])
-                  )
-                ).toString("hex") +
-                opPushPubKey +
-                sigScheme +
-                unit8ToHexPrefixed(hashingPublicKey).substring(2),
-              "hex"
-            ).toString("base64");
-
             const dataWithProof = Object.assign(billData, {
-              ownerProof: ownerProof,
+              ownerProof: proof.ownerProof,
               timeout: blockData.blockHeight + timeoutBlocks,
             });
 
-            isValid &&
+            proof.isSignatureValid &&
               makeTransaction(dataWithProof).then(() => {
                 isLastTransfer && addPollingInterval();
                 const amount: number = Number(

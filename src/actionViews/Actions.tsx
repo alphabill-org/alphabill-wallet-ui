@@ -1,11 +1,11 @@
 import classNames from "classnames";
 
-import Button from "../Button/Button";
-import { ReactComponent as Arrow } from "../../images/arrow.svg";
+import Button from "../components/Button/Button";
+import { ReactComponent as Arrow } from "./../images/arrow.svg";
+import { useApp } from "../hooks/appProvider";
 import Send from "./components/Send";
-import Account from "./components/AccountView";
-import { useApp } from "../../hooks/appProvider";
 import BillsList from "./components/BillsList/BillsList";
+import AccountView from "./components/AccountView";
 
 function Actions(): JSX.Element | null {
   const {
@@ -39,7 +39,7 @@ function Actions(): JSX.Element | null {
         ) : actionsView === "Bills List" ? (
           <BillsList />
         ) : actionsView === "Profile" && accounts ? (
-          <Account />
+          <AccountView />
         ) : (
           <></>
         )}
