@@ -1,49 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
-import * as secp from "@noble/secp256k1";
 
-import {
-  createOwnerProof,
-  DCTransfersLimit,
-  getNewBearer,
-  sortIDBySize,
-  sortTxProofsByID,
-  swapTimeout,
-} from "../../../utils/utils";
-import {
-  IBill,
-  ILockedBill,
-  IProof,
-  IProofTx,
-  ISwapProps,
-  ISwapTransferProps,
-  ITxProof,
-} from "../../../types/Types";
+import { DCTransfersLimit, swapTimeout } from "../../../utils/utils";
+import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import {
-  getBlockHeight,
-  getProof,
-  makeTransaction,
-} from "../../../hooks/requests";
+import { getBlockHeight, getProof } from "../../../hooks/requests";
 import { ReactComponent as Sync } from "./../../../images/sync-ico.svg";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Verify } from "../../../utils/validators";
 import BillsListItem from "./BillsListItem";
 import BillsListPopups from "./BillsListPopups";
-import {
-  handleDC,
-  handleSwapRequest,
-} from "./BillsListConsolidation";
+import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
 import {
   getKeys,
   base64ToHexPrefixed,
   sortBillsByID,
 } from "../../../utils/utils";
-import { swapOrderHash } from "../../../utils/hashers";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
@@ -181,32 +157,13 @@ function BillsList(): JSX.Element | null {
 
       setHasSwapBegun(true);
 
-      let nonce: Buffer[] = [];
-      let txProofs: ITxProof[] = [];
-      let billIdentifiers: string[] = [];
-
-      sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
-        nonce.push(Buffer.from(id, "base64"));
-        billIdentifiers.push(id);
-      });
-
-      DCBills.map((bill: IBill, idx: number) =>
-        getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then((data) => {
-          const txProof = data.bills[0].txProof;
-
-          txProofs.push(txProof);
-
-          if (txProofs.length === DCBills.length) {
-            handleSwapRequest(
-              nonce,
-              sortTxProofsByID(txProofs),
-              hashingPublicKey,
-              hashingPrivateKey,
-              sortIDBySize(billIdentifiers),
-              getNewBearer(account)
-            );
-          }
-        })
+      handleSwapRequest(
+        hashingPublicKey,
+        hashingPrivateKey,
+        DCBills,
+        account,
+        activeAccountId,
+        lastNonceIDs
       );
     },
     [DCBills, account, lastNonceIDs, password, vault, activeAccountId]
@@ -224,6 +181,7 @@ function BillsList(): JSX.Element | null {
     }
   }, [
     handleSwap,
+    hasSwapBegun,
     isConsolidationLoading,
     DCBills,
     lastNonceIDs,

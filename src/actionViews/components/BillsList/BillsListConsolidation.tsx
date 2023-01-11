@@ -1,10 +1,12 @@
 import * as secp from "@noble/secp256k1";
 
 import {
+  base64ToHexPrefixed,
   createOwnerProof,
   DCTransfersLimit,
   getNewBearer,
   sortIDBySize,
+  sortTxProofsByID,
   swapTimeout,
   timeoutBlocks,
 } from "../../../utils/utils";
@@ -18,88 +20,102 @@ import {
   ITransfer,
   ITxProof,
 } from "../../../types/Types";
-
 import {
   getBlockHeight,
+  getProof,
   makeTransaction,
 } from "../../../hooks/requests";
-
-import {
-  getKeys,
-  sortBillsByID,
-} from "../../../utils/utils";
-
+import { getKeys, sortBillsByID } from "../../../utils/utils";
 import { dcOrderHash, swapOrderHash } from "../../../utils/hashers";
 
 export const handleSwapRequest = async (
-  nonce: Buffer[],
-  txProofs: ITxProof[],
   hashingPublicKey: Uint8Array,
   hashingPrivateKey: Uint8Array,
-  billIdentifiers: string[],
-  newBearer: string,
+  DCBills: IBill[],
+  account: IAccount,
+  activeAccountId: string,
+  lastNonceIDs: { [key: string]: string[] }
 ) => {
-  let dcTransfers: IProofTx[] = [];
-  let proofs: IProof[] = [];
+  let nonce: Buffer[] = [];
+  let txProofs: ITxProof[] = [];
+  let billIdentifiers: string[] = [];
 
-  txProofs.forEach((txProof) => {
-    const tx = txProof.tx;
-    const proof = txProof.proof;
-    dcTransfers.push(tx);
-    proofs.push(proof);
+  sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
+    nonce.push(Buffer.from(id, "base64"));
+    billIdentifiers.push(id);
   });
 
-  if (!hashingPublicKey || !hashingPrivateKey) return;
+  DCBills.map((bill: IBill, idx: number) =>
+    getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then(
+      async (data) => {
+        const txProof = data.bills[0].txProof;
 
-  if (!nonce.length) return;
-  const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-  getBlockHeight().then(async (blockData) => {
-    const transferData: ISwapProps = {
-      systemId: "AAAAAA==",
-      unitId: Buffer.from(nonceHash).toString("base64"),
-      transactionAttributes: {
-        billIdentifiers: billIdentifiers,
-        dcTransfers: dcTransfers,
-        ownerCondition: newBearer,
-        proofs: proofs,
-        targetValue: dcTransfers
-          .reduce(
-            (total, obj) =>
-              Number(obj.transactionAttributes.targetValue) + total,
-            0
-          )
-          .toString(),
-        "@type": "type.googleapis.com/rpc.SwapOrder",
-      },
-      timeout: blockData.blockHeight + swapTimeout,
-      ownerProof: "",
-    };
+        txProofs.push(txProof);
+        if (txProofs.length === DCBills.length) {
+          let dcTransfers: IProofTx[] = [];
+          let proofs: IProof[] = [];
 
-    const msgHash = await swapOrderHash(transferData);
-    const proof = await createOwnerProof(
-      msgHash,
-      hashingPrivateKey,
-      hashingPublicKey
-    );
+          sortTxProofsByID(txProofs).forEach((txProof) => {
+            const tx = txProof.tx;
+            const proof = txProof.proof;
+            dcTransfers.push(tx);
+            proofs.push(proof);
+          });
 
-    const dataWithProof: ISwapTransferProps = await Object.assign(
-      transferData,
-      {
-        ownerProof: proof.ownerProof,
+          if (!hashingPublicKey || !hashingPrivateKey) return;
+
+          if (!nonce.length) return;
+          const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+          getBlockHeight().then(async (blockData) => {
+            const transferData: ISwapProps = {
+              systemId: "AAAAAA==",
+              unitId: Buffer.from(nonceHash).toString("base64"),
+              transactionAttributes: {
+                billIdentifiers: sortIDBySize(billIdentifiers),
+                dcTransfers: dcTransfers,
+                ownerCondition: getNewBearer(account),
+                proofs: proofs,
+                targetValue: dcTransfers
+                  .reduce(
+                    (total, obj) =>
+                      Number(obj.transactionAttributes.targetValue) + total,
+                    0
+                  )
+                  .toString(),
+                "@type": "type.googleapis.com/rpc.SwapOrder",
+              },
+              timeout: blockData.blockHeight + swapTimeout,
+              ownerProof: "",
+            };
+
+            const msgHash = await swapOrderHash(transferData);
+            const proof = await createOwnerProof(
+              msgHash,
+              hashingPrivateKey,
+              hashingPublicKey
+            );
+
+            const dataWithProof: ISwapTransferProps = await Object.assign(
+              transferData,
+              {
+                ownerProof: proof.ownerProof,
+              }
+            );
+
+            proof.isSignatureValid && makeTransaction(dataWithProof);
+          });
+        }
       }
-    );
-
-    proof.isSignatureValid && makeTransaction(dataWithProof);
-  });
+    )
+  );
 };
-
 
 export const handleDC = async (
   addInterval: () => void,
   setIsConsolidationLoading: (e: boolean) => void,
   setLastNonceIDsLocal: (e: string) => void,
   setHasSwapBegun: (e: boolean) => void,
-  handleSwapCallBack: (e?: string) =>void,
+  handleSwapCallBack: (e?: string) => void,
   account: IAccount,
   password: string,
   vault: any,
