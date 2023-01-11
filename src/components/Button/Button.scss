@@ -9,6 +9,7 @@
   white-space: nowrap;
   border: none;
   cursor: pointer;
+  transition: all .3s;
 
   &:active {
     transform: scale(.9);
@@ -19,12 +20,25 @@
 
     &:hover {
       opacity: 1 !important;
-      transform: scale(1.04);
       svg,
       path,
-      g {
+      g
+       {
         fill: $color-primary;
       }
+
+      .profile-ico {
+        circle:first-child {
+          fill: $color-white;
+        }
+        circle {
+          fill: $color-secondary-op;
+        }
+      }
+    }
+
+    &:active {
+      transform: scale(.8);
     }
   }
 
@@ -133,7 +147,6 @@
   white-space: normal;
   text-align: left;
   font-weight: $font-weight-regular;
-  text-decoration: underline;
 
   &:hover {
     opacity: 1;
@@ -157,5 +170,21 @@
       height: 16px !important;
       width: 16px !important;
     }
+  }
+}
+
+.app__content {
+  .no-arrow {
+    display: none;
+  }
+
+  .react-tooltip {
+    background: #f8f8fa;
+    opacity: 1;
+    color: #0c0a3e;
+    padding: 2px 8px;
+    font-family: "grotesk";
+    border-radius: 0;
+    font-weight: 600;
   }
 }
