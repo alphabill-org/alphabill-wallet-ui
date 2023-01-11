@@ -59,14 +59,9 @@ function Send(): JSX.Element | null {
   const abBalance =
     account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
 
-  const [currentTokenId, setCurrentTokenId] = useState<any>(
-    defaultAsset ? defaultAsset?.value : ""
-  );
-
   const [balanceAfterSending, setBalanceAfterSending] = useState<number | null>(
     null
   );
-
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
 
@@ -263,7 +258,7 @@ function Send(): JSX.Element | null {
             .positive("Value must be greater than 0.")
             .test(
               "test less than",
-              `You don't have enough ` + currentTokenId.name + `'s`,
+              "Amount exceeds your balance",
               (value) =>
                 Number(value) <=
                 Number(
@@ -355,7 +350,6 @@ function Send(): JSX.Element | null {
                         value: asset,
                         label: asset.name,
                       }))}
-                    onChange={(label, value) => setCurrentTokenId(value)}
                     error={extractFormikError(errors, touched, ["assets"])}
                   />
                   <Spacer mb={8} />
@@ -407,6 +401,7 @@ function Send(): JSX.Element | null {
                       !Boolean(values.assets) && !Boolean(selectedSendKey)
                     }
                   />
+                  <Spacer mb={4} />
                 </FormContent>
                 <FormFooter>
                   <Button
