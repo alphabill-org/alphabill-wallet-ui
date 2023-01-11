@@ -75,6 +75,7 @@ export default function Button(props: IButtonProps): JSX.Element {
           anchorId={props.id}
           content={props.tooltipContent}
           place={props.tooltipPlacement || "top"}
+          noArrow
         />
       )}
       <TagName
