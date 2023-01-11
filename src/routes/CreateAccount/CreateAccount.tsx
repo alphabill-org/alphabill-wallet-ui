@@ -20,21 +20,11 @@ import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { API_URL } from "../../hooks/requests";
 import { useMemo } from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 function CreateAccount(): JSX.Element | null {
   const { login } = useAuth();
   const mnemonic = useMemo(() => generateMnemonic(), []);
-
-  const downloadTxtFile = () => {
-    const element = document.createElement("a");
-    const file = new Blob([mnemonic], {
-      type: "text/plain",
-    });
-    element.href = URL.createObjectURL(file);
-    element.download = "recovery_phrase.txt";
-    document.body.appendChild(element);
-    element.click();
-  };
 
   return (
     <div className="create-account">
@@ -44,12 +34,10 @@ function CreateAccount(): JSX.Element | null {
         </Link>
         <div className="actions__title">Create Account</div>
       </div>
-      <div className="pad-24">
+      <div className="pad-24 t-medium-small">
         <div>
           Your Secret Recovery Phrase is a 12-word phrase that is the “master
-          key” to your wallet and your funds. It makes it easy to back up and
-          restore your account.
-          <Spacer mb={8} />
+          key” to your wallet and your funds.
         </div>
         <Spacer mb={16} />
         <Formik
@@ -169,21 +157,20 @@ function CreateAccount(): JSX.Element | null {
             );
           }}
         </Formik>
-        <Spacer mb={32} />
+        <Spacer mb={24} />
         <div className="t-medium-small">
-          Memorize this phrase & never disclose your Secret Recovery Phrase.
-          Anyone with this phrase can take your Alphabill forever.
+          <CopyToClipboard text={mnemonic}>
+            <Button
+              id="copy-tooltip"
+              tooltipContent="Phrase copied"
+              variant="link"
+            >
+              Copy the phrase
+            </Button>
+          </CopyToClipboard>{" "}
+          & store it safely or memorize it. Never disclose your Secret Recovery
+          Phrase. Anyone with this phrase can take your Alphabill forever.
         </div>
-        <Spacer mb={16} />
-        <Button
-          big={true}
-          block={true}
-          type="button"
-          variant="secondary"
-          onClick={() => downloadTxtFile()}
-        >
-          Download Secret Recovery Phrase
-        </Button>
       </div>
     </div>
   );

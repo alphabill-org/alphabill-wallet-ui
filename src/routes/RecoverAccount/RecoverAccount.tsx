@@ -27,7 +27,7 @@ function RecoverAccount(): JSX.Element | null {
         </Link>
         <div className="actions__title">Recover a wallet</div>
       </div>
-      <div className="pad-24">
+      <div className="pad-24 t-medium-small">
         <div>
           If you have already created a Alphabill wallet then you can import it
           with an existing 12 word Secret Recovery Phrase
