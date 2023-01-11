@@ -1,6 +1,6 @@
-import classNames from 'classnames';
-import { useField, useFormikContext } from 'formik';
-import ReactSelect, { Props } from 'react-select';
+import classNames from "classnames";
+import { useField, useFormikContext } from "formik";
+import ReactSelect, { Props } from "react-select";
 
 export interface IOption {
   label: string;
@@ -19,23 +19,30 @@ export default function Select(props: ISelectProps): JSX.Element {
   const [field] = useField(props.name);
 
   const handleChange = (option: any): void => {
-    setFieldValue(
-      field.name,
-      (option as IOption)?.value || ''
-    );
+    setFieldValue(field.name, (option as IOption)?.value || "");
 
     props.onChange?.(props.label, option.value);
   };
 
   const getValue = () => {
     if (props.options) {
-      return (props.options as IOption[]).find((option: IOption) => option.value === field.value) || '';
+      return (
+        (props.options as IOption[]).find(
+          (option: IOption) => option.value === field.value
+        ) ||
+        props.defaultValue ||
+        ""
+      );
     } else {
-      return ('' as any);
+      return "" as any;
     }
   };
 
-  const className = classNames('select', { 'select--error': props.error }, props.className);
+  const className = classNames(
+    "select",
+    { "select--error": props.error },
+    props.className
+  );
 
   return (
     <div className={className}>

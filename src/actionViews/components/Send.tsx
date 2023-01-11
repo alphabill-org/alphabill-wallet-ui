@@ -46,16 +46,14 @@ function Send(): JSX.Element | null {
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
-  const defaultAsset = selectedSendKey
-    ? {
-        value: account?.assets
-          .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "ALPHA"),
-        label: account?.assets
-          .filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.id === "ALPHA")?.name,
-      }
-    : "";
+  const defaultAsset = {
+    value: account?.assets
+      .filter((asset) => account?.activeNetwork === asset.network)
+      .find((asset) => asset.id === "ALPHA"),
+    label: account?.assets
+      .filter((asset) => account?.activeNetwork === asset.network)
+      .find((asset) => asset.id === "ALPHA")?.name,
+  };
   const abBalance =
     account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
 
@@ -97,7 +95,10 @@ function Send(): JSX.Element | null {
     <div className="w-100p">
       <Formik
         initialValues={{
-          assets: defaultAsset,
+          assets: {
+            value: defaultAsset,
+            label: "ALPHA",
+          },
           amount: 0,
           address: "",
           password: "",
@@ -350,6 +351,10 @@ function Send(): JSX.Element | null {
                         value: asset,
                         label: asset.name,
                       }))}
+                    defaultValue={{
+                      value: defaultAsset,
+                      label: "ALPHA",
+                    }}
                     error={extractFormikError(errors, touched, ["assets"])}
                   />
                   <Spacer mb={8} />
