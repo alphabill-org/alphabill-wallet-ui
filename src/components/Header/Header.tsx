@@ -3,7 +3,7 @@ import classNames from "classnames";
 
 import Button from "../Button/Button";
 import Logo from "../../images/ab-logo-ico.svg";
-import Profile from "../../images/profile.svg";
+import { ReactComponent as Profile } from "../../images/profile.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
@@ -129,7 +129,7 @@ function Header(): JSX.Element | null {
           setIsActionsViewVisible(true);
         }}
       >
-        <img height="32" width="32px" src={Profile} alt="Profile" />
+        <Profile className="profile-ico" height="32" width="32px" />
       </Button>
     </div>
   );
