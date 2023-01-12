@@ -158,8 +158,7 @@ function BillsListItem({
                   variant="icon"
                 >
                   <MoreIco
-                    className="textfield__btn"
-                    width="26"
+                    width="12px"
                     height="12px"
                   />
                 </Button>
