@@ -70,7 +70,12 @@ function Dashboard(): JSX.Element | null {
         </div>
         <div className="dashboard__account-buttons">
           <CopyToClipboard text={account?.pubKey || ""}>
-            <Button variant="icon">
+            <Button
+              id="copy-tooltip"
+              tooltipContent="Key copied"
+              variant="icon"
+              className="copy-btn"
+            >
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
