@@ -256,7 +256,8 @@ function Send(): JSX.Element | null {
             ),
           password: Yup.string().required("Password is required"),
           amount: Yup.number()
-            .positive("Value must be greater than 0.")
+            .required("Amount is required")
+            .positive("Value must be greater than 0")
             .test(
               "test less than",
               "Amount exceeds your balance",
