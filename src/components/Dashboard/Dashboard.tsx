@@ -79,20 +79,25 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <Button
-            onClick={() =>
-              setIsAccountSettingsVisible(!isAccountSettingsVisible)
-            }
-            variant="icon"
-          >
-            <MoreIco className="textfield__btn" height="12px" />
+          <div className="p-rel">
+            <Button
+              onClick={() =>
+                setIsAccountSettingsVisible(!isAccountSettingsVisible)
+              }
+              variant="icon"
+            >
+              <MoreIco className="textfield__btn" height="12px" />
+            </Button>
             <div
               className={classNames("dashboard__account-options", {
                 active: isAccountSettingsVisible === true,
               })}
             >
               <div
-                onClick={() => setIsRenamePopupVisible(!isRenamePopupVisible)}
+                onClick={() => {
+                  setIsRenamePopupVisible(!isRenamePopupVisible);
+                  setIsAccountSettingsVisible(false);
+                }}
                 className="dashboard__account-option"
               >
                 Rename
@@ -101,13 +106,14 @@ function Dashboard(): JSX.Element | null {
                 onClick={() => {
                   setActionsView("Profile");
                   setIsActionsViewVisible(true);
+                  setIsAccountSettingsVisible(false);
                 }}
                 className="dashboard__account-option"
               >
                 Change public key
               </div>
             </div>
-          </Button>
+          </div>
         </div>
       </div>
       <Spacer mb={8} />
