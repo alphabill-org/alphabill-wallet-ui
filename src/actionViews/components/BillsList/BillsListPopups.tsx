@@ -18,7 +18,6 @@ import {
   extractFormikError,
   getKeys,
 } from "../../../utils/utils";
-import { useGetProof } from "../../../hooks/api";
 import Popup from "../../../components/Popup/Popup";
 
 import { ReactComponent as Close } from "./../../../images/close.svg";
@@ -67,10 +66,6 @@ function BillsListPopups({
   isLockFormVisible,
   sortedListByValue,
 }: IBillsListItemProps): JSX.Element | null {
-  const { data: proof } = useGetProof(
-    account.pubKey,
-    base64ToHexPrefixed(activeBill?.id)
-  );
   const { vault } = useAuth();
 
   return (
@@ -92,9 +87,9 @@ function BillsListPopups({
           </div>
           <Spacer mt={16} />
           <div className="pad-16-h bills-list__proof">
-            <span className="t-small flex">
+            <span className="t-small">
               <b>Hash:</b>
-              <span className="pad-8-l"> {proof?.bills[0]?.txHash}</span>
+              <div>{activeBill.txHash}</div>
             </span>
             <Spacer mt={16} />
             {!proofCheckStatus ? (
