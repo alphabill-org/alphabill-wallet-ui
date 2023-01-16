@@ -89,7 +89,7 @@ function BillsListPopups({
           <div className="pad-16-h bills-list__proof">
             <span className="t-small">
               <b>Hash:</b>
-              <div>{activeBill.txHash}</div>
+              <div>{activeBill?.txHash}</div>
             </span>
             <Spacer mt={16} />
             {!proofCheckStatus ? (
