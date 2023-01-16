@@ -256,25 +256,25 @@ function Send(): JSX.Element | null {
             ),
           password: Yup.string().required("Password is required"),
           amount: Yup.number()
-            .positive("Value must be greater than 0.")
-            .test(
-              "test less than",
-              "Amount exceeds your balance",
-              (value) =>
-                Number(value) <=
-                Number(
-                  billsList
-                    .filter(
-                      (bill: IBill) =>
-                        bill.isDCBill === false &&
-                        !lockedBills?.find(
-                          (b: ILockedBill) => b.billId === bill.id
-                        )
-                    )
-                    .reduce((acc: number, obj: IBill) => {
-                      return acc + obj?.value;
-                    }, 0)
-                )
+            .required("Amount is required")
+            .positive("Value must be greater than 0")
+            .test("test less than", "Amount exceeds your balance", (value) =>
+              selectedSendKey
+                ? true
+                : Number(value) <=
+                  Number(
+                    billsList
+                      .filter(
+                        (bill: IBill) =>
+                          bill.isDCBill === false &&
+                          !lockedBills?.find(
+                            (b: ILockedBill) => b.billId === bill.id
+                          )
+                      )
+                      .reduce((acc: number, obj: IBill) => {
+                        return acc + obj?.value;
+                      }, 0)
+                  )
             ),
         })}
       >
