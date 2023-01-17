@@ -1,0 +1,40 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import viteTsconfigPaths from "vite-tsconfig-paths";
+import svgrPlugin from "vite-plugin-svgr";
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    viteTsconfigPaths(),
+    svgrPlugin(),
+
+  ],
+  build: {
+    outDir: 'build',
+    chunkSizeWarningLimit: 2000
+  },
+  define: {
+    global: "globalThis",
+  },
+  server: {
+    port: 3001,
+    open: true,
+  },
+  resolve: {
+    alias: {
+      events: "events",
+      stream: "stream-browserify",
+      zlib: "browserify-zlib",
+      "util/": "util",
+      path: "path-browserify",
+      crypto: "crypto-browserify",
+      assert: "assert",
+      http: "stream-http",
+      https: "https-browserify",
+      os: "os-browserify",
+      url: "url",
+    },
+  }
+});
