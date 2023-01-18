@@ -86,8 +86,8 @@ function Send(): JSX.Element | null {
     if (abBalance === balanceAfterSending) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       setBalanceAfterSending(null);
-    } else if (!balanceAfterSending) {
-      pollingInterval.current && clearInterval(pollingInterval.current);
+    } else if (balanceAfterSending === null && pollingInterval.current) {
+      clearInterval(pollingInterval.current);
     }
   }, [abBalance, balanceAfterSending]);
 
