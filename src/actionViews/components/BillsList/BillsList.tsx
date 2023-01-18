@@ -119,7 +119,6 @@ function BillsList(): JSX.Element | null {
         )
       : setIsPasswordFormVisible("proofCheck");
   };
-  console.log(isConsolidationLoading);
 
   const addInterval = () => {
     initialBlockHeight.current = null;
