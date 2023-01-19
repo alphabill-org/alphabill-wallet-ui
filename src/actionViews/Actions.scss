@@ -5,7 +5,7 @@
   height: 100%;
   width: 100%;
   background-color: $color-secondary-op;
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   left: 0;
@@ -14,10 +14,12 @@
   pointer-events: none;
   transition: all 300ms;
   z-index: 2;
+  user-select: none;
 
   &.is-visible {
-    transform: rotateX(0);
+    transform: translateX(0);
     pointer-events: all;
+    user-select: initial;
   }
 
   &__header {
