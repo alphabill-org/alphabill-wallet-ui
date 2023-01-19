@@ -9,7 +9,6 @@ import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { getBlockHeight, getProof } from "../../../hooks/requests";
-import { ReactComponent as Sync } from "./../../../images/sync-ico.svg";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Verify } from "../../../utils/validators";
 import BillsListItem from "./BillsListItem";
@@ -219,19 +218,6 @@ function BillsList(): JSX.Element | null {
   return (
     <>
       <div className="dashboard__info-col active relative bills-list">
-        <Button
-          onClick={() => {
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
-          }}
-          className="btn__refresh w-100p"
-          small
-          type="button"
-          variant="secondary"
-        >
-          <div className="pad-8-r">Refresh list</div>
-          <Sync height="16" width="16" />
-        </Button>
         <Spacer mt={16} />
         <div className="t-medium-small pad-24-h">
           To consolidate your bills into one larger bill click on the{" "}
@@ -288,11 +274,7 @@ function BillsList(): JSX.Element | null {
             type="button"
             variant="primary"
             working={isConsolidationLoading}
-            disabled={
-              unlockedBills?.length <= 1 &&
-              DCBills.length <= 0 &&
-              !isConsolidationLoading
-            }
+            disabled={unlockedBills?.length <= 1 || isConsolidationLoading}
             onClick={() => {
               if (password) {
                 handleDC(
@@ -381,39 +363,41 @@ function BillsList(): JSX.Element | null {
         )}
         <Spacer mt={32} />
       </div>
-      <BillsListPopups
-        setVisibleBillSettingID={setVisibleBillSettingID}
-        setIsProofVisible={setIsProofVisible}
-        setProofCheckStatus={setProofCheckStatus}
-        setIsLockFormVisible={setIsLockFormVisible}
-        setLockedBillsLocal={setLockedBillsLocal}
-        setIsPasswordFormVisible={setIsPasswordFormVisible}
-        setPassword={setPassword}
-        handleDC={(formPassword) =>
-          handleDC(
-            addInterval,
-            setIsConsolidationLoading,
-            setLastNonceIDsLocal,
-            setHasSwapBegun,
-            handleSwap,
-            account,
-            formPassword,
-            vault,
-            unlockedBills,
-            DCBills,
-            lastNonceIDs,
-            activeAccountId
-          )
-        }
-        lockedBills={lockedBills}
-        isProofVisible={isProofVisible}
-        account={account}
-        activeBill={activeBill}
-        proofCheckStatus={proofCheckStatus}
-        isPasswordFormVisible={isPasswordFormVisible}
-        isLockFormVisible={isLockFormVisible}
-        sortedListByValue={sortedListByValue}
-      />
+      {!isConsolidationLoading && (
+        <BillsListPopups
+          setVisibleBillSettingID={setVisibleBillSettingID}
+          setIsProofVisible={setIsProofVisible}
+          setProofCheckStatus={setProofCheckStatus}
+          setIsLockFormVisible={setIsLockFormVisible}
+          setLockedBillsLocal={setLockedBillsLocal}
+          setIsPasswordFormVisible={setIsPasswordFormVisible}
+          setPassword={setPassword}
+          handleDC={(formPassword) =>
+            handleDC(
+              addInterval,
+              setIsConsolidationLoading,
+              setLastNonceIDsLocal,
+              setHasSwapBegun,
+              handleSwap,
+              account,
+              formPassword,
+              vault,
+              unlockedBills,
+              DCBills,
+              lastNonceIDs,
+              activeAccountId
+            )
+          }
+          lockedBills={lockedBills}
+          isProofVisible={isProofVisible}
+          account={account}
+          activeBill={activeBill}
+          proofCheckStatus={proofCheckStatus}
+          isPasswordFormVisible={isPasswordFormVisible}
+          isLockFormVisible={isLockFormVisible}
+          sortedListByValue={sortedListByValue}
+        />
+      )}
     </>
   );
 }
