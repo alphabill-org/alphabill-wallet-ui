@@ -31,14 +31,21 @@ export const Verify = async (
   hashingPublicKey: Uint8Array
 ) => {
   const tx: IProofTx = proof.txProof.tx;
+
   if (bill.id?.length <= 0) {
     return "No bill ID";
   }
 
+  if (bill.value !== Number(proof.value))
+    return "Bill value does not match with tx proof value";
+
+  if (bill.txHash !== proof.txHash)
+    return "Bill txHash does not match with tx proof txHash";
+
   const err = await verifyUC(proof, bill.id, signingPublicKey);
 
-  if ((await err) !== null) {
-    return await err;
+  if (err !== null) {
+    return err;
   }
 
   if (tx === null || bill.id.length <= 0) {
@@ -108,22 +115,22 @@ const verifyUC = async (
     return "Unicity certificate is missing";
   }
 
-  const certErr = unicityCertificateIsValid(
+  const certErr = await unicityCertificateIsValid(
     proof.txProof.proof.unicityCertificate,
     signingPublicKey,
     systemIdentifier,
     systemDescriptionHash
   );
 
-  if ((await certErr) !== null) {
-    return await certErr;
+  if (certErr !== null) {
+    return certErr;
   }
 
   const chainItems = proof.txProof.proof.blockTreeHashChain.items;
   const merklePathEval = await evalMerklePath(chainItems, billID);
 
-  if ((await merklePathEval?.err) || !merklePathEval?.rBlock) {
-    return await merklePathEval?.err;
+  if (merklePathEval?.err || !merklePathEval?.rBlock) {
+    return merklePathEval?.err;
   }
 
   const blockHash = await secp.utils.sha256(
@@ -194,7 +201,7 @@ const evalMerklePath = async (
       }
     }
   }
-  return { rBlock: await h, err: null };
+  return { rBlock: h, err: null };
 };
 
 const computeLeafTreeHash = (item: { val: string; hash: string }) =>
