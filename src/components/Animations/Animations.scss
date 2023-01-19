@@ -1,6 +1,6 @@
 .animate {
   &__circle {
-    background-image: url('../../images/circle.svg');
+    background-image: url('../images/circle.svg');
     height: 400px;
     width: 400px;
     display: block;
@@ -27,7 +27,7 @@
 
   &__gradient {
     content: '';
-    background-image: url('../../images/gradient.svg');
+    background-image: url('../images/gradient.svg');
     height: 200px;
     width: 200px;
     display: block;
