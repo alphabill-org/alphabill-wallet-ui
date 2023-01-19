@@ -57,10 +57,12 @@
     padding: 16px;
     align-items: center;
     justify-content: center;
+    user-select: none;
 
     &.is-visible {
       pointer-events: all;
       opacity: 1;
+      user-select:inherit;
     }
   }
 }

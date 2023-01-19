@@ -44,9 +44,11 @@
   overflow: auto;
   transition: all 500ms;
   transform: translateY(100%);
+  user-select: none;
 
   &--open {
     transform: translateY(0);
+    user-select: initial;
   }
 }
 
