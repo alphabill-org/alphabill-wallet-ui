@@ -37,6 +37,8 @@ import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 function Send(): JSX.Element | null {
   const {
     setIsActionsViewVisible,
+    isActionsViewVisible,
+    actionsView,
     account,
     billsList,
     lockedBills,
@@ -57,12 +59,11 @@ function Send(): JSX.Element | null {
   const abBalance =
     account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
 
-  const [balanceAfterSending, setBalanceAfterSending] = useState<number | null>(
-    null
-  );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
+  const balanceAfterSending = useRef<number | null>(null);
 
+  const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
@@ -83,13 +84,23 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (abBalance === balanceAfterSending) {
+    if (abBalance === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
-      setBalanceAfterSending(null);
-    } else if (balanceAfterSending === null && pollingInterval.current) {
+      balanceAfterSending.current = null;
+    } else if (
+      balanceAfterSending.current === null &&
+      pollingInterval.current &&
+      !isSending
+    ) {
       clearInterval(pollingInterval.current);
     }
-  }, [abBalance, balanceAfterSending]);
+
+    if (actionsView !== "Send" && pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+  }, [abBalance, balanceAfterSending.current]);
+
+  if (!isActionsViewVisible) return <div></div>;
 
   return (
     <div className="w-100p">
@@ -139,6 +150,8 @@ function Send(): JSX.Element | null {
           const splitBillAmount = billToSplit
             ? billToSplit?.value - billsSumDifference
             : null;
+
+          setIsSending(true);
 
           getBlockHeight().then(async (blockData) => {
             billsToTransfer.map(async (bill, idx) => {
@@ -190,10 +203,6 @@ function Send(): JSX.Element | null {
                 true
               );
             }
-
-            setSelectedSendKey(null);
-            setIsActionsViewVisible(false);
-            resetForm();
           });
 
           const handleValidation = async (
@@ -214,18 +223,26 @@ function Send(): JSX.Element | null {
             });
 
             proof.isSignatureValid &&
-              makeTransaction(dataWithProof).then(() => {
-                isLastTransfer && addPollingInterval();
-                const amount: number = Number(
-                  billData?.transactionAttributes?.amount ||
-                    billData?.transactionAttributes?.targetValue
-                );
-                setBalanceAfterSending(
-                  balanceAfterSending
-                    ? balanceAfterSending - amount
-                    : abBalance - amount
-                );
-              });
+              makeTransaction(dataWithProof)
+                .then(() => {
+                  const amount: number = Number(
+                    billData?.transactionAttributes?.amount ||
+                      billData?.transactionAttributes?.targetValue
+                  );
+
+                  balanceAfterSending.current = balanceAfterSending.current
+                    ? balanceAfterSending.current - amount
+                    : abBalance - amount;
+                })
+                .finally(() => {
+                  if (isLastTransfer) {
+                    addPollingInterval();
+                    setIsSending(false);
+                    setSelectedSendKey(null);
+                    setIsActionsViewVisible(false);
+                    resetForm();
+                  }
+                });
           };
         }}
         validationSchema={Yup.object().shape({
@@ -414,6 +431,7 @@ function Send(): JSX.Element | null {
                     block={true}
                     type="submit"
                     variant="primary"
+                    working={isSending}
                   >
                     Send
                   </Button>
