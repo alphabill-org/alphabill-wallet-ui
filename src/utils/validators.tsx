@@ -196,9 +196,6 @@ const evalMerklePath = async (
       }
 
       h = await secp.utils.sha256(hasher);
-
-      if (i === chainItems.length - 1) {
-      }
     }
   }
   return { rBlock: h, err: null };
