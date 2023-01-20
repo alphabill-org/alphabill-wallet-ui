@@ -22,7 +22,6 @@ import Popup from "../../../components/Popup/Popup";
 
 import { ReactComponent as Close } from "./../../../images/close.svg";
 import Check from "./../../../images/checkmark.gif";
-import { ReactComponent as Fail } from "./../../../images/fail-ico.svg";
 import { useAuth } from "../../../hooks/useAuth";
 import { API_URL } from "../../../hooks/requests";
 import { Verify } from "../../../utils/validators";
@@ -87,9 +86,9 @@ function BillsListPopups({
           </div>
           <Spacer mt={16} />
           <div className="pad-16-h bills-list__proof">
-            <span className="t-small">
+            <span className="t-medium-small">
               <b>Hash:</b>
-              <div>{activeBill?.txHash}</div>
+              <div className="t-small">{activeBill?.txHash}</div>
             </span>
             <Spacer mt={16} />
             {!proofCheckStatus ? (
@@ -100,11 +99,11 @@ function BillsListPopups({
                 </span>
               </div>
             ) : (
-              <div className="t-medium flex flex-align-c">
-                <Fail height="42" width="42" />{" "}
-                <span className="pad-8-l t-medium-small t-bold c-error">
+              <div className="t-medium-small t-bold c-error">
+                <div>Error:</div>
+                <div className="bills-list__proof--error t-small">
                   {proofCheckStatus}
-                </span>
+                </div>
               </div>
             )}
           </div>

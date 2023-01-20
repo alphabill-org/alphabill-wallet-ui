@@ -31,16 +31,19 @@ export const Verify = async (
   hashingPublicKey: Uint8Array
 ) => {
   const tx: IProofTx = proof.txProof.tx;
+
   if (bill.id?.length <= 0) {
     return "No bill ID";
   }
 
-  const err = verifyUC(
-    proof,
-    bill.id,
-    signingPublicKey,
-    Buffer.from(await secp.utils.sha256())
-  );
+  if (bill.value !== Number(proof.value))
+    return "Bill value does not match with tx proof value";
+
+  if (bill.txHash !== proof.txHash)
+    return "Bill txHash does not match with tx proof txHash";
+
+  const err = await verifyUC(proof, bill.id, signingPublicKey);
+
   if (err !== null) {
     return err;
   }
@@ -83,7 +86,7 @@ export const Verify = async (
     )
   );
 
-  return verifyChainHead(proof, bill.id, unitHash);
+  return await verifyChainHead(proof, bill.id, unitHash);
 };
 
 const verifyChainHead = (
@@ -106,14 +109,13 @@ const verifyChainHead = (
 const verifyUC = async (
   proof: IProofProps,
   billID: string,
-  signingPublicKey: string,
-  hashAlgorithm: Uint8Array
+  signingPublicKey: string
 ) => {
   if (!proof.txProof.proof.unicityCertificate) {
     return "Unicity certificate is missing";
   }
 
-  const certErr = unicityCertificateIsValid(
+  const certErr = await unicityCertificateIsValid(
     proof.txProof.proof.unicityCertificate,
     signingPublicKey,
     systemIdentifier,
@@ -125,77 +127,87 @@ const verifyUC = async (
   }
 
   const chainItems = proof.txProof.proof.blockTreeHashChain.items;
-  const { rBlock, err } = evalMerklePath(
-    chainItems,
-    Buffer.from(billID, "base64")
-  );
+  const merklePathEval = await evalMerklePath(chainItems, billID);
 
-  if (err || !rBlock) {
-    return err;
+  if (merklePathEval?.err || !merklePathEval?.rBlock) {
+    return merklePathEval?.err;
   }
 
-  const blockHash = secp.utils
-    .sha256(
-      secp.utils.concatBytes(
-        hashAlgorithm,
-        Buffer.from(proof.txProof.proof.blockHeaderHash, "base64"),
-        Buffer.from(proof.txProof.proof.transactionsHash, "base64"),
-        await rBlock
-      )
+  const blockHash = await secp.utils.sha256(
+    secp.utils.concatBytes(
+      Buffer.from(proof.txProof.proof.blockHeaderHash, "base64"),
+      Buffer.from(proof.txProof.proof.transactionsHash, "base64"),
+      merklePathEval.rBlock
     )
-    .toString();
+  );
 
   if (
-    proof.txProof.proof.unicityCertificate.inputRecord.blockHash !== blockHash
+    proof.txProof.proof.unicityCertificate.inputRecord.blockHash !==
+    Buffer.from(blockHash).toString("base64")
   ) {
     return (
       "Proof verification failed, uc.ir block hash is not valid, got " +
       proof.txProof.proof.unicityCertificate.inputRecord.blockHash +
       " expected " +
-      blockHash
+      Buffer.from(blockHash).toString("base64")
     );
   }
   return null;
 };
 
 // EvalMerklePath returns root hash calculated from the given hash chain, or zerohash if chain is empty
-const evalMerklePath = (
+const evalMerklePath = async (
   chainItems: IChainItems[] | null,
-  value: Uint8Array
+  value: string
 ) => {
   if (!chainItems) {
     return { rBlock: null, err: "Chain items missing" };
   }
 
-  let hasher: Uint8Array = Buffer.alloc(0);
+  let h: Uint8Array = Buffer.alloc(0);
 
   for (let i = 0; i < chainItems.length; i++) {
     if (i === 0) {
-      hasher = computeLeafTreeHash(chainItems[i], hasher);
+      h = await computeLeafTreeHash(chainItems[i]);
     } else {
-      hasher = secp.utils.concatBytes(hasher, Buffer.from(chainItems[i].val));
-      if (Buffer.compare(value, Buffer.from(chainItems[i].val)) <= 0) {
+      let hasher;
+      const hasherVal = secp.utils.concatBytes(
+        Buffer.alloc(1),
+        Buffer.from(chainItems[i].val, "base64")
+      );
+
+      if (
+        Buffer.compare(
+          Buffer.from(value, "base64"),
+          Buffer.from(chainItems[i].val, "base64")
+        ) <= 0
+      ) {
         hasher = secp.utils.concatBytes(
-          hasher,
-          Buffer.from(chainItems[i].hash)
+          hasherVal,
+          h,
+          Buffer.from(chainItems[i].hash, "base64")
         );
       } else {
         hasher = secp.utils.concatBytes(
-          hasher,
-          Buffer.from(chainItems[i].hash)
+          hasherVal,
+          Buffer.from(chainItems[i].hash, "base64"),
+          h
         );
       }
+
+      h = await secp.utils.sha256(hasher);
     }
   }
-
-  return { rBlock: secp.utils.sha256(hasher), err: null };
+  return { rBlock: h, err: null };
 };
 
-const computeLeafTreeHash = (item: any, hasher: Uint8Array) =>
-  secp.utils.concatBytes(
-    Buffer.alloc(1), // leaf hash starts with byte 1 to prevent false proofs
-    item.val,
-    item.hash
+const computeLeafTreeHash = (item: { val: string; hash: string }) =>
+  secp.utils.sha256(
+    secp.utils.concatBytes(
+      Buffer.alloc(1, 1), // leaf hash starts with byte 1 to prevent false proofs
+      Buffer.from(item.val, "base64"),
+      Buffer.from(item.hash, "base64")
+    )
   );
 
 export const unicityCertificateIsValid = async (
