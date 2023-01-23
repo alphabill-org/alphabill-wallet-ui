@@ -14,7 +14,7 @@ export interface IBillsListItemProps {
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
   setIsLockFormVisible: (e: boolean) => void;
-  setActionsView: (e: string) => void;
+  setActionsView: (e: "Send" | "Bills List" | "Profile" | "") => void;
   setIsActionsViewVisible: (e: boolean) => void;
   setSelectedSendKey: (e: string) => void;
   isLockedBills?: boolean;
