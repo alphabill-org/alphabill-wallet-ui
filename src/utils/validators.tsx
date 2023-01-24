@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-
+import { isEmpty } from "lodash";
 import {
   IBill,
   IChainItems,
@@ -30,10 +30,43 @@ export const Verify = async (
   hashingPrivateKey: Uint8Array,
   hashingPublicKey: Uint8Array
 ) => {
-  const tx: IProofTx = proof.txProof.tx;
+  const txProof = proof.txProof;
+  const tx: IProofTx = txProof?.tx;
+
+  if (!tx || isEmpty(tx)) {
+    return "Proof transaction is missing";
+  }
 
   if (bill.id?.length <= 0) {
-    return "No bill ID";
+    return "Bill ID is missing";
+  }
+
+  if (proof.id?.length <= 0) {
+    return "Proof ID is missing";
+  }
+
+  if (proof.id !== bill.id) {
+    return "Proof & bill ID do not match";
+  }
+
+  if (Boolean(bill.isDCBill) && bill.isDCBill !== false) {
+    return "Bill type is wrong";
+  }
+
+  if (Boolean(proof?.isDcBill) && proof?.isDcBill !== false) {
+    return "Proof bill type is wrong";
+  }
+
+  if (txProof.blockNumber?.length <= 0) {
+    return "Transaction proof block number is missing";
+  }
+
+  if (txProof.proof?.proofType !== "PRIM") {
+    return "Proof type is wrong";
+  }
+
+  if (txProof.proof?.secTreeHashChain !== null) {
+    return "Sec tree hash chain is wrong";
   }
 
   if (bill.value !== Number(proof.value))
@@ -357,7 +390,11 @@ export const unicitySealIsValid = (
   if (unicitySeal.rootChainRoundNumber < 1) {
     return "Unicity seal has invalid block number";
   }
-  if (unicitySeal.signatures.length === 0) {
+  if (
+    !unicitySeal?.signatures ||
+    isEmpty(unicitySeal?.signatures) ||
+    unicitySeal.signatures?.length === 0
+  ) {
     return "Unicity seal has no signatures";
   }
   return null;
