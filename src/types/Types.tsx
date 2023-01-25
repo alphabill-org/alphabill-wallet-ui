@@ -111,11 +111,12 @@ export interface IProofProps {
   id: string;
   value: number;
   txHash: string;
+  isDcBill?: boolean;
   txProof: ITxProof;
 }
 
 export interface ITxProof {
-  blockNumber: number;
+  blockNumber: string;
   tx: IProofTx;
   proof: IProof;
 }
@@ -149,6 +150,7 @@ export interface IProof {
   blockTreeHashChain: {
     items: { val: string; hash: string }[];
   };
+  secTreeHashChain?: null;
   unicityCertificate: IUnicityCertificate;
 }
 
@@ -171,7 +173,7 @@ export interface IUnicitySeal {
   hash: string;
   signatures: {
     test: string;
-  }[];
+  };
 }
 
 export interface IUnicityTreeCertificate {
