@@ -173,7 +173,7 @@ export interface IUnicitySeal {
   hash: string;
   signatures: {
     test: string;
-  }[];
+  };
 }
 
 export interface IUnicityTreeCertificate {

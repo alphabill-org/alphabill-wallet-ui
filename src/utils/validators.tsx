@@ -50,11 +50,11 @@ export const Verify = async (
   }
 
   if (Boolean(bill.isDCBill) && bill.isDCBill !== false) {
-    return "Bill type is wrong";
+    return "Bill type is incorrect";
   }
 
   if (Boolean(proof?.isDcBill) && proof?.isDcBill !== false) {
-    return "Proof bill type is wrong";
+    return "Proof bill type is incorrect";
   }
 
   if (txProof.blockNumber?.length <= 0) {
@@ -62,11 +62,11 @@ export const Verify = async (
   }
 
   if (txProof.proof?.proofType !== "PRIM") {
-    return "Proof type is wrong";
+    return "Proof type is not valid expected PRIM";
   }
 
   if (txProof.proof?.secTreeHashChain !== null) {
-    return "Sec tree hash chain is wrong";
+    return "Sec tree hash chain is not valid";
   }
 
   if (bill.value !== Number(proof.value))
@@ -390,11 +390,7 @@ export const unicitySealIsValid = (
   if (unicitySeal.rootChainRoundNumber < 1) {
     return "Unicity seal has invalid block number";
   }
-  if (
-    !unicitySeal?.signatures ||
-    isEmpty(unicitySeal?.signatures) ||
-    unicitySeal.signatures?.length === 0
-  ) {
+  if (!unicitySeal?.signatures || isEmpty(unicitySeal?.signatures)) {
     return "Unicity seal has no signatures";
   }
   return null;
