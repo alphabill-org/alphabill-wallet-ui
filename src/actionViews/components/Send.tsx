@@ -316,6 +316,7 @@ function Send(): JSX.Element | null {
                           <Button
                             onClick={() => setSelectedSendKey(null)}
                             variant="link"
+                            type="button"
                           >
                             REMOVE BILL
                           </Button>{" "}
@@ -329,6 +330,7 @@ function Send(): JSX.Element | null {
                                 activeAccountId,
                               ]);
                             }}
+                            type="button"
                             variant="link"
                           >
                             BILLS LIST
@@ -452,6 +454,7 @@ function Send(): JSX.Element | null {
               queryClient.invalidateQueries(["billsList", activeAccountId]);
             }}
             variant="link"
+            type="button"
           >
             BILLS LIST
           </Button>{" "}
