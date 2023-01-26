@@ -281,7 +281,7 @@ function AccountView(): JSX.Element | null {
       <Popup
         isPopupVisible={isChangePasswordPopupVisible}
         setIsPopupVisible={setIsChangePasswordPopupVisible}
-        title="Add new public key"
+        title="Change password"
       >
         <Formik
           initialValues={{
