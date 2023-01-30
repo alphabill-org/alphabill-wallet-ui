@@ -108,7 +108,7 @@ function RecoverAccount(): JSX.Element | null {
                   );
                 }
               })
-              .catch((e) => setErrors({ passwordConfirm: e }));
+              .catch((e) => setErrors({ passwordConfirm: e.message }));
           }}
         >
           {(formikProps) => {
