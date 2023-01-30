@@ -5,11 +5,11 @@ import Button from "../Button/Button";
 import Logo from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Profile } from "../../images/profile.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
-import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
 import Checkbox from "../Checkbox/Checkbox";
 import { useDocumentClick } from "../../utils/utils";
+import SelectPopover from "../SelectPopover/SelectPopover";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -52,16 +52,14 @@ function Header(): JSX.Element | null {
           {account?.activeNetwork || "Select Network"}
           <Arrow />
         </Button>
-        <div
-          className={classNames("select__popover-wrap", {
-            "select__popover-wrap--open": isPopoverOpen,
-          })}
+        <SelectPopover
+          onClose={() => {
+            setIsPopoverOpen(!isPopoverOpen);
+          }}
+          isPopoverVisible={isPopoverOpen}
+          title="SELECT NETWORK"
         >
-          <div className="select__popover" ref={popupRef}>
-            <div className="select__popover-header">
-              <div>Select Network</div>
-              <Close onClick={() => setIsPopoverOpen(!isPopoverOpen)} />
-            </div>
+          <>
             {mainNetworks?.length >= 1 && (
               <div className="select__popover-checkbox">
                 <Checkbox
@@ -125,8 +123,8 @@ function Header(): JSX.Element | null {
                 );
               })}
             </div>
-          </div>{" "}
-        </div>
+          </>
+        </SelectPopover>
       </div>
       <Button
         variant="icon"
