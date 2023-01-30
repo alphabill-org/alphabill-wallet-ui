@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
@@ -9,6 +9,7 @@ import { ReactComponent as Close } from "../../images/close.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
 import Checkbox from "../Checkbox/Checkbox";
+import { useDocumentClick } from "../../utils/utils";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -31,6 +32,11 @@ function Header(): JSX.Element | null {
   const mainNetworks = account?.networks?.filter(
     (network) => network.isTestNetwork !== true
   );
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useDocumentClick(() => {
+    isPopoverOpen && setIsPopoverOpen(false);
+  }, popupRef);
 
   return (
     <div className="header">
@@ -51,7 +57,7 @@ function Header(): JSX.Element | null {
             "select__popover-wrap--open": isPopoverOpen,
           })}
         >
-          <div className="select__popover">
+          <div className="select__popover" ref={popupRef}>
             <div className="select__popover-header">
               <div>Select Network</div>
               <Close onClick={() => setIsPopoverOpen(!isPopoverOpen)} />

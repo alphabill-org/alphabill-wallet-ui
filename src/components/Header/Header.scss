@@ -42,13 +42,16 @@
   display: flex;
   z-index: 100;
   overflow: auto;
-  transition: all 500ms;
+  transition: all $main-transition-duration;
   transform: translateY(100%);
   user-select: none;
+  align-items: flex-end;
+  opacity: 0;
 
   &--open {
     transform: translateY(0);
     user-select: initial;
+    opacity: 1;
   }
 }
 
@@ -58,7 +61,6 @@
   font-size: 16px;
   line-height: 22px;
   color: #0C0A3E;
-  margin-top: auto;
   width: 100%;
   padding-bottom: 40px;
   z-index: 101;
@@ -82,7 +84,7 @@
   margin: 0 24px;
   border-bottom: 1px solid $color-secondary;
   cursor: pointer;
-  transition: all 300ms;
+  transition: all $main-transition-duration;
   max-height: 55px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -121,7 +123,7 @@
 
   svg {
     cursor: pointer;
-    transition: all 300ms;
+    transition: all $main-transition-duration;
 
     &:hover {
       opacity: .7;
@@ -137,7 +139,7 @@
   font-weight: bold;
   border-bottom: 1px solid $color-secondary;
   overflow: hidden;
-  transition: all 300ms;
+  transition: all $main-transition-duration;
   max-height: 58px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
@@ -7,11 +7,7 @@ import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { differenceBy } from "lodash";
 
-import {
-  IAccount,
-  IBill,
-  ITxProof,
-} from "../types/Types";
+import { IAccount, IBill, ITxProof } from "../types/Types";
 
 export const extractFormikError = (
   errors: unknown,
@@ -296,6 +292,28 @@ export const getBillsSum = (bills: IBill[]) =>
   bills.reduce((acc: number, obj: IBill) => {
     return acc + obj?.value;
   }, 0);
+
+export const useDocumentClick = (
+  callback: (event: MouseEvent) => void,
+  ref: React.MutableRefObject<HTMLElement | null>
+) => {
+  const handler = useCallback(
+    (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        callback(event);
+      }
+    },
+    [callback, ref]
+  );
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [ref, handler]);
+};
 
 export const startByte = "53";
 export const opPushSig = "54";
