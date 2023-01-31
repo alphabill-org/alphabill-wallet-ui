@@ -1,7 +1,6 @@
 import axios from "axios";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import classNames from "classnames";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
@@ -20,11 +19,11 @@ import {
 } from "../../../utils/utils";
 import Popup from "../../../components/Popup/Popup";
 
-import { ReactComponent as Close } from "./../../../images/close.svg";
 import Check from "./../../../images/checkmark.gif";
 import { useAuth } from "../../../hooks/useAuth";
 import { API_URL } from "../../../hooks/requests";
 import { Verify } from "../../../utils/validators";
+import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 
 export interface IBillsListItemProps {
   setVisibleBillSettingID: (e: string | null) => void;
@@ -69,21 +68,15 @@ function BillsListPopups({
 
   return (
     <>
-      <div
-        className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": isProofVisible,
-        })}
+      <SelectPopover
+        onClose={() => {
+          setProofCheckStatus(null);
+          setIsProofVisible(false);
+        }}
+        isPopoverVisible={isProofVisible}
+        title="BILL PROOF VERIFICATION"
       >
-        <div className="select__popover">
-          <div className="select__popover-header">
-            <div>BILL PROOF VERIFICATION</div>
-            <Close
-              onClick={() => {
-                setProofCheckStatus(null);
-                setIsProofVisible(false);
-              }}
-            />
-          </div>
+        <>
           <Spacer mt={16} />
           <div className="pad-16-h bills-list__proof">
             <span className="t-medium-small">
@@ -107,22 +100,16 @@ function BillsListPopups({
               </div>
             )}
           </div>
-        </div>
-      </div>
-      <div
-        className={classNames("select__popover-wrap", {
-          "select__popover-wrap--open": Boolean(isPasswordFormVisible),
-        })}
+        </>
+      </SelectPopover>
+      <SelectPopover
+        onClose={() => {
+          setIsPasswordFormVisible(null);
+        }}
+        isPopoverVisible={Boolean(isPasswordFormVisible)}
+        title="INSERT PASSWORD"
       >
-        <div className="select__popover">
-          <div className="select__popover-header">
-            <div>INSERT PASSWORD</div>
-            <Close
-              onClick={() => {
-                setIsPasswordFormVisible(null);
-              }}
-            />
-          </div>
+        <>
           <Spacer mt={16} />
           <Formik
             initialValues={{
@@ -200,8 +187,8 @@ function BillsListPopups({
               );
             }}
           </Formik>
-        </div>
-      </div>
+        </>
+      </SelectPopover>
       <Popup
         isPopupVisible={isLockFormVisible}
         setIsPopupVisible={setIsLockFormVisible}

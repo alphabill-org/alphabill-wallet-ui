@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
 
@@ -14,6 +14,8 @@ import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
+import React from "react";
+import { useDocumentClick } from "../../utils/utils";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId } = useAuth();
@@ -32,6 +34,7 @@ function Dashboard(): JSX.Element | null {
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
+  const popupRef = useRef<HTMLDivElement>(null);
   const sortedAssets = account?.assets
     ?.sort((a: IAsset, b: IAsset) => {
       if (a?.id! < b?.id!) {
@@ -43,6 +46,10 @@ function Dashboard(): JSX.Element | null {
       return 0;
     })
     .filter((asset) => asset.network === account?.activeNetwork);
+
+  useDocumentClick(() => {
+    isAccountSettingsVisible === true && setIsAccountSettingsVisible(false);
+  }, popupRef);
 
   if (!accounts) {
     return (
@@ -79,7 +86,7 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <div className="p-rel">
+          <div className="p-rel" ref={popupRef}>
             <Button
               onClick={() =>
                 setIsAccountSettingsVisible(!isAccountSettingsVisible)
@@ -192,7 +199,10 @@ function Dashboard(): JSX.Element | null {
                           onClick={() => {
                             setActionsView("Bills List");
                             setIsActionsViewVisible(true);
-                            queryClient.invalidateQueries(["balance", activeAccountId]);
+                            queryClient.invalidateQueries([
+                              "balance",
+                              activeAccountId,
+                            ]);
                             queryClient.invalidateQueries([
                               "billsList",
                               activeAccountId,
