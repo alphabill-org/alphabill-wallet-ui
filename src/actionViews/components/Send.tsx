@@ -58,6 +58,25 @@ function Send(): JSX.Element | null {
   };
   const abBalance =
     account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
+  const availableAmount = billsList
+    .filter(
+      (bill: IBill) =>
+        bill.isDCBill === false &&
+        !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+    )
+    .reduce((acc: number, obj: IBill) => {
+      return acc + obj?.value;
+    }, 0);
+  const lockedBillsAmount = billsList
+    .filter((bill: IBill) =>
+      lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+    )
+    .reduce((acc: number, obj: IBill) => {
+      return acc + obj?.value;
+    }, 0);
+  const lockedAmountLabel =
+    Number(lockedBillsAmount) > 0 ?
+    " ( Locked bills amount " + lockedBillsAmount + " )" : "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
@@ -275,23 +294,8 @@ function Send(): JSX.Element | null {
           amount: Yup.number()
             .required("Amount is required")
             .positive("Value must be greater than 0")
-            .test("test less than", "Amount exceeds your balance", (value) =>
-              selectedSendKey
-                ? true
-                : Number(value) <=
-                  Number(
-                    billsList
-                      .filter(
-                        (bill: IBill) =>
-                          bill.isDCBill === false &&
-                          !lockedBills?.find(
-                            (b: ILockedBill) => b.billId === bill.id
-                          )
-                      )
-                      .reduce((acc: number, obj: IBill) => {
-                        return acc + obj?.value;
-                      }, 0)
-                  )
+            .test("test less than", "Amount exceeds available assets", (value) =>
+              selectedSendKey ? true : Number(value) <= Number(availableAmount)
             ),
         })}
       >
@@ -401,6 +405,12 @@ function Send(): JSX.Element | null {
                       id="amount"
                       name="amount"
                       label="Amount"
+                      desc={
+                        availableAmount +
+                        " " +
+                        values.assets.label +
+                        " available to send " + lockedAmountLabel
+                      }
                       type="number"
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={

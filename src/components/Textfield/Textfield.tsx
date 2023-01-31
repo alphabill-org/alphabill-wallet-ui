@@ -29,6 +29,7 @@ export interface ITextfieldProps {
   min?: string;
   max?: string;
   maxLength?: number;
+  desc?: string;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
@@ -115,6 +116,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
           maxLength={props?.maxLength}
           step={props.type === "number" ? props.step : undefined}
         />
+        {props.desc && <span className="t-small pad-4-l">{props.desc}</span>}
       </div>
       {error && error.length > 0 && (
         <span data-testid="textfield__error" className="textfield__error">
