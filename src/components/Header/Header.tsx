@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import Logo from "../../images/ab-logo-ico.svg";
+import { ReactComponent as Logo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Profile } from "../../images/profile.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
@@ -41,7 +41,9 @@ function Header(): JSX.Element | null {
   return (
     <div className="header">
       <div className="header__ico">
-        <img height="32" src={Logo} alt="Alphabill" />
+        <Button type="button" variant="icon" url="https://alphabill.org/">
+          <Logo height="40" width="40px" />
+        </Button>
       </div>
       <div className="header__select">
         <Button
