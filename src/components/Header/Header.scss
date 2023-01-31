@@ -8,6 +8,19 @@
   background-color: $color-body-background;
   justify-content: space-between;
 
+  &__ico {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    transition: all .2s;
+
+    a.button.button--icon:hover {
+      path {
+        fill: white;
+      }
+    }
+  }
+
   &__select {
     width: 100%;
     padding: 0 32px;
