@@ -69,7 +69,10 @@
     "@types/react-query": "^1.2.9",
     "@types/sha.js": "^2.4.0",
     "@vitejs/plugin-react": "^3.0.1",
+    "eslint": "^8.33.0",
+    "eslint-config-react-app": "^7.0.1",
     "vite": "^4.0.4",
+    "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-svgr": "^2.4.0",
     "vite-tsconfig-paths": "^4.0.3"
   }

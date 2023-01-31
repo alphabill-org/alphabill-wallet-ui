@@ -117,7 +117,7 @@ function Send(): JSX.Element | null {
     if (actionsView !== "Send" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
-  }, [abBalance, balanceAfterSending.current]);
+  }, [abBalance, isSending, actionsView]);
 
   if (!isActionsViewVisible) return <div></div>;
 
