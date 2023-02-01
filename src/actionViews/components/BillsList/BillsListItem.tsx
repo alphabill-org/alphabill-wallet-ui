@@ -131,13 +131,15 @@ function BillsListItem({
               <div className="dashboard__info-item-bill">
                 <div className="flex t-small t-bold c-light">
                   <span className="pad-8-r">ID:</span>{" "}
-                  <span>{base64ToHexPrefixed(bill.id)}</span>
+                  <span className="t-ellipsis">
+                    {base64ToHexPrefixed(bill.id)}
+                  </span>
                 </div>
                 {lockedBills?.find((key) => key.billId === bill.id) && (
                   <>
                     <div className="flex t-small t-bold c-light">
                       <span className="pad-8-r">Desc:</span>{" "}
-                      <span>
+                      <span className="t-ellipsis">
                         {
                           lockedBills?.find((key) => key.billId === bill.id)
                             ?.desc
@@ -157,10 +159,7 @@ function BillsListItem({
                   className="bills-list__settings"
                   variant="icon"
                 >
-                  <MoreIco
-                    width="12px"
-                    height="12px"
-                  />
+                  <MoreIco width="12px" height="12px" />
                 </Button>
               </span>
             </div>

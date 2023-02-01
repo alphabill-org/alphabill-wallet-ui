@@ -257,7 +257,9 @@ function BillsList(): JSX.Element | null {
                   <div className="dashboard__info-item-bill">
                     <div className="flex t-small t-bold c-light">
                       <span className="pad-8-r">ID:</span>{" "}
-                      <span>{base64ToHexPrefixed(bill.id)}</span>
+                      <span className="t-ellipsis">
+                        {base64ToHexPrefixed(bill.id)}
+                      </span>
                     </div>
                   </div>
                 </div>
