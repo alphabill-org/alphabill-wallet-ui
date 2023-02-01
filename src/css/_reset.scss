@@ -208,9 +208,16 @@ form {
 }
 
 ::-webkit-scrollbar {
-  background: transparent;
-  height: 8px;
   width: 8px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-blue;
 }
 
 ::-webkit-scrollbar-thumb {
