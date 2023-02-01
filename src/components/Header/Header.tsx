@@ -41,7 +41,7 @@ function Header(): JSX.Element | null {
   return (
     <div className="header">
       <div className="header__ico">
-        <Button type="button" variant="icon" url="https://alphabill.org/">
+        <Button target="_blank" type="button" variant="icon" url="https://alphabill.org/">
           <Logo height="40" width="40px" />
         </Button>
       </div>
