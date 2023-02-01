@@ -87,6 +87,7 @@ function Send(): JSX.Element | null {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["balance", activeAccountId]);
+      queryClient.invalidateQueries(["billsList", activeAccountId]);
       getBlockHeight().then((blockData) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockData.blockHeight;
