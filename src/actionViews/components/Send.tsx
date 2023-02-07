@@ -60,10 +60,11 @@ function Send(): JSX.Element | null {
   );
   const activeAsset = account?.assets.find(
     (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
-  );
-  const balance = activeAsset?.amount || 0;
-  const decimalFactor = activeAsset?.decimalFactor || 1;
-  const decimalPlaces = activeAsset?.decimalPlaces || 2;
+  ) || account?.assets[0];
+
+  const balance = activeAsset.amount;
+  const decimalFactor = activeAsset.decimalFactor;
+  const decimalPlaces = activeAsset.decimalPlaces;
   const availableAmount = convertExponentialToDecimal(
     billsList
       .filter(
