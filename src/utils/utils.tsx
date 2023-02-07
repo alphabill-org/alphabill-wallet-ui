@@ -6,6 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { differenceBy } from "lodash";
+import BigNumber from "bignumber.js";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
 
@@ -320,7 +321,7 @@ export const isExponentialNumber = (value: string) => {
   return exponentialNumberPattern.test(value);
 };
 
-export const decimalPlaces = (num: number) => {
+export const getDecimalPlaces = (num: BigNumber) => {
   var match = ("" + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
   if (!match) {
     return 0;
@@ -331,14 +332,14 @@ export const decimalPlaces = (num: number) => {
   );
 };
 
-export const convertExponentialToDecimal = (num: number): string => {
+export const convertToBigNumberString = (
+  num: number,
+  dividedBy: number = 1
+): string => {
   if (isNaN(num)) return "";
-  const str = num.toString();
-  if (isExponentialNumber(str)) {
-    return num.toFixed(decimalPlaces(num)).toString();
-  } else {
-    return num.toString();
-  }
+  const bigNum = new BigNumber(num).dividedBy(dividedBy);
+  const decimals = getDecimalPlaces(bigNum);
+  return bigNum.toFixed(decimals);
 };
 
 export const startByte = "53";

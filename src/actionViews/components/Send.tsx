@@ -3,6 +3,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
+import BigNumber from "bignumber.js";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -31,7 +32,7 @@ import {
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
-  convertExponentialToDecimal,
+  convertToBigNumberString,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -58,14 +59,15 @@ function Send(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
     defaultAsset.value
   );
-  const activeAsset = account?.assets.find(
-    (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
-  ) || account?.assets[0];
+  const activeAsset =
+    account?.assets.find(
+      (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
+    ) || account?.assets[0];
 
   const balance = activeAsset.amount;
   const decimalFactor = activeAsset.decimalFactor;
   const decimalPlaces = activeAsset.decimalPlaces;
-  const availableAmount = convertExponentialToDecimal(
+  const availableAmount = convertToBigNumberString(
     billsList
       .filter(
         (bill: IBill) =>
@@ -74,7 +76,8 @@ function Send(): JSX.Element | null {
       )
       .reduce((acc: number, obj: IBill) => {
         return acc + obj?.value;
-      }, 0) / decimalFactor
+      }, 0),
+    decimalFactor
   );
 
   const lockedBillsAmount = billsList
@@ -87,7 +90,7 @@ function Send(): JSX.Element | null {
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        convertExponentialToDecimal(Number(lockedBillsAmount) / decimalFactor) +
+        convertToBigNumberString(Number(lockedBillsAmount), decimalFactor) +
         " )"
       : "";
 
@@ -160,7 +163,9 @@ function Send(): JSX.Element | null {
             });
           }
 
-          const convertedAmount = Math.round(values.amount * decimalFactor);
+          const convertedAmount = new BigNumber(values.amount)
+            .multipliedBy(decimalFactor)
+            .toNumber();
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -321,7 +326,7 @@ function Send(): JSX.Element | null {
                 const regexFloat = new RegExp(regexFloatString);
 
                 if (val !== undefined) {
-                  return regexFloat.test(convertExponentialToDecimal(val));
+                  return regexFloat.test(convertToBigNumberString(val));
                 }
                 return true;
               }
@@ -458,12 +463,13 @@ function Send(): JSX.Element | null {
                       }
                       value={
                         (selectedSendKey &&
-                          (convertExponentialToDecimal(
+                          (convertToBigNumberString(
                             Number(
                               billsList?.find(
                                 (bill: IBill) => bill.id === selectedSendKey
                               )?.value
-                            ) / decimalFactor
+                            ),
+                            decimalFactor
                           ) as string | undefined)) ||
                         ""
                       }

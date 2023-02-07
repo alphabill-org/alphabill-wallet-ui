@@ -3,7 +3,7 @@ import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
 import {
-  convertExponentialToDecimal,
+  convertToBigNumberString,
   DCTransfersLimit,
   ALPHADecimalFactor,
   swapTimeout,
@@ -254,9 +254,7 @@ function BillsList(): JSX.Element | null {
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                       Denomination:{" "}
-                      {convertExponentialToDecimal(
-                        bill.value / ALPHADecimalFactor
-                      )}
+                      {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
                     </div>
                     <Spacer mb={2} />
                   </>

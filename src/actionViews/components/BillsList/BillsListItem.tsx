@@ -6,7 +6,7 @@ import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
 import {
   base64ToHexPrefixed,
-  convertExponentialToDecimal,
+  convertToBigNumberString,
   ALPHADecimalFactor,
 } from "../../../utils/utils";
 
@@ -62,7 +62,7 @@ function BillsListItem({
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>
                     Denomination:{" "}
-                    {convertExponentialToDecimal(bill.value / ALPHADecimalFactor)}
+                    {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
                   </div>
                 </div>
               </>
