@@ -5,7 +5,7 @@ import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
-import { differenceBy, toNumber } from "lodash";
+import { differenceBy } from "lodash";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
 
@@ -332,6 +332,7 @@ export const decimalPlaces = (num: number) => {
 };
 
 export const convertExponentialToDecimal = (num: number): string => {
+  if (isNaN(num)) return "";
   const str = num.toString();
   if (isExponentialNumber(str)) {
     return num.toFixed(decimalPlaces(num)).toString();

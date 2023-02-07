@@ -153,14 +153,13 @@ function Send(): JSX.Element | null {
             vault
           );
 
-          const convertedAmount = values.amount * decimalFactor;
-
           if (error || !hashingPrivateKey || !hashingPublicKey) {
             return setErrors({
               password: error || "Hashing keys are missing!",
             });
           }
 
+          const convertedAmount = Math.round(values.amount * decimalFactor);
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
