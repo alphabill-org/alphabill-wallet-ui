@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
-import { DCTransfersLimit, swapTimeout } from "../../../utils/utils";
+import {
+  convertExponentialToDecimal,
+  DCTransfersLimit,
+  ALPHADecimalFactor,
+  swapTimeout,
+} from "../../../utils/utils";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
@@ -248,14 +253,17 @@ function BillsList(): JSX.Element | null {
                   <>
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                      Denomination: {bill.value}
+                      Denomination:{" "}
+                      {convertExponentialToDecimal(
+                        bill.value / ALPHADecimalFactor
+                      )}
                     </div>
                     <Spacer mb={2} />
                   </>
                 )}
                 <div key={bill.id} className="dashboard__info-item-wrap small">
                   <div className="dashboard__info-item-bill">
-                    <div className="flex t-small t-bold c-light">
+                    <div className="flex t-small t-bold c-light pad-8-t">
                       <span className="pad-8-r">ID:</span>{" "}
                       <span className="t-ellipsis">
                         {base64ToHexPrefixed(bill.id)}
