@@ -316,11 +316,6 @@ export const useDocumentClick = (
   }, [ref, handler]);
 };
 
-export const isExponentialNumber = (value: string) => {
-  let exponentialNumberPattern = /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/;
-  return exponentialNumberPattern.test(value);
-};
-
 export const getDecimalPlaces = (num: BigNumber) => {
   var match = ("" + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
   if (!match) {
