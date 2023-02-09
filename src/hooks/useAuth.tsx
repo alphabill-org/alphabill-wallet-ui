@@ -20,6 +20,8 @@ interface IUserContext {
   setVault: (e: string) => void;
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
+  activeAssetId: string;
+  setActiveAssetId: (e: string) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -40,6 +42,8 @@ const AuthContext = createContext<IUserContext>({
   setVault: (e: any) => {},
   activeAccountId: initialActiveAccount,
   setActiveAccountId: () => {},
+  activeAssetId: "ALPHA",
+  setActiveAssetId: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
@@ -50,6 +54,10 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const [activeAccountId, setActiveAccountId] = useLocalStorage(
     "ab_active_account",
     initialActiveAccount
+  );
+  const [activeAssetId, setActiveAssetId] = useLocalStorage(
+    "ab_active_asset",
+    "ALPHA"
   );
   const [vault, setVault] = useLocalStorage("ab_wallet_vault", vaultData);
   const navigate = useNavigate();
@@ -89,6 +97,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setVault,
     activeAccountId,
     setActiveAccountId,
+    activeAssetId,
+    setActiveAssetId,
   };
 
   return (

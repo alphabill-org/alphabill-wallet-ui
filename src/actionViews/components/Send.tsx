@@ -3,6 +3,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
+import BigNumber from "bignumber.js";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -31,6 +32,7 @@ import {
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
+  convertToBigNumberString,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -48,25 +50,36 @@ function Send(): JSX.Element | null {
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
-  const defaultAsset = {
+  const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.id === "ALPHA"),
-    label: account?.assets
-      .filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.id === "ALPHA")?.name,
+    label: "ALPHA",
   };
-  const abBalance =
-    account?.assets.find((asset: IAsset) => (asset.id = "ALPHA"))?.amount || 0;
-  const availableAmount = billsList
-    .filter(
-      (bill: IBill) =>
-        bill.isDCBill === false &&
-        !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-    )
-    .reduce((acc: number, obj: IBill) => {
-      return acc + obj?.value;
-    }, 0);
+  const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
+    defaultAsset.value
+  );
+  const activeAsset =
+    account?.assets.find(
+      (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
+    ) || account?.assets[0];
+
+  const balance = activeAsset.amount;
+  const decimalFactor = activeAsset.decimalFactor;
+  const decimalPlaces = activeAsset.decimalPlaces;
+  const availableAmount = convertToBigNumberString(
+    billsList
+      .filter(
+        (bill: IBill) =>
+          bill.isDCBill === false &&
+          !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+      )
+      .reduce((acc: number, obj: IBill) => {
+        return acc + obj?.value;
+      }, 0),
+    decimalFactor
+  );
+
   const lockedBillsAmount = billsList
     .filter((bill: IBill) =>
       lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
@@ -75,8 +88,11 @@ function Send(): JSX.Element | null {
       return acc + obj?.value;
     }, 0);
   const lockedAmountLabel =
-    Number(lockedBillsAmount) > 0 ?
-    " ( Locked bills amount " + lockedBillsAmount + " )" : "";
+    Number(lockedBillsAmount) > 0
+      ? " ( Locked bills amount " +
+        convertToBigNumberString(Number(lockedBillsAmount), decimalFactor) +
+        " )"
+      : "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
@@ -104,7 +120,7 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (abBalance === balanceAfterSending.current) {
+    if (balance === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -118,7 +134,7 @@ function Send(): JSX.Element | null {
     if (actionsView !== "Send" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
-  }, [abBalance, isSending, actionsView]);
+  }, [balance, isSending, actionsView]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -147,6 +163,9 @@ function Send(): JSX.Element | null {
             });
           }
 
+          const convertedAmount = new BigNumber(values.amount)
+            .multipliedBy(decimalFactor)
+            .toNumber();
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -157,9 +176,10 @@ function Send(): JSX.Element | null {
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
-          const selectedBills = getOptimalBills(values.amount, billsArr);
+          const selectedBills = getOptimalBills(convertedAmount, billsArr);
           const newBearer = createNewBearer(values.address);
-          const billsSumDifference = getBillsSum(selectedBills) - values.amount;
+          const billsSumDifference =
+            getBillsSum(selectedBills) - convertedAmount;
           const billToSplit =
             billsSumDifference !== 0
               ? findClosestBigger(selectedBills, billsSumDifference)
@@ -252,7 +272,7 @@ function Send(): JSX.Element | null {
 
                   balanceAfterSending.current = balanceAfterSending.current
                     ? balanceAfterSending.current - amount
-                    : abBalance - amount;
+                    : balance - amount;
                 })
                 .finally(() => {
                   if (isLastTransfer) {
@@ -295,8 +315,29 @@ function Send(): JSX.Element | null {
           amount: Yup.number()
             .required("Amount is required")
             .positive("Value must be greater than 0")
-            .test("test less than", "Amount exceeds available assets", (value) =>
-              selectedSendKey ? true : Number(value) <= Number(availableAmount)
+            .test(
+              "is-decimal",
+              "The amount should be a decimal with maximum " +
+                decimalPlaces +
+                " digits after decimal point",
+              (val: any) => {
+                const regexFloatString =
+                  "^\\d+(\\.\\d{0," + decimalPlaces + "})?$";
+                const regexFloat = new RegExp(regexFloatString);
+
+                if (val !== undefined) {
+                  return regexFloat.test(convertToBigNumberString(val));
+                }
+                return true;
+              }
+            )
+            .test(
+              "test less than",
+              "Amount exceeds available assets",
+              (value) =>
+                selectedSendKey
+                  ? true
+                  : Number(value) <= Number(availableAmount)
             ),
         })}
       >
@@ -373,13 +414,14 @@ function Send(): JSX.Element | null {
                       })
                       .map((asset: IAsset) => ({
                         value: asset,
-                        label: asset.name,
+                        label: asset.id,
                       }))}
                     defaultValue={{
                       value: defaultAsset,
                       label: "ALPHA",
                     }}
                     error={extractFormikError(errors, touched, ["assets"])}
+                    onChange={(_label, option: any) => setSelectedAsset(option)}
                   />
                   <Spacer mb={8} />
                   {selectedSendKey && (
@@ -410,19 +452,28 @@ function Send(): JSX.Element | null {
                         availableAmount +
                         " " +
                         values.assets.label +
-                        " available to send " + lockedAmountLabel
+                        " available to send " +
+                        lockedAmountLabel
                       }
-                      type="number"
+                      type="text"
+                      floatingFixedPoint={decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
                         !Boolean(values.assets) || Boolean(selectedSendKey)
                       }
                       value={
-                        selectedSendKey &&
-                        billsList?.find(
-                          (bill: IBill) => bill.id === selectedSendKey
-                        )?.value
+                        (selectedSendKey &&
+                          (convertToBigNumberString(
+                            Number(
+                              billsList?.find(
+                                (bill: IBill) => bill.id === selectedSendKey
+                              )?.value
+                            ),
+                            decimalFactor
+                          ) as string | undefined)) ||
+                        ""
                       }
+                      isNumberFloat
                     />
                     <Spacer mb={8} />
                   </div>

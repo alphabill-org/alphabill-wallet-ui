@@ -19,7 +19,10 @@ export default function Select(props: ISelectProps): JSX.Element {
   const [field] = useField(props.name);
 
   const handleChange = (option: any): void => {
-    setFieldValue(field.name, (option as IOption)?.value || "");
+    setFieldValue(field.name, {
+      label: (option as IOption)?.label,
+      value: (option as IOption)?.value || "",
+    });
 
     props.onChange?.(props.label, option.value);
   };

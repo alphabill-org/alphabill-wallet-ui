@@ -4,7 +4,11 @@ import { IBill, ILockedBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
-import { base64ToHexPrefixed } from "../../../utils/utils";
+import {
+  base64ToHexPrefixed,
+  convertToBigNumberString,
+  ALPHADecimalFactor,
+} from "../../../utils/utils";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;
@@ -56,7 +60,10 @@ function BillsListItem({
               <>
                 {idx !== 0 && <Spacer mt={8} />}
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                  <div>Denomination: {bill.value}</div>
+                  <div>
+                    Denomination:{" "}
+                    {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
+                  </div>
                 </div>
               </>
             )}
@@ -129,7 +136,7 @@ function BillsListItem({
             </div>
             <div key={bill.id} className="dashboard__info-item-wrap small">
               <div className="dashboard__info-item-bill">
-                <div className="flex t-small t-bold c-light">
+                <div className="flex t-small t-bold c-light pad-8-t">
                   <span className="pad-8-r">ID:</span>{" "}
                   <span className="t-ellipsis">
                     {base64ToHexPrefixed(bill.id)}
@@ -137,7 +144,7 @@ function BillsListItem({
                 </div>
                 {lockedBills?.find((key) => key.billId === bill.id) && (
                   <>
-                    <div className="flex t-small t-bold c-light">
+                    <div className="flex t-small t-bold c-light pad-8-t">
                       <span className="pad-8-r">Desc:</span>{" "}
                       <span className="t-ellipsis">
                         {
