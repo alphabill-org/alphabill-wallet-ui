@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
@@ -21,7 +20,7 @@ import Popup from "../../../components/Popup/Popup";
 
 import Check from "./../../../images/checkmark.gif";
 import { useAuth } from "../../../hooks/useAuth";
-import { API_URL } from "../../../hooks/requests";
+import { getProof } from "../../../hooks/requests";
 import { Verify } from "../../../utils/validators";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 
@@ -131,13 +130,8 @@ function BillsListPopups({
 
               setPassword(values.password);
               isPasswordFormVisible === "proofCheck"
-                ? axios
-                    .get<IProofsProps>(
-                      `${API_URL}/proof/${
-                        account.pubKey
-                      }?bill_id=${base64ToHexPrefixed(activeBill.id)}`
-                    )
-                    .then(async ({ data }) => {
+                ? getProof(base64ToHexPrefixed(activeBill.id)).then(
+                    async (data: IProofsProps) => {
                       data?.bills[0] &&
                         setProofCheckStatus(
                           await Verify(
@@ -148,7 +142,8 @@ function BillsListPopups({
                           )
                         );
                       await setIsProofVisible(true);
-                    })
+                    }
+                  )
                 : handleDC(values.password);
               setIsPasswordFormVisible(null);
             }}

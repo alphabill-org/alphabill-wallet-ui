@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 import { Navigate } from "react-router-dom";
 
 import CryptoJS from "crypto-js";
@@ -26,7 +25,6 @@ import Spacer from "../../components/Spacer/Spacer";
 import Popup from "../../components/Popup/Popup";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
-import { API_URL } from "../../hooks/requests";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -189,22 +187,8 @@ function AccountView(): JSX.Element | null {
               return setErrors({ password: "Password is incorrect!" });
             }
 
-            axios
-              .post<void>(API_URL + "/admin/add-key", {
-                pubkey: prefixedHashingPubKey,
-              })
-              .then(() => {
-                addAccount();
-                setIsAddAccountLoading(false);
-              })
-              .catch((e) => {
-                if (e.response?.data?.message === "pubkey already exists") {
-                  addAccount();
-                } else {
-                  setErrors({ accountName: "Account creation failed" });
-                }
-                setIsAddAccountLoading(false);
-              });
+            addAccount();
+            setIsAddAccountLoading(false);
 
             resetForm();
           }}
