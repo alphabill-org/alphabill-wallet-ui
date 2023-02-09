@@ -128,9 +128,34 @@
   &__balance {
     display: flex;
     align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 8px;
 
-    h1 {
-      padding-right: 10px;
+    &-amount {
+      font-weight: 400;
+      font-size: 56px;
+      line-height: 28px;
+      padding-right: 8px;
+      word-break: break-all;
+
+      &.small {
+        font-size: 40px;
+      }
+
+      &.x-small {
+        font-size: 28px;
+      }
+    }
+
+    &-id {
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 24px;
+
+      &.small, &.x-small {
+        font-size: 18px;
+      }
     }
   }
 

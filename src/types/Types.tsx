@@ -16,6 +16,9 @@ export interface IAsset {
   name: string;
   amount: number;
   network: string;
+  decimalFactor: number;
+  decimalPlaces: number;
+  UIAmount: string;
 }
 
 export interface IBill {

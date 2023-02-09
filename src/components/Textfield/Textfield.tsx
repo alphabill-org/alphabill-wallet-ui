@@ -24,7 +24,7 @@ export interface ITextfieldProps {
   error?: string | string[];
   disabled?: boolean;
   pattern?: string;
-  floatingFixedPoint?: string;
+  floatingFixedPoint?: number;
   isNumberFloat?: boolean;
   min?: string;
   max?: string;

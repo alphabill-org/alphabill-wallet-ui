@@ -6,6 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { differenceBy } from "lodash";
+import BigNumber from "bignumber.js";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
 
@@ -315,6 +316,27 @@ export const useDocumentClick = (
   }, [ref, handler]);
 };
 
+export const getDecimalPlaces = (num: BigNumber) => {
+  var match = ("" + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+  if (!match) {
+    return 0;
+  }
+  return Math.max(
+    0,
+    (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0)
+  );
+};
+
+export const convertToBigNumberString = (
+  num: number,
+  dividedBy: number = 1
+): string => {
+  if (isNaN(num)) return "";
+  const bigNum = new BigNumber(num).dividedBy(dividedBy);
+  const decimals = getDecimalPlaces(bigNum);
+  return bigNum.toFixed(decimals);
+};
+
 export const startByte = "53";
 export const opPushSig = "54";
 export const opPushPubKey = "55";
@@ -329,3 +351,5 @@ export const sigScheme = "01";
 export const timeoutBlocks = 10;
 export const swapTimeout = 40;
 export const DCTransfersLimit = 100;
+export const ALPHADecimalPlaces = 8;
+export const ALPHADecimalFactor = Number("1e" + ALPHADecimalPlaces);

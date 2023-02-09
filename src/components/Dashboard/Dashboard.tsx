@@ -14,11 +14,11 @@ import Popups from "./Popups/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
-import React from "react";
+
 import { useDocumentClick } from "../../utils/utils";
 
 function Dashboard(): JSX.Element | null {
-  const { activeAccountId } = useAuth();
+  const { activeAccountId, activeAssetId } = useAuth();
   const {
     setIsActionsViewVisible,
     setActionsView,
@@ -26,9 +26,13 @@ function Dashboard(): JSX.Element | null {
     accounts,
     setAccounts,
   } = useApp();
-  const abBalance = account?.assets.find(
-    (asset: IAsset) => (asset.id = "ALPHA")
-  )?.amount;
+  const balance: string =
+    account?.assets.find((asset: IAsset) => (asset.id = activeAssetId))
+      ?.UIAmount || "";
+
+  const balanceSizeClass =
+    balance?.length > 7 ? (balance?.length > 12 ? "x-small" : "small") : "";
+
   const [isAssetsColActive, setIsAssetsColActive] = useState(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
@@ -61,12 +65,18 @@ function Dashboard(): JSX.Element | null {
 
   return (
     <div className="dashboard">
-      <Spacer mb={40} />
+      <Spacer mb={48} />
       <div className="dashboard__balance">
-        <h1>{abBalance || 0}</h1>
-        <h3>ALPHA</h3>
+        <div
+          className={classNames("dashboard__balance-amount", balanceSizeClass)}
+        >
+          {balance || "0"}
+        </div>
+        <div className={classNames("dashboard__balance-id", balanceSizeClass)}>
+          {activeAssetId}
+        </div>
       </div>
-      <Spacer mb={8} />
+      <Spacer mb={32} />
 
       <div className="dashboard__account">
         <div className="dashboard__account-id">
@@ -188,7 +198,7 @@ function Dashboard(): JSX.Element | null {
                       </div>
                       <div>
                         <div>
-                          {asset.amount} {asset?.id}
+                          {asset.UIAmount || 0} {asset?.id}
                         </div>
                       </div>
                       {asset?.id === "ALPHA" && (

@@ -12,6 +12,11 @@ import { IAccount, ILockedBill } from "../types/Types";
 import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
+import {
+  convertToBigNumberString,
+  ALPHADecimalFactor,
+  ALPHADecimalPlaces,
+} from "../utils/utils";
 
 interface IAppContextShape {
   balances: any;
@@ -38,7 +43,8 @@ export const useApp = (): IAppContextShape => useContext(AppContext);
 export const AppProvider: FunctionComponent<{
   children: JSX.Element | null;
 }> = ({ children }) => {
-  const { userKeys, setActiveAccountId, activeAccountId } = useAuth();
+  const { userKeys, setActiveAccountId, activeAccountId, activeAssetId } =
+    useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
   const initialLockedBills = localStorage.getItem("ab_locked_bills") || null;
@@ -73,6 +79,16 @@ export const AppProvider: FunctionComponent<{
           amount: balances?.find(
             (balance: any) => balance?.data?.pubKey === key
           )?.data?.balance,
+          decimalFactor: ALPHADecimalFactor,
+          decimalPlaces: ALPHADecimalPlaces,
+          UIAmount:
+            convertToBigNumberString(
+              Number(
+                balances?.find((balance: any) => balance?.data?.pubKey === key)
+                  ?.data?.balance
+              ),
+              ALPHADecimalFactor
+            ) || "0",
         },
       ],
       activeNetwork: "AB Testnet",
@@ -100,15 +116,15 @@ export const AppProvider: FunctionComponent<{
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
-    const abAccountBalance = accounts
+    const accountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets.find((asset) => asset.id === "ALPHA")?.amount;
-    const abFetchedBalance = balances?.find(
+      ?.assets.find((asset) => asset.id === activeAssetId)?.amount;
+    const fetchedBalance = balances?.find(
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
     if (
-      (keysArr.length >= 1 && abFetchedBalance !== abAccountBalance) ||
+      (keysArr.length >= 1 && fetchedBalance !== accountBalance) ||
       keysArr.length !== accounts.length
     ) {
       setAccounts(
@@ -121,7 +137,14 @@ export const AppProvider: FunctionComponent<{
               id: "ALPHA",
               name: "ALPHA",
               network: "AB Testnet",
-              amount: abFetchedBalance,
+              amount: fetchedBalance,
+              decimalFactor: ALPHADecimalFactor,
+              decimalPlaces: ALPHADecimalPlaces,
+              UIAmount:
+                convertToBigNumberString(
+                  Number(fetchedBalance),
+                  ALPHADecimalFactor
+                ) || "0",
             },
           ],
           activeNetwork: "AB Testnet",
@@ -145,6 +168,7 @@ export const AppProvider: FunctionComponent<{
     balances,
     activeAccountId,
     setActiveAccountId,
+    activeAssetId,
   ]);
 
   return (
