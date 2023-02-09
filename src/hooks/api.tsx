@@ -6,10 +6,8 @@ import {
   ISwapTransferProps,
   ITransfer,
 } from "../types/Types";
-import axios from "axios";
 
 import {
-  API_URL,
   getBalance,
   getBillsList,
   getProof,
@@ -21,14 +19,7 @@ export function useGetBalances(pubKeys: string[] | undefined) {
     pubKeys!.map((pubKey) => {
       return {
         queryKey: ["balance", pubKey],
-        queryFn: async () =>
-          getBalance(pubKey).catch((e) => {
-            if (e.response?.data?.message === "pubkey not indexed") {
-              axios.post<void>(API_URL + "/admin/add-key", {
-                pubkey: pubKey,
-              });
-            }
-          }),
+        queryFn: async () => getBalance(pubKey),
         enabled: !!pubKey,
         staleTime: Infinity,
       };
@@ -47,12 +38,11 @@ export function useGetBillsList(
 }
 
 export function useGetProof(
-  pubKey: string,
   billID: string
 ): QueryObserverResult<IProofsProps, AxiosError> {
   return useQuery(
-    [`proof`, pubKey, billID],
-    async () => getProof(pubKey, billID),
+    [`proof`, billID],
+    async () => getProof(billID),
     {
       enabled: true,
       keepPreviousData: true,
