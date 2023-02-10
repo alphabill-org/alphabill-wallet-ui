@@ -12,7 +12,11 @@ import {
 export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
 
 export const getBalance = async (pubKey: string): Promise<any> => {
-  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
+  if (
+    !pubKey ||
+    Number(pubKey) === 0 ||
+    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
     return;
   }
 
@@ -27,7 +31,11 @@ export const getBalance = async (pubKey: string): Promise<any> => {
 };
 
 export const getBillsList = async (pubKey: string): Promise<any> => {
-  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
+  if (
+    !pubKey ||
+    Number(pubKey) === 0 ||
+    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
     return;
   }
 
@@ -51,18 +59,13 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
   return billsList;
 };
 
-export const getProof = async (pubKey: string, billID: string): Promise<any> => {
-  if (
-    !pubKey ||
-    Number(pubKey) === 0 ||
-    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/)) ||
-    !Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))
-  ) {
+export const getProof = async (billID: string): Promise<any> => {
+  if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/proof/${pubKey}?bill_id=${billID}`
+    `${API_URL}/proof?bill_id=${billID}`
   );
 
   return response.data;

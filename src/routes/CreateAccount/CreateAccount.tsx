@@ -1,10 +1,11 @@
+import { useMemo } from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
 import { Formik } from "formik";
 import { HDKey } from "@scure/bip32";
 import { generateMnemonic, mnemonicToSeedSync, mnemonicToEntropy } from "bip39";
 import * as Yup from "yup";
 import CryptoJS from "crypto-js";
 import { Link } from "react-router-dom";
-import axios from "axios";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
@@ -18,9 +19,7 @@ import {
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { API_URL } from "../../hooks/requests";
-import { useMemo } from "react";
-import CopyToClipboard from "react-copy-to-clipboard";
+
 
 function CreateAccount(): JSX.Element | null {
   const { login } = useAuth();
@@ -79,28 +78,19 @@ function CreateAccount(): JSX.Element | null {
             if (
               prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)
             ) {
-              axios
-                .post<void>(API_URL + "/admin/add-key", {
-                  pubkey: decrypted.toString(CryptoJS.enc.Latin1),
-                })
-                .then(() => {
-                  const vaultData = {
-                    entropy: mnemonicToEntropy(mnemonic),
-                    pub_keys: prefixedHashingPubKey,
-                  };
+              const vaultData = {
+                entropy: mnemonicToEntropy(mnemonic),
+                pub_keys: prefixedHashingPubKey,
+              };
 
-                  login(
-                    prefixedHashingPubKey,
-                    prefixedHashingPubKey,
-                    CryptoJS.AES.encrypt(
-                      JSON.stringify(vaultData),
-                      values.password
-                    ).toString()
-                  );
-                })
-                .catch(() =>
-                  setErrors({ passwordConfirm: "Key was not added" })
-                );
+              login(
+                prefixedHashingPubKey,
+                prefixedHashingPubKey,
+                CryptoJS.AES.encrypt(
+                  JSON.stringify(vaultData),
+                  values.password
+                ).toString()
+              );
             } else {
               return setErrors({
                 passwordConfirm: "Public key creation failed",

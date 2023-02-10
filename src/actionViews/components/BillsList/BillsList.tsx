@@ -98,30 +98,28 @@ function BillsList(): JSX.Element | null {
   // Bills list functions
   const handleProof = (bill: IBill) => {
     password
-      ? getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then(
-          async (data) => {
-            const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-              password,
-              Number(account.idx),
-              vault
-            );
+      ? getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
+          const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+            password,
+            Number(account.idx),
+            vault
+          );
 
-            if (error || !hashingPublicKey || !hashingPrivateKey) {
-              return;
-            }
-
-            data?.bills[0] &&
-              setProofCheckStatus(
-                await Verify(
-                  data.bills[0],
-                  bill,
-                  hashingPrivateKey,
-                  hashingPublicKey
-                )
-              );
-            await setIsProofVisible(true);
+          if (error || !hashingPublicKey || !hashingPrivateKey) {
+            return;
           }
-        )
+
+          data?.bills[0] &&
+            setProofCheckStatus(
+              await Verify(
+                data.bills[0],
+                bill,
+                hashingPrivateKey,
+                hashingPublicKey
+              )
+            );
+          await setIsProofVisible(true);
+        })
       : setIsPasswordFormVisible("proofCheck");
   };
 

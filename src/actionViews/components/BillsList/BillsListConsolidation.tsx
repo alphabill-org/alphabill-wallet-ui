@@ -46,7 +46,7 @@ export const handleSwapRequest = async (
   });
 
   DCBills.map((bill: IBill, idx: number) =>
-    getProof(account.pubKey, base64ToHexPrefixed(bill.id)).then(
+    getProof(base64ToHexPrefixed(bill.id)).then(
       async (data) => {
         const txProof = data.bills[0].txProof;
 
