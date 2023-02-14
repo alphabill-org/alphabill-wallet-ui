@@ -41,6 +41,7 @@ function AccountView(): JSX.Element | null {
     activeAccountId,
     setActiveAccountId,
     setVault,
+    activeAsset,
   } = useAuth();
   const { accounts, setIsActionsViewVisible } = useApp();
   const queryClient = useQueryClient();
@@ -67,6 +68,12 @@ function AccountView(): JSX.Element | null {
                 setIsActionsViewVisible(false);
                 queryClient.invalidateQueries(["balance", account?.pubKey]);
                 queryClient.invalidateQueries(["billsList", activeAccountId]);
+                queryClient.invalidateQueries([
+                  "tokenList",
+                  activeAccountId,
+                  activeAsset.typeId,
+                ]);
+                queryClient.invalidateQueries(["tokensList", activeAccountId]);
               }}
             >
               <div className="account__item">

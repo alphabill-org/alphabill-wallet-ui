@@ -42,13 +42,15 @@ function BillsList(): JSX.Element | null {
   );
   const unlockedBills = billsList.filter(
     (b: IBill) =>
-      b.isDCBill === false &&
+      b.isDCBill !== true &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
   const DCBills = useMemo(
     () =>
       sortedListByValue
-        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDCBill)
+        ? sortBillsByID(sortedListByValue).filter(
+            (b: IBill) => b.isDCBill === true
+          )
         : [],
     [sortedListByValue]
   );
@@ -73,7 +75,7 @@ function BillsList(): JSX.Element | null {
   const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
 
   // Global hooks
-  const { vault, activeAccountId } = useAuth();
+  const { vault, activeAccountId, activeAsset } = useAuth();
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
     "ab_last_nonce",
     null
@@ -167,7 +169,8 @@ function BillsList(): JSX.Element | null {
         DCBills,
         account,
         activeAccountId,
-        lastNonceIDs
+        lastNonceIDs,
+        activeAsset
       );
     },
     [DCBills, account, lastNonceIDs, password, vault, activeAccountId]
@@ -300,7 +303,8 @@ function BillsList(): JSX.Element | null {
                   unlockedBills,
                   DCBills,
                   lastNonceIDs,
-                  activeAccountId
+                  activeAccountId,
+                  activeAsset
                 );
               } else {
                 setIsPasswordFormVisible("handleDC");
@@ -346,7 +350,7 @@ function BillsList(): JSX.Element | null {
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
-            b.isDCBill === false &&
+            b.isDCBill !== true &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -357,7 +361,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
-                b.isDCBill === false &&
+                b.isDCBill !== true &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}
@@ -396,7 +400,8 @@ function BillsList(): JSX.Element | null {
               unlockedBills,
               DCBills,
               lastNonceIDs,
-              activeAccountId
+              activeAccountId,
+              activeAsset
             )
           }
           lockedBills={lockedBills}

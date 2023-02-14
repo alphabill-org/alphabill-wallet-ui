@@ -153,7 +153,8 @@
       font-size: 24px;
       line-height: 24px;
 
-      &.small, &.x-small {
+      &.small,
+      &.x-small {
         font-size: 18px;
       }
     }
@@ -236,6 +237,19 @@
           fill: $color-secondary;
           width: 18px;
           margin-right: -2px;
+        }
+
+        .utp-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: $color-white;
+          color: $color-secondary;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 18px;
         }
 
         .receive {

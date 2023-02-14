@@ -12,6 +12,7 @@ import {
 } from "../../../utils/utils";
 import {
   IAccount,
+  IActiveAsset,
   IBill,
   IProof,
   IProofTx,
@@ -34,7 +35,8 @@ export const handleSwapRequest = async (
   DCBills: IBill[],
   account: IAccount,
   activeAccountId: string,
-  lastNonceIDs: { [key: string]: string[] }
+  lastNonceIDs: { [key: string]: string[] },
+  activeAsset: IActiveAsset
 ) => {
   let nonce: Buffer[] = [];
   let txProofs: ITxProof[] = [];
@@ -68,7 +70,8 @@ export const handleSwapRequest = async (
           const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
           getBlockHeight().then(async (blockData) => {
             const transferData: ISwapProps = {
-              systemId: "AAAAAA==",
+              systemId:
+                activeAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
               unitId: Buffer.from(nonceHash).toString("base64"),
               transactionAttributes: {
                 billIdentifiers: sortIDBySize(billIdentifiers),
@@ -102,7 +105,11 @@ export const handleSwapRequest = async (
               }
             );
 
-            proof.isSignatureValid && makeTransaction(dataWithProof);
+            proof.isSignatureValid &&
+              makeTransaction(
+                dataWithProof,
+                activeAsset?.typeId === "ALPHA" ? "" : account.pubKey
+              );
           });
         }
       }
@@ -122,7 +129,8 @@ export const handleDC = async (
   unlockedBills: IBill[],
   DCBills: IBill[],
   lastNonceIDs: any[],
-  activeAccountId: string
+  activeAccountId: string,
+  activeAsset: IActiveAsset
 ) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,
@@ -162,7 +170,7 @@ export const handleDC = async (
         total = total + 1;
 
         const transferData: ITransfer = {
-          systemId: "AAAAAA==",
+          systemId: activeAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
           unitId: bill.id,
           transactionAttributes: {
             "@type": "type.googleapis.com/rpc.TransferDCOrder",
@@ -189,7 +197,10 @@ export const handleDC = async (
           timeout: blockData.blockHeight + timeoutBlocks,
         });
 
-        makeTransaction(dataWithProof)
+        makeTransaction(
+          dataWithProof,
+          activeAsset?.typeId === "ALPHA" ? "" : account.pubKey
+        )
           .then(() => handleTransactionEnd())
           .catch(() => handleTransactionEnd());
 

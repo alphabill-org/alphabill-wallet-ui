@@ -53,7 +53,7 @@ function Send(): JSX.Element | null {
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.id === "ALPHA"),
+      .find((asset) => asset.typeId === "ALPHA"),
     label: "ALPHA",
   };
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
@@ -61,7 +61,7 @@ function Send(): JSX.Element | null {
   );
   const activeAsset =
     account?.assets.find(
-      (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
+      (asset: IAsset) => asset.typeId === selectedAsset?.typeId || "ALPHA"
     ) || account?.assets[0];
 
   const balance = activeAsset.amount;
@@ -196,7 +196,8 @@ function Send(): JSX.Element | null {
           getBlockHeight().then(async (blockData) => {
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {
-                systemId: "AAAAAA==",
+                systemId:
+                  selectedAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
                 unitId: bill.id,
                 transactionAttributes: {
                   "@type": "type.googleapis.com/rpc.TransferOrder",
@@ -223,7 +224,8 @@ function Send(): JSX.Element | null {
 
             if (billToSplit && splitBillAmount) {
               const splitData: IProofTx = {
-                systemId: "AAAAAA==",
+                systemId:
+                  selectedAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
                 unitId: billToSplit.id,
                 transactionAttributes: {
                   "@type": "type.googleapis.com/rpc.SplitOrder",
@@ -263,7 +265,10 @@ function Send(): JSX.Element | null {
             });
 
             proof.isSignatureValid &&
-              makeTransaction(dataWithProof)
+              makeTransaction(
+                dataWithProof,
+                selectedAsset?.typeId === "ALPHA" ? "" : values.address
+              )
                 .then(() => {
                   const amount: number = Number(
                     billData?.transactionAttributes?.amount ||
@@ -404,17 +409,17 @@ function Send(): JSX.Element | null {
                         (asset) => account?.activeNetwork === asset.network
                       )
                       .sort((a: IAsset, b: IAsset) => {
-                        if (a?.id! < b?.id!) {
+                        if (a?.name! < b?.name!) {
                           return -1;
                         }
-                        if (a?.id! > b?.id!) {
+                        if (a?.name! > b?.name!) {
                           return 1;
                         }
                         return 0;
                       })
                       .map((asset: IAsset) => ({
                         value: asset,
-                        label: asset.id,
+                        label: asset.name,
                       }))}
                     defaultValue={{
                       value: defaultAsset,

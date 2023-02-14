@@ -1,3 +1,4 @@
+import { number } from "yup";
 import { string } from "yup/lib/locale";
 
 export interface IAccount {
@@ -19,6 +20,53 @@ export interface IAsset {
   decimalFactor: number;
   decimalPlaces: number;
   UIAmount: string;
+  typeId: string;
+}
+
+export interface IUTPAssetTypes {
+  id: string; // base64 encoded hex
+  parentTypeId: string; // base64 encoded hex
+  symbol: string;
+  decimalPlaces: number; // fungible only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex  creation tx
+}
+
+export interface IFungibleResponse {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  amount: number; // fungible only
+  decimals: number; // fungible only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
+  symbol: string;
+}
+
+export interface IFungibleAsset {
+  id: string;
+  name: string;
+  amount: number;
+  network: string;
+  decimalFactor: number;
+  decimalPlaces: number;
+  UIAmount: string;
+  typeId: string;
+}
+
+export interface IActiveAsset {
+  name: string;
+  typeId: string;
+}
+
+export interface INonFungibleAsset {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  nftUri: string; // nft only
+  nftData: string; // base64 encoded hex - nft only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
 }
 
 export interface IBill {

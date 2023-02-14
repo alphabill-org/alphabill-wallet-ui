@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
+  IFungibleResponse,
   IProofsProps,
   ISwapTransferProps,
   ITransfer,
@@ -13,6 +14,7 @@ import {
   getBalance,
   getBillsList,
   getProof,
+  getUserTokens,
   makeTransaction,
 } from "./requests";
 
@@ -44,6 +46,35 @@ export function useGetBillsList(
     keepPreviousData: true,
     staleTime: Infinity,
   });
+}
+
+export function useGetAllUserTokens(
+  pubKey: string
+): QueryObserverResult<IFungibleResponse[], AxiosError> {
+  return useQuery(
+    [`tokensList`, pubKey],
+    async () => getUserTokens(pubKey),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
+}
+
+export function useGetUserTokens(
+  pubKey: string,
+  activeAsset: string
+): QueryObserverResult<IFungibleResponse[], AxiosError> {
+  return useQuery(
+    [`tokenList`, pubKey, activeAsset],
+    async () => getUserTokens(pubKey, activeAsset),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
 }
 
 export function useGetProof(

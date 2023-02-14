@@ -5,7 +5,7 @@ import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccount, IAsset } from "../../types/Types";
+import { IAccount, IAsset, IFungibleAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
@@ -18,7 +18,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useDocumentClick } from "../../utils/utils";
 
 function Dashboard(): JSX.Element | null {
-  const { activeAccountId, activeAssetId } = useAuth();
+  const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const {
     setIsActionsViewVisible,
     setActionsView,
@@ -27,7 +27,7 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets.find((asset: IAsset) => (asset.id = activeAssetId))
+    account?.assets.find((asset: IAsset) => asset.typeId === activeAsset.typeId)
       ?.UIAmount || "";
 
   const balanceSizeClass =
@@ -73,7 +73,7 @@ function Dashboard(): JSX.Element | null {
           {balance || "0"}
         </div>
         <div className={classNames("dashboard__balance-id", balanceSizeClass)}>
-          {activeAssetId}
+          {activeAsset.name}
         </div>
       </div>
       <Spacer mb={32} />
@@ -182,46 +182,72 @@ function Dashboard(): JSX.Element | null {
               sortedAssets
                 .filter(
                   (asset: IAsset) => asset.network === account?.activeNetwork
-                )
-                .map((asset: IAsset, idx: number) => {
+                ).sort((a: IAsset, b: IAsset) => {
+                  if (a?.name! < b?.name!) {
+                    return -1;
+                  }
+                  if (a?.name! > b?.name!) {
+                    return 1;
+                  }
+                  return 0;
+                })
+                .map((asset: IAsset | IFungibleAsset, idx: number) => {
                   // API supports only AB balance at the moment
+
                   return (
-                    <div key={idx} className="dashboard__info-item-wrap">
+                    <div
+                      key={idx}
+                      className="dashboard__info-item-wrap"
+                      onClick={() => {
+                        setActiveAssetLocal(
+                          JSON.stringify({
+                            name: asset.name,
+                            typeId: asset.typeId,
+                          })
+                        );
+                        queryClient.invalidateQueries([
+                          "tokenList",
+                          activeAccountId,
+                          asset.typeId,
+                        ]);
+                      }}
+                    >
                       <div className="dashboard__info-item-icon">
                         {asset?.id === "ALPHA" ? (
                           <div className="icon-wrap ab-logo">
                             <ABLogo />
                           </div>
                         ) : (
-                          <></>
+                          <div className="utp-icon">
+                            {(asset as IFungibleAsset)?.name[0]}
+                          </div>
                         )}
                       </div>
                       <div>
                         <div>
-                          {asset.UIAmount || 0} {asset?.id}
+                          {asset.UIAmount || 0} {asset?.name}
                         </div>
                       </div>
-                      {asset?.id === "ALPHA" && (
-                        <Button
-                          variant="primary"
-                          className="m-auto-l"
-                          small
-                          onClick={() => {
-                            setActionsView("Bills List");
-                            setIsActionsViewVisible(true);
-                            queryClient.invalidateQueries([
-                              "balance",
-                              activeAccountId,
-                            ]);
-                            queryClient.invalidateQueries([
-                              "billsList",
-                              activeAccountId,
-                            ]);
-                          }}
-                        >
-                          Show Bills
-                        </Button>
-                      )}
+
+                      <Button
+                        variant="primary"
+                        className="m-auto-l"
+                        small
+                        onClick={() => {
+                          setActionsView("Bills List");
+                          setIsActionsViewVisible(true);
+                          queryClient.invalidateQueries([
+                            "balance",
+                            activeAccountId,
+                          ]);
+                          queryClient.invalidateQueries([
+                            "billsList",
+                            activeAccountId,
+                          ]);
+                        }}
+                      >
+                        Show Bills
+                      </Button>
                     </div>
                   );
                 })}

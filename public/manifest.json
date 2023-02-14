@@ -22,6 +22,7 @@
   ],
   "host_permissions": [
     "*://*.wallet-backend.testnet.alphabill.org/*",
-    "*://*.money-partition.testnet.alphabill.org/*"
+    "*://*.money-partition.testnet.alphabill.org/*",
+    "*://*.dev-ab-tokens-backend.abdev1.guardtime.com/*"
   ]
 }

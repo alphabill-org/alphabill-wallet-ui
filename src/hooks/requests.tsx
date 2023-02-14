@@ -7,12 +7,22 @@ import {
   IProofsProps,
   ISwapTransferProps,
   IBill,
+  IFungibleAsset,
+  IFungibleResponse,
 } from "../types/Types";
 
 export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
+export const API_TOKENS_URL =
+  "https://dev-ab-tokens-backend.abdev1.guardtime.com/api/v1";
+export const API_PARTITION_URL =
+  "https://money-partition.testnet.alphabill.org/api/v1";
 
 export const getBalance = async (pubKey: string): Promise<any> => {
-  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
+  if (
+    !pubKey ||
+    Number(pubKey) === 0 ||
+    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
     return;
   }
 
@@ -27,7 +37,11 @@ export const getBalance = async (pubKey: string): Promise<any> => {
 };
 
 export const getBillsList = async (pubKey: string): Promise<any> => {
-  if (!pubKey || Number(pubKey) === 0 || !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))) {
+  if (
+    !pubKey ||
+    Number(pubKey) === 0 ||
+    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
     return;
   }
 
@@ -51,7 +65,115 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
   return billsList;
 };
 
-export const getProof = async (pubKey: string, billID: string): Promise<any> => {
+export const fetchAllTypes = async (
+  kind: string,
+  creator = "",
+  limit = 100,
+  offsetKey = ""
+) => {
+  const types = [];
+  let nextOffsetKey: string | null = offsetKey;
+
+  while (nextOffsetKey !== null) {
+    const response: any = await axios.get(
+      API_TOKENS_URL + `/kinds/${kind}/types`,
+      {
+        params: {
+          creator,
+          limit,
+          offsetKey: nextOffsetKey,
+        },
+      }
+    );
+
+    const data = response.data;
+
+    // Add types to the list
+    types.push(...data);
+
+    // Check if there is a "next" link in the response header
+    const linkHeader = response.headers.link;
+    if (linkHeader) {
+      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
+      if (nextLinkMatch) {
+        // Extract the next offset key from the link header
+        nextOffsetKey = new URL(nextLinkMatch[1]).searchParams.get("offsetKey");
+      } else {
+        nextOffsetKey = null;
+      }
+    } else {
+      nextOffsetKey = null;
+    }
+  }
+
+  return types;
+};
+
+export const getUserTokens = async (
+  owner: string,
+  activeAsset?: string,
+  kind: string = "fungible",
+  limit = 100,
+  offsetKey = ""
+) => {
+  const tokens: any = [];
+  let nextOffsetKey: string | null = offsetKey;
+
+  while (nextOffsetKey !== null) {
+    const response: any = await axios.get(
+      API_TOKENS_URL + `/kinds/${kind}/owners/${owner}/tokens`,
+      {
+        params: {
+          limit,
+          offsetKey: nextOffsetKey,
+        },
+      }
+    );
+
+    const data = response.data;
+
+    // Add tokens to the list
+    data && tokens?.push(...data);
+
+    // Check if there is a "next" link in the response header
+    const linkHeader = response.headers.link;
+    if (linkHeader) {
+      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
+      if (nextLinkMatch) {
+        // Extract the next offset key from the link header
+        nextOffsetKey = new URL(nextLinkMatch[1]).searchParams.get("offsetKey");
+      } else {
+        nextOffsetKey = null;
+      }
+    } else {
+      nextOffsetKey = null;
+    }
+  }
+
+  const updatedArray = tokens?.map((obj: IFungibleResponse) => {
+    return {
+      id: obj.id,
+      typeId: obj.typeId,
+      owner: obj.owner,
+      value: obj.amount,
+      decimals: obj.decimals,
+      kind: obj.kind,
+      txHash: obj.txHash,
+      symbol: obj.symbol,
+    };
+  });
+
+  const filteredTokens = updatedArray.filter(
+    (token: IFungibleAsset) => token.typeId === activeAsset
+  );
+
+  return activeAsset ? filteredTokens : tokens;
+};
+
+export const getProof = async (
+  pubKey: string,
+  billID: string
+): Promise<any> => {
   if (
     !pubKey ||
     Number(pubKey) === 0 ||
@@ -75,10 +197,12 @@ export const getBlockHeight = async (): Promise<IBlockStats> => {
 };
 
 export const makeTransaction = async (
-  data: ITransfer
+  data: ITransfer,
+  pubKey?: string
 ): Promise<{ data: ITransfer }> => {
+  const url = pubKey ? API_TOKENS_URL : API_PARTITION_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    "https://money-partition.testnet.alphabill.org/api/v1/transactions",
+    url + "/transactions" + "/" + pubKey,
     {
       ...data,
     }

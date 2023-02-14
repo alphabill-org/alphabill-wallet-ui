@@ -8,8 +8,13 @@ import {
 } from "react";
 import { isString } from "lodash";
 
-import { IAccount, ILockedBill } from "../types/Types";
-import { useGetBalances, useGetBillsList } from "./api";
+import { IAccount, ILockedBill, IFungibleResponse } from "../types/Types";
+import {
+  useGetAllUserTokens,
+  useGetBalances,
+  useGetBillsList,
+  useGetUserTokens,
+} from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import {
@@ -43,7 +48,7 @@ export const useApp = (): IAppContextShape => useContext(AppContext);
 export const AppProvider: FunctionComponent<{
   children: JSX.Element | null;
 }> = ({ children }) => {
-  const { userKeys, setActiveAccountId, activeAccountId, activeAssetId } =
+  const { userKeys, setActiveAccountId, activeAccountId, activeAsset } =
     useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
@@ -65,32 +70,19 @@ export const AppProvider: FunctionComponent<{
       : lockedBillsLocal
     : [];
   const balances: any = useGetBalances(keysArr);
-  const { data: billsList } = useGetBillsList(activeAccountId);
+  const { data: alphaList } = useGetBillsList(activeAccountId);
+  const { data: userTokensList } = useGetAllUserTokens(activeAccountId);
+  const { data: tokenList } = useGetUserTokens(
+    activeAccountId,
+    activeAsset.typeId
+  );
+  const billsList = activeAsset.typeId === "ALPHA" ? alphaList : tokenList;
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
       pubKey: key,
       idx: idx,
       name: accountNamesObj["_" + idx],
-      assets: [
-        {
-          id: "ALPHA",
-          name: "ALPHA",
-          network: "AB Testnet",
-          amount: balances?.find(
-            (balance: any) => balance?.data?.pubKey === key
-          )?.data?.balance,
-          decimalFactor: ALPHADecimalFactor,
-          decimalPlaces: ALPHADecimalPlaces,
-          UIAmount:
-            convertToBigNumberString(
-              Number(
-                balances?.find((balance: any) => balance?.data?.pubKey === key)
-                  ?.data?.balance
-              ),
-              ALPHADecimalFactor
-            ) || "0",
-        },
-      ],
+      assets: [],
       activeNetwork: "AB Testnet",
       networks: [
         {
@@ -116,15 +108,65 @@ export const AppProvider: FunctionComponent<{
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
+    let userTokens: any = [];
+    let typeIDs: string[] = [];
+
+    if (userTokensList) {
+      for (let token of userTokensList) {
+        if (!typeIDs.includes(token.typeId)) {
+          typeIDs.push(token.typeId);
+          userTokens.push({
+            id: token.id, // base64 encoded hex
+            typeId: token.typeId, // base64 encoded hex
+            owner: token.owner, // base64 encoded hex - bearer predicate
+            amount: token.amount, // fungible only
+            kind: token.kind,
+            decimals: token?.decimals || 0, // fungible only
+            txHash: token.txHash, // base64 encoded hex - latest tx
+            symbol: token.symbol,
+          });
+        } else {
+          for (let resultToken of userTokens) {
+            if (resultToken.typeId === token.typeId) {
+              resultToken.amount += token.amount;
+            }
+          }
+        }
+      }
+    }
+
+    const fungibleUTP =
+      userTokens?.map((obj: IFungibleResponse) => ({
+        id: obj.id,
+        typeId: obj.typeId,
+        name: obj.symbol,
+        network: "AB Testnet",
+        amount: obj.amount,
+        decimalFactor: Number("1e" + obj.decimals),
+        decimalPlaces: obj.decimals,
+        UIAmount:
+          convertToBigNumberString(obj.amount, Number("1e" + obj.decimals)) ||
+          "0",
+      })) || [];
+
+    const activeAssetTypeId = activeAsset?.typeId || "ALPHA";
     const accountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets.find((asset) => asset.id === activeAssetId)?.amount;
-    const fetchedBalance = balances?.find(
+      ?.assets.find((asset) => asset.typeId === activeAssetTypeId)?.amount;
+    const ALPHABalance = balances?.find(
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
+    const fetchedBalance =
+      activeAssetTypeId === "ALPHA"
+        ? ALPHABalance
+        : fungibleUTP?.find(
+            (token: IFungibleResponse) => token.typeId === activeAssetTypeId
+          )?.amount;
+
     if (
       (keysArr.length >= 1 && fetchedBalance !== accountBalance) ||
+      account.assets.length !== Number(fungibleUTP.length + 1) ||
       keysArr.length !== accounts.length
     ) {
       setAccounts(
@@ -132,21 +174,22 @@ export const AppProvider: FunctionComponent<{
           pubKey: key,
           idx: idx,
           name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
-          assets: [
+          assets: fungibleUTP.concat([
             {
               id: "ALPHA",
               name: "ALPHA",
               network: "AB Testnet",
-              amount: fetchedBalance,
+              amount: ALPHABalance,
               decimalFactor: ALPHADecimalFactor,
               decimalPlaces: ALPHADecimalPlaces,
               UIAmount:
                 convertToBigNumberString(
-                  Number(fetchedBalance),
+                  Number(ALPHABalance),
                   ALPHADecimalFactor
                 ) || "0",
+              typeId: "ALPHA",
             },
-          ],
+          ]),
           activeNetwork: "AB Testnet",
           networks: [
             {
@@ -168,7 +211,8 @@ export const AppProvider: FunctionComponent<{
     balances,
     activeAccountId,
     setActiveAccountId,
-    activeAssetId,
+    activeAsset,
+    userTokensList,
   ]);
 
   return (
