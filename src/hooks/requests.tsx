@@ -66,10 +66,9 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
 };
 
 export const fetchAllTypes = async (
-  kind: string,
-  creator = "",
-  limit = 100,
-  offsetKey = ""
+  kind: string = "fungible",
+  limit: number = 100,
+  offsetKey: string = ""
 ) => {
   const types = [];
   let nextOffsetKey: string | null = offsetKey;
@@ -79,7 +78,6 @@ export const fetchAllTypes = async (
       API_TOKENS_URL + `/kinds/${kind}/types`,
       {
         params: {
-          creator,
           limit,
           offsetKey: nextOffsetKey,
         },
@@ -202,7 +200,7 @@ export const makeTransaction = async (
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? API_TOKENS_URL : API_PARTITION_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    url + "/transactions" + "/" + pubKey,
+    `${url}/transactions/${pubKey}`,
     {
       ...data,
     }

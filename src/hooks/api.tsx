@@ -6,11 +6,13 @@ import {
   IProofsProps,
   ISwapTransferProps,
   ITransfer,
+  IUTPAssetTypes,
 } from "../types/Types";
 import axios from "axios";
 
 import {
   API_URL,
+  fetchAllTypes,
   getBalance,
   getBillsList,
   getProof,
@@ -51,15 +53,11 @@ export function useGetBillsList(
 export function useGetAllUserTokens(
   pubKey: string
 ): QueryObserverResult<IFungibleResponse[], AxiosError> {
-  return useQuery(
-    [`tokensList`, pubKey],
-    async () => getUserTokens(pubKey),
-    {
-      enabled: true,
-      keepPreviousData: true,
-      staleTime: Infinity,
-    }
-  );
+  return useQuery([`tokensList`, pubKey], async () => getUserTokens(pubKey), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
 }
 
 export function useGetUserTokens(
@@ -75,6 +73,16 @@ export function useGetUserTokens(
       staleTime: Infinity,
     }
   );
+}
+
+export function useGetAllTokenTypes(
+  pubKey: string
+): QueryObserverResult<IUTPAssetTypes[], AxiosError> {
+  return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
 }
 
 export function useGetProof(

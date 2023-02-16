@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
@@ -33,6 +33,9 @@ import {
   getOptimalBills,
   getBillsSum,
   convertToBigNumberString,
+  moneyTypeURL,
+  tokensTypeURL,
+  startByte,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -48,7 +51,7 @@ function Send(): JSX.Element | null {
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault, activeAccountId } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
@@ -57,28 +60,34 @@ function Send(): JSX.Element | null {
     label: "ALPHA",
   };
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
-    defaultAsset.value
+    defaultAsset?.value
   );
-  const activeAsset =
-    account?.assets.find(
-      (asset: IAsset) => asset.typeId === selectedAsset?.typeId || "ALPHA"
-    ) || account?.assets[0];
 
-  const balance = activeAsset.amount;
-  const decimalFactor = activeAsset.decimalFactor;
-  const decimalPlaces = activeAsset.decimalPlaces;
-  const availableAmount = convertToBigNumberString(
-    billsList
-      .filter(
-        (bill: IBill) =>
-          bill.isDCBill === false &&
-          !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-      )
-      .reduce((acc: number, obj: IBill) => {
-        return acc + obj?.value;
-      }, 0),
-    decimalFactor
+  const getAvailableAmount = useCallback(
+    (decimalFactor: number) => {
+      return convertToBigNumberString(
+        billsList
+          .filter(
+            (bill: IBill) =>
+              bill.isDCBill !== true &&
+              !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+          )
+          .reduce((acc: number, obj: IBill) => {
+            return acc + obj?.value;
+          }, 0),
+        decimalFactor
+      );
+    },
+    [billsList, lockedBills]
   );
+
+  const [availableAmount, setAvailableAmount] = useState<string>(
+    getAvailableAmount(selectedAsset?.decimalFactor || 1)
+  );
+
+  useEffect(() => {
+    setAvailableAmount(getAvailableAmount(selectedAsset?.decimalFactor || 1));
+  }, [selectedAsset, getAvailableAmount]);
 
   const lockedBillsAmount = billsList
     .filter((bill: IBill) =>
@@ -90,7 +99,10 @@ function Send(): JSX.Element | null {
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        convertToBigNumberString(Number(lockedBillsAmount), decimalFactor) +
+        convertToBigNumberString(
+          Number(lockedBillsAmount),
+          selectedAsset?.decimalFactor || 1
+        ) +
         " )"
       : "";
 
@@ -120,7 +132,7 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (balance === balanceAfterSending.current) {
+    if (selectedAsset?.amount === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -134,7 +146,7 @@ function Send(): JSX.Element | null {
     if (actionsView !== "Send" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
-  }, [balance, isSending, actionsView]);
+  }, [selectedAsset?.amount, isSending, actionsView]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -164,7 +176,7 @@ function Send(): JSX.Element | null {
           }
 
           const convertedAmount = new BigNumber(values.amount)
-            .multipliedBy(decimalFactor)
+            .multipliedBy(selectedAsset?.decimalFactor || 1)
             .toNumber();
           const billsArr = selectedSendKey
             ? ([
@@ -172,7 +184,7 @@ function Send(): JSX.Element | null {
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
-                  bill.isDCBill === false &&
+                  bill.isDCBill !== false &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
@@ -194,15 +206,30 @@ function Send(): JSX.Element | null {
           setIsSending(true);
 
           getBlockHeight().then(async (blockData) => {
+            let transferType =
+              tokensTypeURL + ".TransferFungibleTokenAttributes";
+            let splitType = tokensTypeURL + ".SplitFungibleTokenAttributes";
+            let systemId = "AAAAAg==";
+            let amountField = "targetValue";
+            let bearerField = "newBearer";
+            let transferField = "value";
+
+            if (selectedAsset?.typeId === "ALPHA") {
+              transferType = moneyTypeURL + ".TransferOrder";
+              splitType = moneyTypeURL + ".SplitOrder";
+              systemId = "AAAAAA==";
+              amountField = "amount";
+              transferField = "targetValue";
+            }
+
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {
-                systemId:
-                  selectedAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
+                systemId: systemId,
                 unitId: bill.id,
                 transactionAttributes: {
-                  "@type": "type.googleapis.com/rpc.TransferOrder",
+                  "@type": transferType,
                   newBearer: newBearer,
-                  targetValue: bill.value.toString(),
+                  [transferField]: bill.value.toString(),
                   backlink: bill.txHash,
                 },
                 timeout: blockData.blockHeight + timeoutBlocks,
@@ -214,6 +241,11 @@ function Send(): JSX.Element | null {
                 !billToSplit &&
                 !splitBillAmount;
 
+              if (selectedAsset?.typeId !== "ALPHA") {
+                transferData.transactionAttributes.invariantPredicateSignatures =
+                  [Buffer.from(startByte, "hex").toString("base64")];
+              }
+
               handleValidation(
                 await transferOrderHash(transferData),
                 blockData,
@@ -221,22 +253,33 @@ function Send(): JSX.Element | null {
                 isLastTransaction
               );
             });
+            console.log(billToSplit);
 
             if (billToSplit && splitBillAmount) {
+              const splitType =
+                selectedAsset?.typeId === "ALPHA"
+                  ? moneyTypeURL + ".SplitOrder"
+                  : tokensTypeURL + ".SplitFungibleTokenAttributes";
+
               const splitData: IProofTx = {
-                systemId:
-                  selectedAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
+                systemId: systemId,
                 unitId: billToSplit.id,
                 transactionAttributes: {
-                  "@type": "type.googleapis.com/rpc.SplitOrder",
-                  amount: splitBillAmount,
-                  targetBearer: newBearer,
+                  "@type": splitType,
+                  [amountField]: splitBillAmount,
+                  [bearerField]: newBearer,
                   remainingValue: billToSplit.value - splitBillAmount,
                   backlink: billToSplit.txHash,
                 },
                 timeout: blockData.blockHeight + timeoutBlocks,
                 ownerProof: "",
               };
+
+              if (selectedAsset?.typeId !== "ALPHA") {
+                splitData.transactionAttributes.invariantPredicateSignatures = [
+                  Buffer.from(startByte, "hex").toString("base64"),
+                ];
+              }
 
               handleValidation(
                 await splitOrderHash(splitData),
@@ -259,10 +302,14 @@ function Send(): JSX.Element | null {
               hashingPublicKey
             );
 
-            const dataWithProof = Object.assign(billData, {
+            let dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,
               timeout: blockData.blockHeight + timeoutBlocks,
             });
+
+            if (selectedAsset?.typeId !== "ALPHA") {
+              dataWithProof = { transactions: [dataWithProof] } as any;
+            }
 
             proof.isSignatureValid &&
               makeTransaction(
@@ -277,7 +324,7 @@ function Send(): JSX.Element | null {
 
                   balanceAfterSending.current = balanceAfterSending.current
                     ? balanceAfterSending.current - amount
-                    : balance - amount;
+                    : Number(selectedAsset?.amount) - amount;
                 })
                 .finally(() => {
                   if (isLastTransfer) {
@@ -323,11 +370,11 @@ function Send(): JSX.Element | null {
             .test(
               "is-decimal",
               "The amount should be a decimal with maximum " +
-                decimalPlaces +
+                selectedAsset?.decimalPlaces +
                 " digits after decimal point",
               (val: any) => {
                 const regexFloatString =
-                  "^\\d+(\\.\\d{0," + decimalPlaces + "})?$";
+                  "^\\d+(\\.\\d{0," + selectedAsset?.decimalPlaces + "})?$";
                 const regexFloat = new RegExp(regexFloatString);
 
                 if (val !== undefined) {
@@ -406,7 +453,9 @@ function Send(): JSX.Element | null {
                     className={selectedSendKey ? "d-none" : ""}
                     options={account?.assets
                       .filter(
-                        (asset) => account?.activeNetwork === asset.network
+                        (asset) =>
+                          account?.activeNetwork === asset.network &&
+                          asset.isSendable
                       )
                       .sort((a: IAsset, b: IAsset) => {
                         if (a?.name! < b?.name!) {
@@ -426,7 +475,28 @@ function Send(): JSX.Element | null {
                       label: "ALPHA",
                     }}
                     error={extractFormikError(errors, touched, ["assets"])}
-                    onChange={(_label, option: any) => setSelectedAsset(option)}
+                    onChange={(_label, option: any) => {
+                      setSelectedAsset(option);
+                      queryClient.invalidateQueries([
+                        "billsList",
+                        activeAccountId,
+                      ]);
+                      queryClient.invalidateQueries([
+                        "tokenList",
+                        activeAccountId,
+                        option.typeId || option.name,
+                      ]);
+                      queryClient.invalidateQueries([
+                        "tokensList",
+                        activeAccountId,
+                      ]);
+                      setActiveAssetLocal(
+                        JSON.stringify({
+                          name: option.name,
+                          typeId: option.typeId || option.name,
+                        })
+                      );
+                    }}
                   />
                   <Spacer mb={8} />
                   {selectedSendKey && (
@@ -456,12 +526,12 @@ function Send(): JSX.Element | null {
                       desc={
                         availableAmount +
                         " " +
-                        values.assets.label +
+                        values.assets?.label +
                         " available to send " +
                         lockedAmountLabel
                       }
                       type="text"
-                      floatingFixedPoint={decimalPlaces}
+                      floatingFixedPoint={selectedAsset?.decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
                         !Boolean(values.assets) || Boolean(selectedSendKey)
@@ -474,7 +544,7 @@ function Send(): JSX.Element | null {
                                 (bill: IBill) => bill.id === selectedSendKey
                               )?.value
                             ),
-                            decimalFactor
+                            selectedAsset?.decimalFactor
                           ) as string | undefined)) ||
                         ""
                       }

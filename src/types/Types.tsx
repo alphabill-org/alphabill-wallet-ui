@@ -1,6 +1,3 @@
-import { number } from "yup";
-import { string } from "yup/lib/locale";
-
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -21,12 +18,16 @@ export interface IAsset {
   decimalPlaces: number;
   UIAmount: string;
   typeId: string;
+  isSendable: boolean;
 }
 
 export interface IUTPAssetTypes {
   id: string; // base64 encoded hex
   parentTypeId: string; // base64 encoded hex
   symbol: string;
+  subTypeCreationPredicate: string;
+  tokenCreationPredicate: string;
+  invariantPredicate: string;
   decimalPlaces: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
@@ -52,6 +53,7 @@ export interface IFungibleAsset {
   decimalPlaces: number;
   UIAmount: string;
   typeId: string;
+  isSendable: boolean;
 }
 
 export interface IActiveAsset {
@@ -74,6 +76,8 @@ export interface IBill {
   value: number;
   txHash: string;
   isDCBill?: boolean;
+  typeId?: "ALPHA";
+  decimals?: number;
 }
 
 export interface ILockedBill {
@@ -108,11 +112,12 @@ export interface ITransfer {
     "@type": string;
     backlink?: string;
     newBearer?: string;
-    targetValue?: string;
     remainingValue?: number;
     targetBearer?: string;
     amount?: number;
     nonce?: string;
+    targetValue?: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: number;
   ownerProof: string;
@@ -149,6 +154,7 @@ export interface ISwapProps {
     ownerCondition: string;
     proofs: IProof[];
     targetValue: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: number;
   ownerProof: string;
@@ -179,15 +185,16 @@ export interface IProofTx {
     "@type": string;
     nonce?: string;
     targetBearer?: string;
-    targetValue?: number | string;
     backlink: string;
-    newBearer?: string;
     amount?: number;
     ownerCondition?: string;
     billIdentifiers?: string[];
     remainingValue?: number;
     proofs?: IProof[];
     dcTransfers?: IProofTx[];
+    targetValue?: string;
+    newBearer?: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: number;
   ownerProof: string;
@@ -264,6 +271,7 @@ export interface ISwapTransferProps {
     ownerCondition: string;
     proofs: IProof[];
     targetValue: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: number;
   ownerProof: string;

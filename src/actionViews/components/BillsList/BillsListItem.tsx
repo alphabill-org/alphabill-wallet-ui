@@ -1,6 +1,6 @@
 import { useQueryClient } from "react-query";
 
-import { IBill, ILockedBill } from "../../../types/Types";
+import { IActiveAsset, IBill, ILockedBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
@@ -24,6 +24,7 @@ export interface IBillsListItemProps {
   isLockedBills?: boolean;
   lockedBills: ILockedBill[];
   setLockedBillsLocal: (e: string) => void;
+  activeAsset: IActiveAsset;
 }
 
 function BillsListItem({
@@ -40,6 +41,7 @@ function BillsListItem({
   isLockedBills,
   setLockedBillsLocal,
   lockedBills,
+  activeAsset
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: number | null = null;
   const queryClient = useQueryClient();
@@ -62,7 +64,10 @@ function BillsListItem({
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>
                     Denomination:{" "}
-                    {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
+                    {convertToBigNumberString(bill.value, activeAsset.typeId === "ALPHA"
+                          ? ALPHADecimalFactor
+                          : Number("1e" + (bill?.decimals || 0))
+                      )}
                   </div>
                 </div>
               </>

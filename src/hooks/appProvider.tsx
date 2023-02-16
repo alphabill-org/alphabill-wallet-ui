@@ -8,8 +8,14 @@ import {
 } from "react";
 import { isString } from "lodash";
 
-import { IAccount, ILockedBill, IFungibleResponse } from "../types/Types";
 import {
+  IAccount,
+  ILockedBill,
+  IFungibleResponse,
+  IUTPAssetTypes,
+} from "../types/Types";
+import {
+  useGetAllTokenTypes,
   useGetAllUserTokens,
   useGetBalances,
   useGetBillsList,
@@ -76,6 +82,7 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeAsset.typeId
   );
+  const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
   const billsList = activeAsset.typeId === "ALPHA" ? alphaList : tokenList;
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
@@ -144,15 +151,20 @@ export const AppProvider: FunctionComponent<{
         amount: obj.amount,
         decimalFactor: Number("1e" + obj.decimals),
         decimalPlaces: obj.decimals,
+        isSendable:
+          tokenTypes?.find((type: IUTPAssetTypes) => type.id === obj.typeId)
+            ?.subTypeCreationPredicate === "U1EB",
         UIAmount:
-          convertToBigNumberString(obj.amount, Number("1e" + obj.decimals)) ||
-          "0",
+          convertToBigNumberString(
+            obj.amount,
+            Number("1e" + (obj?.decimals || 0))
+          ) || "0",
       })) || [];
 
     const activeAssetTypeId = activeAsset?.typeId || "ALPHA";
     const accountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets.find((asset) => asset.typeId === activeAssetTypeId)?.amount;
+      ?.assets?.find((asset) => asset.typeId === activeAssetTypeId)?.amount;
     const ALPHABalance = balances?.find(
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
@@ -166,7 +178,7 @@ export const AppProvider: FunctionComponent<{
 
     if (
       (keysArr.length >= 1 && fetchedBalance !== accountBalance) ||
-      account.assets.length !== Number(fungibleUTP.length + 1) ||
+      account?.assets?.length !== Number(fungibleUTP.length + 1) ||
       keysArr.length !== accounts.length
     ) {
       setAccounts(
@@ -188,6 +200,7 @@ export const AppProvider: FunctionComponent<{
                   ALPHADecimalFactor
                 ) || "0",
               typeId: "ALPHA",
+              isSendable: true,
             },
           ]),
           activeNetwork: "AB Testnet",
@@ -213,6 +226,7 @@ export const AppProvider: FunctionComponent<{
     setActiveAccountId,
     activeAsset,
     userTokensList,
+    account?.assets?.length,
   ]);
 
   return (

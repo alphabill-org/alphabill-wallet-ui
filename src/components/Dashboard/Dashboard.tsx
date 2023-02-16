@@ -27,7 +27,7 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets.find((asset: IAsset) => asset.typeId === activeAsset.typeId)
+    account?.assets?.find((asset: IAsset) => asset.typeId === activeAsset.typeId)
       ?.UIAmount || "";
 
   const balanceSizeClass =
@@ -149,6 +149,9 @@ function Dashboard(): JSX.Element | null {
           variant="primary"
           onClick={() => {
             setActionsView("Send");
+            setActiveAssetLocal(
+              JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
+            );
             setIsActionsViewVisible(true);
             queryClient.invalidateQueries(["billsList", activeAccountId]);
             queryClient.invalidateQueries(["balance", activeAccountId]);
@@ -182,7 +185,8 @@ function Dashboard(): JSX.Element | null {
               sortedAssets
                 .filter(
                   (asset: IAsset) => asset.network === account?.activeNetwork
-                ).sort((a: IAsset, b: IAsset) => {
+                )
+                .sort((a: IAsset, b: IAsset) => {
                   if (a?.name! < b?.name!) {
                     return -1;
                   }
@@ -203,6 +207,8 @@ function Dashboard(): JSX.Element | null {
                           JSON.stringify({
                             name: asset.name,
                             typeId: asset.typeId,
+                            decimalFactor: asset.decimalFactor,
+                            decimalPlaces: asset.decimalPlaces,
                           })
                         );
                         queryClient.invalidateQueries([

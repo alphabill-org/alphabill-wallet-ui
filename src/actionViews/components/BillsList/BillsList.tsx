@@ -173,7 +173,7 @@ function BillsList(): JSX.Element | null {
         activeAsset
       );
     },
-    [DCBills, account, lastNonceIDs, password, vault, activeAccountId]
+    [DCBills, account, lastNonceIDs, password, vault, activeAccountId, activeAsset]
   );
 
   // Effects
@@ -257,7 +257,12 @@ function BillsList(): JSX.Element | null {
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                       Denomination:{" "}
-                      {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
+                      {convertToBigNumberString(
+                        bill.value,
+                        activeAsset.typeId === "ALPHA"
+                          ? ALPHADecimalFactor
+                          : Number("1e" + (bill?.decimals || 0))
+                      )}
                     </div>
                     <Spacer mb={2} />
                   </>
@@ -345,6 +350,7 @@ function BillsList(): JSX.Element | null {
               setSelectedSendKey={setSelectedSendKey}
               lockedBills={lockedBills}
               setLockedBillsLocal={setLockedBillsLocal}
+              activeAsset={activeAsset}
             />
           </>
         )}
@@ -374,6 +380,7 @@ function BillsList(): JSX.Element | null {
             setActionsView={setActionsView}
             setIsActionsViewVisible={setIsActionsViewVisible}
             setSelectedSendKey={setSelectedSendKey}
+            activeAsset={activeAsset}
           />
         )}
         <Spacer mt={32} />

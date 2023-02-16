@@ -88,20 +88,62 @@ export const swapProofsBuffer = (proofs: IProof[]) =>
 export const identifiersBuffer = (billIdentifiers: string[]) =>
   Buffer.concat(billIdentifiers.map((i) => Buffer.from(i, "base64")));
 
-export const transferAttributesBuffer = (tx: IProofTx) =>
-  secp.utils.concatBytes(
+export const transferAttributesBuffer = (tx: any) => {
+  let transferField = "value";
+  let bytes = secp.utils.concatBytes(
     Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
-    new Uint64BE(Number(tx.transactionAttributes.targetValue!)).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink, "base64")
+    new Uint64BE(Number(tx.transactionAttributes[transferField])).toBuffer(),
+    Buffer.from(tx.transactionAttributes.backlink, "base64"),
+    Buffer.from(tx.transactionAttributes.invariantPredicateSignatures, "base64")
+  );
+  if (
+    tx.transactionAttributes["@type"] ===
+    "type.googleapis.com/rpc.TransferOrder"
+  ) {
+    transferField = "targetValue";
+  } else {
+    bytes = secp.utils.concatBytes(
+      bytes,
+      Buffer.from(
+        tx.transactionAttributes.invariantPredicateSignatures,
+        "base64"
+      )
+    );
+  }
+
+  return bytes;
+};
+
+export const splitAttributesBuffer = (tx: any) => {
+  let amountField: string = "targetValue";
+  let bearerField: string = "newBearer";
+
+  let bytes = secp.utils.concatBytes(
+    new Uint64BE(Number(tx.transactionAttributes[amountField])).toBuffer(),
+    Buffer.from(tx.transactionAttributes[bearerField] as string, "base64"),
+    new Uint64BE(Number(tx.transactionAttributes.remainingValue)).toBuffer(),
+    Buffer.from(tx.transactionAttributes.backlink!, "base64"),
+    Buffer.from(tx.transactionAttributes.invariantPredicateSignatures, "base64")
   );
 
-export const splitAttributesBuffer = (tx: IProofTx | ITransfer) =>
-  secp.utils.concatBytes(
-    new Uint64BE(Number(tx.transactionAttributes.amount)).toBuffer(),
-    Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-    new Uint64BE(Number(tx.transactionAttributes.remainingValue)).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink!, "base64")
-  );
+  if (
+    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
+  ) {
+    amountField = "amount";
+    bearerField = "targetBearer";
+  } else {
+    bytes = secp.utils.concatBytes(
+      bytes,
+      Buffer.from(
+        tx.transactionAttributes.invariantPredicateSignatures,
+        "base64"
+      )
+    );
+  }
+
+  return bytes;
+};
+
 export const dcAttributesBuffer = (tx: IProofTx | ITransfer) =>
   secp.utils.concatBytes(
     Buffer.from(tx.transactionAttributes.nonce!, "base64"),
@@ -152,15 +194,30 @@ export const dcOrderHash = async (
   bill: IBill,
   nonceHash: Uint8Array
 ) => {
-  return await secp.utils.sha256(
-    secp.utils.concatBytes(
-      Buffer.from(tx.systemId, "base64"),
-      Buffer.from(tx.unitId, "base64"),
-      new Uint64BE(tx.timeout).toBuffer(),
-      Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
-      Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-      new Uint64BE(bill.value).toBuffer(),
-      Buffer.from(bill.txHash, "base64")
-    )
-  );
+  if (
+    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
+  ) {
+    return await secp.utils.sha256(
+      secp.utils.concatBytes(
+        Buffer.from(tx.systemId, "base64"),
+        Buffer.from(tx.unitId, "base64"),
+        new Uint64BE(tx.timeout).toBuffer(),
+        Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
+        Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
+        new Uint64BE(bill.value).toBuffer(),
+        Buffer.from(bill.txHash, "base64")
+      )
+    );
+  } else {
+    return await secp.utils.sha256(
+      secp.utils.concatBytes(
+        Buffer.from(tx.systemId, "base64"),
+        Buffer.from(tx.unitId, "base64"),
+        new Uint64BE(tx.timeout).toBuffer(),
+        Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
+        new Uint64BE(bill.value).toBuffer(),
+        Buffer.from(bill.txHash, "base64")
+      )
+    );
+  }
 };

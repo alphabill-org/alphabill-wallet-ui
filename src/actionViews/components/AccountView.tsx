@@ -42,6 +42,7 @@ function AccountView(): JSX.Element | null {
     setActiveAccountId,
     setVault,
     activeAsset,
+    setActiveAssetLocal,
   } = useAuth();
   const { accounts, setIsActionsViewVisible } = useApp();
   const queryClient = useQueryClient();
@@ -65,6 +66,9 @@ function AccountView(): JSX.Element | null {
               className="account"
               onClick={() => {
                 setActiveAccountId(account?.pubKey);
+                setActiveAssetLocal(
+                  JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
+                );
                 setIsActionsViewVisible(false);
                 queryClient.invalidateQueries(["balance", account?.pubKey]);
                 queryClient.invalidateQueries(["billsList", activeAccountId]);
