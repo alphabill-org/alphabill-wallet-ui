@@ -73,7 +73,12 @@ function Dashboard(): JSX.Element | null {
         >
           {balance || "0"}
         </div>
-        <div className={classNames("dashboard__balance-id t-ellipsis", balanceSizeClass)}>
+        <div
+          className={classNames(
+            "dashboard__balance-id t-ellipsis",
+            balanceSizeClass
+          )}
+        >
           {activeAsset.name}
         </div>
       </div>
@@ -196,9 +201,13 @@ function Dashboard(): JSX.Element | null {
                   }
                   return 0;
                 })
+                .sort(function (a, b) {
+                  if (a.id === "ALPHA") {
+                    return -1; // Move the object with the given ID to the beginning of the array
+                  }
+                  return 1;
+                })
                 .map((asset: IAsset | IFungibleAsset, idx: number) => {
-                  // API supports only AB balance at the moment
-
                   return (
                     <div
                       key={idx}
@@ -231,10 +240,10 @@ function Dashboard(): JSX.Element | null {
                         )}
                       </div>
                       <div className="dashboard__info-item-desc">
-                        {asset.UIAmount || 0}
-                        <span className="t-ellipsis pad-8-l">
-                          {asset?.name}
+                        <span className="t-ellipsis pad-8-r">
+                          {asset.UIAmount || 0}
                         </span>
+                        <span className="t-ellipsis">{asset?.name}</span>
                       </div>
 
                       <Button
