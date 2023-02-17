@@ -347,8 +347,8 @@ export const opCheckSig = "ac";
 export const opEqual = "87";
 export const opVerify = "69";
 export const sigScheme = "01";
-export const moneyTypeURL = "type.googleapis.com/rpc";
-export const tokensTypeURL = "type.googleapis.com/alphabill.tokens.v1";
+export const moneyTypeURL = "type.googleapis.com/rpc.";
+export const tokensTypeURL = "type.googleapis.com/alphabill.tokens.v1.";
 
 export const timeoutBlocks = 10;
 export const swapTimeout = 40;

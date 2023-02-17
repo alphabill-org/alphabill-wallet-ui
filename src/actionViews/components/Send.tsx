@@ -207,16 +207,16 @@ function Send(): JSX.Element | null {
 
           getBlockHeight().then(async (blockData) => {
             let transferType =
-              tokensTypeURL + ".TransferFungibleTokenAttributes";
-            let splitType = tokensTypeURL + ".SplitFungibleTokenAttributes";
+              tokensTypeURL + "TransferFungibleTokenAttributes";
+            let splitType = tokensTypeURL + "SplitFungibleTokenAttributes";
             let systemId = "AAAAAg==";
             let amountField = "targetValue";
             let bearerField = "newBearer";
             let transferField = "value";
 
             if (selectedAsset?.typeId === "ALPHA") {
-              transferType = moneyTypeURL + ".TransferOrder";
-              splitType = moneyTypeURL + ".SplitOrder";
+              transferType = moneyTypeURL + "TransferOrder";
+              splitType = moneyTypeURL + "SplitOrder";
               systemId = "AAAAAA==";
               amountField = "amount";
               transferField = "targetValue";
@@ -244,6 +244,7 @@ function Send(): JSX.Element | null {
               if (selectedAsset?.typeId !== "ALPHA") {
                 transferData.transactionAttributes.invariantPredicateSignatures =
                   [Buffer.from(startByte, "hex").toString("base64")];
+                transferData.transactionAttributes.type = bill.typeId;
               }
 
               handleValidation(
@@ -253,14 +254,8 @@ function Send(): JSX.Element | null {
                 isLastTransaction
               );
             });
-            console.log(billToSplit);
 
             if (billToSplit && splitBillAmount) {
-              const splitType =
-                selectedAsset?.typeId === "ALPHA"
-                  ? moneyTypeURL + ".SplitOrder"
-                  : tokensTypeURL + ".SplitFungibleTokenAttributes";
-
               const splitData: IProofTx = {
                 systemId: systemId,
                 unitId: billToSplit.id,
@@ -279,6 +274,7 @@ function Send(): JSX.Element | null {
                 splitData.transactionAttributes.invariantPredicateSignatures = [
                   Buffer.from(startByte, "hex").toString("base64"),
                 ];
+                splitData.transactionAttributes.type = billToSplit.typeId;
               }
 
               handleValidation(

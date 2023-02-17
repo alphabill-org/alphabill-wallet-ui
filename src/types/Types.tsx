@@ -195,6 +195,7 @@ export interface IProofTx {
     targetValue?: string;
     newBearer?: string;
     invariantPredicateSignatures?: string[];
+    type?: string;
   };
   timeout: number;
   ownerProof: string;

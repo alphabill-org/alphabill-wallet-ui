@@ -123,7 +123,6 @@ export const splitAttributesBuffer = (tx: any) => {
     Buffer.from(tx.transactionAttributes[bearerField] as string, "base64"),
     new Uint64BE(Number(tx.transactionAttributes.remainingValue)).toBuffer(),
     Buffer.from(tx.transactionAttributes.backlink!, "base64"),
-    Buffer.from(tx.transactionAttributes.invariantPredicateSignatures, "base64")
   );
 
   if (
@@ -133,6 +132,10 @@ export const splitAttributesBuffer = (tx: any) => {
     bearerField = "targetBearer";
   } else {
     bytes = secp.utils.concatBytes(
+      Buffer.from(
+        tx.transactionAttributes.type,
+        "base64"
+      ),
       bytes,
       Buffer.from(
         tx.transactionAttributes.invariantPredicateSignatures,
