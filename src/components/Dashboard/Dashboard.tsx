@@ -27,8 +27,9 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets?.find((asset: IAsset) => asset.typeId === activeAsset.typeId)
-      ?.UIAmount || "";
+    account?.assets?.find(
+      (asset: IAsset) => asset.typeId === activeAsset.typeId
+    )?.UIAmount || "";
 
   const balanceSizeClass =
     balance?.length > 7 ? (balance?.length > 12 ? "x-small" : "small") : "";
@@ -72,7 +73,7 @@ function Dashboard(): JSX.Element | null {
         >
           {balance || "0"}
         </div>
-        <div className={classNames("dashboard__balance-id", balanceSizeClass)}>
+        <div className={classNames("dashboard__balance-id t-ellipsis", balanceSizeClass)}>
           {activeAsset.name}
         </div>
       </div>
@@ -229,10 +230,11 @@ function Dashboard(): JSX.Element | null {
                           </div>
                         )}
                       </div>
-                      <div>
-                        <div>
-                          {asset.UIAmount || 0} {asset?.name}
-                        </div>
+                      <div className="dashboard__info-item-desc">
+                        {asset.UIAmount || 0}
+                        <span className="t-ellipsis pad-8-l">
+                          {asset?.name}
+                        </span>
                       </div>
 
                       <Button
