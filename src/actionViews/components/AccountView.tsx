@@ -71,13 +71,13 @@ function AccountView(): JSX.Element | null {
                 );
                 setIsActionsViewVisible(false);
                 queryClient.invalidateQueries(["balance", account?.pubKey]);
-                queryClient.invalidateQueries(["billsList", activeAccountId]);
+                queryClient.invalidateQueries(["billsList", account?.pubKey]);
                 queryClient.invalidateQueries([
                   "tokenList",
-                  activeAccountId,
+                  account?.pubKey,
                   activeAsset.typeId,
                 ]);
-                queryClient.invalidateQueries(["tokensList", activeAccountId]);
+                queryClient.invalidateQueries(["tokensList", account?.pubKey]);
               }}
             >
               <div className="account__item">

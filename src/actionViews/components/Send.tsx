@@ -51,7 +51,7 @@ function Send(): JSX.Element | null {
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } = useAuth();
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
@@ -116,6 +116,12 @@ function Send(): JSX.Element | null {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["balance", activeAccountId]);
       queryClient.invalidateQueries(["billsList", activeAccountId]);
+      queryClient.invalidateQueries([
+        "tokenList",
+        activeAccountId,
+        activeAsset.typeId,
+      ]);
+      queryClient.invalidateQueries(["tokensList", activeAccountId]);
       getBlockHeight().then((blockData) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockData.blockHeight;
