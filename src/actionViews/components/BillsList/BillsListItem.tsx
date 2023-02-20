@@ -41,7 +41,7 @@ function BillsListItem({
   isLockedBills,
   setLockedBillsLocal,
   lockedBills,
-  activeAsset
+  activeAsset,
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: number | null = null;
   const queryClient = useQueryClient();
@@ -64,10 +64,12 @@ function BillsListItem({
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>
                     Denomination:{" "}
-                    {convertToBigNumberString(bill.value, activeAsset.typeId === "ALPHA"
-                          ? ALPHADecimalFactor
-                          : Number("1e" + (bill?.decimals || 0))
-                      )}
+                    {convertToBigNumberString(
+                      bill.value,
+                      activeAsset.typeId === "ALPHA"
+                        ? ALPHADecimalFactor
+                        : Number("1e" + (bill?.decimals || 0))
+                    )}
                   </div>
                 </div>
               </>
@@ -76,21 +78,23 @@ function BillsListItem({
               <Spacer mt={8} />
               <div className="flex flex-align-c pad-24-h pad-8-b">
                 <Spacer mt={8} />
-                <Button
-                  onClick={() => {
-                    setActiveBill(bill);
-                    setIsProofVisible(bill);
-                    queryClient.invalidateQueries([
-                      "proof",
-                      base64ToHexPrefixed(bill.id),
-                    ]);
-                  }}
-                  xSmall
-                  type="button"
-                  variant="primary"
-                >
-                  Proof
-                </Button>
+                {bill?.kind !== 2 && (
+                  <Button
+                    onClick={() => {
+                      setActiveBill(bill);
+                      setIsProofVisible(bill);
+                      queryClient.invalidateQueries([
+                        "proof",
+                        base64ToHexPrefixed(bill.id),
+                      ]);
+                    }}
+                    xSmall
+                    type="button"
+                    variant="primary"
+                  >
+                    Proof
+                  </Button>
+                )}
 
                 <span className="pad-8-l">
                   {!isLockedBills ? (

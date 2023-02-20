@@ -76,7 +76,8 @@ export interface IBill {
   value: number;
   txHash: string;
   isDCBill?: boolean;
-  typeId?: "ALPHA";
+  typeId?: string;
+  kind?: number;
   decimals?: number;
 }
 

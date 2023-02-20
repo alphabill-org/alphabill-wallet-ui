@@ -36,6 +36,7 @@ import {
   moneyTypeURL,
   tokensTypeURL,
   startByte,
+  invalidateAllLists,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -51,13 +52,14 @@ function Send(): JSX.Element | null {
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
+    useAuth();
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === "ALPHA"),
-    label: "ALPHA",
+      .find((asset) => asset.typeId === activeAsset.typeId),
+    label: activeAsset.name,
   };
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
     defaultAsset?.value
@@ -114,14 +116,8 @@ function Send(): JSX.Element | null {
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
-      queryClient.invalidateQueries(["balance", activeAccountId]);
-      queryClient.invalidateQueries(["billsList", activeAccountId]);
-      queryClient.invalidateQueries([
-        "tokenList",
-        activeAccountId,
-        activeAsset.typeId,
-      ]);
-      queryClient.invalidateQueries(["tokensList", activeAccountId]);
+      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+
       getBlockHeight().then((blockData) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockData.blockHeight;
@@ -138,7 +134,11 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (selectedAsset?.amount === balanceAfterSending.current) {
+    const activeAssetAmount = account?.assets
+      .filter((asset) => account?.activeNetwork === asset.network)
+      .find((asset) => asset.typeId === activeAsset.typeId)?.amount;
+
+    if (activeAssetAmount === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -152,7 +152,13 @@ function Send(): JSX.Element | null {
     if (actionsView !== "Send" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
-  }, [selectedAsset?.amount, isSending, actionsView]);
+  }, [
+    account.assets,
+    account?.activeNetwork,
+    activeAsset.typeId,
+    isSending,
+    actionsView,
+  ]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -425,10 +431,11 @@ function Send(): JSX.Element | null {
                             onClick={() => {
                               setActionsView("Bills List");
                               setIsActionsViewVisible(true);
-                              queryClient.invalidateQueries([
-                                "billsList",
+                              invalidateAllLists(
                                 activeAccountId,
-                              ]);
+                                activeAsset.typeId,
+                                queryClient
+                              );
                             }}
                             type="button"
                             variant="link"
@@ -474,24 +481,16 @@ function Send(): JSX.Element | null {
                       }))}
                     defaultValue={{
                       value: defaultAsset,
-                      label: "ALPHA",
+                      label: defaultAsset.label,
                     }}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={(_label, option: any) => {
                       setSelectedAsset(option);
-                      queryClient.invalidateQueries([
-                        "billsList",
+                      invalidateAllLists(
                         activeAccountId,
-                      ]);
-                      queryClient.invalidateQueries([
-                        "tokenList",
-                        activeAccountId,
-                        option.typeId || option.name,
-                      ]);
-                      queryClient.invalidateQueries([
-                        "tokensList",
-                        activeAccountId,
-                      ]);
+                        activeAsset.typeId,
+                        queryClient
+                      );
                       setActiveAssetLocal(
                         JSON.stringify({
                           name: option.name,
@@ -590,7 +589,11 @@ function Send(): JSX.Element | null {
             onClick={() => {
               setActionsView("Bills List");
               setIsActionsViewVisible(true);
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             }}
             variant="link"
             type="button"

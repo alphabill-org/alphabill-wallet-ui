@@ -7,6 +7,7 @@ import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { differenceBy } from "lodash";
 import BigNumber from "bignumber.js";
+import { QueryClient } from "react-query";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
 
@@ -335,6 +336,17 @@ export const convertToBigNumberString = (
   const bigNum = new BigNumber(num).dividedBy(dividedBy);
   const decimals = getDecimalPlaces(bigNum);
   return bigNum.toFixed(decimals);
+};
+
+export const invalidateAllLists = (
+  pubKey: string,
+  assetTypeId: string,
+  queryClient: QueryClient
+) => {
+  queryClient.invalidateQueries(["tokenList", pubKey, assetTypeId]);
+  queryClient.invalidateQueries(["tokensList", pubKey]);
+  queryClient.invalidateQueries(["billsList", pubKey]);
+  queryClient.invalidateQueries(["balance", pubKey]);
 };
 
 export const startByte = "53";

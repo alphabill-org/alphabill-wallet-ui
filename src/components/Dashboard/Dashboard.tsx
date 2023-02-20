@@ -15,7 +15,7 @@ import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { useDocumentClick } from "../../utils/utils";
+import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -142,10 +142,9 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={8} />
       <div className="dashboard__buttons">
         <Button
-          onClick={() => {
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
-          }}
+          onClick={() =>
+            invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient)
+          }
           variant="primary"
         >
           <div className="pad-8-r">Refresh</div>
@@ -159,8 +158,11 @@ function Dashboard(): JSX.Element | null {
               JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
             );
             setIsActionsViewVisible(true);
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
+            invalidateAllLists(
+              activeAccountId,
+              activeAsset.typeId,
+              queryClient
+            );
           }}
         >
           Send bills
@@ -172,7 +174,11 @@ function Dashboard(): JSX.Element | null {
           <div
             onClick={() => {
               setIsAssetsColActive(true);
-              queryClient.invalidateQueries(["balance", account?.pubKey]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             }}
             className={classNames("dashboard__navbar-item", {
               active: isAssetsColActive === true,
@@ -221,11 +227,11 @@ function Dashboard(): JSX.Element | null {
                             decimalPlaces: asset.decimalPlaces,
                           })
                         );
-                        queryClient.invalidateQueries([
-                          "tokenList",
+                        invalidateAllLists(
                           activeAccountId,
-                          asset.typeId,
-                        ]);
+                          activeAsset.typeId,
+                          queryClient
+                        );
                       }}
                     >
                       <div className="dashboard__info-item-icon">
@@ -253,14 +259,11 @@ function Dashboard(): JSX.Element | null {
                         onClick={() => {
                           setActionsView("Bills List");
                           setIsActionsViewVisible(true);
-                          queryClient.invalidateQueries([
-                            "balance",
+                          invalidateAllLists(
                             activeAccountId,
-                          ]);
-                          queryClient.invalidateQueries([
-                            "billsList",
-                            activeAccountId,
-                          ]);
+                            activeAsset.typeId,
+                            queryClient
+                          );
                         }}
                       >
                         Show Bills

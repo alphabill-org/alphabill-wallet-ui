@@ -14,6 +14,7 @@ import {
   checkPassword,
   extractFormikError,
   getKeys,
+  invalidateAllLists,
   unit8ToHexPrefixed,
 } from "../../utils/utils";
 import Button from "../../components/Button/Button";
@@ -70,14 +71,11 @@ function AccountView(): JSX.Element | null {
                   JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
                 );
                 setIsActionsViewVisible(false);
-                queryClient.invalidateQueries(["balance", account?.pubKey]);
-                queryClient.invalidateQueries(["billsList", account?.pubKey]);
-                queryClient.invalidateQueries([
-                  "tokenList",
-                  account?.pubKey,
+                invalidateAllLists(
+                  activeAccountId,
                   activeAsset.typeId,
-                ]);
-                queryClient.invalidateQueries(["tokensList", account?.pubKey]);
+                  queryClient
+                );
               }}
             >
               <div className="account__item">
@@ -189,7 +187,11 @@ function AccountView(): JSX.Element | null {
 
               setActiveAccountId(prefixedHashingPubKey);
               setIsAddPopupVisible(false);
-              queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             };
 
             if (

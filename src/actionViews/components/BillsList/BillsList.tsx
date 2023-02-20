@@ -173,7 +173,15 @@ function BillsList(): JSX.Element | null {
         activeAsset
       );
     },
-    [DCBills, account, lastNonceIDs, password, vault, activeAccountId, activeAsset]
+    [
+      DCBills,
+      account,
+      lastNonceIDs,
+      password,
+      vault,
+      activeAccountId,
+      activeAsset,
+    ]
   );
 
   // Effects
@@ -282,42 +290,46 @@ function BillsList(): JSX.Element | null {
           })}
         </div>
         <div className="t-medium-small pad-24-h">
-          <Spacer mt={16} />
-
-          <Button
-            className="w-100p"
-            small
-            type="button"
-            variant="primary"
-            working={isConsolidationLoading}
-            disabled={
-              (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
-              isConsolidationLoading
-            }
-            onClick={() => {
-              if (password) {
-                handleDC(
-                  addInterval,
-                  setIsConsolidationLoading,
-                  setLastNonceIDsLocal,
-                  setHasSwapBegun,
-                  handleSwap,
-                  account,
-                  password,
-                  vault,
-                  unlockedBills,
-                  DCBills,
-                  lastNonceIDs,
-                  activeAccountId,
-                  activeAsset
-                );
-              } else {
-                setIsPasswordFormVisible("handleDC");
-              }
-            }}
-          >
-            Consolidate Bills
-          </Button>
+          {activeAsset.typeId === "ALPHA" && (
+            <>
+              {" "}
+              <Spacer mt={16} />
+              <Button
+                className="w-100p"
+                small
+                type="button"
+                variant="primary"
+                working={isConsolidationLoading}
+                disabled={
+                  (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
+                  isConsolidationLoading
+                }
+                onClick={() => {
+                  if (password) {
+                    handleDC(
+                      addInterval,
+                      setIsConsolidationLoading,
+                      setLastNonceIDsLocal,
+                      setHasSwapBegun,
+                      handleSwap,
+                      account,
+                      password,
+                      vault,
+                      unlockedBills,
+                      DCBills,
+                      lastNonceIDs,
+                      activeAccountId,
+                      activeAsset
+                    );
+                  } else {
+                    setIsPasswordFormVisible("handleDC");
+                  }
+                }}
+              >
+                Consolidate Bills
+              </Button>
+            </>
+          )}
         </div>
         {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
