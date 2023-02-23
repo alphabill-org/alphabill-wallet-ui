@@ -12,7 +12,7 @@ import {
   IAccount,
   ILockedBill,
   IFungibleResponse,
-  IUTPAssetTypes,
+  IUserTokensListTypes,
 } from "../types/Types";
 import {
   useGetAllTokenTypes,
@@ -27,6 +27,7 @@ import {
   convertToBigNumberString,
   ALPHADecimalFactor,
   ALPHADecimalPlaces,
+  checkOwnerPredicate,
 } from "../utils/utils";
 
 interface IAppContextShape {
@@ -152,7 +153,7 @@ export const AppProvider: FunctionComponent<{
         decimalFactor: Number("1e" + obj.decimals),
         decimalPlaces: obj.decimals,
         isSendable:
-          tokenTypes?.find((type: IUTPAssetTypes) => type.id === obj.typeId)
+          tokenTypes?.find((type: IUserTokensListTypes) => type.id === obj.typeId)
             ?.subTypeCreationPredicate === "U1EB",
         UIAmount:
           convertToBigNumberString(

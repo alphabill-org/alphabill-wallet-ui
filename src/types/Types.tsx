@@ -21,7 +21,7 @@ export interface IAsset {
   isSendable: boolean;
 }
 
-export interface IUTPAssetTypes {
+export interface IUserTokensListTypes {
   id: string; // base64 encoded hex
   parentTypeId: string; // base64 encoded hex
   symbol: string;
@@ -69,6 +69,15 @@ export interface INonFungibleAsset {
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
+}
+
+export interface ITypeHierarchy {
+  id: string; //base64 encoded hex
+  parentTypeId: string; //base64 encoded hex
+  symbol: string;
+  decimalPlaces: number; // [0..8] fungible only
+  kind: number; //  [2:Fungible|4:NonFungible],
+  txHash: string; //base64 encoded hex - creation tx
 }
 
 export interface IBill {

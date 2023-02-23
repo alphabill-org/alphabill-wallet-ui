@@ -6,7 +6,8 @@ import {
   IProofsProps,
   ISwapTransferProps,
   ITransfer,
-  IUTPAssetTypes,
+  ITypeHierarchy,
+  IUserTokensListTypes,
 } from "../types/Types";
 
 import {
@@ -14,6 +15,7 @@ import {
   getBalance,
   getBillsList,
   getProof,
+  getTypeHierarchy,
   getUserTokens,
   makeTransaction,
 } from "./requests";
@@ -68,7 +70,7 @@ export function useGetUserTokens(
 
 export function useGetAllTokenTypes(
   pubKey: string
-): QueryObserverResult<IUTPAssetTypes[], AxiosError> {
+): QueryObserverResult<IUserTokensListTypes[], AxiosError> {
   return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
     enabled: true,
     keepPreviousData: true,
@@ -76,18 +78,28 @@ export function useGetAllTokenTypes(
   });
 }
 
-export function useGetProof(
-  billID: string
-): QueryObserverResult<IProofsProps, AxiosError> {
+export function useGeTypeHierarchy(
+  typeId: string
+): QueryObserverResult<ITypeHierarchy[], AxiosError> {
   return useQuery(
-    [`proof`, billID],
-    async () => getProof(billID),
+    [`typeHierarchy`, typeId],
+    async () => getTypeHierarchy(typeId),
     {
       enabled: true,
       keepPreviousData: true,
       staleTime: Infinity,
     }
   );
+}
+
+export function useGetProof(
+  billID: string
+): QueryObserverResult<IProofsProps, AxiosError> {
+  return useQuery([`proof`, billID], async () => getProof(billID), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
 }
 
 export function useMakeTransaction(

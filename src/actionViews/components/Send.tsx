@@ -17,10 +17,15 @@ import {
   ILockedBill,
   IProofTx,
   ITransfer,
+  ITypeHierarchy,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import { getBlockHeight, makeTransaction } from "../../hooks/requests";
+import {
+  getBlockHeight,
+  getTypeHierarchy,
+  makeTransaction,
+} from "../../hooks/requests";
 
 import {
   extractFormikError,
@@ -252,19 +257,35 @@ function Send(): JSX.Element | null {
                 billsToTransfer.length === idx + 1 &&
                 !billToSplit &&
                 !splitBillAmount;
-
               if (selectedAsset?.typeId !== "ALPHA") {
-                transferData.transactionAttributes.invariantPredicateSignatures =
-                  [Buffer.from(startByte, "hex").toString("base64")];
-                transferData.transactionAttributes.type = bill.typeId;
+                getTypeHierarchy(bill.typeId || "")
+                  .then(async (hierarchy: ITypeHierarchy[]) => {
+                    transferData.transactionAttributes.invariantPredicateSignatures =
+                      hierarchy.map((parent: ITypeHierarchy) => {
+                        return parent.parentTypeId;
+                      });
+                    transferData.transactionAttributes.type = bill.typeId;
+                    handleValidation(
+                      await transferOrderHash(transferData),
+                      blockData,
+                      transferData as ITransfer,
+                      isLastTransaction
+                    );
+                  })
+                  .catch(() => {
+                    setErrors({
+                      password: "Fetching token hierarchy for failed",
+                    });
+                    setIsSending(false);
+                  });
+              } else {
+                handleValidation(
+                  await transferOrderHash(transferData),
+                  blockData,
+                  transferData as ITransfer,
+                  isLastTransaction
+                );
               }
-
-              handleValidation(
-                await transferOrderHash(transferData),
-                blockData,
-                transferData as ITransfer,
-                isLastTransaction
-              );
             });
 
             if (billToSplit && splitBillAmount) {
@@ -283,18 +304,34 @@ function Send(): JSX.Element | null {
               };
 
               if (selectedAsset?.typeId !== "ALPHA") {
-                splitData.transactionAttributes.invariantPredicateSignatures = [
-                  Buffer.from(startByte, "hex").toString("base64"),
-                ];
-                splitData.transactionAttributes.type = billToSplit.typeId;
+                getTypeHierarchy(billToSplit.typeId || "")
+                  .then(async (hierarchy: ITypeHierarchy[]) => {
+                    splitData.transactionAttributes.invariantPredicateSignatures =
+                      hierarchy.map((parent: ITypeHierarchy) => {
+                        return parent.parentTypeId;
+                      });
+                    splitData.transactionAttributes.type = billToSplit.typeId;
+                    handleValidation(
+                      await transferOrderHash(splitData),
+                      blockData,
+                      splitData as ITransfer,
+                      true
+                    );
+                  })
+                  .catch(() => {
+                    setErrors({
+                      password: "Fetching token hierarchy for failed",
+                    });
+                    setIsSending(false);
+                  });
+              } else {
+                handleValidation(
+                  await transferOrderHash(splitData),
+                  blockData,
+                  splitData as ITransfer,
+                  true
+                );
               }
-
-              handleValidation(
-                await splitOrderHash(splitData),
-                blockData,
-                splitData as ITransfer,
-                true
-              );
             }
           });
 
@@ -474,6 +511,12 @@ function Send(): JSX.Element | null {
                           return 1;
                         }
                         return 0;
+                      })
+                      .sort(function (a, b) {
+                        if (a.id === "ALPHA") {
+                          return -1; // Move the object with the given ID to the beginning of the array
+                        }
+                        return 1;
                       })
                       .map((asset: IAsset) => ({
                         value: asset,

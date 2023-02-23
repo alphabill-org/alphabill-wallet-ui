@@ -9,6 +9,7 @@ import {
   IBill,
   IFungibleAsset,
   IFungibleResponse,
+  ITypeHierarchy,
 } from "../types/Types";
 
 export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
@@ -105,6 +106,14 @@ export const fetchAllTypes = async (
   }
 
   return types;
+};
+
+export const getTypeHierarchy = async (typeId: string) => {
+  const response = await axios.get<ITypeHierarchy[]>(
+    `${API_URL}/types/${typeId}/hierarchy`
+  );
+
+  return response.data;
 };
 
 export const getUserTokens = async (

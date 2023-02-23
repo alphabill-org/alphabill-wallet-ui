@@ -176,6 +176,22 @@ export const getKeys = (
   };
 };
 
+export const checkOwnerPredicate = (key: string, predicate: string) => {
+  const hex = Buffer.from(predicate, "base64").toString("hex");
+  const removeScriptBefore =
+    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
+  const sha256KeyFromPredicate = hex
+    .replace(removeScriptBefore, "")
+    .replace(removeScriptAfter, "");
+
+  const checkedAddress = key.startsWith("0x") ? key.substring(2) : key;
+  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
+  const SHA256Key = CryptoJS.SHA256(addressHash);
+
+  return sha256KeyFromPredicate === SHA256Key.toString(CryptoJS.enc.Hex);
+};
+
 export const createNewBearer = (address: string) => {
   const checkedAddress = address.startsWith("0x")
     ? address.substring(2)
