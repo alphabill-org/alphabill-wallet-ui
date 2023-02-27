@@ -76,22 +76,20 @@ export const fetchAllTypes = async (
 
   while (nextOffsetKey !== null) {
     const response: any = await axios.get(
-      API_TOKENS_URL + `/kinds/${kind}/types`,
-      {
-        params: {
-          limit,
-          offsetKey: nextOffsetKey,
-        },
-      }
+      API_TOKENS_URL +
+        `/kinds/${kind}/types?limit=${limit}${
+          nextOffsetKey && "&offsetKey=" + nextOffsetKey
+        }`
     );
 
     const data = response.data;
 
     // Add types to the list
-    types.push(...data);
+    data && types.push(...data);
 
     // Check if there is a "next" link in the response header
     const linkHeader = response.headers.link;
+
     if (linkHeader) {
       const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
       if (nextLinkMatch) {
@@ -128,13 +126,10 @@ export const getUserTokens = async (
 
   while (nextOffsetKey !== null) {
     const response: any = await axios.get(
-      API_TOKENS_URL + `/kinds/${kind}/owners/${owner}/tokens`,
-      {
-        params: {
-          limit,
-          offsetKey: nextOffsetKey,
-        },
-      }
+      API_TOKENS_URL +
+        `/kinds/${kind}/owners/${owner}/tokens?limit=${limit}${
+          nextOffsetKey && "&offsetKey=" + nextOffsetKey
+        }`
     );
 
     const data = response.data;
