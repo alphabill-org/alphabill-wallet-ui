@@ -27,6 +27,7 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import { dcOrderHash, swapOrderHash } from "../../../utils/hashers";
+import BigNumber from "bignumber.js";
 
 export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
@@ -78,8 +79,9 @@ export const handleSwapRequest = async (
                 targetValue: dcTransfers
                   .reduce(
                     (total, obj) =>
-                      Number(obj.transactionAttributes.targetValue) + total,
-                    0
+                      new BigNumber(obj.transactionAttributes.targetValue as number)
+                        .plus(total),
+                    new BigNumber(0)
                   )
                   .toString(),
                 "@type": "type.googleapis.com/rpc.SwapOrder",
@@ -155,11 +157,9 @@ export const handleDC = async (
     if (!nonce.length) return;
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-    let total = 0;
 
     getBlockHeight().then((blockData) =>
       sortedListByID.map(async (bill: IBill, idx) => {
-        total = total + 1;
 
         const transferData: ITransfer = {
           systemId: "AAAAAA==",
