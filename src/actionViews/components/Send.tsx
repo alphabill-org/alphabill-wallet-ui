@@ -193,8 +193,7 @@ function Send(): JSX.Element | null {
           }
 
           const convertedAmount = new BigNumber(values.amount)
-            .multipliedBy(selectedAsset?.decimalFactor || 1)
-            .toNumber();
+            .multipliedBy(selectedAsset?.decimalFactor || 1);
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -206,18 +205,23 @@ function Send(): JSX.Element | null {
               ) as IBill[]);
 
           const selectedBills = getOptimalBills(convertedAmount, billsArr);
+
           const newBearer = createNewBearer(values.address);
+
           const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount;
+            getBillsSum(selectedBills).minus(convertedAmount);
+
           const billToSplit =
-            billsSumDifference !== 0
+            billsSumDifference.toNumber() !== 0
               ? findClosestBigger(selectedBills, billsSumDifference)
               : null;
+
           const billsToTransfer = billToSplit
             ? selectedBills.filter((bill) => bill.id !== billToSplit?.id)
             : selectedBills;
+
           const splitBillAmount = billToSplit
-            ? billToSplit?.value - billsSumDifference
+            ? new BigNumber(billToSplit.value).minus(billsSumDifference)
             : null;
 
           setIsSending(true);
@@ -294,9 +298,11 @@ function Send(): JSX.Element | null {
                 unitId: billToSplit.id,
                 transactionAttributes: {
                   "@type": splitType,
-                  [amountField]: splitBillAmount,
-                  [bearerField]: newBearer,
-                  remainingValue: billToSplit.value - splitBillAmount,
+                  amount: splitBillAmount.toNumber(),
+                  targetBearer: newBearer,
+                  remainingValue: new BigNumber(billToSplit.value)
+                    .minus(splitBillAmount)
+                    .toNumber(),
                   backlink: billToSplit.txHash,
                 },
                 timeout: blockData.blockHeight + timeoutBlocks,
