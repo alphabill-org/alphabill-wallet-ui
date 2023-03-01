@@ -298,8 +298,8 @@ function Send(): JSX.Element | null {
                 unitId: billToSplit.id,
                 transactionAttributes: {
                   "@type": splitType,
-                  amount: splitBillAmount.toNumber(),
-                  targetBearer: newBearer,
+                  [amountField]: splitBillAmount.toNumber(),
+                  [bearerField]: newBearer,
                   remainingValue: new BigNumber(billToSplit.value)
                     .minus(splitBillAmount)
                     .toNumber(),

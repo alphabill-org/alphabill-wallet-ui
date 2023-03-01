@@ -118,7 +118,7 @@ export const getUserTokens = async (
   owner: string,
   activeAsset?: string,
   kind: string = "fungible",
-  limit = 1,
+  limit = 100,
   offsetKey = ""
 ) => {
   const tokens: any = [];
