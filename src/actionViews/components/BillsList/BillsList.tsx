@@ -3,10 +3,10 @@ import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
 import {
-  convertToBigNumberString,
+  addDecimal,
   DCTransfersLimit,
-  ALPHADecimalFactor,
   swapTimeout,
+  ALPHADecimalPlaces,
 } from "../../../utils/utils";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -93,7 +93,7 @@ function BillsList(): JSX.Element | null {
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
-  let DCDenomination: number | null = null;
+  let DCDenomination: string | null = null;
 
   // Bills list functions
   const handleProof = (bill: IBill) => {
@@ -242,7 +242,8 @@ function BillsList(): JSX.Element | null {
           )}
 
           {DCBills.map((bill: IBill, idx: number) => {
-            const isNewDenomination = DCDenomination !== bill.value && true;
+            const isNewDenomination =
+              DCDenomination !== bill.value && true;
             DCDenomination = bill.value;
 
             return (
@@ -251,8 +252,7 @@ function BillsList(): JSX.Element | null {
                   <>
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                      Denomination:{" "}
-                      {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
+                      Denomination: {addDecimal(bill.value, ALPHADecimalPlaces)}
                     </div>
                     <Spacer mb={2} />
                   </>

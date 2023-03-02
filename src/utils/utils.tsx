@@ -5,7 +5,6 @@ import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq } from "lodash";
 import * as secp from "@noble/secp256k1";
-import BigNumber from "bignumber.js";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
 
@@ -227,66 +226,73 @@ export const createOwnerProof = async (
 
 export const findClosestBigger = (
   bills: IBill[],
-  target: BigNumber
+  target: string
 ): IBill | undefined => {
   return bills
-    .sort(function (a: IBill, b: IBill) {
-      return a.value - b.value;
+    .sort((a: IBill, b: IBill) => {
+      if (BigInt(a.value) > BigInt(b.value)) {
+        return 1;
+      } else if (BigInt(a.value) < BigInt(b.value)) {
+        return -1;
+      } else {
+        return 0;
+      }
     })
-    .find(({ value }) => new BigNumber(value).isGreaterThanOrEqualTo(target));
+    .find(({ value }) => BigInt(value) >= BigInt(target));
 };
 
-export const getClosestSmaller = (
-  bills: IBill[],
-  target: BigNumber
-): IBill => {
-  return bills.reduce((acc: IBill, obj: IBill) =>
-    new BigNumber(Math.abs(target.minus(obj.value).toNumber())).isLessThan(
-      Math.abs(target.minus(acc.value).toNumber())
-    )
-      ? obj
-      : acc
-  );
+export const getClosestSmaller = (bills: IBill[], target: string): IBill => {
+  return bills.reduce((acc: IBill, obj: IBill) => {
+    const value = BigInt(obj.value);
+    const accValue = BigInt(acc.value);
+    const targetInt = BigInt(target);
+    const absDiff = value > targetInt ? value - targetInt : targetInt - value;
+    const currentAbsDiff =
+      accValue > targetInt ? accValue - targetInt : targetInt - accValue;
+    return absDiff < currentAbsDiff ? obj : acc;
+  });
 };
 
-export const getOptimalBills = (
-  amount: BigNumber,
-  billsArr: IBill[]
-): IBill[] => {
+export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
   const selectedBills: IBill[] = [];
 
   const closestBigger = findClosestBigger(billsArr, amount);
-  if (closestBigger && new BigNumber(closestBigger.value).isGreaterThan(0)) {
+  if (closestBigger && BigInt(closestBigger.value) > 0n) {
     selectedBills.push(closestBigger);
   } else {
     const initialBill = getClosestSmaller(billsArr, amount);
     selectedBills.push(initialBill);
-    let missingSum = amount.minus(initialBill.value);
+    let missingSum = BigInt(amount) - BigInt(initialBill.value);
 
-    while (missingSum.isGreaterThan(0)) {
-      const filteredBills = billsArr.filter((bill) => !selectedBills.includes(bill));
+    while (missingSum > 0n) {
+      const filteredBills = billsArr.filter(
+        (bill) => !selectedBills.includes(bill)
+      );
       const filteredBillsSum = filteredBills.reduce(
-        (acc: BigNumber, obj: IBill) => {
-          return acc.plus(obj.value);
+        (acc: bigint, obj: IBill) => {
+          return acc + BigInt(obj.value);
         },
-        new BigNumber(0)
+        0n
       );
 
       let addedSum;
       const closestBigger = findClosestBigger(
         filteredBills,
-        new BigNumber(Math.abs(missingSum.toNumber()))
+        missingSum.toString()
       );
-      if (closestBigger && new BigNumber(closestBigger.value).isGreaterThan(0)) {
+      if (closestBigger && BigInt(closestBigger.value) > 0n) {
         selectedBills.push(closestBigger);
-        addedSum = closestBigger.value;
+        addedSum = BigInt(closestBigger.value);
       } else {
-        const currentBill = getClosestSmaller(filteredBills, missingSum);
+        const currentBill = getClosestSmaller(
+          filteredBills,
+          missingSum.toString()
+        );
         selectedBills.push(currentBill);
-        addedSum = currentBill.value;
+        addedSum = BigInt(currentBill.value);
       }
-      missingSum = missingSum.minus(addedSum);
-      if (filteredBillsSum.isLessThanOrEqualTo(0)) {
+      missingSum = missingSum - addedSum;
+      if (filteredBillsSum <= 0n) {
         break;
       }
     }
@@ -297,8 +303,8 @@ export const getOptimalBills = (
 
 export const getBillsSum = (bills: IBill[]) =>
   bills.reduce((acc, obj: IBill) => {
-    return new BigNumber(acc).plus(obj.value);
-  }, new BigNumber(0));
+    return acc + BigInt(obj.value);
+  }, 0n);
 
 export const useDocumentClick = (
   callback: (event: MouseEvent) => void,
@@ -322,25 +328,14 @@ export const useDocumentClick = (
   }, [ref, handler]);
 };
 
-export const getDecimalPlaces = (num: BigNumber) => {
-  var match = ("" + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-  if (!match) {
-    return 0;
-  }
-  return Math.max(
-    0,
-    (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0)
-  );
-};
+export const addDecimal = (str: string, pos: number) => {
+  if (typeof str !== "string") return str;
+  const amount = BigInt(str);
 
-export const convertToBigNumberString = (
-  num: number,
-  dividedBy: number = 1
-): string => {
-  if (isNaN(num)) return "";
-  const bigNum = new BigNumber(num).dividedBy(dividedBy);
-  const decimals = getDecimalPlaces(bigNum);
-  return bigNum.toFixed(decimals);
+  if (amount === 0n) return str;
+
+  const convertedAmount = amount.toString().padStart(pos + 1, "0");
+  return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
 
 export const startByte = "53";

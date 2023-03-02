@@ -13,7 +13,7 @@ import { useGetBalances, useGetBillsList } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import {
-  convertToBigNumberString,
+  addDecimal,
   ALPHADecimalFactor,
   ALPHADecimalPlaces,
 } from "../utils/utils";
@@ -82,12 +82,10 @@ export const AppProvider: FunctionComponent<{
           decimalFactor: ALPHADecimalFactor,
           decimalPlaces: ALPHADecimalPlaces,
           UIAmount:
-            convertToBigNumberString(
-              Number(
-                balances?.find((balance: any) => balance?.data?.pubKey === key)
-                  ?.data?.balance
-              ),
-              ALPHADecimalFactor
+            addDecimal(
+              balances?.find((balance: any) => balance?.data?.pubKey === key)
+                ?.data?.balance.toString(),
+              ALPHADecimalPlaces
             ) || "0",
         },
       ],
@@ -140,11 +138,7 @@ export const AppProvider: FunctionComponent<{
               amount: fetchedBalance,
               decimalFactor: ALPHADecimalFactor,
               decimalPlaces: ALPHADecimalPlaces,
-              UIAmount:
-                convertToBigNumberString(
-                  Number(fetchedBalance),
-                  ALPHADecimalFactor
-                ) || "0",
+              UIAmount: addDecimal(fetchedBalance.toString(), ALPHADecimalPlaces) || "0",
             },
           ],
           activeNetwork: "AB Testnet",

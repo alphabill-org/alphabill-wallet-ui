@@ -3,7 +3,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
-import BigNumber from "bignumber.js";
+import { isString } from "lodash";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -32,7 +32,7 @@ import {
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
-  convertToBigNumberString,
+  addDecimal,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -67,36 +67,33 @@ function Send(): JSX.Element | null {
   const balance = activeAsset.amount;
   const decimalFactor = activeAsset.decimalFactor;
   const decimalPlaces = activeAsset.decimalPlaces;
-  const availableAmount = convertToBigNumberString(
-    billsList
-      .filter(
+  const availableAmount = addDecimal(
+    getBillsSum(
+      billsList.filter(
         (bill: IBill) =>
           bill.isDCBill === false &&
           !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
       )
-      .reduce((acc: number, obj: IBill) => {
-        return acc + obj?.value;
-      }, 0),
-    decimalFactor
+    ).toString(),
+    decimalPlaces
   );
 
-  const lockedBillsAmount = billsList
-    .filter((bill: IBill) =>
+  const lockedBillsAmount = getBillsSum(
+    billsList.filter((bill: IBill) =>
       lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
     )
-    .reduce((acc: number, obj: IBill) => {
-      return acc + obj?.value;
-    }, 0);
+  ).toString();
+
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        convertToBigNumberString(Number(lockedBillsAmount), decimalFactor) +
+        addDecimal(lockedBillsAmount.toString(), decimalPlaces) +
         " )"
       : "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<number | null | undefined>(null);
-  const balanceAfterSending = useRef<number | null>(null);
+  const balanceAfterSending = useRef<bigint | null>(null);
 
   const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
@@ -120,7 +117,7 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (balance === balanceAfterSending.current) {
+    if (BigInt(balance) === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -146,7 +143,7 @@ function Send(): JSX.Element | null {
             value: defaultAsset,
             label: "ALPHA",
           },
-          amount: 0,
+          amount: "",
           address: "",
           password: "",
         }}
@@ -162,10 +159,7 @@ function Send(): JSX.Element | null {
               password: error || "Hashing keys are missing!",
             });
           }
-
-          const convertedAmount = new BigNumber(values.amount).multipliedBy(
-            decimalFactor
-          );
+          const convertedAmount = BigInt(values.amount) * BigInt(decimalFactor);
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -176,16 +170,19 @@ function Send(): JSX.Element | null {
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
-          const selectedBills = getOptimalBills(convertedAmount, billsArr);
+          const selectedBills = getOptimalBills(
+            convertedAmount.toString(),
+            billsArr
+          );
 
           const newBearer = createNewBearer(values.address);
 
           const billsSumDifference =
-            getBillsSum(selectedBills).minus(convertedAmount);
+            getBillsSum(selectedBills) - convertedAmount;
 
           const billToSplit =
-            billsSumDifference.toNumber() !== 0
-              ? findClosestBigger(selectedBills, billsSumDifference)
+            billsSumDifference !== 0n
+              ? findClosestBigger(selectedBills, billsSumDifference.toString())
               : null;
 
           const billsToTransfer = billToSplit
@@ -193,7 +190,7 @@ function Send(): JSX.Element | null {
             : selectedBills;
 
           const splitBillAmount = billToSplit
-            ? new BigNumber(billToSplit.value).minus(billsSumDifference)
+            ? BigInt(billToSplit.value) - billsSumDifference
             : null;
 
           setIsSending(true);
@@ -209,7 +206,9 @@ function Send(): JSX.Element | null {
                   targetValue: bill.value.toString(),
                   backlink: bill.txHash,
                 },
-                timeout: blockData.blockHeight + timeoutBlocks,
+                timeout: (
+                  BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
+                ).toString(),
                 ownerProof: "",
               };
 
@@ -232,14 +231,16 @@ function Send(): JSX.Element | null {
                 unitId: billToSplit.id,
                 transactionAttributes: {
                   "@type": "type.googleapis.com/rpc.SplitOrder",
-                  amount: splitBillAmount.toNumber(),
+                  amount: splitBillAmount.toString(),
                   targetBearer: newBearer,
-                  remainingValue: new BigNumber(billToSplit.value)
-                    .minus(splitBillAmount)
-                    .toNumber(),
+                  remainingValue: (
+                    BigInt(billToSplit.value) - splitBillAmount
+                  ).toString(),
                   backlink: billToSplit.txHash,
                 },
-                timeout: blockData.blockHeight + timeoutBlocks,
+                timeout: (
+                  BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
+                ).toString(),
                 ownerProof: "",
               };
 
@@ -266,7 +267,9 @@ function Send(): JSX.Element | null {
 
             const dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,
-              timeout: blockData.blockHeight + timeoutBlocks,
+              timeout: (
+                BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
+              ).toString(),
             });
 
             proof.isSignatureValid &&
@@ -278,8 +281,8 @@ function Send(): JSX.Element | null {
                   );
 
                   balanceAfterSending.current = balanceAfterSending.current
-                    ? balanceAfterSending.current - amount
-                    : balance - amount;
+                    ? BigInt(balanceAfterSending.current) - BigInt(amount)
+                    : BigInt(balance) - BigInt(amount);
                 })
                 .finally(() => {
                   if (isLastTransfer) {
@@ -319,32 +322,20 @@ function Send(): JSX.Element | null {
               }
             ),
           password: Yup.string().required("Password is required"),
-          amount: Yup.number()
+          amount: Yup.string()
             .required("Amount is required")
-            .positive("Value must be greater than 0")
             .test(
-              "is-decimal",
-              "The amount should be a decimal with maximum " +
-                decimalPlaces +
-                " digits after decimal point",
-              (val: any) => {
-                const regexFloatString =
-                  "^\\d+(\\.\\d{0," + decimalPlaces + "})?$";
-                const regexFloat = new RegExp(regexFloatString);
-
-                if (val !== undefined) {
-                  return regexFloat.test(convertToBigNumberString(val));
-                }
-                return true;
-              }
+              "test more than",
+              "Value must be greater than 0",
+              (value: string | undefined) => BigInt(value || "") > 0n
             )
             .test(
               "test less than",
               "Amount exceeds available assets",
-              (value) =>
+              (value: string | undefined) =>
                 selectedSendKey
                   ? true
-                  : Number(value) <= Number(availableAmount)
+                  : BigInt(value || "") <= BigInt(availableAmount)
             ),
         })}
       >
@@ -470,13 +461,11 @@ function Send(): JSX.Element | null {
                       }
                       value={
                         (selectedSendKey &&
-                          (convertToBigNumberString(
-                            Number(
-                              billsList?.find(
-                                (bill: IBill) => bill.id === selectedSendKey
-                              )?.value
-                            ),
-                            decimalFactor
+                          (addDecimal(
+                            billsList?.find(
+                              (bill: IBill) => bill.id === selectedSendKey
+                            )?.value,
+                            decimalPlaces
                           ) as string | undefined)) ||
                         ""
                       }
