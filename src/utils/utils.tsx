@@ -3,7 +3,7 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq } from "lodash";
+import { uniq, isNumber } from "lodash";
 import * as secp from "@noble/secp256k1";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
@@ -255,32 +255,29 @@ export const getClosestSmaller = (bills: IBill[], target: string): IBill => {
 
 export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
   const selectedBills: IBill[] = [];
+  const amountBigInt = BigInt(amount);
+  const zeroBigInt = 0n;
 
   const closestBigger = findClosestBigger(billsArr, amount);
-  if (closestBigger && BigInt(closestBigger.value) > 0n) {
+  if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
     selectedBills.push(closestBigger);
   } else {
     const initialBill = getClosestSmaller(billsArr, amount);
     selectedBills.push(initialBill);
-    let missingSum = BigInt(amount) - BigInt(initialBill.value);
+    let missingSum = amountBigInt - BigInt(initialBill.value);
 
-    while (missingSum > 0n) {
+    while (missingSum > zeroBigInt) {
       const filteredBills = billsArr.filter(
         (bill) => !selectedBills.includes(bill)
       );
-      const filteredBillsSum = filteredBills.reduce(
-        (acc: bigint, obj: IBill) => {
-          return acc + BigInt(obj.value);
-        },
-        0n
-      );
+      const filteredBillsSum = getBillsSum(filteredBills);
 
       let addedSum;
       const closestBigger = findClosestBigger(
         filteredBills,
         missingSum.toString()
       );
-      if (closestBigger && BigInt(closestBigger.value) > 0n) {
+      if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
         selectedBills.push(closestBigger);
         addedSum = BigInt(closestBigger.value);
       } else {
@@ -292,7 +289,7 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
         addedSum = BigInt(currentBill.value);
       }
       missingSum = missingSum - addedSum;
-      if (filteredBillsSum <= 0n) {
+      if (filteredBillsSum <= zeroBigInt) {
         break;
       }
     }
@@ -336,6 +333,21 @@ export const addDecimal = (str: string, pos: number) => {
 
   const convertedAmount = amount.toString().padStart(pos + 1, "0");
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
+};
+
+export const convertToWholeNumberBigInt = (val: string | number): bigint => {
+  const numStr = isNumber(val) ? val.toString() : val;
+  const num = parseFloat(numStr);
+
+  if (isNaN(num) || num <= 0) {
+    return 0n;
+  }
+
+  const numStrWithoutDecimal = numStr.replace(".", "");
+  const decimalPlaces = numStr.length - numStrWithoutDecimal.length;
+  const multiplier = 10n ** BigInt(decimalPlaces - 1);
+
+  return BigInt(numStrWithoutDecimal) * multiplier;
 };
 
 export const startByte = "53";

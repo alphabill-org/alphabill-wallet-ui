@@ -3,7 +3,6 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
-import { isString } from "lodash";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -33,6 +32,7 @@ import {
   getOptimalBills,
   getBillsSum,
   addDecimal,
+  convertToWholeNumberBigInt
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -159,7 +159,7 @@ function Send(): JSX.Element | null {
               password: error || "Hashing keys are missing!",
             });
           }
-          const convertedAmount = BigInt(values.amount) * BigInt(decimalFactor);
+          const convertedAmount = convertToWholeNumberBigInt(values.amount);
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -327,7 +327,7 @@ function Send(): JSX.Element | null {
             .test(
               "test more than",
               "Value must be greater than 0",
-              (value: string | undefined) => BigInt(value || "") > 0n
+              (value: string | undefined) => Number(value || "") > 0n
             )
             .test(
               "test less than",
@@ -335,7 +335,8 @@ function Send(): JSX.Element | null {
               (value: string | undefined) =>
                 selectedSendKey
                   ? true
-                  : BigInt(value || "") <= BigInt(availableAmount)
+                  : convertToWholeNumberBigInt(value || "") <=
+                    convertToWholeNumberBigInt(availableAmount)
             ),
         })}
       >
