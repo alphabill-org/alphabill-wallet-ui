@@ -8,6 +8,7 @@ import {
   base64ToHexPrefixed,
   addDecimal,
   ALPHADecimalPlaces,
+  separateDigits,
 } from "../../../utils/utils";
 
 export interface IBillsListItemProps {
@@ -62,7 +63,7 @@ function BillsListItem({
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>
                     Denomination:{" "}
-                    {addDecimal(bill.value, ALPHADecimalPlaces)}
+                    {separateDigits(addDecimal(bill.value, ALPHADecimalPlaces))}
                   </div>
                 </div>
               </>

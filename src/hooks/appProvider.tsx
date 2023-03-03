@@ -16,6 +16,7 @@ import {
   addDecimal,
   ALPHADecimalFactor,
   ALPHADecimalPlaces,
+  separateDigits,
 } from "../utils/utils";
 
 interface IAppContextShape {
@@ -75,24 +76,27 @@ export const AppProvider: FunctionComponent<{
         {
           id: "ALPHA",
           name: "ALPHA",
-          network: "AB Testnet",
+          network: import.meta.env.VITE_NETWORK_NAME,
           amount: balances?.find(
             (balance: any) => balance?.data?.pubKey === key
           )?.data?.balance,
           decimalFactor: ALPHADecimalFactor,
           decimalPlaces: ALPHADecimalPlaces,
           UIAmount:
-            addDecimal(
-              balances?.find((balance: any) => balance?.data?.pubKey === key)
-                ?.data?.balance.toString(),
-              ALPHADecimalPlaces
+            separateDigits(
+              addDecimal(
+                balances
+                  ?.find((balance: any) => balance?.data?.pubKey === key)
+                  ?.data?.balance.toString(),
+                ALPHADecimalPlaces
+              )
             ) || "0",
         },
       ],
-      activeNetwork: "AB Testnet",
+      activeNetwork: import.meta.env.VITE_NETWORK_NAME,
       networks: [
         {
-          id: "AB Testnet",
+          id: import.meta.env.VITE_NETWORK_NAME,
           isTestNetwork: true,
         },
       ],
@@ -134,17 +138,20 @@ export const AppProvider: FunctionComponent<{
             {
               id: "ALPHA",
               name: "ALPHA",
-              network: "AB Testnet",
+              network: import.meta.env.VITE_NETWORK_NAME,
               amount: fetchedBalance,
               decimalFactor: ALPHADecimalFactor,
               decimalPlaces: ALPHADecimalPlaces,
-              UIAmount: addDecimal(fetchedBalance.toString(), ALPHADecimalPlaces) || "0",
+              UIAmount:
+                separateDigits(
+                  addDecimal(fetchedBalance.toString(), ALPHADecimalPlaces)
+                ) || "0",
             },
           ],
-          activeNetwork: "AB Testnet",
+          activeNetwork: import.meta.env.VITE_NETWORK_NAME,
           networks: [
             {
-              id: "AB Testnet",
+              id: import.meta.env.VITE_NETWORK_NAME,
               isTestNetwork: true,
             },
           ],

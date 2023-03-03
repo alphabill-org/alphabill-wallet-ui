@@ -65,13 +65,12 @@ function Send(): JSX.Element | null {
     ) || account?.assets[0];
 
   const balance = activeAsset.amount;
-  const decimalFactor = activeAsset.decimalFactor;
   const decimalPlaces = activeAsset.decimalPlaces;
   const availableAmount = addDecimal(
     getBillsSum(
       billsList.filter(
         (bill: IBill) =>
-          bill.isDCBill === false &&
+          bill.isDcBill === false &&
           !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
       )
     ).toString(),
@@ -166,7 +165,7 @@ function Send(): JSX.Element | null {
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
-                  bill.isDCBill === false &&
+                  bill.isDcBill === false &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 

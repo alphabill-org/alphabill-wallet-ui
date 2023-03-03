@@ -345,9 +345,33 @@ export const convertToWholeNumberBigInt = (val: string | number): bigint => {
 
   const numStrWithoutDecimal = numStr.replace(".", "");
   const decimalPlaces = numStr.length - numStrWithoutDecimal.length;
-  const multiplier = 10n ** BigInt(decimalPlaces - 1);
+  const multiplier = decimalPlaces ? 10n ** BigInt(decimalPlaces - 1) : 1n;
 
   return BigInt(numStrWithoutDecimal) * multiplier;
+};
+
+export const separateDigits = (numStr: string) => {
+  const num = parseFloat(numStr as string);
+
+  if (isNaN(num)) {
+    return "0";
+  }
+
+  const [integerPart, decimalPart = ""] = num.toString().split(".");
+  const formattedIntegerPart = parseInt(integerPart, 10)
+    .toLocaleString()
+    .replace(/,/g, "'");
+
+  if (decimalPart.length > 0) {
+    const roundedDecimalPart = parseFloat(`0.${decimalPart}`).toFixed(8);
+    const formattedDecimalPart = roundedDecimalPart
+      .slice(2)
+      .replace(/0+$/, "")
+      .replace(/(\d{3})(?=\d)/g, "$1'"); // updated regular expression
+    return `${formattedIntegerPart}.${formattedDecimalPart}`;
+  }
+
+  return formattedIntegerPart;
 };
 
 export const startByte = "53";

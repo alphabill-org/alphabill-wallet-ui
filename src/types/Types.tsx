@@ -25,7 +25,7 @@ export interface IBill {
   id: string; // base64
   value: string;
   txHash: string;
-  isDCBill?: boolean;
+  isDcBill?: boolean;
 }
 
 export interface ILockedBill {

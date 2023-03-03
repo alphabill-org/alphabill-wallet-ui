@@ -42,13 +42,13 @@ function BillsList(): JSX.Element | null {
   );
   const unlockedBills = billsList.filter(
     (b: IBill) =>
-      b.isDCBill === false &&
+      b.isDcBill === false &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
   const DCBills = useMemo(
     () =>
       sortedListByValue
-        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDCBill)
+        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDcBill)
         : [],
     [sortedListByValue]
   );
@@ -344,7 +344,7 @@ function BillsList(): JSX.Element | null {
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
-            b.isDCBill === false &&
+            b.isDcBill === false &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -355,7 +355,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
-                b.isDCBill === false &&
+                b.isDcBill === false &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}
