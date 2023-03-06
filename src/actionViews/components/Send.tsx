@@ -32,7 +32,7 @@ import {
   getOptimalBills,
   getBillsSum,
   addDecimal,
-  convertToWholeNumberBigInt
+  convertToWholeNumberBigInt,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -158,7 +158,10 @@ function Send(): JSX.Element | null {
               password: error || "Hashing keys are missing!",
             });
           }
-          const convertedAmount = convertToWholeNumberBigInt(values.amount);
+          const convertedAmount = convertToWholeNumberBigInt(
+            values.amount,
+            decimalPlaces
+          );
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -334,8 +337,8 @@ function Send(): JSX.Element | null {
               (value: string | undefined) =>
                 selectedSendKey
                   ? true
-                  : convertToWholeNumberBigInt(value || "") <=
-                    convertToWholeNumberBigInt(availableAmount)
+                  : convertToWholeNumberBigInt(value || "", decimalPlaces) <=
+                    convertToWholeNumberBigInt(availableAmount, decimalPlaces)
             ),
         })}
       >

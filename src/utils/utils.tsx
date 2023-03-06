@@ -335,8 +335,20 @@ export const addDecimal = (str: string, pos: number) => {
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
 
-export const convertToWholeNumberBigInt = (val: string | number): bigint => {
-  const numStr = isNumber(val) ? val.toString() : val;
+const countDecimalLength = (str: string) => {
+  const decimalIndex = str.indexOf(".");
+  if (decimalIndex === -1) {
+    return 0;
+  } else {
+    return str.slice(decimalIndex + 1).length;
+  }
+};
+
+export const convertToWholeNumberBigInt = (
+  val: string | number,
+  decimalPlaces: number = 1
+): bigint => {
+  let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
 
   if (isNaN(num) || num <= 0) {
@@ -344,10 +356,13 @@ export const convertToWholeNumberBigInt = (val: string | number): bigint => {
   }
 
   const numStrWithoutDecimal = numStr.replace(".", "");
-  const decimalPlaces = numStr.length - numStrWithoutDecimal.length;
-  const multiplier = decimalPlaces ? 10n ** BigInt(decimalPlaces - 1) : 1n;
+  const decimalDifference = decimalPlaces - countDecimalLength(numStr);
+  const fullNumber =
+    decimalDifference > 0
+      ? numStrWithoutDecimal + "0".repeat(decimalDifference)
+      : numStrWithoutDecimal;
 
-  return BigInt(numStrWithoutDecimal) * multiplier;
+  return BigInt(fullNumber);
 };
 
 export const separateDigits = (numStr: string) => {
