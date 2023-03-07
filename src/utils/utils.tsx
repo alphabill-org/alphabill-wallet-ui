@@ -326,12 +326,12 @@ export const useDocumentClick = (
 };
 
 export const addDecimal = (str: string, pos: number) => {
-  if (typeof str !== "string") return str;
-  const amount = BigInt(str);
 
-  if (amount === 0n) return str;
+  if (pos <= 0 || !str) {
+    return str;
+  }
 
-  const convertedAmount = amount.toString().padStart(pos + 1, "0");
+  const convertedAmount = str.padStart(pos + 1, "0");
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
 
@@ -340,13 +340,13 @@ const countDecimalLength = (str: string) => {
   if (decimalIndex === -1) {
     return 0;
   } else {
-    return str.slice(decimalIndex + 1).length;
+    return str.length-decimalIndex-1;
   }
 };
 
 export const convertToWholeNumberBigInt = (
   val: string | number,
-  decimalPlaces: number = 1
+  decimalPlaces: number
 ): bigint => {
   let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
@@ -366,7 +366,7 @@ export const convertToWholeNumberBigInt = (
 };
 
 export const separateDigits = (numStr: string) => {
-  const num = parseFloat(numStr as string);
+  const num = parseFloat(numStr);
 
   if (isNaN(num)) {
     return "0";
