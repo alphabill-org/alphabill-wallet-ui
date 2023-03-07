@@ -40,7 +40,7 @@ export interface IBillsList {
 }
 
 export interface IBlockStats {
-  blockHeight: number;
+  blockHeight: string;
 }
 
 export interface INetwork {
