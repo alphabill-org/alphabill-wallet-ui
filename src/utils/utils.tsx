@@ -386,7 +386,7 @@ export const separateDigits = (numStr: string) => {
     throw new Error("Separating digits failed: Input is not valid");
   }
 
-  const [integerPart, decimalPart = ""] = numStr.toString().split(".");
+  const [integerPart, decimalPart = ""] = numStr.split(".");
   const formattedIntegerPart = integerPart.replace(/(\d)(?=(\d{3})+$)/g, "$1'");
 
   if (decimalPart.length > 0) {
