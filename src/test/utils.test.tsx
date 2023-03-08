@@ -8,66 +8,41 @@ import {
   getOptimalBills,
 } from "../utils/utils";
 
-describe("countDecimalLength", () => {
-  it("returns 0 for a string without a decimal", () => {
+describe("Function that counts decimal length", () => {
+  it("should return 0 for a string without a decimal", () => {
     expect(countDecimalLength("123")).toBe(0);
   });
 
-  it("returns the correct decimal length for a string with a decimal", () => {
+  it("should return the correct decimal length for a string with a decimal", () => {
     expect(countDecimalLength("123.456")).toBe(3);
   });
 });
 
-describe("convertToWholeNumberBigInt", () => {
-  it("1", () => {
-    const result = convertToWholeNumberBigInt("184467440737095516.15", 2);
-    expect(result).toEqual(18446744073709551615n);
-  });
-  it("2", () => {
-    const result = convertToWholeNumberBigInt("18446744073709551615", 2);
-    expect(result).toEqual(1844674407370955161500n);
-  });
-  it("3", () => {
-    const result = convertToWholeNumberBigInt("1844674407370955161.5", 2);
-    expect(result).toEqual(184467440737095516150n);
-  });
-
+describe("Function to convert a value with decimals to a whole number BigInt", () => {
   it("should convert a positive number with decimal places to a whole number", () => {
-    const result = convertToWholeNumberBigInt(3.14, 2);
-    expect(result).toEqual(BigInt(314));
+    expect(convertToWholeNumberBigInt(12232333332233.3, 2)).toEqual(
+      BigInt(1223233333223330n)
+    );
+    expect(convertToWholeNumberBigInt(3.14, 2)).toEqual(BigInt(314));
   });
-
   it("should convert a string with a positive number with decimal places to a whole number", () => {
-    const result = convertToWholeNumberBigInt("3.14", 2);
-    expect(result).toEqual(BigInt(314));
+    expect(convertToWholeNumberBigInt("184467440737095516.15", 2)).toEqual(
+      18446744073709551615n
+    );
+    expect(convertToWholeNumberBigInt("1844674407370955161.5", 2)).toEqual(
+      184467440737095516150n
+    );
+    expect(convertToWholeNumberBigInt("18446744073709551615", 2)).toEqual(
+      1844674407370955161500n
+    );
+    expect(convertToWholeNumberBigInt("3.1", 2)).toEqual(BigInt(310));
+    expect(convertToWholeNumberBigInt("3.14", 2)).toEqual(BigInt(314));
   });
-
-  it("should convert a number with more decimal places than specified to a whole number", () => {
-    const result = convertToWholeNumberBigInt(3.14159, 2);
-    expect(result).toEqual(314159n);
-  });
-
-  it("should convert a string with a number with more decimal places than specified to a whole number", () => {
-    const result = convertToWholeNumberBigInt("3.14159", 2);
-    expect(result).toEqual(314159n);
-  });
-
-  it("should convert a number with fewer decimal places than specified to a whole number", () => {
-    const result = convertToWholeNumberBigInt(3.1, 2);
-    expect(result).toEqual(BigInt(310));
-  });
-
-  it("should convert a string with a number with fewer decimal places than specified to a whole number", () => {
-    const result = convertToWholeNumberBigInt("3.1", 2);
-    expect(result).toEqual(BigInt(310));
-  });
-
   it("should throw an error when the input is not valid", () => {
     expect(() => convertToWholeNumberBigInt("not a number", 2)).toThrow(
       "Converting to whole number failed: Input is not valid"
     );
   });
-
   it("should throw an error when the input is negative", () => {
     expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow(
       "Converting to whole number failed: Input is not valid"
@@ -75,7 +50,7 @@ describe("convertToWholeNumberBigInt", () => {
   });
 });
 
-describe("separateDigits", () => {
+describe("Function return a formatted number string with separated digits", () => {
   it("should return a formatted number string with separated digits", () => {
     expect(separateDigits("123456.789")).toEqual("123'456.789");
     expect(separateDigits("9876543210.123456789")).toEqual(
@@ -132,7 +107,7 @@ const BILLS = [
   },
 ];
 
-describe("findClosestBigger", () => {
+describe("Function that finds an object that has a value greater than or equal to the target value", () => {
   it("should return the bill object that has a value greater than or equal to the target value", () => {
     const target = "300";
 
@@ -155,7 +130,7 @@ describe("findClosestBigger", () => {
   });
 });
 
-describe("getClosestSmaller", () => {
+describe("Function that gets closest value to the target value", () => {
   it("should return the bill object with the closest value to the target value", () => {
     const target = "300";
 
@@ -170,7 +145,7 @@ describe("getClosestSmaller", () => {
   });
 });
 
-describe("getOptimalBills", () => {
+describe("Function that gets optimal combination of bills to reach the target amount", () => {
   it("should return the optimal combination of bills to reach the target amount", () => {
     const amount = "1300";
 
