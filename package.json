@@ -39,7 +39,8 @@
     "build": "vite build",
     "build-dev": "vite build --mode development",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
+    "test-watch": "vitest",
     "zip-build": "rm -f build-v0.1.3.zip && npm run build && zip -r build-v0.1.3.zip build"
   },
   "eslintConfig": {
