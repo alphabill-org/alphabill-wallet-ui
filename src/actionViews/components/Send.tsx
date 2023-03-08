@@ -12,7 +12,6 @@ import Select from "../../components/Select/Select";
 import {
   IAsset,
   IBill,
-  IBlockStats,
   ILockedBill,
   IProofTx,
   ITransfer,
@@ -155,10 +154,19 @@ function Send(): JSX.Element | null {
               password: error || "Hashing keys are missing!",
             });
           }
-          const convertedAmount = convertToWholeNumberBigInt(
-            values.amount,
-            decimalPlaces
-          );
+
+          let convertedAmount;
+          try {
+            convertedAmount = convertToWholeNumberBigInt(
+              values.amount,
+              decimalPlaces
+            );
+          } catch (error) {
+            return setErrors({
+              password: error.message,
+            });
+          }
+
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
@@ -323,13 +331,20 @@ function Send(): JSX.Element | null {
               (value: string | undefined) => Number(value || "") > 0n
             )
             .test(
+              "value not number",
+              "Value must be greater than 0",
+              (value: string | undefined) => Number(value || "") > 0n
+            )
+            .test(
               "test less than",
               "Amount exceeds available assets",
               (value: string | undefined) =>
                 selectedSendKey
                   ? true
-                  : convertToWholeNumberBigInt(value || "", decimalPlaces) <=
+                  : value
+                  ? convertToWholeNumberBigInt(value || "", decimalPlaces) <=
                     convertToWholeNumberBigInt(availableAmount, decimalPlaces)
+                  : true
             ),
         })}
       >

@@ -365,8 +365,8 @@ export const convertToWholeNumberBigInt = (
   let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
 
-  if (isNaN(num) || num <= 0) {
-    return 0n;
+  if (isNaN(num) || num < 0) {
+    throw new Error("Converting to whole number failed: Input is not valid");
   }
 
   const numStrWithoutDecimal = numStr.replace(".", "");
@@ -382,22 +382,24 @@ export const convertToWholeNumberBigInt = (
 export const separateDigits = (numStr: string) => {
   const num = parseFloat(numStr);
 
-  if (isNaN(num)) {
-    return "0";
+  if (isNaN(num) || num < 0) {
+    throw new Error("Separating digits failed: Input is not valid");
   }
 
-  const [integerPart, decimalPart = ""] = num.toString().split(".");
+  const [integerPart, decimalPart = ""] = numStr.toString().split(".");
   const formattedIntegerPart = parseInt(integerPart, 10)
     .toLocaleString()
     .replace(/,/g, "'");
 
   if (decimalPart.length > 0) {
-    const roundedDecimalPart = parseFloat(`0.${decimalPart}`).toFixed(8);
+    const roundedDecimalPart = parseFloat(`0.${decimalPart}`).toFixed(
+      decimalPart.length
+    );
     const formattedDecimalPart = roundedDecimalPart
       .slice(2)
       .replace(/0+$/, "")
-      .replace(/(\d{3})(?=\d)/g, "$1'"); // updated regular expression
-    return `${formattedIntegerPart}.${formattedDecimalPart}`;
+      .replace(/(\d{3})(?=\d)/g, "$1'");
+    return `${formattedIntegerPart}${formattedDecimalPart && "." + formattedDecimalPart}`;
   }
 
   return formattedIntegerPart;

@@ -82,15 +82,14 @@ export const AppProvider: FunctionComponent<{
           )?.data?.balance,
           decimalFactor: ALPHADecimalFactor,
           decimalPlaces: ALPHADecimalPlaces,
-          UIAmount:
-            separateDigits(
-              addDecimal(
-                balances
-                  ?.find((balance: any) => balance?.data?.pubKey === key)
-                  ?.data?.balance.toString(),
-                ALPHADecimalPlaces
-              )
-            ) || "0",
+          UIAmount: separateDigits(
+            addDecimal(
+              balances
+                ?.find((balance: any) => balance?.data?.pubKey === key)
+                ?.data?.balance?.toString() || "0",
+              ALPHADecimalPlaces
+            )
+          ),
         },
       ],
       activeNetwork: import.meta.env.VITE_NETWORK_NAME,
@@ -142,10 +141,9 @@ export const AppProvider: FunctionComponent<{
               amount: fetchedBalance,
               decimalFactor: ALPHADecimalFactor,
               decimalPlaces: ALPHADecimalPlaces,
-              UIAmount:
-                separateDigits(
-                  addDecimal(fetchedBalance.toString(), ALPHADecimalPlaces)
-                ) || "0",
+              UIAmount: separateDigits(
+                addDecimal(fetchedBalance?.toString() || "0", ALPHADecimalPlaces)
+              ),
             },
           ],
           activeNetwork: import.meta.env.VITE_NETWORK_NAME,

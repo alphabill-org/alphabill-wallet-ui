@@ -1,5 +1,5 @@
 
-import { assert, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   countDecimalLength,
   convertToWholeNumberBigInt,
@@ -20,34 +20,66 @@ describe("countDecimalLength", () => {
 });
 
 describe("convertToWholeNumberBigInt", () => {
-  it("returns 0n for an invalid input", () => {
-    expect(convertToWholeNumberBigInt("invalid", 0)).toBe(0n);
-    expect(convertToWholeNumberBigInt(-1, 2)).toBe(0n);
+  it("should convert a positive number with decimal places to a whole number", () => {
+    const result = convertToWholeNumberBigInt(3.14, 2);
+    expect(result).toEqual(BigInt(314));
   });
 
-  it("converts a string to a whole number with the correct number of decimal places", () => {
-    expect(convertToWholeNumberBigInt("123.456", 2)).toBe(BigInt("123456"));
+  it("should convert a string with a positive number with decimal places to a whole number", () => {
+    const result = convertToWholeNumberBigInt("3.14", 2);
+    expect(result).toEqual(BigInt(314));
   });
 
-  it("converts a number to a whole number with the correct number of decimal places", () => {
-    expect(convertToWholeNumberBigInt(123.456, 3)).toBe(BigInt("123456"));
+  it("should convert a number with more decimal places than specified to a whole number", () => {
+    const result = convertToWholeNumberBigInt(3.14159, 2);
+    expect(result).toEqual(314159n);
+  });
+
+  it("should convert a string with a number with more decimal places than specified to a whole number", () => {
+    const result = convertToWholeNumberBigInt("3.14159", 2);
+    expect(result).toEqual(314159n);
+  });
+
+  it("should convert a number with fewer decimal places than specified to a whole number", () => {
+    const result = convertToWholeNumberBigInt(3.1, 2);
+    expect(result).toEqual(BigInt(310));
+  });
+
+  it("should convert a string with a number with fewer decimal places than specified to a whole number", () => {
+    const result = convertToWholeNumberBigInt("3.1", 2);
+    expect(result).toEqual(BigInt(310));
+  });
+
+  it("should throw an error when the input is not valid", () => {
+    expect(() => convertToWholeNumberBigInt("not a number", 2)).toThrow("Converting to whole number failed: Input is not valid");
+  });
+
+  it("should throw an error when the input is negative", () => {
+    expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow("Converting to whole number failed: Input is not valid");
   });
 });
 
 describe("separateDigits", () => {
-  it("returns '0' for an invalid input", () => {
-    expect(separateDigits("invalid")).toBe("0");
+  it("should return a formatted number string with separated digits", () => {
+    expect(separateDigits("123456.789")).toEqual("123'456.789");
+    expect(separateDigits("9876543210.123456789")).toEqual(
+      "9'876'543'210.123'456'789"
+    );
+    expect(separateDigits("0.123")).toEqual("0.123");
+    expect(separateDigits("0.00000001")).toEqual("0.000'000'01");
+    expect(separateDigits("1")).toEqual("1");
   });
 
-  it("returns the correct formatting for an integer", () => {
-    expect(separateDigits("123")).toBe("123");
-    expect(separateDigits("123456789")).toBe("123'456'789");
-  });
-
-  it("returns the correct formatting for a decimal number", () => {
-    expect(separateDigits("123.456")).toBe("123.456");
-    expect(separateDigits("123456.789")).toBe("123'456.789");
-    expect(separateDigits("123.4")).toBe("123.4");
+  it("should throw an error if the input is not valid", () => {
+    expect(() => separateDigits("")).toThrow(
+      "Separating digits failed: Input is not valid"
+    );
+    expect(() => separateDigits("abc")).toThrow(
+      "Separating digits failed: Input is not valid"
+    );
+    expect(() => separateDigits("-1")).toThrow(
+      "Separating digits failed: Input is not valid"
+    );
   });
 });
 
