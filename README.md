@@ -27,6 +27,9 @@ The build is minified and the filenames include the hashes.\
 
 See the section about [deployment](https://vitejs.dev/guide/static-deploy.html) for more information.
 
+### `npm run test`
+
+Launches the test runner in the interactive watch mode.
 
 ## Add wallet as Chrome extension
 

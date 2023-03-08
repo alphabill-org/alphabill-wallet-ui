@@ -241,8 +241,12 @@ export const findClosestBigger = (
     .find(({ value }) => BigInt(value) >= BigInt(target));
 };
 
-export const getClosestSmaller = (bills: IBill[], target: string): IBill => {
-  return bills.reduce((acc: IBill, obj: IBill) => {
+export const getClosestSmaller = (bills: IBill[], target: string) => {
+  if (bills.length === 0) {
+    return null;
+  }
+
+  return bills?.reduce((acc: IBill, obj: IBill) => {
     const value = BigInt(obj.value);
     const accValue = BigInt(acc.value);
     const targetInt = BigInt(target);
@@ -254,6 +258,9 @@ export const getClosestSmaller = (bills: IBill[], target: string): IBill => {
 };
 
 export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
+  if (!billsArr) {
+    return [];
+  }
   const selectedBills: IBill[] = [];
   const amountBigInt = BigInt(amount);
   const zeroBigInt = 0n;
@@ -263,34 +270,42 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
     selectedBills.push(closestBigger);
   } else {
     const initialBill = getClosestSmaller(billsArr, amount);
-    selectedBills.push(initialBill);
-    let missingSum = amountBigInt - BigInt(initialBill.value);
+    if (initialBill === null) {
+      return [];
+    } else {
+      selectedBills.push(initialBill);
+      let missingSum = amountBigInt - BigInt(initialBill.value);
 
-    while (missingSum > zeroBigInt) {
-      const filteredBills = billsArr.filter(
-        (bill) => !selectedBills.includes(bill)
-      );
-      const filteredBillsSum = getBillsSum(filteredBills);
+      while (missingSum > zeroBigInt) {
+        const filteredBills = billsArr.filter(
+          (bill) => !selectedBills.includes(bill)
+        );
+        const filteredBillsSum = getBillsSum(filteredBills);
 
-      let addedSum;
-      const closestBigger = findClosestBigger(
-        filteredBills,
-        missingSum.toString()
-      );
-      if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
-        selectedBills.push(closestBigger);
-        addedSum = BigInt(closestBigger.value);
-      } else {
-        const currentBill = getClosestSmaller(
+        let addedSum;
+        const closestBigger = findClosestBigger(
           filteredBills,
           missingSum.toString()
         );
-        selectedBills.push(currentBill);
-        addedSum = BigInt(currentBill.value);
-      }
-      missingSum = missingSum - addedSum;
-      if (filteredBillsSum <= zeroBigInt) {
-        break;
+        if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
+          selectedBills.push(closestBigger);
+          addedSum = BigInt(closestBigger.value);
+        } else {
+          const currentBill = getClosestSmaller(
+            filteredBills,
+            missingSum.toString()
+          );
+          if (currentBill === null) {
+            return [];
+          } else {
+            selectedBills.push(currentBill);
+            addedSum = BigInt(currentBill.value);
+          }
+        }
+        missingSum = missingSum - addedSum;
+        if (filteredBillsSum <= zeroBigInt) {
+          break;
+        }
       }
     }
   }
@@ -326,7 +341,6 @@ export const useDocumentClick = (
 };
 
 export const addDecimal = (str: string, pos: number) => {
-
   if (pos <= 0 || !str) {
     return str;
   }
@@ -335,12 +349,12 @@ export const addDecimal = (str: string, pos: number) => {
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
 
-const countDecimalLength = (str: string) => {
+export const countDecimalLength = (str: string) => {
   const decimalIndex = str.indexOf(".");
   if (decimalIndex === -1) {
     return 0;
   } else {
-    return str.length-decimalIndex-1;
+    return str.length - decimalIndex - 1;
   }
 };
 
