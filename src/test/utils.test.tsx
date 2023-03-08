@@ -19,6 +19,19 @@ describe("countDecimalLength", () => {
 });
 
 describe("convertToWholeNumberBigInt", () => {
+  it("1", () => {
+    const result = convertToWholeNumberBigInt("184467440737095516.15", 2);
+    expect(result).toEqual(18446744073709551615n);
+  });
+  it("2", () => {
+    const result = convertToWholeNumberBigInt("18446744073709551615", 2);
+    expect(result).toEqual(1844674407370955161500n);
+  });
+  it("3", () => {
+    const result = convertToWholeNumberBigInt("1844674407370955161.5", 2);
+    expect(result).toEqual(184467440737095516150n);
+  });
+
   it("should convert a positive number with decimal places to a whole number", () => {
     const result = convertToWholeNumberBigInt(3.14, 2);
     expect(result).toEqual(BigInt(314));
@@ -71,6 +84,12 @@ describe("separateDigits", () => {
     expect(separateDigits("0.123")).toEqual("0.123");
     expect(separateDigits("0.00000001")).toEqual("0.000'000'01");
     expect(separateDigits("1")).toEqual("1");
+    expect(separateDigits("1844674407370955161.58978978")).toEqual(
+      "1'844'674'407'370'955'161.589'789'78"
+    );
+    expect(separateDigits("18446744073709551615")).toEqual(
+      "18'446'744'073'709'551'615"
+    );
   });
 
   it("should throw an error if the input is not valid", () => {

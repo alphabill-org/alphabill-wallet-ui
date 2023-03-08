@@ -387,19 +387,15 @@ export const separateDigits = (numStr: string) => {
   }
 
   const [integerPart, decimalPart = ""] = numStr.toString().split(".");
-  const formattedIntegerPart = parseInt(integerPart, 10)
-    .toLocaleString()
-    .replace(/,/g, "'");
+  const formattedIntegerPart = integerPart.replace(/(\d)(?=(\d{3})+$)/g, "$1'");
 
   if (decimalPart.length > 0) {
-    const roundedDecimalPart = parseFloat(`0.${decimalPart}`).toFixed(
-      decimalPart.length
-    );
-    const formattedDecimalPart = roundedDecimalPart
-      .slice(2)
+    const formattedDecimalPart = decimalPart
       .replace(/0+$/, "")
       .replace(/(\d{3})(?=\d)/g, "$1'");
-    return `${formattedIntegerPart}${formattedDecimalPart && "." + formattedDecimalPart}`;
+    return `${formattedIntegerPart}${
+      formattedDecimalPart && "." + formattedDecimalPart
+    }`;
   }
 
   return formattedIntegerPart;
