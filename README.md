@@ -29,6 +29,10 @@ See the section about [deployment](https://vitejs.dev/guide/static-deploy.html) 
 
 ### `npm run test`
 
+Launches the test runner.
+
+### `npm run test-watch`
+
 Launches the test runner in the interactive watch mode.
 
 ## Add wallet as Chrome extension
