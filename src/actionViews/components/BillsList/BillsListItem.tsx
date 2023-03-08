@@ -6,8 +6,9 @@ import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
 import {
   base64ToHexPrefixed,
-  convertToBigNumberString,
-  ALPHADecimalFactor,
+  addDecimal,
+  ALPHADecimalPlaces,
+  separateDigits,
 } from "../../../utils/utils";
 
 export interface IBillsListItemProps {
@@ -41,7 +42,7 @@ function BillsListItem({
   setLockedBillsLocal,
   lockedBills,
 }: IBillsListItemProps): JSX.Element | null {
-  let denomination: number | null = null;
+  let denomination: string | null = null;
   const queryClient = useQueryClient();
 
   return (
@@ -62,7 +63,9 @@ function BillsListItem({
                 <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                   <div>
                     Denomination:{" "}
-                    {convertToBigNumberString(bill.value, ALPHADecimalFactor)}
+                    {separateDigits(
+                      addDecimal(bill.value, ALPHADecimalPlaces) || "0"
+                    )}
                   </div>
                 </div>
               </>
