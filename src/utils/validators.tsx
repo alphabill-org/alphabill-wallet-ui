@@ -49,7 +49,7 @@ export const Verify = async (
     return "Proof & bill ID do not match";
   }
 
-  if (Boolean(bill.isDCBill) && bill.isDCBill !== false) {
+  if (Boolean(bill.isDcBill) && bill.isDcBill !== false) {
     return "Bill type is incorrect";
   }
 

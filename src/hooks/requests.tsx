@@ -9,7 +9,7 @@ import {
   IBill,
 } from "../types/Types";
 
-export const API_URL = "https://wallet-backend.testnet.alphabill.org/api/v1";
+export const API_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 
 export const getBalance = async (pubKey: string): Promise<any> => {
   if (
@@ -71,17 +71,17 @@ export const getProof = async (billID: string): Promise<any> => {
   return response.data;
 };
 
-export const getBlockHeight = async (): Promise<IBlockStats> => {
+export const getBlockHeight = async (): Promise<bigint> => {
   const response = await axios.get<IBlockStats>(`${API_URL}/block-height`);
 
-  return response.data;
+  return BigInt(response.data.blockHeight);
 };
 
 export const makeTransaction = async (
   data: ITransfer
 ): Promise<{ data: ITransfer }> => {
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    "https://money-partition.testnet.alphabill.org/api/v1/transactions",
+    import.meta.env.VITE_MONEY_NODE_URL + "/transactions",
     {
       ...data,
     }
