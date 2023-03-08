@@ -71,10 +71,10 @@ export const getProof = async (billID: string): Promise<any> => {
   return response.data;
 };
 
-export const getBlockHeight = async (): Promise<IBlockStats> => {
+export const getBlockHeight = async (): Promise<bigint> => {
   const response = await axios.get<IBlockStats>(`${API_URL}/block-height`);
 
-  return response.data;
+  return BigInt(response.data.blockHeight);
 };
 
 export const makeTransaction = async (

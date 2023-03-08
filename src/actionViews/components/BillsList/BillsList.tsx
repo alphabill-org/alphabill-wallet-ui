@@ -92,7 +92,7 @@ function BillsList(): JSX.Element | null {
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<number | null | undefined>(null);
+  const initialBlockHeight = useRef<bigint | null>(null);
   let DCDenomination: string | null = null;
 
   // Bills list functions
@@ -128,15 +128,12 @@ function BillsList(): JSX.Element | null {
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getBlockHeight().then((blockData) => {
-        if (!initialBlockHeight?.current) {
-          initialBlockHeight.current = blockData.blockHeight;
+      getBlockHeight().then((blockHeight) => {
+        if (!initialBlockHeight || !initialBlockHeight?.current) {
+          initialBlockHeight.current = blockHeight;
         }
 
-        if (
-          Number(initialBlockHeight?.current) + swapTimeout <
-          blockData.blockHeight
-        ) {
+        if (initialBlockHeight.current + swapTimeout < blockHeight) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
@@ -242,8 +239,7 @@ function BillsList(): JSX.Element | null {
           )}
 
           {DCBills.map((bill: IBill, idx: number) => {
-            const isNewDenomination =
-              DCDenomination !== bill.value && true;
+            const isNewDenomination = DCDenomination !== bill.value && true;
             DCDenomination = bill.value;
 
             return (

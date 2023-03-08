@@ -91,7 +91,7 @@ function Send(): JSX.Element | null {
       : "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<number | null | undefined>(null);
+  const initialBlockHeight = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
 
   const [isSending, setIsSending] = useState<boolean>(false);
@@ -100,15 +100,12 @@ function Send(): JSX.Element | null {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["balance", activeAccountId]);
       queryClient.invalidateQueries(["billsList", activeAccountId]);
-      getBlockHeight().then((blockData) => {
+      getBlockHeight().then((blockHeight) => {
         if (!initialBlockHeight?.current) {
-          initialBlockHeight.current = blockData.blockHeight;
+          initialBlockHeight.current = blockHeight;
         }
 
-        if (
-          Number(initialBlockHeight?.current) + timeoutBlocks <
-          blockData.blockHeight
-        ) {
+        if (BigInt(initialBlockHeight?.current) + timeoutBlocks < blockHeight) {
           pollingInterval.current && clearInterval(pollingInterval.current);
         }
       });
@@ -197,7 +194,7 @@ function Send(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight().then(async (blockData) => {
+          getBlockHeight().then(async (blockHeight) => {
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {
                 systemId: "AAAAAA==",
@@ -208,9 +205,7 @@ function Send(): JSX.Element | null {
                   targetValue: bill.value.toString(),
                   backlink: bill.txHash,
                 },
-                timeout: (
-                  BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
-                ).toString(),
+                timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
 
@@ -221,7 +216,7 @@ function Send(): JSX.Element | null {
 
               handleValidation(
                 await transferOrderHash(transferData),
-                blockData,
+                blockHeight,
                 transferData as ITransfer,
                 isLastTransaction
               );
@@ -240,15 +235,13 @@ function Send(): JSX.Element | null {
                   ).toString(),
                   backlink: billToSplit.txHash,
                 },
-                timeout: (
-                  BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
-                ).toString(),
+                timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
 
               handleValidation(
                 await splitOrderHash(splitData),
-                blockData,
+                blockHeight,
                 splitData as ITransfer,
                 true
               );
@@ -257,7 +250,7 @@ function Send(): JSX.Element | null {
 
           const handleValidation = async (
             msgHash: Uint8Array,
-            blockData: IBlockStats,
+            blockHeight: bigint,
             billData: ITransfer,
             isLastTransfer: boolean
           ) => {
@@ -269,9 +262,7 @@ function Send(): JSX.Element | null {
 
             const dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,
-              timeout: (
-                BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)
-              ).toString(),
+              timeout: (blockHeight + timeoutBlocks).toString(),
             });
 
             proof.isSignatureValid &&

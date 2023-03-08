@@ -65,7 +65,7 @@ export const handleSwapRequest = async (
 
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-        getBlockHeight().then(async (blockData) => {
+        getBlockHeight().then(async (blockHeight) => {
           const transferData: ISwapProps = {
             systemId: "AAAAAA==",
             unitId: Buffer.from(nonceHash).toString("base64"),
@@ -82,9 +82,7 @@ export const handleSwapRequest = async (
                 .toString(),
               "@type": "type.googleapis.com/rpc.SwapOrder",
             },
-            timeout: (
-              BigInt(blockData.blockHeight) + BigInt(swapTimeout)
-            ).toString(),
+            timeout: (blockHeight + swapTimeout).toString(),
             ownerProof: "",
           };
 
@@ -155,7 +153,7 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight().then((blockData) =>
+    getBlockHeight().then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
         const transferData: ITransfer = {
           systemId: "AAAAAA==",
@@ -165,9 +163,9 @@ export const handleDC = async (
             backlink: bill.txHash,
             nonce: Buffer.from(nonceHash).toString("base64"),
             targetBearer: getNewBearer(account),
-            targetValue: bill.value.toString(),
+            targetValue: bill.value,
           },
-          timeout: (BigInt(blockData.blockHeight) + BigInt(timeoutBlocks)).toString(),
+          timeout: (blockHeight + timeoutBlocks).toString(),
           ownerProof: "",
         };
 
@@ -182,7 +180,6 @@ export const handleDC = async (
 
         const dataWithProof = Object.assign(transferData, {
           ownerProof: proof.ownerProof,
-          timeout: blockData.blockHeight + timeoutBlocks,
         });
 
         makeTransaction(dataWithProof)
