@@ -1,5 +1,4 @@
-
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from "vitest";
 import {
   countDecimalLength,
   convertToWholeNumberBigInt,
@@ -51,11 +50,15 @@ describe("convertToWholeNumberBigInt", () => {
   });
 
   it("should throw an error when the input is not valid", () => {
-    expect(() => convertToWholeNumberBigInt("not a number", 2)).toThrow("Converting to whole number failed: Input is not valid");
+    expect(() => convertToWholeNumberBigInt("not a number", 2)).toThrow(
+      "Converting to whole number failed: Input is not valid"
+    );
   });
 
   it("should throw an error when the input is negative", () => {
-    expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow("Converting to whole number failed: Input is not valid");
+    expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow(
+      "Converting to whole number failed: Input is not valid"
+    );
   });
 });
 
@@ -110,10 +113,9 @@ const BILLS = [
   },
 ];
 
-
-describe('findClosestBigger', () => {
-  it('should return the bill object that has a value greater than or equal to the target value', () => {
-    const target = '300';
+describe("findClosestBigger", () => {
+  it("should return the bill object that has a value greater than or equal to the target value", () => {
+    const target = "300";
 
     const result = findClosestBigger(BILLS, target);
 
@@ -125,8 +127,8 @@ describe('findClosestBigger', () => {
     });
   });
 
-  it('should return undefined if there are no bills with a value greater than or equal to the target value', () => {
-    const target = '1500';
+  it("should return undefined if there are no bills with a value greater than or equal to the target value", () => {
+    const target = "1500";
 
     const result = findClosestBigger(BILLS, target);
 
@@ -134,19 +136,24 @@ describe('findClosestBigger', () => {
   });
 });
 
-describe('getClosestSmaller', () => {
-  it('should return the bill object with the closest value to the target value', () => {
-    const target = '300';
+describe("getClosestSmaller", () => {
+  it("should return the bill object with the closest value to the target value", () => {
+    const target = "300";
 
     const result = getClosestSmaller(BILLS, target);
 
-    expect(result).toEqual({ id: "2", value: '200', txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=", isDcBill: false });
+    expect(result).toEqual({
+      id: "2",
+      value: "200",
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
+      isDcBill: false,
+    });
   });
 });
 
-describe('getOptimalBills', () => {
-  it('should return the optimal combination of bills to reach the target amount', () => {
-    const amount = '1300';
+describe("getOptimalBills", () => {
+  it("should return the optimal combination of bills to reach the target amount", () => {
+    const amount = "1300";
 
     const result = getOptimalBills(amount, BILLS);
 
@@ -162,21 +169,21 @@ describe('getOptimalBills', () => {
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
         isDcBill: false,
-      }
+      },
     ]);
   });
 
-  it('should return an empty array if there are no bills to select from', () => {
+  it("should return an empty array if there are no bills to select from", () => {
     const emptyBills: any[] = [];
-    const amount = '1300';
+    const amount = "1300";
 
     const result = getOptimalBills(amount, emptyBills);
 
     expect(result).toEqual([]);
   });
 
-  it('should return an array with the closest bill if there are no bills with a value greater than or equal to the target amount', () => {
-    const amount = '1500';
+  it("should return an array with the closest bill if there are no bills with a value greater than or equal to the target amount", () => {
+    const amount = "1500";
 
     const result = getOptimalBills(amount, BILLS);
 
@@ -192,7 +199,7 @@ describe('getOptimalBills', () => {
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
         isDcBill: false,
-      }
+      },
     ]);
   });
 });
