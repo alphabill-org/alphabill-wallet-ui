@@ -12,11 +12,9 @@ import {
   ITypeHierarchy,
 } from "../types/Types";
 
-export const API_URL = "https://wallet-backend.testnet.alphabill.org";
-export const API_TOKENS_URL =
-  "https://dev-ab-tokens-backend.abdev1.guardtime.com";
-export const API_PARTITION_URL =
-  "https://money-partition.testnet.alphabill.org";
+export const API_PARTITION_URL = import.meta.env.VITE_MONEY_NODE_URL;
+export const API_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
+export const API_TOKENS_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
 
 export const getBalance = async (pubKey: string): Promise<any> => {
   if (
@@ -28,7 +26,7 @@ export const getBalance = async (pubKey: string): Promise<any> => {
   }
 
   const response = await axios.get<{ balance: number; pubKey: string }>(
-    `${API_URL}/api/v1/balance?pubkey=${pubKey}`
+    `${API_URL}/balance?pubkey=${pubKey}`
   );
 
   let res = response.data;
@@ -53,7 +51,7 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
 
   while (totalBills === null || billsList.length < totalBills) {
     const response = await axios.get<IBillsList>(
-      `${API_URL}/api/v1/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
+      `${API_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
     );
 
     const { bills, total } = response.data;
@@ -79,7 +77,7 @@ export const fetchAllTypes = async (
       API_TOKENS_URL +
         (nextOffsetKey
           ? nextOffsetKey
-          : `/api/v1/kinds/${kind}/types?limit=${limit}`)
+          : `/kinds/${kind}/types?limit=${limit}`)
     );
 
     const data = response.data;
@@ -108,7 +106,7 @@ export const fetchAllTypes = async (
 
 export const getTypeHierarchy = async (typeId: string) => {
   const response = await axios.get<ITypeHierarchy[]>(
-    `${API_URL}/api/v1/types/${typeId}/hierarchy`
+    `${API_URL}/types/${typeId}/hierarchy`
   );
 
   return response.data;
@@ -129,7 +127,7 @@ export const getUserTokens = async (
       API_TOKENS_URL +
         (nextOffsetKey
           ? nextOffsetKey
-          : `/api/v1/kinds/${kind}/owners/${owner}/tokens?limit=${limit}`)
+          : `/kinds/${kind}/owners/${owner}/tokens?limit=${limit}`)
     );
 
     const data = response.data;
@@ -179,18 +177,16 @@ export const getProof = async (billID: string): Promise<any> => {
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/api/v1/proof?bill_id=${billID}`
+    `${API_URL}/proof?bill_id=${billID}`
   );
 
   return response.data;
 };
 
-export const getBlockHeight = async (): Promise<IBlockStats> => {
-  const response = await axios.get<IBlockStats>(
-    `${API_URL}/api/v1/block-height`
-  );
+export const getBlockHeight = async (): Promise<bigint> => {
+  const response = await axios.get<IBlockStats>(`${API_URL}/block-height`);
 
-  return response.data;
+  return BigInt(response.data.blockHeight);
 };
 
 export const makeTransaction = async (
@@ -199,7 +195,7 @@ export const makeTransaction = async (
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? API_TOKENS_URL : API_PARTITION_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    `${url}/api/v1/transactions/${pubKey}`,
+    url + "/transactions",
     {
       ...data,
     }

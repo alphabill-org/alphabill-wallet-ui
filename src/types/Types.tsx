@@ -1,7 +1,7 @@
 export interface IAccount {
   pubKey: string;
   name: string;
-  balance?: number;
+  balance?: string;
   assets: IAsset[];
   activities: IActivity[];
   activeNetwork?: string;
@@ -12,7 +12,7 @@ export interface IAccount {
 export interface IAsset {
   id: string;
   name: string;
-  amount: number;
+  amount: string;
   network: string;
   decimalFactor: number;
   decimalPlaces: number;
@@ -37,7 +37,7 @@ export interface IFungibleResponse {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
-  amount: number; // fungible only
+  amount: string; // fungible only
   decimals: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
@@ -47,7 +47,7 @@ export interface IFungibleResponse {
 export interface IFungibleAsset {
   id: string;
   name: string;
-  amount: number;
+  amount: string;
   network: string;
   decimalFactor: number;
   decimalPlaces: number;
@@ -82,18 +82,18 @@ export interface ITypeHierarchy {
 
 export interface IBill {
   id: string; // base64
-  value: number;
+  value: string;
   txHash: string;
-  isDCBill?: boolean;
   typeId?: string;
   kind?: number;
   decimals?: number;
+  isDcBill?: boolean;
 }
 
 export interface ILockedBill {
   billId: string;
   desc: string;
-  value: number;
+  value: string;
 }
 
 export interface IBillsList {
@@ -102,7 +102,7 @@ export interface IBillsList {
 }
 
 export interface IBlockStats {
-  blockHeight: number;
+  blockHeight: string;
 }
 
 export interface INetwork {
@@ -122,28 +122,28 @@ export interface ITransfer {
     "@type": string;
     backlink?: string;
     newBearer?: string;
-    remainingValue?: number;
+    remainingValue?: string;
     targetBearer?: string;
-    amount?: number;
+    amount?: string;
     nonce?: string;
     targetValue?: string;
     invariantPredicateSignatures?: string[];
   };
-  timeout: number;
+  timeout: string;
   ownerProof: string;
 }
 
 export interface IActivity {
   id: string;
   name: string;
-  amount: number;
+  amount: string;
   swap?: ISwap;
   time: string;
   address: string;
   type: "Buy" | "Send" | "Swap" | "Receive";
   network: string;
   fromID?: string;
-  fromAmount?: string | number;
+  fromAmount?: string;
   fromAddress?: string;
 }
 
@@ -166,7 +166,7 @@ export interface ISwapProps {
     targetValue: string;
     invariantPredicateSignatures?: string[];
   };
-  timeout: number;
+  timeout: string;
   ownerProof: string;
 }
 
@@ -176,7 +176,7 @@ export interface IProofsProps {
 
 export interface IProofProps {
   id: string;
-  value: number;
+  value: string;
   txHash: string;
   isDcBill?: boolean;
   txProof: ITxProof;
@@ -196,10 +196,10 @@ export interface IProofTx {
     nonce?: string;
     targetBearer?: string;
     backlink: string;
-    amount?: number;
+    amount?: string;
     ownerCondition?: string;
     billIdentifiers?: string[];
-    remainingValue?: number;
+    remainingValue?: string;
     proofs?: IProof[];
     dcTransfers?: IProofTx[];
     targetValue?: string;
@@ -207,7 +207,7 @@ export interface IProofTx {
     invariantPredicateSignatures?: string[];
     type?: string;
   };
-  timeout: number;
+  timeout: string;
   ownerProof: string;
 }
 
@@ -237,7 +237,7 @@ export interface IUnicityCertificate {
 }
 
 export interface IUnicitySeal {
-  rootChainRoundNumber: number;
+  rootChainRoundNumber: string;
   previousHash: string;
   hash: string;
   signatures: {
@@ -284,7 +284,7 @@ export interface ISwapTransferProps {
     targetValue: string;
     invariantPredicateSignatures?: string[];
   };
-  timeout: number;
+  timeout: string;
   ownerProof: string;
 }
 
@@ -298,6 +298,6 @@ export interface IDCTransferProps {
     targetBearer: string;
     targetValue: string;
   };
-  timeout: number;
+  timeout: string;
   ownerProof: string;
 }

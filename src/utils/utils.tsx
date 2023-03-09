@@ -3,9 +3,8 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq } from "lodash";
+import { uniq, isNumber } from "lodash";
 import * as secp from "@noble/secp256k1";
-import BigNumber from "bignumber.js";
 import { QueryClient } from "react-query";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
@@ -244,67 +243,86 @@ export const createOwnerProof = async (
 
 export const findClosestBigger = (
   bills: IBill[],
-  target: BigNumber
+  target: string
 ): IBill | undefined => {
   return bills
-    .sort(function (a: IBill, b: IBill) {
-      return a.value - b.value;
+    .sort((a: IBill, b: IBill) => {
+      if (BigInt(a.value) > BigInt(b.value)) {
+        return 1;
+      } else if (BigInt(a.value) < BigInt(b.value)) {
+        return -1;
+      } else {
+        return 0;
+      }
     })
-    .find(({ value }) => new BigNumber(value).isGreaterThanOrEqualTo(target));
+    .find(({ value }) => BigInt(value) >= BigInt(target));
 };
 
-export const getClosestSmaller = (
-  bills: IBill[],
-  target: BigNumber
-): IBill => {
-  return bills.reduce((acc: IBill, obj: IBill) =>
-    new BigNumber(Math.abs(target.minus(obj.value).toNumber())).isLessThan(
-      Math.abs(target.minus(acc.value).toNumber())
-    )
-      ? obj
-      : acc
-  );
+export const getClosestSmaller = (bills: IBill[], target: string) => {
+  if (bills.length === 0) {
+    return null;
+  }
+
+  return bills?.reduce((acc: IBill, obj: IBill) => {
+    const value = BigInt(obj.value);
+    const accValue = BigInt(acc.value);
+    const targetInt = BigInt(target);
+    const absDiff = value > targetInt ? value - targetInt : targetInt - value;
+    const currentAbsDiff =
+      accValue > targetInt ? accValue - targetInt : targetInt - accValue;
+    return absDiff < currentAbsDiff ? obj : acc;
+  });
 };
 
-export const getOptimalBills = (
-  amount: BigNumber,
-  billsArr: IBill[]
-): IBill[] => {
+export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
+  if (!billsArr) {
+    return [];
+  }
   const selectedBills: IBill[] = [];
+  const amountBigInt = BigInt(amount);
+  const zeroBigInt = 0n;
 
   const closestBigger = findClosestBigger(billsArr, amount);
-  if (closestBigger && new BigNumber(closestBigger.value).isGreaterThan(0)) {
+  if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
     selectedBills.push(closestBigger);
   } else {
     const initialBill = getClosestSmaller(billsArr, amount);
-    selectedBills.push(initialBill);
-    let missingSum = amount.minus(initialBill.value);
+    if (initialBill === null) {
+      return [];
+    } else {
+      selectedBills.push(initialBill);
+      let missingSum = amountBigInt - BigInt(initialBill.value);
 
-    while (missingSum.isGreaterThan(0)) {
-      const filteredBills = billsArr.filter((bill) => !selectedBills.includes(bill));
-      const filteredBillsSum = filteredBills.reduce(
-        (acc: BigNumber, obj: IBill) => {
-          return acc.plus(obj.value);
-        },
-        new BigNumber(0)
-      );
+      while (missingSum > zeroBigInt) {
+        const filteredBills = billsArr.filter(
+          (bill) => !selectedBills.includes(bill)
+        );
+        const filteredBillsSum = getBillsSum(filteredBills);
 
-      let addedSum;
-      const closestBigger = findClosestBigger(
-        filteredBills,
-        new BigNumber(Math.abs(missingSum.toNumber()))
-      );
-      if (closestBigger && new BigNumber(closestBigger.value).isGreaterThan(0)) {
-        selectedBills.push(closestBigger);
-        addedSum = closestBigger.value;
-      } else {
-        const currentBill = getClosestSmaller(filteredBills, missingSum);
-        selectedBills.push(currentBill);
-        addedSum = currentBill.value;
-      }
-      missingSum = missingSum.minus(addedSum);
-      if (filteredBillsSum.isLessThanOrEqualTo(0)) {
-        break;
+        let addedSum;
+        const closestBigger = findClosestBigger(
+          filteredBills,
+          missingSum.toString()
+        );
+        if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
+          selectedBills.push(closestBigger);
+          addedSum = BigInt(closestBigger.value);
+        } else {
+          const currentBill = getClosestSmaller(
+            filteredBills,
+            missingSum.toString()
+          );
+          if (currentBill === null) {
+            return [];
+          } else {
+            selectedBills.push(currentBill);
+            addedSum = BigInt(currentBill.value);
+          }
+        }
+        missingSum = missingSum - addedSum;
+        if (filteredBillsSum <= zeroBigInt) {
+          break;
+        }
       }
     }
   }
@@ -314,8 +332,8 @@ export const getOptimalBills = (
 
 export const getBillsSum = (bills: IBill[]) =>
   bills.reduce((acc, obj: IBill) => {
-    return new BigNumber(acc).plus(obj.value);
-  }, new BigNumber(0));
+    return acc + BigInt(obj.value);
+  }, 0n);
 
 export const useDocumentClick = (
   callback: (event: MouseEvent) => void,
@@ -339,25 +357,65 @@ export const useDocumentClick = (
   }, [ref, handler]);
 };
 
-export const getDecimalPlaces = (num: BigNumber) => {
-  var match = ("" + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-  if (!match) {
-    return 0;
+export const addDecimal = (str: string, pos: number) => {
+  if (pos <= 0 || !str) {
+    return str;
   }
-  return Math.max(
-    0,
-    (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0)
-  );
+
+  const convertedAmount = str.padStart(pos + 1, "0");
+  return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
 
-export const convertToBigNumberString = (
-  num: number,
-  dividedBy: number = 1
-): string => {
-  if (isNaN(num)) return "";
-  const bigNum = new BigNumber(num).dividedBy(dividedBy);
-  const decimals = getDecimalPlaces(bigNum);
-  return bigNum.toFixed(decimals);
+export const countDecimalLength = (str: string) => {
+  const decimalIndex = str.indexOf(".");
+  if (decimalIndex === -1) {
+    return 0;
+  } else {
+    return str.length - decimalIndex - 1;
+  }
+};
+
+export const convertToWholeNumberBigInt = (
+  val: string | number,
+  decimalPlaces: number
+): bigint => {
+  let numStr = isNumber(val) ? val.toString() : val;
+  const num = parseFloat(numStr);
+
+  if (isNaN(num) || num < 0) {
+    throw new Error("Converting to whole number failed: Input is not valid");
+  }
+
+  const numStrWithoutDecimal = numStr.replace(".", "");
+  const decimalDifference = decimalPlaces - countDecimalLength(numStr);
+  const fullNumber =
+    decimalDifference > 0
+      ? numStrWithoutDecimal + "0".repeat(decimalDifference)
+      : numStrWithoutDecimal;
+
+  return BigInt(fullNumber);
+};
+
+export const separateDigits = (numStr: string) => {
+  const num = parseFloat(numStr);
+
+  if (isNaN(num) || num < 0) {
+    throw new Error("Separating digits failed: Input is not valid");
+  }
+
+  const [integerPart, decimalPart = ""] = numStr.split(".");
+  const formattedIntegerPart = integerPart.replace(/(\d)(?=(\d{3})+$)/g, "$1'");
+
+  if (decimalPart.length > 0) {
+    const formattedDecimalPart = decimalPart
+      .replace(/0+$/, "")
+      .replace(/(\d{3})(?=\d)/g, "$1'");
+    return `${formattedIntegerPart}${
+      formattedDecimalPart && "." + formattedDecimalPart
+    }`;
+  }
+
+  return formattedIntegerPart;
 };
 
 export const invalidateAllLists = (
@@ -384,8 +442,18 @@ export const sigScheme = "01";
 export const moneyTypeURL = "type.googleapis.com/rpc.";
 export const tokensTypeURL = "type.googleapis.com/alphabill.tokens.v1.";
 
-export const timeoutBlocks = 10;
-export const swapTimeout = 40;
+export const timeoutBlocks = 10n;
+export const swapTimeout = 40n;
 export const DCTransfersLimit = 100;
 export const ALPHADecimalPlaces = 8;
 export const ALPHADecimalFactor = Number("1e" + ALPHADecimalPlaces);
+
+export const ALPHASplitType = "type.googleapis.com/rpc.SplitOrder";
+export const ALPHATransferType = "type.googleapis.com/rpc.TransferOrder";
+export const ALPHASwapType = "type.googleapis.com/rpc.SwapOrder";
+export const ALPHADcType = "type.googleapis.com/rpc.TransferDCOrder";
+
+export const TOKENSSplitType = "type.googleapis.com/alphabill.tokens.v1.SplitFungibleTokenAttributes";
+export const TOKENSTransferType = "type.googleapis.com/alphabill.tokens.v1.TransferFungibleTokenAttributes";
+export const TOKENSSwapType = "type.googleapis.com/alphabill.tokens.v1.JoinFungibleTokenAttributes";
+export const TOKENSDcType = "type.googleapis.com/alphabill.tokens.v1.BurnFungibleTokenAttributes";

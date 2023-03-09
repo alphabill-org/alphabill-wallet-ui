@@ -3,7 +3,6 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
-import BigNumber from "bignumber.js";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -13,7 +12,6 @@ import Select from "../../components/Select/Select";
 import {
   IAsset,
   IBill,
-  IBlockStats,
   ILockedBill,
   IProofTx,
   ITransfer,
@@ -37,11 +35,16 @@ import {
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
-  convertToBigNumberString,
   moneyTypeURL,
   tokensTypeURL,
   startByte,
   invalidateAllLists,
+  addDecimal,
+  convertToWholeNumberBigInt,
+  TOKENSTransferType,
+  TOKENSSplitType,
+  ALPHATransferType,
+  ALPHASplitType,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -71,67 +74,61 @@ function Send(): JSX.Element | null {
   );
 
   const getAvailableAmount = useCallback(
-    (decimalFactor: number) => {
-      return convertToBigNumberString(
-        billsList
-          .filter(
+    (decimalPlaces: number) => {
+      return addDecimal(
+        getBillsSum(
+          billsList.filter(
             (bill: IBill) =>
-              bill.isDCBill !== true &&
+              bill.isDcBill === false &&
               !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
           )
-          .reduce((acc: number, obj: IBill) => {
-            return acc + obj?.value;
-          }, 0),
-        decimalFactor
-      );
+        ).toString(),
+        decimalPlaces)
     },
     [billsList, lockedBills]
   );
 
   const [availableAmount, setAvailableAmount] = useState<string>(
-    getAvailableAmount(selectedAsset?.decimalFactor || 1)
+    getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
 
-  useEffect(() => {
-    setAvailableAmount(getAvailableAmount(selectedAsset?.decimalFactor || 1));
-  }, [selectedAsset, getAvailableAmount]);
+  console.log(account?.assets);
 
-  const lockedBillsAmount = billsList
-    .filter((bill: IBill) =>
+
+  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
+
+
+  const lockedBillsAmount = getBillsSum(
+    billsList.filter((bill: IBill) =>
       lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
     )
-    .reduce((acc: number, obj: IBill) => {
-      return acc + obj?.value;
-    }, 0);
+  ).toString();
+
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        convertToBigNumberString(
-          Number(lockedBillsAmount),
-          selectedAsset?.decimalFactor || 1
-        ) +
+        addDecimal(lockedBillsAmount.toString(), selectedAsset?.decimalPlaces || 0) +
         " )"
       : "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<number | null | undefined>(null);
-  const balanceAfterSending = useRef<number | null>(null);
+  const initialBlockHeight = useRef<bigint | null | undefined>(null);
+  const balanceAfterSending = useRef<bigint | null>(null);
 
   const [isSending, setIsSending] = useState<boolean>(false);
+
+
+
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-
-      getBlockHeight().then((blockData) => {
+      getBlockHeight().then((blockHeight) => {
         if (!initialBlockHeight?.current) {
-          initialBlockHeight.current = blockData.blockHeight;
+          initialBlockHeight.current = blockHeight;
         }
 
-        if (
-          Number(initialBlockHeight?.current) + timeoutBlocks <
-          blockData.blockHeight
-        ) {
+        if (BigInt(initialBlockHeight?.current) + timeoutBlocks < blockHeight) {
           pollingInterval.current && clearInterval(pollingInterval.current);
         }
       });
@@ -139,11 +136,15 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
+    setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
+  }, [selectedAsset, getAvailableAmount]);
+
+  useEffect(() => {
     const activeAssetAmount = account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === activeAsset.typeId)?.amount;
 
-    if (activeAssetAmount === balanceAfterSending.current) {
+    if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -175,7 +176,7 @@ function Send(): JSX.Element | null {
             value: defaultAsset,
             label: "ALPHA",
           },
-          amount: 0,
+          amount: "",
           address: "",
           password: "",
         }}
@@ -192,28 +193,41 @@ function Send(): JSX.Element | null {
             });
           }
 
-          const convertedAmount = new BigNumber(values.amount)
-            .multipliedBy(selectedAsset?.decimalFactor || 1);
+          let convertedAmount;
+          try {
+            convertedAmount = convertToWholeNumberBigInt(
+              values.amount,
+              selectedAsset?.decimalPlaces || 0
+            );
+          } catch (error) {
+            return setErrors({
+              password: error.message,
+            });
+          }
+
           const billsArr = selectedSendKey
             ? ([
                 billsList?.find((bill: IBill) => bill.id === selectedSendKey),
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
-                  bill.isDCBill !== false &&
+                  bill.isDcBill === false &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
-          const selectedBills = getOptimalBills(convertedAmount, billsArr);
+          const selectedBills = getOptimalBills(
+            convertedAmount.toString(),
+            billsArr
+          );
 
           const newBearer = createNewBearer(values.address);
 
           const billsSumDifference =
-            getBillsSum(selectedBills).minus(convertedAmount);
+            getBillsSum(selectedBills) - convertedAmount;
 
           const billToSplit =
-            billsSumDifference.toNumber() !== 0
-              ? findClosestBigger(selectedBills, billsSumDifference)
+            billsSumDifference !== 0n
+              ? findClosestBigger(selectedBills, billsSumDifference.toString())
               : null;
 
           const billsToTransfer = billToSplit
@@ -221,27 +235,29 @@ function Send(): JSX.Element | null {
             : selectedBills;
 
           const splitBillAmount = billToSplit
-            ? new BigNumber(billToSplit.value).minus(billsSumDifference)
+            ? BigInt(billToSplit.value) - billsSumDifference
             : null;
 
           setIsSending(true);
 
-          getBlockHeight().then(async (blockData) => {
+          getBlockHeight().then(async (blockHeight) => {
             let transferType =
-              tokensTypeURL + "TransferFungibleTokenAttributes";
-            let splitType = tokensTypeURL + "SplitFungibleTokenAttributes";
+            TOKENSTransferType;
+            let splitType = TOKENSSplitType;
             let systemId = "AAAAAg==";
             let amountField = "targetValue";
             let bearerField = "newBearer";
             let transferField = "value";
 
             if (selectedAsset?.typeId === "ALPHA") {
-              transferType = moneyTypeURL + "TransferOrder";
-              splitType = moneyTypeURL + "SplitOrder";
+              transferType = ALPHATransferType;
+              splitType = ALPHASplitType;
               systemId = "AAAAAA==";
+              bearerField = "targetBearer"
               amountField = "amount";
               transferField = "targetValue";
             }
+            console.log(bearerField, selectedAsset?.typeId);
 
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {
@@ -253,7 +269,7 @@ function Send(): JSX.Element | null {
                   [transferField]: bill.value.toString(),
                   backlink: bill.txHash,
                 },
-                timeout: blockData.blockHeight + timeoutBlocks,
+                timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
 
@@ -261,35 +277,13 @@ function Send(): JSX.Element | null {
                 billsToTransfer.length === idx + 1 &&
                 !billToSplit &&
                 !splitBillAmount;
-              if (selectedAsset?.typeId !== "ALPHA") {
-                getTypeHierarchy(bill.typeId || "")
-                  .then(async (hierarchy: ITypeHierarchy[]) => {
-                    transferData.transactionAttributes.invariantPredicateSignatures =
-                      hierarchy.map((parent: ITypeHierarchy) => {
-                        return parent.parentTypeId;
-                      });
-                    transferData.transactionAttributes.type = bill.typeId;
-                    handleValidation(
-                      await transferOrderHash(transferData),
-                      blockData,
-                      transferData as ITransfer,
-                      isLastTransaction
-                    );
-                  })
-                  .catch(() => {
-                    setErrors({
-                      password: "Fetching token hierarchy for failed",
-                    });
-                    setIsSending(false);
-                  });
-              } else {
-                handleValidation(
-                  await transferOrderHash(transferData),
-                  blockData,
-                  transferData as ITransfer,
-                  isLastTransaction
-                );
-              }
+
+              handleValidation(
+                await transferOrderHash(transferData),
+                blockHeight,
+                transferData as ITransfer,
+                isLastTransaction
+              );
             });
 
             if (billToSplit && splitBillAmount) {
@@ -298,28 +292,29 @@ function Send(): JSX.Element | null {
                 unitId: billToSplit.id,
                 transactionAttributes: {
                   "@type": splitType,
-                  [amountField]: splitBillAmount.toNumber(),
+                  [amountField]: splitBillAmount.toString(),
                   [bearerField]: newBearer,
-                  remainingValue: new BigNumber(billToSplit.value)
-                    .minus(splitBillAmount)
-                    .toNumber(),
+                  remainingValue: (
+                    BigInt(billToSplit.value) - splitBillAmount
+                  ).toString(),
                   backlink: billToSplit.txHash,
                 },
-                timeout: blockData.blockHeight + timeoutBlocks,
+                timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
 
               if (selectedAsset?.typeId !== "ALPHA") {
                 getTypeHierarchy(billToSplit.typeId || "")
                   .then(async (hierarchy: ITypeHierarchy[]) => {
-                    splitData.transactionAttributes.invariantPredicateSignatures =
-                      hierarchy.map((parent: ITypeHierarchy) => {
-                        return parent.parentTypeId;
-                      });
+                    const parentsIds = hierarchy.map((parent: ITypeHierarchy) => {
+                      return parent.parentTypeId;
+                    })
+                    const invariantPredicateSignatures = parentsIds ? parentsIds.concat(["Uw=="]) : ["Uw=="];
+                    splitData.transactionAttributes.invariantPredicateSignatures = invariantPredicateSignatures;
                     splitData.transactionAttributes.type = billToSplit.typeId;
                     handleValidation(
-                      await transferOrderHash(splitData),
-                      blockData,
+                      await splitOrderHash(splitData),
+                      blockHeight,
                       splitData as ITransfer,
                       true
                     );
@@ -332,8 +327,8 @@ function Send(): JSX.Element | null {
                   });
               } else {
                 handleValidation(
-                  await transferOrderHash(splitData),
-                  blockData,
+                  await splitOrderHash(splitData),
+                  blockHeight,
                   splitData as ITransfer,
                   true
                 );
@@ -343,7 +338,7 @@ function Send(): JSX.Element | null {
 
           const handleValidation = async (
             msgHash: Uint8Array,
-            blockData: IBlockStats,
+            blockHeight: bigint,
             billData: ITransfer,
             isLastTransfer: boolean
           ) => {
@@ -355,7 +350,7 @@ function Send(): JSX.Element | null {
 
             let dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,
-              timeout: blockData.blockHeight + timeoutBlocks,
+              timeout: (blockHeight + timeoutBlocks).toString(),
             });
 
             if (selectedAsset?.typeId !== "ALPHA") {
@@ -374,8 +369,8 @@ function Send(): JSX.Element | null {
                   );
 
                   balanceAfterSending.current = balanceAfterSending.current
-                    ? balanceAfterSending.current - amount
-                    : Number(selectedAsset?.amount) - amount;
+                    ? BigInt(balanceAfterSending.current) - BigInt(amount)
+                    : BigInt(selectedAsset?.amount || '') - BigInt(amount);
                 })
                 .finally(() => {
                   if (isLastTransfer) {
@@ -415,32 +410,23 @@ function Send(): JSX.Element | null {
               }
             ),
           password: Yup.string().required("Password is required"),
-          amount: Yup.number()
+          amount: Yup.string()
             .required("Amount is required")
-            .positive("Value must be greater than 0")
             .test(
-              "is-decimal",
-              "The amount should be a decimal with maximum " +
-                selectedAsset?.decimalPlaces +
-                " digits after decimal point",
-              (val: any) => {
-                const regexFloatString =
-                  "^\\d+(\\.\\d{0," + selectedAsset?.decimalPlaces + "})?$";
-                const regexFloat = new RegExp(regexFloatString);
-
-                if (val !== undefined) {
-                  return regexFloat.test(convertToBigNumberString(val));
-                }
-                return true;
-              }
+              "test more than",
+              "Value must be greater than 0",
+              (value: string | undefined) => Number(value || "") > 0n
             )
             .test(
               "test less than",
               "Amount exceeds available assets",
-              (value) =>
+              (value: string | undefined) =>
                 selectedSendKey
                   ? true
-                  : Number(value) <= Number(availableAmount)
+                  : value
+                  ? convertToWholeNumberBigInt(value || "", decimalPlaces) <=
+                    convertToWholeNumberBigInt(availableAmount, decimalPlaces)
+                  : true
             ),
         })}
       >
@@ -588,13 +574,11 @@ function Send(): JSX.Element | null {
                       }
                       value={
                         (selectedSendKey &&
-                          (convertToBigNumberString(
-                            Number(
-                              billsList?.find(
-                                (bill: IBill) => bill.id === selectedSendKey
-                              )?.value
-                            ),
-                            selectedAsset?.decimalFactor
+                          (addDecimal(
+                            billsList?.find(
+                              (bill: IBill) => bill.id === selectedSendKey
+                            )?.value,
+                            selectedAsset?.decimalPlaces || 0
                           ) as string | undefined)) ||
                         ""
                       }

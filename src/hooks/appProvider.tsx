@@ -24,10 +24,11 @@ import {
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import {
-  convertToBigNumberString,
+  addDecimal,
   ALPHADecimalFactor,
   ALPHADecimalPlaces,
   checkOwnerPredicate,
+  separateDigits,
 } from "../utils/utils";
 
 interface IAppContextShape {
@@ -91,10 +92,10 @@ export const AppProvider: FunctionComponent<{
       idx: idx,
       name: accountNamesObj["_" + idx],
       assets: [],
-      activeNetwork: "AB Testnet",
+      activeNetwork: import.meta.env.VITE_NETWORK_NAME,
       networks: [
         {
-          id: "AB Testnet",
+          id: import.meta.env.VITE_NETWORK_NAME,
           isTestNetwork: true,
         },
       ],
@@ -136,7 +137,7 @@ export const AppProvider: FunctionComponent<{
         } else {
           for (let resultToken of userTokens) {
             if (resultToken.typeId === token.typeId) {
-              resultToken.amount += token.amount;
+              resultToken.amount += BigInt(token.amount);
             }
           }
         }
@@ -148,18 +149,15 @@ export const AppProvider: FunctionComponent<{
         id: obj.id,
         typeId: obj.typeId,
         name: obj.symbol,
-        network: "AB Testnet",
-        amount: obj.amount,
+        network: import.meta.env.VITE_NETWORK_NAME,
+        amount: obj.amount.toString(),
         decimalFactor: Number("1e" + obj.decimals),
         decimalPlaces: obj.decimals,
         isSendable:
-          tokenTypes?.find((type: IUserTokensListTypes) => type.id === obj.typeId)
-            ?.subTypeCreationPredicate === "U1EB",
-        UIAmount:
-          convertToBigNumberString(
-            obj.amount,
-            Number("1e" + (obj?.decimals || 0))
-          ) || "0",
+          tokenTypes?.find(
+            (type: IUserTokensListTypes) => type.id === obj.typeId
+          )?.subTypeCreationPredicate === "U1EB",
+        UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
     const activeAssetTypeId = activeAsset?.typeId || "ALPHA";
@@ -191,23 +189,24 @@ export const AppProvider: FunctionComponent<{
             {
               id: "ALPHA",
               name: "ALPHA",
-              network: "AB Testnet",
-              amount: ALPHABalance,
+              network: import.meta.env.VITE_NETWORK_NAME,
+              amount: fetchedBalance,
               decimalFactor: ALPHADecimalFactor,
               decimalPlaces: ALPHADecimalPlaces,
-              UIAmount:
-                convertToBigNumberString(
-                  Number(ALPHABalance),
-                  ALPHADecimalFactor
-                ) || "0",
+              UIAmount: separateDigits(
+                addDecimal(
+                  fetchedBalance?.toString() || "0",
+                  ALPHADecimalPlaces
+                )
+              ),
               typeId: "ALPHA",
               isSendable: true,
             },
           ]),
-          activeNetwork: "AB Testnet",
+          activeNetwork: import.meta.env.VITE_NETWORK_NAME,
           networks: [
             {
-              id: "AB Testnet",
+              id: import.meta.env.VITE_NETWORK_NAME,
               isTestNetwork: true,
             },
           ],

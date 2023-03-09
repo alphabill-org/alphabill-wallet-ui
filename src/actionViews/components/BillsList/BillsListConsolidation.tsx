@@ -1,14 +1,20 @@
 import * as secp from "@noble/secp256k1";
 
 import {
+  ALPHADcType,
+  ALPHASwapType,
   base64ToHexPrefixed,
   createOwnerProof,
   DCTransfersLimit,
   getNewBearer,
+  moneyTypeURL,
   sortIDBySize,
   sortTxProofsByID,
   swapTimeout,
   timeoutBlocks,
+  TOKENSDcType,
+  TOKENSSwapType,
+  tokensTypeURL,
 } from "../../../utils/utils";
 import {
   IAccount,
@@ -28,7 +34,6 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import { dcOrderHash, swapOrderHash } from "../../../utils/hashers";
-import BigNumber from "bignumber.js";
 
 export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
@@ -49,73 +54,72 @@ export const handleSwapRequest = async (
   });
 
   DCBills.map((bill: IBill, idx: number) =>
-    getProof(base64ToHexPrefixed(bill.id)).then(
-      async (data) => {
-        const txProof = data.bills[0].txProof;
+    getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
+      const txProof = data.bills[0].txProof;
 
-        txProofs.push(txProof);
-        if (txProofs.length === DCBills.length) {
-          let dcTransfers: IProofTx[] = [];
-          let proofs: IProof[] = [];
+      txProofs.push(txProof);
+      if (txProofs.length === DCBills.length) {
+        let dcTransfers: IProofTx[] = [];
+        let proofs: IProof[] = [];
 
-          sortTxProofsByID(txProofs).forEach((txProof) => {
-            const tx = txProof.tx;
-            const proof = txProof.proof;
-            dcTransfers.push(tx);
-            proofs.push(proof);
-          });
+        sortTxProofsByID(txProofs).forEach((txProof) => {
+          const tx = txProof.tx;
+          const proof = txProof.proof;
+          dcTransfers.push(tx);
+          proofs.push(proof);
+        });
 
-          if (!hashingPublicKey || !hashingPrivateKey) return;
+        if (!hashingPublicKey || !hashingPrivateKey) return;
 
-          if (!nonce.length) return;
-          const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-          getBlockHeight().then(async (blockData) => {
-            const transferData: ISwapProps = {
-              systemId:
-                activeAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
-              unitId: Buffer.from(nonceHash).toString("base64"),
-              transactionAttributes: {
-                billIdentifiers: sortIDBySize(billIdentifiers),
-                dcTransfers: dcTransfers,
-                ownerCondition: getNewBearer(account),
-                proofs: proofs,
-                targetValue: dcTransfers
-                  .reduce(
-                    (total, obj) =>
-                      new BigNumber(obj.transactionAttributes.targetValue as number)
-                        .plus(total),
-                    new BigNumber(0)
-                  )
-                  .toString(),
-                "@type": "type.googleapis.com/rpc.SwapOrder",
-              },
-              timeout: blockData.blockHeight + swapTimeout,
-              ownerProof: "",
-            };
+        if (!nonce.length) return;
+        const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+        getBlockHeight().then(async (blockHeight) => {
+          let swapType = TOKENSSwapType;
+          let systemId = "AAAAAg==";
 
-            const msgHash = await swapOrderHash(transferData);
-            const proof = await createOwnerProof(
-              msgHash,
-              hashingPrivateKey,
-              hashingPublicKey
-            );
+          if (activeAsset?.typeId === "ALPHA") {
+            swapType = ALPHASwapType;
+            systemId = "AAAAAA==";
+          }
 
-            const dataWithProof: ISwapTransferProps = await Object.assign(
-              transferData,
-              {
-                ownerProof: proof.ownerProof,
-              }
-            );
+          const transferData: ISwapProps = {
+            systemId: systemId,
+            unitId: Buffer.from(nonceHash).toString("base64"),
+            transactionAttributes: {
+              billIdentifiers: sortIDBySize(billIdentifiers),
+              dcTransfers: dcTransfers,
+              ownerCondition: getNewBearer(account),
+              proofs: proofs,
+              targetValue: dcTransfers
+                .reduce((acc, obj: IProofTx) => {
+                  return acc + BigInt(obj.transactionAttributes.targetValue!);
+                }, 0n)
 
-            proof.isSignatureValid &&
-              makeTransaction(
-                dataWithProof,
-                activeAsset?.typeId === "ALPHA" ? "" : account.pubKey
-              );
-          });
-        }
+                .toString(),
+              "@type": swapType,
+            },
+            timeout: (blockHeight + swapTimeout).toString(),
+            ownerProof: "",
+          };
+
+          const msgHash = await swapOrderHash(transferData);
+          const proof = await createOwnerProof(
+            msgHash,
+            hashingPrivateKey,
+            hashingPublicKey
+          );
+
+          const dataWithProof: ISwapTransferProps = await Object.assign(
+            transferData,
+            {
+              ownerProof: proof.ownerProof,
+            }
+          );
+
+          proof.isSignatureValid && makeTransaction(dataWithProof);
+        });
       }
-    )
+    })
   );
 };
 
@@ -166,20 +170,27 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight().then((blockData) =>
+    getBlockHeight().then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
+        let burnType = TOKENSDcType;
+        let systemId = "AAAAAg==";
+
+        if (activeAsset?.typeId === "ALPHA") {
+          burnType = ALPHADcType;
+          systemId = "AAAAAA==";
+        }
 
         const transferData: ITransfer = {
-          systemId: activeAsset?.typeId === "ALPHA" ? "AAAAAA==" : "AAAAAg==",
+          systemId: systemId,
           unitId: bill.id,
           transactionAttributes: {
-            "@type": "type.googleapis.com/rpc.TransferDCOrder",
+            "@type": burnType,
             backlink: bill.txHash,
             nonce: Buffer.from(nonceHash).toString("base64"),
             targetBearer: getNewBearer(account),
-            targetValue: bill.value.toString(),
+            targetValue: bill.value,
           },
-          timeout: blockData.blockHeight + timeoutBlocks,
+          timeout: (blockHeight + timeoutBlocks).toString(),
           ownerProof: "",
         };
 
@@ -194,7 +205,6 @@ export const handleDC = async (
 
         const dataWithProof = Object.assign(transferData, {
           ownerProof: proof.ownerProof,
-          timeout: blockData.blockHeight + timeoutBlocks,
         });
 
         makeTransaction(

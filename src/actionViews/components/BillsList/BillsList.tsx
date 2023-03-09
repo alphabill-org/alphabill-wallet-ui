@@ -3,10 +3,10 @@ import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
 import {
-  convertToBigNumberString,
+  addDecimal,
   DCTransfersLimit,
-  ALPHADecimalFactor,
   swapTimeout,
+  ALPHADecimalPlaces,
 } from "../../../utils/utils";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -42,15 +42,13 @@ function BillsList(): JSX.Element | null {
   );
   const unlockedBills = billsList.filter(
     (b: IBill) =>
-      b.isDCBill !== true &&
+      b.isDcBill === false &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
   const DCBills = useMemo(
     () =>
       sortedListByValue
-        ? sortBillsByID(sortedListByValue).filter(
-            (b: IBill) => b.isDCBill === true
-          )
+        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDcBill)
         : [],
     [sortedListByValue]
   );
@@ -94,8 +92,8 @@ function BillsList(): JSX.Element | null {
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<number | null | undefined>(null);
-  let DCDenomination: number | null = null;
+  const initialBlockHeight = useRef<bigint | null>(null);
+  let DCDenomination: string | null = null;
 
   // Bills list functions
   const handleProof = (bill: IBill) => {
@@ -130,15 +128,12 @@ function BillsList(): JSX.Element | null {
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getBlockHeight().then((blockData) => {
-        if (!initialBlockHeight?.current) {
-          initialBlockHeight.current = blockData.blockHeight;
+      getBlockHeight().then((blockHeight) => {
+        if (!initialBlockHeight || !initialBlockHeight?.current) {
+          initialBlockHeight.current = blockHeight;
         }
 
-        if (
-          Number(initialBlockHeight?.current) + swapTimeout <
-          blockData.blockHeight
-        ) {
+        if (initialBlockHeight.current + swapTimeout < blockHeight) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
@@ -263,11 +258,11 @@ function BillsList(): JSX.Element | null {
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
                       Denomination:{" "}
-                      {convertToBigNumberString(
+                      {addDecimal(
                         bill.value,
                         activeAsset.typeId === "ALPHA"
-                          ? ALPHADecimalFactor
-                          : Number("1e" + (bill?.decimals || 0))
+                          ? ALPHADecimalPlaces
+                          : bill?.decimals || 0
                       )}
                     </div>
                     <Spacer mb={2} />
@@ -366,7 +361,7 @@ function BillsList(): JSX.Element | null {
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
-            b.isDCBill !== true &&
+            b.isDcBill === false &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -377,7 +372,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
-                b.isDCBill !== true &&
+                b.isDcBill === false &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}
