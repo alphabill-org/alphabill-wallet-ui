@@ -6,7 +6,7 @@ import {
   addDecimal,
   DCTransfersLimit,
   swapTimeout,
-  ALPHADecimalPlaces,
+  AlphaDecimalPlaces,
 } from "../../../utils/utils";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -261,7 +261,7 @@ function BillsList(): JSX.Element | null {
                       {addDecimal(
                         bill.value,
                         activeAsset.typeId === "ALPHA"
-                          ? ALPHADecimalPlaces
+                          ? AlphaDecimalPlaces
                           : bill?.decimals || 0
                       )}
                     </div>

@@ -25,8 +25,8 @@ import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import {
   addDecimal,
-  ALPHADecimalFactor,
-  ALPHADecimalPlaces,
+  AlphaDecimalFactor,
+  AlphaDecimalPlaces,
   checkOwnerPredicate,
   separateDigits,
 } from "../utils/utils";
@@ -191,12 +191,12 @@ export const AppProvider: FunctionComponent<{
               name: "ALPHA",
               network: import.meta.env.VITE_NETWORK_NAME,
               amount: fetchedBalance,
-              decimalFactor: ALPHADecimalFactor,
-              decimalPlaces: ALPHADecimalPlaces,
+              decimalFactor: AlphaDecimalFactor,
+              decimalPlaces: AlphaDecimalPlaces,
               UIAmount: separateDigits(
                 addDecimal(
                   fetchedBalance?.toString() || "0",
-                  ALPHADecimalPlaces
+                  AlphaDecimalPlaces
                 )
               ),
               typeId: "ALPHA",

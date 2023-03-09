@@ -445,15 +445,18 @@ export const tokensTypeURL = "type.googleapis.com/alphabill.tokens.v1.";
 export const timeoutBlocks = 10n;
 export const swapTimeout = 40n;
 export const DCTransfersLimit = 100;
-export const ALPHADecimalPlaces = 8;
-export const ALPHADecimalFactor = Number("1e" + ALPHADecimalPlaces);
+export const AlphaDecimalPlaces = 8;
+export const AlphaDecimalFactor = Number("1e" + AlphaDecimalPlaces);
 
-export const ALPHASplitType = "type.googleapis.com/rpc.SplitOrder";
-export const ALPHATransferType = "type.googleapis.com/rpc.TransferOrder";
-export const ALPHASwapType = "type.googleapis.com/rpc.SwapOrder";
-export const ALPHADcType = "type.googleapis.com/rpc.TransferDCOrder";
+export const AlphaSplitType = "type.googleapis.com/rpc.SplitOrder";
+export const AlphaTransferType = "type.googleapis.com/rpc.TransferOrder";
+export const AlphaSwapType = "type.googleapis.com/rpc.SwapOrder";
+export const AlphaDcType = "type.googleapis.com/rpc.TransferDCOrder";
 
-export const TOKENSSplitType = "type.googleapis.com/alphabill.tokens.v1.SplitFungibleTokenAttributes";
-export const TOKENSTransferType = "type.googleapis.com/alphabill.tokens.v1.TransferFungibleTokenAttributes";
-export const TOKENSSwapType = "type.googleapis.com/alphabill.tokens.v1.JoinFungibleTokenAttributes";
-export const TOKENSDcType = "type.googleapis.com/alphabill.tokens.v1.BurnFungibleTokenAttributes";
+export const TokensSplitType = "type.googleapis.com/alphabill.tokens.v1.SplitFungibleTokenAttributes";
+export const TokensTransferType = "type.googleapis.com/alphabill.tokens.v1.TransferFungibleTokenAttributes";
+export const TokensSwapType = "type.googleapis.com/alphabill.tokens.v1.JoinFungibleTokenAttributes";
+export const TokensDcType = "type.googleapis.com/alphabill.tokens.v1.BurnFungibleTokenAttributes";
+
+export const AlphaSystemId = "AAAAAA==";
+export const TokensSystemId = "AAAAAg==";

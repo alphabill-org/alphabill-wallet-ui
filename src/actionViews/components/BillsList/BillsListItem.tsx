@@ -7,7 +7,7 @@ import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
 import {
   base64ToHexPrefixed,
   addDecimal,
-  ALPHADecimalPlaces,
+  AlphaDecimalPlaces,
   separateDigits,
 } from "../../../utils/utils";
 
@@ -69,7 +69,7 @@ function BillsListItem({
                       addDecimal(
                         bill.value,
                         activeAsset.typeId === "ALPHA"
-                          ? ALPHADecimalPlaces
+                          ? AlphaDecimalPlaces
                           : bill.decimals || 0
                       )
                     )}

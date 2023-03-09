@@ -41,10 +41,12 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  TOKENSTransferType,
-  TOKENSSplitType,
-  ALPHATransferType,
-  ALPHASplitType,
+  TokensTransferType,
+  TokensSplitType,
+  AlphaTransferType,
+  AlphaSplitType,
+  AlphaSystemId,
+  TokensSystemId,
 } from "../../utils/utils";
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -91,9 +93,6 @@ function Send(): JSX.Element | null {
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
-
-  console.log(account?.assets);
-
 
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
@@ -242,22 +241,21 @@ function Send(): JSX.Element | null {
 
           getBlockHeight().then(async (blockHeight) => {
             let transferType =
-            TOKENSTransferType;
-            let splitType = TOKENSSplitType;
-            let systemId = "AAAAAg==";
+            TokensTransferType;
+            let splitType = TokensSplitType;
+            let systemId = TokensSystemId;
             let amountField = "targetValue";
             let bearerField = "newBearer";
             let transferField = "value";
 
             if (selectedAsset?.typeId === "ALPHA") {
-              transferType = ALPHATransferType;
-              splitType = ALPHASplitType;
-              systemId = "AAAAAA==";
+              transferType = AlphaTransferType;
+              splitType = AlphaSplitType;
+              systemId = AlphaSystemId;
               bearerField = "targetBearer"
               amountField = "amount";
               transferField = "targetValue";
             }
-            console.log(bearerField, selectedAsset?.typeId);
 
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {

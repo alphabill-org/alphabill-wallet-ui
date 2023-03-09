@@ -9,7 +9,7 @@ import {
   ISwapProps,
   ITransfer,
 } from "../types/Types";
-import { ALPHADcType, ALPHASplitType, TOKENSSplitType } from "./utils";
+import { AlphaDcType, AlphaSplitType, TokensSplitType } from "./utils";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -119,7 +119,7 @@ export const splitAttributesBuffer = (tx: any) => {
   let amountField: string = "targetValue";
   let bearerField: string = "newBearer";
 
-  if (tx.transactionAttributes["@type"] === ALPHASplitType) {
+  if (tx.transactionAttributes["@type"] === AlphaSplitType) {
     amountField = "amount";
     bearerField = "targetBearer";
   } else {
@@ -131,7 +131,7 @@ export const splitAttributesBuffer = (tx: any) => {
     Buffer.from(tx.transactionAttributes.backlink!, "base64")
   );
 
-  if (tx.transactionAttributes["@type"] === TOKENSSplitType) {
+  if (tx.transactionAttributes["@type"] === TokensSplitType) {
     bytes = secp.utils.concatBytes(
       Buffer.from(tx.transactionAttributes.type, "base64"),
       bytes,
@@ -195,7 +195,7 @@ export const dcOrderHash = async (
   bill: IBill,
   nonceHash: Uint8Array
 ) => {
-  if (tx.transactionAttributes["@type"] === ALPHADcType) {
+  if (tx.transactionAttributes["@type"] === AlphaDcType) {
     return await secp.utils.sha256(
       secp.utils.concatBytes(
         Buffer.from(tx.systemId, "base64"),

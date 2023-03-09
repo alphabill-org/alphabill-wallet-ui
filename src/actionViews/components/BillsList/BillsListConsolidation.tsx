@@ -1,20 +1,20 @@
 import * as secp from "@noble/secp256k1";
 
 import {
-  ALPHADcType,
-  ALPHASwapType,
+  AlphaDcType,
+  AlphaSwapType,
+  AlphaSystemId,
   base64ToHexPrefixed,
   createOwnerProof,
   DCTransfersLimit,
   getNewBearer,
-  moneyTypeURL,
   sortIDBySize,
   sortTxProofsByID,
   swapTimeout,
   timeoutBlocks,
-  TOKENSDcType,
-  TOKENSSwapType,
-  tokensTypeURL,
+  TokensDcType,
+  TokensSwapType,
+  TokensSystemId,
 } from "../../../utils/utils";
 import {
   IAccount,
@@ -74,12 +74,12 @@ export const handleSwapRequest = async (
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
         getBlockHeight().then(async (blockHeight) => {
-          let swapType = TOKENSSwapType;
-          let systemId = "AAAAAg==";
+          let swapType = TokensSwapType;
+          let systemId = TokensSystemId;
 
           if (activeAsset?.typeId === "ALPHA") {
-            swapType = ALPHASwapType;
-            systemId = "AAAAAA==";
+            swapType = AlphaSwapType;
+            systemId = AlphaSystemId;
           }
 
           const transferData: ISwapProps = {
@@ -172,12 +172,12 @@ export const handleDC = async (
 
     getBlockHeight().then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
-        let burnType = TOKENSDcType;
-        let systemId = "AAAAAg==";
+        let burnType = TokensDcType;
+        let systemId = TokensSystemId;
 
         if (activeAsset?.typeId === "ALPHA") {
-          burnType = ALPHADcType;
-          systemId = "AAAAAA==";
+          burnType = AlphaDcType;
+          systemId = AlphaSystemId;
         }
 
         const transferData: ITransfer = {
