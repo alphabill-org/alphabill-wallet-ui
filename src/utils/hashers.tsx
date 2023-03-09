@@ -9,6 +9,7 @@ import {
   ISwapProps,
   ITransfer,
 } from "../types/Types";
+import { ALPHADcType, ALPHASplitType, TOKENSSplitType } from "./utils";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -118,24 +119,21 @@ export const splitAttributesBuffer = (tx: any) => {
   let amountField: string = "targetValue";
   let bearerField: string = "newBearer";
 
+  if (tx.transactionAttributes["@type"] === ALPHASplitType) {
+    amountField = "amount";
+    bearerField = "targetBearer";
+  } else {
+  }
   let bytes = secp.utils.concatBytes(
     new Uint64BE(Number(tx.transactionAttributes[amountField])).toBuffer(),
     Buffer.from(tx.transactionAttributes[bearerField] as string, "base64"),
     new Uint64BE(Number(tx.transactionAttributes.remainingValue)).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink!, "base64"),
+    Buffer.from(tx.transactionAttributes.backlink!, "base64")
   );
 
-  if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
-  ) {
-    amountField = "amount";
-    bearerField = "targetBearer";
-  } else {
+  if (tx.transactionAttributes["@type"] === TOKENSSplitType) {
     bytes = secp.utils.concatBytes(
-      Buffer.from(
-        tx.transactionAttributes.type,
-        "base64"
-      ),
+      Buffer.from(tx.transactionAttributes.type, "base64"),
       bytes,
       Buffer.from(
         tx.transactionAttributes.invariantPredicateSignatures,
@@ -197,9 +195,7 @@ export const dcOrderHash = async (
   bill: IBill,
   nonceHash: Uint8Array
 ) => {
-  if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
-  ) {
+  if (tx.transactionAttributes["@type"] === ALPHADcType) {
     return await secp.utils.sha256(
       secp.utils.concatBytes(
         Buffer.from(tx.systemId, "base64"),
