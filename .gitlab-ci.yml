@@ -1,0 +1,26 @@
+stages:
+  - test
+  - build
+
+cache:
+  paths:
+    - node_modules/
+
+image: node:latest
+
+before_script:
+  - npm ci --openssl-legacy-provider
+
+test:
+  stage: test
+  script:
+    - npm test
+
+build:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - build
+    expire_in: 30 days
