@@ -101,6 +101,10 @@ export interface IBillsList {
   bills: IBill[];
 }
 
+export interface IRoundNumber {
+  roundNumber: string;
+}
+
 export interface IBlockStats {
   blockHeight: string;
 }

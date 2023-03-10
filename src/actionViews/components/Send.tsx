@@ -125,7 +125,7 @@ function Send(): JSX.Element | null {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight().then((blockHeight) => {
+      getBlockHeight(selectedAsset?.typeId === "ALPHA").then((blockHeight) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockHeight;
         }
@@ -242,7 +242,7 @@ function Send(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight().then(async (blockHeight) => {
+          getBlockHeight(selectedAsset?.typeId === "ALPHA").then(async (blockHeight) => {
             let transferType = TokensTransferType;
             let splitType = TokensSplitType;
             let systemId = TokensSystemId;

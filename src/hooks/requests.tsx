@@ -10,6 +10,7 @@ import {
   IFungibleAsset,
   IFungibleResponse,
   ITypeHierarchy,
+  IRoundNumber,
 } from "../types/Types";
 import { base64ToHexPrefixed } from "../utils/utils";
 
@@ -182,12 +183,18 @@ export const getProof = async (billID: string): Promise<any> => {
   return response.data;
 };
 
-export const getBlockHeight = async (): Promise<bigint> => {
-  const response = await axios.get<IBlockStats>(
-    `${MONEY_BACKEND_URL}/block-height`
+export const getBlockHeight = async (isAlpha: boolean): Promise<bigint> => {
+  const response = await axios.get<IBlockStats | IRoundNumber>(
+    isAlpha
+      ? `${MONEY_BACKEND_URL}/block-height`
+      : `${TOKENS_BACKEND_URL}/round-number`
   );
 
-  return BigInt(response.data.blockHeight);
+  if (isAlpha) {
+    return BigInt((response.data as IBlockStats).blockHeight);
+  } else {
+    return BigInt((response.data as IRoundNumber).roundNumber);
+  }
 };
 
 export const makeTransaction = async (
@@ -196,7 +203,7 @@ export const makeTransaction = async (
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    url + "/transactions",
+    `${url}/transactions/${pubKey && pubKey}`,
     {
       ...data,
     }

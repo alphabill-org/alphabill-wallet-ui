@@ -75,7 +75,7 @@ export const handleSwapRequest = async (
 
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-        getBlockHeight().then(async (blockHeight) => {
+        getBlockHeight(activeAsset?.typeId === "ALPHA").then(async (blockHeight) => {
           let swapType = TokensSwapType;
           let systemId = TokensSystemId;
 
@@ -172,7 +172,7 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight().then((blockHeight) =>
+    getBlockHeight(activeAsset?.typeId === "ALPHA").then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
         let burnType = TokensDcType;
         let systemId = TokensSystemId;
