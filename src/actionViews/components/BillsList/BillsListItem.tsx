@@ -7,9 +7,9 @@ import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
 import {
   base64ToHexPrefixed,
   addDecimal,
-  AlphaDecimalPlaces,
   separateDigits,
 } from "../../../utils/utils";
+import { AlphaDecimalPlaces } from "../../../utils/variables";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;

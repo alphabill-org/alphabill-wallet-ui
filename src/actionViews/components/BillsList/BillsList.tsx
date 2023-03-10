@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
+import { addDecimal } from "../../../utils/utils";
 import {
-  addDecimal,
   DCTransfersLimit,
   swapTimeout,
   AlphaDecimalPlaces,
-} from "../../../utils/utils";
+} from "../../../utils/variables";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
@@ -42,7 +42,7 @@ function BillsList(): JSX.Element | null {
   );
   const unlockedBills = billsList.filter(
     (b: IBill) =>
-      b.isDcBill === false &&
+      b.isDcBill !== true &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
   const DCBills = useMemo(
@@ -361,7 +361,7 @@ function BillsList(): JSX.Element | null {
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
-            b.isDcBill === false &&
+            b.isDcBill !== true &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -372,7 +372,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
-                b.isDcBill === false &&
+                b.isDcBill !== true &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}

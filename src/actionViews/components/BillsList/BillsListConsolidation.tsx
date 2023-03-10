@@ -1,21 +1,23 @@
 import * as secp from "@noble/secp256k1";
 
 import {
-  AlphaDcType,
-  AlphaSwapType,
-  AlphaSystemId,
   base64ToHexPrefixed,
   createOwnerProof,
-  DCTransfersLimit,
   getNewBearer,
   sortIDBySize,
   sortTxProofsByID,
+} from "../../../utils/utils";
+import {
+  AlphaDcType,
+  AlphaSwapType,
+  AlphaSystemId,
   swapTimeout,
   timeoutBlocks,
   TokensDcType,
   TokensSwapType,
   TokensSystemId,
-} from "../../../utils/utils";
+  DCTransfersLimit,
+} from "../../../utils/variables";
 import {
   IAccount,
   IActiveAsset,

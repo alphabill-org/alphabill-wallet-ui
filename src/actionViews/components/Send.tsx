@@ -29,25 +29,27 @@ import {
   extractFormikError,
   getKeys,
   base64ToHexPrefixed,
-  timeoutBlocks,
   createOwnerProof,
   createNewBearer,
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
-  moneyTypeURL,
-  tokensTypeURL,
-  startByte,
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
+  hexToBase64,
+} from "../../utils/utils";
+import {
+  timeoutBlocks,
+  startByte,
   TokensTransferType,
   TokensSplitType,
   AlphaTransferType,
   AlphaSplitType,
   AlphaSystemId,
   TokensSystemId,
-} from "../../utils/utils";
+} from "../../utils/variables";
+
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
 function Send(): JSX.Element | null {
@@ -81,11 +83,12 @@ function Send(): JSX.Element | null {
         getBillsSum(
           billsList.filter(
             (bill: IBill) =>
-              bill.isDcBill === false &&
+              bill.isDcBill !== true &&
               !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
           )
         ).toString(),
-        decimalPlaces)
+        decimalPlaces
+      );
     },
     [billsList, lockedBills]
   );
@@ -96,7 +99,6 @@ function Send(): JSX.Element | null {
 
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
-
   const lockedBillsAmount = getBillsSum(
     billsList.filter((bill: IBill) =>
       lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
@@ -106,7 +108,10 @@ function Send(): JSX.Element | null {
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        addDecimal(lockedBillsAmount.toString(), selectedAsset?.decimalPlaces || 0) +
+        addDecimal(
+          lockedBillsAmount.toString(),
+          selectedAsset?.decimalPlaces || 0
+        ) +
         " )"
       : "";
 
@@ -115,8 +120,6 @@ function Send(): JSX.Element | null {
   const balanceAfterSending = useRef<bigint | null>(null);
 
   const [isSending, setIsSending] = useState<boolean>(false);
-
-
 
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
@@ -210,7 +213,7 @@ function Send(): JSX.Element | null {
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
-                  bill.isDcBill === false &&
+                  bill.isDcBill !== true &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
@@ -240,8 +243,7 @@ function Send(): JSX.Element | null {
           setIsSending(true);
 
           getBlockHeight().then(async (blockHeight) => {
-            let transferType =
-            TokensTransferType;
+            let transferType = TokensTransferType;
             let splitType = TokensSplitType;
             let systemId = TokensSystemId;
             let amountField = "targetValue";
@@ -252,7 +254,7 @@ function Send(): JSX.Element | null {
               transferType = AlphaTransferType;
               splitType = AlphaSplitType;
               systemId = AlphaSystemId;
-              bearerField = "targetBearer"
+              bearerField = "targetBearer";
               amountField = "amount";
               transferField = "targetValue";
             }
@@ -304,11 +306,14 @@ function Send(): JSX.Element | null {
               if (selectedAsset?.typeId !== "ALPHA") {
                 getTypeHierarchy(billToSplit.typeId || "")
                   .then(async (hierarchy: ITypeHierarchy[]) => {
-                    const parentsIds = hierarchy.map((parent: ITypeHierarchy) => {
-                      return parent.parentTypeId;
-                    })
-                    const invariantPredicateSignatures = parentsIds ? parentsIds.concat(["Uw=="]) : ["Uw=="];
-                    splitData.transactionAttributes.invariantPredicateSignatures = invariantPredicateSignatures;
+                    const parentsIds = hierarchy
+                      .map((parent: ITypeHierarchy) => {
+                        return parent.parentTypeId;
+                      })
+                      .filter((parentTypeId) => parentTypeId !== null);
+
+                    splitData.transactionAttributes.invariantPredicateSignatures =
+                      parentsIds.concat([hexToBase64(startByte)]);
                     splitData.transactionAttributes.type = billToSplit.typeId;
                     handleValidation(
                       await splitOrderHash(splitData),
@@ -368,7 +373,7 @@ function Send(): JSX.Element | null {
 
                   balanceAfterSending.current = balanceAfterSending.current
                     ? BigInt(balanceAfterSending.current) - BigInt(amount)
-                    : BigInt(selectedAsset?.amount || '') - BigInt(amount);
+                    : BigInt(selectedAsset?.amount || "") - BigInt(amount);
                 })
                 .finally(() => {
                   if (isLastTransfer) {

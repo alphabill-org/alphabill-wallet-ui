@@ -11,10 +11,11 @@ import {
   IFungibleResponse,
   ITypeHierarchy,
 } from "../types/Types";
+import { base64ToHexPrefixed } from "../utils/utils";
 
-export const API_PARTITION_URL = import.meta.env.VITE_MONEY_NODE_URL;
-export const API_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
-export const API_TOKENS_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
+export const MONEY_NODE_URL = import.meta.env.VITE_MONEY_NODE_URL;
+export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
+export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
 
 export const getBalance = async (pubKey: string): Promise<any> => {
   if (
@@ -26,7 +27,7 @@ export const getBalance = async (pubKey: string): Promise<any> => {
   }
 
   const response = await axios.get<{ balance: number; pubKey: string }>(
-    `${API_URL}/balance?pubkey=${pubKey}`
+    `${MONEY_BACKEND_URL}/balance?pubkey=${pubKey}`
   );
 
   let res = response.data;
@@ -51,7 +52,7 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
 
   while (totalBills === null || billsList.length < totalBills) {
     const response = await axios.get<IBillsList>(
-      `${API_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
+      `${MONEY_BACKEND_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
     );
 
     const { bills, total } = response.data;
@@ -74,10 +75,8 @@ export const fetchAllTypes = async (
 
   while (nextOffsetKey !== null) {
     const response: any = await axios.get(
-      API_TOKENS_URL +
-        (nextOffsetKey
-          ? nextOffsetKey
-          : `/kinds/${kind}/types?limit=${limit}`)
+      TOKENS_BACKEND_URL +
+        (nextOffsetKey ? nextOffsetKey : `/kinds/${kind}/types?limit=${limit}`)
     );
 
     const data = response.data;
@@ -106,7 +105,7 @@ export const fetchAllTypes = async (
 
 export const getTypeHierarchy = async (typeId: string) => {
   const response = await axios.get<ITypeHierarchy[]>(
-    `${API_URL}/types/${typeId}/hierarchy`
+    `${TOKENS_BACKEND_URL}/types/${base64ToHexPrefixed(typeId)}/hierarchy`
   );
 
   return response.data;
@@ -124,7 +123,7 @@ export const getUserTokens = async (
 
   while (nextOffsetKey !== null) {
     const response: any = await axios.get(
-      API_TOKENS_URL +
+      TOKENS_BACKEND_URL +
         (nextOffsetKey
           ? nextOffsetKey
           : `/kinds/${kind}/owners/${owner}/tokens?limit=${limit}`)
@@ -177,14 +176,16 @@ export const getProof = async (billID: string): Promise<any> => {
   }
 
   const response = await axios.get<IProofsProps>(
-    `${API_URL}/proof?bill_id=${billID}`
+    `${MONEY_BACKEND_URL}/proof?bill_id=${billID}`
   );
 
   return response.data;
 };
 
 export const getBlockHeight = async (): Promise<bigint> => {
-  const response = await axios.get<IBlockStats>(`${API_URL}/block-height`);
+  const response = await axios.get<IBlockStats>(
+    `${MONEY_BACKEND_URL}/block-height`
+  );
 
   return BigInt(response.data.blockHeight);
 };
@@ -193,7 +194,7 @@ export const makeTransaction = async (
   data: ITransfer,
   pubKey?: string
 ): Promise<{ data: ITransfer }> => {
-  const url = pubKey ? API_TOKENS_URL : API_PARTITION_URL;
+  const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
     url + "/transactions",
     {

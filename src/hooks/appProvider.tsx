@@ -23,13 +23,8 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
-import {
-  addDecimal,
-  AlphaDecimalFactor,
-  AlphaDecimalPlaces,
-  checkOwnerPredicate,
-  separateDigits,
-} from "../utils/utils";
+import { addDecimal, separateDigits } from "../utils/utils";
+import { AlphaDecimalPlaces } from "../utils/variables";
 
 interface IAppContextShape {
   balances: any;
@@ -177,7 +172,7 @@ export const AppProvider: FunctionComponent<{
 
     if (
       (keysArr.length >= 1 && fetchedBalance !== accountBalance) ||
-      account?.assets?.length !== Number(fungibleUTP.length + 1) ||
+      account?.assets?.length !== fungibleUTP.length + 1 ||
       keysArr.length !== accounts.length
     ) {
       setAccounts(
@@ -191,7 +186,6 @@ export const AppProvider: FunctionComponent<{
               name: "ALPHA",
               network: import.meta.env.VITE_NETWORK_NAME,
               amount: fetchedBalance,
-              decimalFactor: AlphaDecimalFactor,
               decimalPlaces: AlphaDecimalPlaces,
               UIAmount: separateDigits(
                 addDecimal(
@@ -227,6 +221,7 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     userTokensList,
     account?.assets?.length,
+    tokenTypes,
   ]);
 
   return (

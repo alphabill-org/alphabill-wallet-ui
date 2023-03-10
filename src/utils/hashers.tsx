@@ -9,7 +9,7 @@ import {
   ISwapProps,
   ITransfer,
 } from "../types/Types";
-import { AlphaDcType, AlphaSplitType, TokensSplitType } from "./utils";
+import { AlphaDcType, AlphaSplitType, TokensSplitType } from "./variables";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
