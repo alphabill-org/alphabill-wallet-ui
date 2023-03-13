@@ -130,6 +130,7 @@ export interface ITransfer {
     targetBearer?: string;
     amount?: string;
     nonce?: string;
+    value?: string;
     targetValue?: string;
     invariantPredicateSignatures?: string[];
   };
