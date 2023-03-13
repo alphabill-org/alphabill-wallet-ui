@@ -30,6 +30,7 @@ export interface ITextfieldProps {
   max?: string;
   maxLength?: number;
   desc?: string;
+  removeApostrophes?: boolean;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
@@ -39,6 +40,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     transparent,
     floatingFixedPoint,
     isNumberFloat,
+    removeApostrophes,
     ...inputProps
   } = props;
   const { setFieldValue, handleBlur } = useFormikContext();
@@ -66,15 +68,20 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     const fixedPoint = props.floatingFixedPoint || "2";
     const regexFloatString = "^\\d+(\\.\\d{0," + fixedPoint + "})?$";
     const regexFloat = new RegExp(regexFloatString);
+    let value = e.target.value;
 
-    if (props.type !== "password" && regexEmoji.test(e.target.value)) {
+    if (props.type !== "password" && regexEmoji.test(value)) {
       return false;
+    }
+
+    if (props.removeApostrophes) {
+      value = value.replace(/'/g, "");
     }
 
     if (
       props.isNumberFloat &&
-      e.target.value !== "" &&
-      (!regexNumber.test(e.target.value) || !regexFloat.test(e.target.value))
+      value !== "" &&
+      (!regexNumber.test(value) || !regexFloat.test(value))
     ) {
       return false;
     }
@@ -82,7 +89,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     if (props.onChange) {
       props.onChange(e, field.name);
     } else {
-      setFieldValue(field.name, e.target.value);
+      setFieldValue(field.name, value);
     }
   };
 
