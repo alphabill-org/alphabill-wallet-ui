@@ -24,7 +24,11 @@ import {
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import { addDecimal, getAssetSum, separateDigits } from "../utils/utils";
-import { AlphaDecimalPlaces, AlphaType } from "../utils/constants";
+import {
+  AlphaDecimalFactor,
+  AlphaDecimalPlaces,
+  AlphaType,
+} from "../utils/constants";
 
 interface IAppContextShape {
   balances: any;
@@ -157,6 +161,8 @@ export const AppProvider: FunctionComponent<{
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
+    const hasKeys = keysArr.length >= 1;
+
     const accountAlphaBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
       ?.assets?.find((asset) => asset.typeId === AlphaType)?.amount;
@@ -164,15 +170,18 @@ export const AppProvider: FunctionComponent<{
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
-    const fetchedTokensSum = getAssetSum(fungibleUTP);
-    const accountTokensSum = getAssetSum(
-      account.assets.filter((asset) => asset.typeId !== AlphaType)
+    const fetchedTokensSum =
+      fungibleUTP?.length >= 1 ? getAssetSum(fungibleUTP) : "0n";
+    const accountTokens = account?.assets?.filter(
+      (asset) => asset.typeId !== AlphaType
     );
+    const accountTokensSum =
+      accountTokens?.length >= 1 ? getAssetSum(accountTokens) : "0n";
 
     if (
-      (keysArr.length >= 1 && ALPHABalance !== accountAlphaBalance) ||
-      accountTokensSum !== fetchedTokensSum ||
-      account?.assets?.length !== fungibleUTP.length + 1 ||
+      (hasKeys && ALPHABalance !== accountAlphaBalance) ||
+      (hasKeys && accountTokensSum !== fetchedTokensSum) ||
+      (hasKeys && account?.assets?.length !== fungibleUTP.length + 1) ||
       keysArr.length !== accounts.length
     ) {
       setAccounts(
@@ -186,12 +195,10 @@ export const AppProvider: FunctionComponent<{
               name: AlphaType,
               network: import.meta.env.VITE_NETWORK_NAME,
               amount: ALPHABalance,
+              decimalFactor: AlphaDecimalFactor,
               decimalPlaces: AlphaDecimalPlaces,
               UIAmount: separateDigits(
-                addDecimal(
-                  ALPHABalance || "0",
-                  AlphaDecimalPlaces
-                )
+                addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
               ),
               typeId: AlphaType,
               isSendable: true,
@@ -221,9 +228,8 @@ export const AppProvider: FunctionComponent<{
     setActiveAccountId,
     activeAsset,
     userTokensList,
-    account?.assets,
-    account?.assets?.length,
     tokenTypes,
+    account?.assets,
   ]);
 
   return (

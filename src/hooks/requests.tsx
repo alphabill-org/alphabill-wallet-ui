@@ -119,6 +119,14 @@ export const getUserTokens = async (
   limit = 100,
   offsetKey = ""
 ) => {
+  if (
+    !owner ||
+    Number(owner) === 0 ||
+    !Boolean(owner.match(/^0x[0-9A-Fa-f]{66}$/))
+  ) {
+    return;
+  }
+
   const tokens: any = [];
   let nextOffsetKey: string | null = offsetKey;
 
