@@ -1,15 +1,17 @@
 import { useQueryClient } from "react-query";
 
-import { IBill, ILockedBill } from "../../../types/Types";
+import { IActiveAsset, IBill, ILockedBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
 import {
   base64ToHexPrefixed,
   addDecimal,
-  ALPHADecimalPlaces,
   separateDigits,
 } from "../../../utils/utils";
+import { AlphaDecimalPlaces, AlphaType } from "../../../utils/constants";
+import { FungibleTokenKind } from "../../../utils/constants";
+import { NonFungibleTokenKind } from "../../../utils/constants";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;
@@ -25,6 +27,7 @@ export interface IBillsListItemProps {
   isLockedBills?: boolean;
   lockedBills: ILockedBill[];
   setLockedBillsLocal: (e: string) => void;
+  activeAsset: IActiveAsset;
 }
 
 function BillsListItem({
@@ -41,6 +44,7 @@ function BillsListItem({
   isLockedBills,
   setLockedBillsLocal,
   lockedBills,
+  activeAsset,
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: string | null = null;
   const queryClient = useQueryClient();
@@ -64,7 +68,12 @@ function BillsListItem({
                   <div>
                     Denomination:{" "}
                     {separateDigits(
-                      addDecimal(bill.value, ALPHADecimalPlaces) || "0"
+                      addDecimal(
+                        bill.value,
+                        activeAsset.typeId === AlphaType
+                          ? AlphaDecimalPlaces
+                          : bill.decimals || 0
+                      )
                     )}
                   </div>
                 </div>
@@ -74,21 +83,24 @@ function BillsListItem({
               <Spacer mt={8} />
               <div className="flex flex-align-c pad-24-h pad-8-b">
                 <Spacer mt={8} />
-                <Button
-                  onClick={() => {
-                    setActiveBill(bill);
-                    setIsProofVisible(bill);
-                    queryClient.invalidateQueries([
-                      "proof",
-                      base64ToHexPrefixed(bill.id),
-                    ]);
-                  }}
-                  xSmall
-                  type="button"
-                  variant="primary"
-                >
-                  Proof
-                </Button>
+                {bill?.kind !== FungibleTokenKind &&
+                  bill?.kind !== NonFungibleTokenKind && (
+                    <Button
+                      onClick={() => {
+                        setActiveBill(bill);
+                        setIsProofVisible(bill);
+                        queryClient.invalidateQueries([
+                          "proof",
+                          base64ToHexPrefixed(bill.id),
+                        ]);
+                      }}
+                      xSmall
+                      type="button"
+                      variant="primary"
+                    >
+                      Proof
+                    </Button>
+                  )}
 
                 <span className="pad-8-l">
                   {!isLockedBills ? (

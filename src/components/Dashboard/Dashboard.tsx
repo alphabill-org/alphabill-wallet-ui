@@ -5,7 +5,7 @@ import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccount, IAsset } from "../../types/Types";
+import { IAccount, IAsset, IFungibleAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
@@ -15,10 +15,11 @@ import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { useDocumentClick } from "../../utils/utils";
+import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
+import { AlphaType } from "../../utils/constants";
 
 function Dashboard(): JSX.Element | null {
-  const { activeAccountId, activeAssetId } = useAuth();
+  const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const {
     setIsActionsViewVisible,
     setActionsView,
@@ -27,8 +28,9 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets.find((asset: IAsset) => (asset.id = activeAssetId))
-      ?.UIAmount || "";
+    account?.assets?.find(
+      (asset: IAsset) => asset.typeId === activeAsset.typeId
+    )?.UIAmount || "";
 
   const balanceSizeClass =
     balance?.length > 7 ? (balance?.length > 12 ? "x-small" : "small") : "";
@@ -72,8 +74,13 @@ function Dashboard(): JSX.Element | null {
         >
           {balance || "0"}
         </div>
-        <div className={classNames("dashboard__balance-id", balanceSizeClass)}>
-          {activeAssetId}
+        <div
+          className={classNames(
+            "dashboard__balance-id t-ellipsis",
+            balanceSizeClass
+          )}
+        >
+          {activeAsset.name}
         </div>
       </div>
       <Spacer mb={32} />
@@ -136,10 +143,9 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={8} />
       <div className="dashboard__buttons">
         <Button
-          onClick={() => {
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
-          }}
+          onClick={() =>
+            invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient)
+          }
           variant="primary"
         >
           <div className="pad-8-r">Refresh</div>
@@ -149,9 +155,15 @@ function Dashboard(): JSX.Element | null {
           variant="primary"
           onClick={() => {
             setActionsView("Send");
+            setActiveAssetLocal(
+              JSON.stringify({ name: AlphaType, typeId: AlphaType })
+            );
             setIsActionsViewVisible(true);
-            queryClient.invalidateQueries(["billsList", activeAccountId]);
-            queryClient.invalidateQueries(["balance", activeAccountId]);
+            invalidateAllLists(
+              activeAccountId,
+              activeAsset.typeId,
+              queryClient
+            );
           }}
         >
           Send bills
@@ -163,7 +175,11 @@ function Dashboard(): JSX.Element | null {
           <div
             onClick={() => {
               setIsAssetsColActive(true);
-              queryClient.invalidateQueries(["balance", account?.pubKey]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             }}
             className={classNames("dashboard__navbar-item", {
               active: isAssetsColActive === true,
@@ -183,45 +199,76 @@ function Dashboard(): JSX.Element | null {
                 .filter(
                   (asset: IAsset) => asset.network === account?.activeNetwork
                 )
-                .map((asset: IAsset, idx: number) => {
-                  // API supports only AB balance at the moment
+                .sort((a: IAsset, b: IAsset) => {
+                  if (a?.name! < b?.name!) {
+                    return -1;
+                  }
+                  if (a?.name! > b?.name!) {
+                    return 1;
+                  }
+                  return 0;
+                })
+                .sort(function (a, b) {
+                  if (a.id === AlphaType) {
+                    return -1; // Move the object with the given ID to the beginning of the array
+                  }
+                  return 1;
+                })
+                .map((asset: IAsset | IFungibleAsset, idx: number) => {
                   return (
-                    <div key={idx} className="dashboard__info-item-wrap">
+                    <div
+                      key={idx}
+                      className="dashboard__info-item-wrap"
+                      onClick={() => {
+                        setActiveAssetLocal(
+                          JSON.stringify({
+                            name: asset.name,
+                            typeId: asset.typeId,
+                            decimalFactor: asset.decimalFactor,
+                            decimalPlaces: asset.decimalPlaces,
+                          })
+                        );
+                        invalidateAllLists(
+                          activeAccountId,
+                          activeAsset.typeId,
+                          queryClient
+                        );
+                      }}
+                    >
                       <div className="dashboard__info-item-icon">
-                        {asset?.id === "ALPHA" ? (
+                        {asset?.id === AlphaType ? (
                           <div className="icon-wrap ab-logo">
                             <ABLogo />
                           </div>
                         ) : (
-                          <></>
+                          <div className="utp-icon">
+                            {(asset as IFungibleAsset)?.name[0]}
+                          </div>
                         )}
                       </div>
-                      <div>
-                        <div>
-                          {asset.UIAmount || 0} {asset?.id}
-                        </div>
+                      <div className="dashboard__info-item-desc">
+                        <span className="t-ellipsis pad-8-r">
+                          {asset.UIAmount || 0}
+                        </span>
+                        <span className="t-ellipsis">{asset?.name}</span>
                       </div>
-                      {asset?.id === "ALPHA" && (
-                        <Button
-                          variant="primary"
-                          className="m-auto-l"
-                          small
-                          onClick={() => {
-                            setActionsView("Bills List");
-                            setIsActionsViewVisible(true);
-                            queryClient.invalidateQueries([
-                              "balance",
-                              activeAccountId,
-                            ]);
-                            queryClient.invalidateQueries([
-                              "billsList",
-                              activeAccountId,
-                            ]);
-                          }}
-                        >
-                          Show Bills
-                        </Button>
-                      )}
+
+                      <Button
+                        variant="primary"
+                        className="m-auto-l"
+                        small
+                        onClick={() => {
+                          setActionsView("Bills List");
+                          setIsActionsViewVisible(true);
+                          invalidateAllLists(
+                            activeAccountId,
+                            activeAsset.typeId,
+                            queryClient
+                          );
+                        }}
+                      >
+                        Show Bills
+                      </Button>
                     </div>
                   );
                 })}
