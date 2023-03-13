@@ -157,7 +157,6 @@ export const AppProvider: FunctionComponent<{
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
-    const activeAssetTypeId = activeAsset?.typeId || AlphaType;
     const accountAlphaBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
       ?.assets?.find((asset) => asset.typeId === AlphaType)?.amount;
