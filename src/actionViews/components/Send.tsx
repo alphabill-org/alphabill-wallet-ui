@@ -303,7 +303,6 @@ function Send(): JSX.Element | null {
                 timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
-              console.log((selectedAsset?.typeId));
 
               if (selectedAsset?.typeId !== AlphaType) {
                 getTypeHierarchy(billToSplit.typeId || "")

@@ -203,7 +203,7 @@ export const makeTransaction = async (
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    `${url}/transactions/${pubKey && pubKey}`,
+    `${url}/transactions${pubKey && "/" + pubKey}`,
     {
       ...data,
     }

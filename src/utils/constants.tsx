@@ -32,3 +32,5 @@ export const AlphaSystemId = "AAAAAA==";
 export const TokensSystemId = "AAAAAg==";
 
 export const AlphaType = "ALPHA";
+export const NonFungibleTokenKind = 4;
+export const FungibleTokenKind = 2;

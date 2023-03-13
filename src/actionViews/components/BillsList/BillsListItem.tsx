@@ -10,6 +10,8 @@ import {
   separateDigits,
 } from "../../../utils/utils";
 import { AlphaDecimalPlaces, AlphaType } from "../../../utils/constants";
+import { FungibleTokenKind } from "../../../utils/constants";
+import { NonFungibleTokenKind } from "../../../utils/constants";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;
@@ -81,23 +83,24 @@ function BillsListItem({
               <Spacer mt={8} />
               <div className="flex flex-align-c pad-24-h pad-8-b">
                 <Spacer mt={8} />
-                {bill?.typeId === AlphaType && (
-                  <Button
-                    onClick={() => {
-                      setActiveBill(bill);
-                      setIsProofVisible(bill);
-                      queryClient.invalidateQueries([
-                        "proof",
-                        base64ToHexPrefixed(bill.id),
-                      ]);
-                    }}
-                    xSmall
-                    type="button"
-                    variant="primary"
-                  >
-                    Proof
-                  </Button>
-                )}
+                {bill?.kind !== FungibleTokenKind &&
+                  bill?.kind !== NonFungibleTokenKind && (
+                    <Button
+                      onClick={() => {
+                        setActiveBill(bill);
+                        setIsProofVisible(bill);
+                        queryClient.invalidateQueries([
+                          "proof",
+                          base64ToHexPrefixed(bill.id),
+                        ]);
+                      }}
+                      xSmall
+                      type="button"
+                      variant="primary"
+                    >
+                      Proof
+                    </Button>
+                  )}
 
                 <span className="pad-8-l">
                   {!isLockedBills ? (
