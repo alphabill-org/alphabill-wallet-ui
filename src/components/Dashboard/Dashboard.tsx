@@ -28,9 +28,8 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets?.find(
-      (asset: IAsset) => asset.typeId === activeAsset.typeId
-    )?.UIAmount || "";
+    account?.assets?.find((asset: IAsset) => asset.typeId === AlphaType)
+      ?.UIAmount || "";
 
   const balanceSizeClass =
     balance?.length > 7 ? (balance?.length > 12 ? "x-small" : "small") : "";
@@ -80,7 +79,7 @@ function Dashboard(): JSX.Element | null {
             balanceSizeClass
           )}
         >
-          {activeAsset.name}
+          {AlphaType}
         </div>
       </div>
       <Spacer mb={32} />

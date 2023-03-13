@@ -7,7 +7,7 @@ import { uniq, isNumber } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
 
-import { IAccount, IBill, ITxProof } from "../types/Types";
+import { IAccount, IAsset, IBill, ITxProof } from "../types/Types";
 import {
   opCheckSig,
   opDup,
@@ -351,6 +351,11 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
 export const getBillsSum = (bills: IBill[]) =>
   bills.reduce((acc, obj: IBill) => {
     return acc + BigInt(obj.value);
+  }, 0n);
+
+export const getAssetSum = (asset: IAsset[]) =>
+  asset.reduce((acc, obj: IAsset) => {
+    return acc + BigInt(obj.amount);
   }, 0n);
 
 export const useDocumentClick = (

@@ -71,7 +71,7 @@ function AccountView(): JSX.Element | null {
                 );
                 setIsActionsViewVisible(false);
                 invalidateAllLists(
-                  activeAccountId,
+                  account?.pubKey,
                   activeAsset.typeId,
                   queryClient
                 );

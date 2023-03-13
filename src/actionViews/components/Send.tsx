@@ -81,17 +81,12 @@ function Send(): JSX.Element | null {
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
       return addDecimal(
-        getBillsSum(
-          billsList.filter(
-            (bill: IBill) =>
-              bill.isDcBill !== true &&
-              !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-          )
-        ).toString(),
+        account?.assets.find((asset) => asset.typeId === selectedAsset?.typeId)
+          ?.amount || "0",
         decimalPlaces
       );
     },
-    [billsList, lockedBills]
+    [account, selectedAsset?.typeId]
   );
 
   const [availableAmount, setAvailableAmount] = useState<string>(
@@ -126,15 +121,20 @@ function Send(): JSX.Element | null {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(selectedAsset?.typeId === AlphaType).then((blockHeight) => {
-        if (!initialBlockHeight?.current) {
-          initialBlockHeight.current = blockHeight;
-        }
+      getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+        (blockHeight) => {
+          if (!initialBlockHeight?.current) {
+            initialBlockHeight.current = blockHeight;
+          }
 
-        if (BigInt(initialBlockHeight?.current) + timeoutBlocks < blockHeight) {
-          pollingInterval.current && clearInterval(pollingInterval.current);
+          if (
+            BigInt(initialBlockHeight?.current) + timeoutBlocks <
+            blockHeight
+          ) {
+            pollingInterval.current && clearInterval(pollingInterval.current);
+          }
         }
-      });
+      );
     }, 500);
   };
 
@@ -145,7 +145,7 @@ function Send(): JSX.Element | null {
   useEffect(() => {
     const activeAssetAmount = account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === activeAsset.typeId)?.amount;
+      .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
@@ -164,7 +164,7 @@ function Send(): JSX.Element | null {
   }, [
     account.assets,
     account?.activeNetwork,
-    activeAsset.typeId,
+    selectedAsset?.typeId,
     isSending,
     actionsView,
   ]);
@@ -243,102 +243,131 @@ function Send(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(selectedAsset?.typeId === AlphaType).then(async (blockHeight) => {
-            let transferType = TokensTransferType;
-            let splitType = TokensSplitType;
-            let systemId = TokensSystemId;
-            let amountField = "targetValue";
-            let bearerField = "newBearer";
-            let transferField = "value";
+          getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+            async (blockHeight) => {
+              let transferType = TokensTransferType;
+              let splitType = TokensSplitType;
+              let systemId = TokensSystemId;
+              let amountField = "targetValue";
+              let bearerField = "newBearer";
+              let transferField = "value";
 
-            if (selectedAsset?.typeId === AlphaType) {
-              transferType = AlphaTransferType;
-              splitType = AlphaSplitType;
-              systemId = AlphaSystemId;
-              bearerField = "targetBearer";
-              amountField = "amount";
-              transferField = "targetValue";
-            }
+              if (selectedAsset?.typeId === AlphaType) {
+                transferType = AlphaTransferType;
+                splitType = AlphaSplitType;
+                systemId = AlphaSystemId;
+                bearerField = "targetBearer";
+                amountField = "amount";
+                transferField = "targetValue";
+              }
 
-            billsToTransfer.map(async (bill, idx) => {
-              const transferData: IProofTx = {
-                systemId: systemId,
-                unitId: bill.id,
-                transactionAttributes: {
-                  "@type": transferType,
-                  newBearer: newBearer,
-                  [transferField]: bill.value,
-                  backlink: bill.txHash,
-                },
-                timeout: (blockHeight + timeoutBlocks).toString(),
-                ownerProof: "",
-              };
+              billsToTransfer.map(async (bill, idx) => {
+                const transferData: IProofTx = {
+                  systemId: systemId,
+                  unitId: bill.id,
+                  transactionAttributes: {
+                    "@type": transferType,
+                    newBearer: newBearer,
+                    [transferField]: bill.value,
+                    backlink: bill.txHash,
+                  },
+                  timeout: (blockHeight + timeoutBlocks).toString(),
+                  ownerProof: "",
+                };
 
-              const isLastTransaction =
-                billsToTransfer.length === idx + 1 &&
-                !billToSplit &&
-                !splitBillAmount;
+                const isLastTransaction =
+                  billsToTransfer.length === idx + 1 &&
+                  !billToSplit &&
+                  !splitBillAmount;
 
-              handleValidation(
-                await transferOrderHash(transferData),
-                blockHeight,
-                transferData as ITransfer,
-                isLastTransaction
-              );
-            });
+                if (selectedAsset?.typeId !== AlphaType) {
+                  getTypeHierarchy(bill.typeId || "")
+                    .then(async (hierarchy: ITypeHierarchy[]) => {
+                      const parentsIds = hierarchy
+                        .map((parent: ITypeHierarchy) => {
+                          return parent.parentTypeId;
+                        })
+                        .filter((parentTypeId) => parentTypeId !== null);
 
-            if (billToSplit && splitBillAmount) {
-              const splitData: IProofTx = {
-                systemId: systemId,
-                unitId: billToSplit.id,
-                transactionAttributes: {
-                  "@type": splitType,
-                  [amountField]: splitBillAmount.toString(),
-                  [bearerField]: newBearer,
-                  remainingValue: (
-                    BigInt(billToSplit.value) - splitBillAmount
-                  ).toString(),
-                  backlink: billToSplit.txHash,
-                },
-                timeout: (blockHeight + timeoutBlocks).toString(),
-                ownerProof: "",
-              };
-
-              if (selectedAsset?.typeId !== AlphaType) {
-                getTypeHierarchy(billToSplit.typeId || "")
-                  .then(async (hierarchy: ITypeHierarchy[]) => {
-                    const parentsIds = hierarchy
-                      .map((parent: ITypeHierarchy) => {
-                        return parent.parentTypeId;
-                      })
-                      .filter((parentTypeId) => parentTypeId !== null);
-
-                    splitData.transactionAttributes.invariantPredicateSignatures =
-                      parentsIds.concat([hexToBase64(startByte)]);
-                    splitData.transactionAttributes.type = billToSplit.typeId;
-                    handleValidation(
-                      await splitOrderHash(splitData),
-                      blockHeight,
-                      splitData as ITransfer,
-                      true
-                    );
-                  })
-                  .catch(() => {
-                    setErrors({
-                      password: "Fetching token hierarchy for failed",
+                      transferData.transactionAttributes.invariantPredicateSignatures =
+                        parentsIds.concat([hexToBase64(startByte)]);
+                      transferData.transactionAttributes.type = bill.typeId;
+                      handleValidation(
+                        await transferOrderHash(transferData),
+                        blockHeight,
+                        transferData as ITransfer,
+                        isLastTransaction
+                      );
+                    })
+                    .catch(() => {
+                      setErrors({
+                        password: "Fetching token hierarchy for failed",
+                      });
+                      setIsSending(false);
                     });
-                    setIsSending(false);
-                  });
-              } else {
-                handleValidation(
-                  await splitOrderHash(splitData),
-                  blockHeight,
-                  splitData as ITransfer,
-                  true
-                );
+                } else {
+                  handleValidation(
+                    await transferOrderHash(transferData),
+                    blockHeight,
+                    transferData as ITransfer,
+                    isLastTransaction
+                  );
+                }
+              });
+
+              if (billToSplit && splitBillAmount) {
+                const splitData: IProofTx = {
+                  systemId: systemId,
+                  unitId: billToSplit.id,
+                  transactionAttributes: {
+                    "@type": splitType,
+                    [amountField]: splitBillAmount.toString(),
+                    [bearerField]: newBearer,
+                    remainingValue: (
+                      BigInt(billToSplit.value) - splitBillAmount
+                    ).toString(),
+                    backlink: billToSplit.txHash,
+                  },
+                  timeout: (blockHeight + timeoutBlocks).toString(),
+                  ownerProof: "",
+                };
+
+                if (selectedAsset?.typeId !== AlphaType) {
+                  getTypeHierarchy(billToSplit.typeId || "")
+                    .then(async (hierarchy: ITypeHierarchy[]) => {
+                      const parentsIds = hierarchy
+                        .map((parent: ITypeHierarchy) => {
+                          return parent.parentTypeId;
+                        })
+                        .filter((parentTypeId) => parentTypeId !== null);
+
+                      splitData.transactionAttributes.invariantPredicateSignatures =
+                        parentsIds.concat([hexToBase64(startByte)]);
+                      splitData.transactionAttributes.type = billToSplit.typeId;
+                      handleValidation(
+                        await splitOrderHash(splitData),
+                        blockHeight,
+                        splitData as ITransfer,
+                        true
+                      );
+                    })
+                    .catch(() => {
+                      setErrors({
+                        password: "Fetching token hierarchy for failed",
+                      });
+                      setIsSending(false);
+                    });
+                } else {
+                  handleValidation(
+                    await splitOrderHash(splitData),
+                    blockHeight,
+                    splitData as ITransfer,
+                    true
+                  );
+                }
               }
             }
-          });
+          );
 
           const handleValidation = async (
             msgHash: Uint8Array,
@@ -367,10 +396,11 @@ function Send(): JSX.Element | null {
                 selectedAsset?.typeId === AlphaType ? "" : values.address
               )
                 .then(() => {
-                  const amount: number = Number(
+                  const amount: string =
                     billData?.transactionAttributes?.amount ||
-                      billData?.transactionAttributes?.targetValue
-                  );
+                    billData?.transactionAttributes?.targetValue ||
+                    billData?.transactionAttributes?.value ||
+                    "";
 
                   balanceAfterSending.current = balanceAfterSending.current
                     ? BigInt(balanceAfterSending.current) - BigInt(amount)
