@@ -23,7 +23,7 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
-import { addDecimal, separateDigits } from "../utils/utils";
+import { addDecimal, getAssetSum, separateDigits } from "../utils/utils";
 import { AlphaDecimalPlaces, AlphaType } from "../utils/constants";
 
 interface IAppContextShape {
@@ -132,7 +132,9 @@ export const AppProvider: FunctionComponent<{
         } else {
           for (let resultToken of userTokens) {
             if (resultToken.typeId === token.typeId) {
-              resultToken.amount += BigInt(token.amount);
+              resultToken.amount = (
+                BigInt(resultToken.amount) + BigInt(token.amount)
+              ).toString();
             }
           }
         }
@@ -156,22 +158,21 @@ export const AppProvider: FunctionComponent<{
       })) || [];
 
     const activeAssetTypeId = activeAsset?.typeId || AlphaType;
-    const accountBalance = accounts
+    const accountAlphaBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets?.find((asset) => asset.typeId === activeAssetTypeId)?.amount;
+      ?.assets?.find((asset) => asset.typeId === AlphaType)?.amount;
     const ALPHABalance = balances?.find(
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
-    const fetchedBalance =
-      activeAssetTypeId === AlphaType
-        ? ALPHABalance
-        : fungibleUTP?.find(
-            (token: IFungibleResponse) => token.typeId === activeAssetTypeId
-          )?.amount;
+    const fetchedTokensSum = getAssetSum(fungibleUTP);
+    const accountTokensSum = getAssetSum(
+      account.assets.filter((asset) => asset.typeId !== AlphaType)
+    );
 
     if (
-      (keysArr.length >= 1 && fetchedBalance !== accountBalance) ||
+      (keysArr.length >= 1 && ALPHABalance !== accountAlphaBalance) ||
+      accountTokensSum !== fetchedTokensSum ||
       account?.assets?.length !== fungibleUTP.length + 1 ||
       keysArr.length !== accounts.length
     ) {
@@ -185,11 +186,11 @@ export const AppProvider: FunctionComponent<{
               id: AlphaType,
               name: AlphaType,
               network: import.meta.env.VITE_NETWORK_NAME,
-              amount: fetchedBalance,
+              amount: ALPHABalance,
               decimalPlaces: AlphaDecimalPlaces,
               UIAmount: separateDigits(
                 addDecimal(
-                  fetchedBalance?.toString() || "0",
+                  ALPHABalance || "0",
                   AlphaDecimalPlaces
                 )
               ),
@@ -198,6 +199,7 @@ export const AppProvider: FunctionComponent<{
             },
           ]),
           activeNetwork: import.meta.env.VITE_NETWORK_NAME,
+          activeAccount: activeAccountId,
           networks: [
             {
               id: import.meta.env.VITE_NETWORK_NAME,
@@ -220,6 +222,7 @@ export const AppProvider: FunctionComponent<{
     setActiveAccountId,
     activeAsset,
     userTokensList,
+    account?.assets,
     account?.assets?.length,
     tokenTypes,
   ]);
