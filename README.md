@@ -27,6 +27,14 @@ The build is minified and the filenames include the hashes.\
 
 See the section about [deployment](https://vitejs.dev/guide/static-deploy.html) for more information.
 
+### `npm run build-local` to use local API endpoints
+
+Builds the app to the `build` folder.\
+Localhost API URLs:
+* Money backend - `http://localhost:9654/api/v1`
+* Money node - `http://localhost:26866/api/v1`
+* UTP backend - `http://localhost:9735/api/v1`
+
 ### `npm run test`
 
 Launches the test runner.
