@@ -69,7 +69,7 @@ export const Verify = async (
     return "Sec tree hash chain is not valid";
   }
 
-  if (bill.value !== Number(proof.value))
+  if (bill.value !== proof.value)
     return "Bill value does not match with tx proof value";
 
   if (bill.txHash !== proof.txHash)

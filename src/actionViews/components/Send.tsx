@@ -276,11 +276,10 @@ function Send(): JSX.Element | null {
             proof.isSignatureValid &&
               makeTransaction(dataWithProof)
                 .then(() => {
-                  const amount: number = Number(
+                  const amount: string =
                     billData?.transactionAttributes?.amount ||
-                      billData?.transactionAttributes?.targetValue
-                  );
-
+                    billData?.transactionAttributes?.targetValue ||
+                    "";
                   balanceAfterSending.current = balanceAfterSending.current
                     ? BigInt(balanceAfterSending.current) - BigInt(amount)
                     : BigInt(balance) - BigInt(amount);

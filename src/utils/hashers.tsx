@@ -15,7 +15,7 @@ export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
     Buffer.from(tx.systemId, "base64"),
     Buffer.from(tx.unitId, "base64"),
     Buffer.from(tx.ownerProof, "base64"),
-    new Uint64BE(Number(tx.timeout)).toBuffer()
+    new Uint64BE(tx.timeout).toBuffer()
   );
 
 export const baseBuffer = (tx: IProofTx | ISwapProps) =>
@@ -23,7 +23,7 @@ export const baseBuffer = (tx: IProofTx | ISwapProps) =>
     Buffer.from(tx.systemId, "base64"),
     Buffer.from(tx.unitId, "base64"),
     Buffer.from(tx.ownerProof, "base64"),
-    new Uint64BE(Number(tx.timeout)).toBuffer()
+    new Uint64BE(tx.timeout).toBuffer()
   );
 
 export const dcTransfersBuffer = (
@@ -91,22 +91,22 @@ export const identifiersBuffer = (billIdentifiers: string[]) =>
 export const transferAttributesBuffer = (tx: IProofTx) =>
   secp.utils.concatBytes(
     Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
-    new Uint64BE(Number(tx.transactionAttributes.targetValue!)).toBuffer(),
+    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer(),
     Buffer.from(tx.transactionAttributes.backlink, "base64")
   );
 
 export const splitAttributesBuffer = (tx: IProofTx | ITransfer) =>
   secp.utils.concatBytes(
-    new Uint64BE(Number(tx.transactionAttributes.amount)).toBuffer(),
+    new Uint64BE(tx.transactionAttributes.amount!).toBuffer(),
     Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-    new Uint64BE(Number(tx.transactionAttributes.remainingValue)).toBuffer(),
+    new Uint64BE(tx.transactionAttributes.remainingValue!).toBuffer(),
     Buffer.from(tx.transactionAttributes.backlink!, "base64")
   );
 export const dcAttributesBuffer = (tx: IProofTx | ITransfer) =>
   secp.utils.concatBytes(
     Buffer.from(tx.transactionAttributes.nonce!, "base64"),
     Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-    new Uint64BE(Number(tx.transactionAttributes.targetValue!)).toBuffer(),
+    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer(),
     Buffer.from(tx.transactionAttributes.backlink!, "base64")
   );
 
@@ -119,7 +119,7 @@ export const swapAttributesBuffer = (
     identifiersBuffer(tx.transactionAttributes.billIdentifiers!),
     dcTransfersBuffer(tx.transactionAttributes.dcTransfers!, isProof),
     swapProofsBuffer(tx.transactionAttributes?.proofs!),
-    new Uint64BE(Number(tx.transactionAttributes.targetValue)).toBuffer()
+    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer()
   );
 
 export const transferOrderHash = async (tx: IProofTx, isProof?: boolean) => {
