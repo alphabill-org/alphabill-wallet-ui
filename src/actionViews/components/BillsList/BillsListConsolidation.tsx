@@ -3,15 +3,22 @@ import * as secp from "@noble/secp256k1";
 import {
   base64ToHexPrefixed,
   createOwnerProof,
-  DCTransfersLimit,
   getNewBearer,
   sortIDBySize,
   sortTxProofsByID,
-  swapTimeout,
-  timeoutBlocks,
 } from "../../../utils/utils";
 import {
+  AlphaDcType,
+  AlphaSwapType,
+  AlphaSystemId,
+  swapTimeout,
+  timeoutBlocks,
+  DCTransfersLimit,
+  AlphaType,
+} from "../../../utils/constants";
+import {
   IAccount,
+  IActiveAsset,
   IBill,
   IProof,
   IProofTx,
@@ -34,7 +41,8 @@ export const handleSwapRequest = async (
   DCBills: IBill[],
   account: IAccount,
   activeAccountId: string,
-  lastNonceIDs: { [key: string]: string[] }
+  lastNonceIDs: { [key: string]: string[] },
+  activeAsset: IActiveAsset
 ) => {
   let nonce: Buffer[] = [];
   let txProofs: ITxProof[] = [];
@@ -65,43 +73,45 @@ export const handleSwapRequest = async (
 
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-        getBlockHeight().then(async (blockHeight) => {
-          const transferData: ISwapProps = {
-            systemId: "AAAAAA==",
-            unitId: Buffer.from(nonceHash).toString("base64"),
-            transactionAttributes: {
-              billIdentifiers: sortIDBySize(billIdentifiers),
-              dcTransfers: dcTransfers,
-              ownerCondition: getNewBearer(account),
-              proofs: proofs,
-              targetValue: dcTransfers
-                .reduce((acc, obj: IProofTx) => {
-                  return acc + BigInt(obj.transactionAttributes.targetValue!);
-                }, 0n)
+        getBlockHeight(activeAsset?.typeId === AlphaType).then(
+          async (blockHeight) => {
+            const transferData: ISwapProps = {
+              systemId: AlphaSystemId,
+              unitId: Buffer.from(nonceHash).toString("base64"),
+              transactionAttributes: {
+                billIdentifiers: sortIDBySize(billIdentifiers),
+                dcTransfers: dcTransfers,
+                ownerCondition: getNewBearer(account),
+                proofs: proofs,
+                targetValue: dcTransfers
+                  .reduce((acc, obj: IProofTx) => {
+                    return acc + BigInt(obj.transactionAttributes.targetValue!);
+                  }, 0n)
 
-                .toString(),
-              "@type": "type.googleapis.com/rpc.SwapOrder",
-            },
-            timeout: (blockHeight + swapTimeout).toString(),
-            ownerProof: "",
-          };
+                  .toString(),
+                "@type": AlphaSwapType,
+              },
+              timeout: (blockHeight + swapTimeout).toString(),
+              ownerProof: "",
+            };
 
-          const msgHash = await swapOrderHash(transferData);
-          const proof = await createOwnerProof(
-            msgHash,
-            hashingPrivateKey,
-            hashingPublicKey
-          );
+            const msgHash = await swapOrderHash(transferData);
+            const proof = await createOwnerProof(
+              msgHash,
+              hashingPrivateKey,
+              hashingPublicKey
+            );
 
-          const dataWithProof: ISwapTransferProps = await Object.assign(
-            transferData,
-            {
-              ownerProof: proof.ownerProof,
-            }
-          );
+            const dataWithProof: ISwapTransferProps = await Object.assign(
+              transferData,
+              {
+                ownerProof: proof.ownerProof,
+              }
+            );
 
-          proof.isSignatureValid && makeTransaction(dataWithProof);
-        });
+            proof.isSignatureValid && makeTransaction(dataWithProof);
+          }
+        );
       }
     })
   );
@@ -119,7 +129,8 @@ export const handleDC = async (
   unlockedBills: IBill[],
   DCBills: IBill[],
   lastNonceIDs: any[],
-  activeAccountId: string
+  activeAccountId: string,
+  activeAsset: IActiveAsset
 ) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,
@@ -153,13 +164,13 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight().then((blockHeight) =>
+    getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
         const transferData: ITransfer = {
-          systemId: "AAAAAA==",
+          systemId: AlphaSystemId,
           unitId: bill.id,
           transactionAttributes: {
-            "@type": "type.googleapis.com/rpc.TransferDCOrder",
+            "@type": AlphaDcType,
             backlink: bill.txHash,
             nonce: Buffer.from(nonceHash).toString("base64"),
             targetBearer: getNewBearer(account),
@@ -182,7 +193,10 @@ export const handleDC = async (
           ownerProof: proof.ownerProof,
         });
 
-        makeTransaction(dataWithProof)
+        makeTransaction(
+          dataWithProof,
+          activeAsset?.typeId === AlphaType ? "" : account.pubKey
+        )
           .then(() => handleTransactionEnd())
           .catch(() => handleTransactionEnd());
 

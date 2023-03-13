@@ -2,15 +2,21 @@ import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
+  IFungibleResponse,
   IProofsProps,
   ISwapTransferProps,
   ITransfer,
+  ITypeHierarchy,
+  IUserTokensListTypes,
 } from "../types/Types";
 
 import {
+  fetchAllTypes,
   getBalance,
   getBillsList,
   getProof,
+  getTypeHierarchy,
+  getUserTokens,
   makeTransaction,
 } from "./requests";
 
@@ -37,18 +43,63 @@ export function useGetBillsList(
   });
 }
 
-export function useGetProof(
-  billID: string
-): QueryObserverResult<IProofsProps, AxiosError> {
+export function useGetAllUserTokens(
+  pubKey: string
+): QueryObserverResult<IFungibleResponse[], AxiosError> {
+  return useQuery([`tokensList`, pubKey], async () => getUserTokens(pubKey), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
+}
+
+export function useGetUserTokens(
+  pubKey: string,
+  activeAsset: string
+): QueryObserverResult<IFungibleResponse[], AxiosError> {
   return useQuery(
-    [`proof`, billID],
-    async () => getProof(billID),
+    [`tokenList`, pubKey, activeAsset],
+    async () => getUserTokens(pubKey, activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
       staleTime: Infinity,
     }
   );
+}
+
+export function useGetAllTokenTypes(
+  pubKey: string
+): QueryObserverResult<IUserTokensListTypes[], AxiosError> {
+  return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
+}
+
+export function useGeTypeHierarchy(
+  typeId: string
+): QueryObserverResult<ITypeHierarchy[], AxiosError> {
+  return useQuery(
+    [`typeHierarchy`, typeId],
+    async () => getTypeHierarchy(typeId),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
+}
+
+export function useGetProof(
+  billID: string
+): QueryObserverResult<IProofsProps, AxiosError> {
+  return useQuery([`proof`, billID], async () => getProof(billID), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
 }
 
 export function useMakeTransaction(

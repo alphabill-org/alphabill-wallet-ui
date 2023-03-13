@@ -1,7 +1,10 @@
 import { createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { isString } from "lodash";
 
 import { useLocalStorage } from "./useLocalStorage";
+import { IActiveAsset } from "../types/Types";
+import { AlphaType } from "../utils/constants";
 
 interface IUseLocalStorageProps {
   children: React.ReactNode;
@@ -20,8 +23,8 @@ interface IUserContext {
   setVault: (e: string) => void;
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
-  activeAssetId: string;
-  setActiveAssetId: (e: string) => void;
+  activeAsset: IActiveAsset;
+  setActiveAssetLocal: (e: string) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -32,6 +35,12 @@ const activeAccountLocal =
 const initialActiveAccount = keysArr.includes(activeAccountLocal)
   ? activeAccountLocal
   : keysArr[0];
+const initialActiveAsset =
+  localStorage.getItem("ab_active_asset") ||
+  JSON.stringify({
+    name: AlphaType,
+    typeId: AlphaType,
+  });
 
 const AuthContext = createContext<IUserContext>({
   userKeys: keysData,
@@ -42,8 +51,8 @@ const AuthContext = createContext<IUserContext>({
   setVault: (e: any) => {},
   activeAccountId: initialActiveAccount,
   setActiveAccountId: () => {},
-  activeAssetId: "ALPHA",
-  setActiveAssetId: () => {},
+  activeAsset: { name: AlphaType, typeId: AlphaType },
+  setActiveAssetLocal: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
@@ -55,10 +64,18 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     "ab_active_account",
     initialActiveAccount
   );
-  const [activeAssetId, setActiveAssetId] = useLocalStorage(
+
+  const [activeAssetLocal, setActiveAssetLocal] = useLocalStorage(
     "ab_active_asset",
-    "ALPHA"
+    initialActiveAsset
   );
+
+  const activeAsset = activeAssetLocal
+    ? isString(activeAssetLocal)
+      ? JSON.parse(activeAssetLocal)
+      : activeAssetLocal
+    : [];
+
   const [vault, setVault] = useLocalStorage("ab_wallet_vault", vaultData);
   const navigate = useNavigate();
 
@@ -97,8 +114,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setVault,
     activeAccountId,
     setActiveAccountId,
-    activeAssetId,
-    setActiveAssetId,
+    activeAsset,
+    setActiveAssetLocal,
   };
 
   return (

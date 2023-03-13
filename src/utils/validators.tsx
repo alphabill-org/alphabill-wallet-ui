@@ -69,7 +69,7 @@ export const Verify = async (
     return "Sec tree hash chain is not valid";
   }
 
-  if (bill.value !== Number(proof.value))
+  if (bill.value !== proof.value)
     return "Bill value does not match with tx proof value";
 
   if (bill.txHash !== proof.txHash)
@@ -387,7 +387,7 @@ export const unicitySealIsValid = (
   if (!unicitySeal.previousHash) {
     return "Unicity seal previous hash is missing";
   }
-  if (unicitySeal.rootChainRoundNumber < 1) {
+  if (unicitySeal.rootChainRoundNumber.length <= 0) {
     return "Unicity seal has invalid block number";
   }
   if (!unicitySeal?.signatures || isEmpty(unicitySeal?.signatures)) {

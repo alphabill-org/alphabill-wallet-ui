@@ -5,8 +5,21 @@ import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber } from "lodash";
 import * as secp from "@noble/secp256k1";
+import { QueryClient } from "react-query";
 
 import { IAccount, IBill, ITxProof } from "../types/Types";
+import {
+  opCheckSig,
+  opDup,
+  opEqual,
+  opHash,
+  opPushHash,
+  opPushPubKey,
+  opPushSig,
+  opVerify,
+  sigScheme,
+  startByte,
+} from "./constants";
 
 export const extractFormikError = (
   errors: unknown,
@@ -44,11 +57,17 @@ export function useCombinedRefs(...refs: any[]) {
   return targetRef;
 }
 
+export const hexToBase64 = (key: string) =>
+  Buffer.from(key, "hex").toString("base64");
+
 export const unit8ToHexPrefixed = (key: Uint8Array) =>
   "0x" + Buffer.from(key).toString("hex");
 
 export const base64ToHexPrefixed = (key: string = "") =>
   "0x" + Buffer.from(key, "base64").toString("hex");
+
+export const base64ToHex = (key: string = "") =>
+  Buffer.from(key, "base64").toString("hex");
 
 export const sortBillsByID = (bills: IBill[]) =>
   uniq(bills).sort((a: IBill, b: IBill) =>
@@ -171,6 +190,22 @@ export const getKeys = (
     masterKey: masterKey,
     hashingKey: hashingKey,
   };
+};
+
+export const checkOwnerPredicate = (key: string, predicate: string) => {
+  const hex = Buffer.from(predicate, "base64").toString("hex");
+  const removeScriptBefore =
+    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
+  const sha256KeyFromPredicate = hex
+    .replace(removeScriptBefore, "")
+    .replace(removeScriptAfter, "");
+
+  const checkedAddress = key.startsWith("0x") ? key.substring(2) : key;
+  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
+  const SHA256Key = CryptoJS.SHA256(addressHash);
+
+  return sha256KeyFromPredicate === SHA256Key.toString(CryptoJS.enc.Hex);
 };
 
 export const createNewBearer = (address: string) => {
@@ -401,19 +436,13 @@ export const separateDigits = (numStr: string) => {
   return formattedIntegerPart;
 };
 
-export const startByte = "53";
-export const opPushSig = "54";
-export const opPushPubKey = "55";
-export const opDup = "76";
-export const opHash = "a8";
-export const opPushHash = "4f";
-export const opCheckSig = "ac";
-export const opEqual = "87";
-export const opVerify = "69";
-export const sigScheme = "01";
-
-export const timeoutBlocks = 10n;
-export const swapTimeout = 40n;
-export const DCTransfersLimit = 100;
-export const ALPHADecimalPlaces = 8;
-export const ALPHADecimalFactor = Number("1e" + ALPHADecimalPlaces);
+export const invalidateAllLists = (
+  pubKey: string,
+  assetTypeId: string,
+  queryClient: QueryClient
+) => {
+  queryClient.invalidateQueries(["tokenList", pubKey, assetTypeId]);
+  queryClient.invalidateQueries(["tokensList", pubKey]);
+  queryClient.invalidateQueries(["billsList", pubKey]);
+  queryClient.invalidateQueries(["balance", pubKey]);
+};
