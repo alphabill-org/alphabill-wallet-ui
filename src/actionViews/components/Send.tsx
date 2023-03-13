@@ -587,6 +587,7 @@ function Send(): JSX.Element | null {
                         ""
                       }
                       isNumberFloat
+                      removeApostrophes
                     />
                     <Spacer mb={8} />
                   </div>
