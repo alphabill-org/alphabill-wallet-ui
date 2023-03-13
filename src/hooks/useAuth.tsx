@@ -4,6 +4,7 @@ import { isString } from "lodash";
 
 import { useLocalStorage } from "./useLocalStorage";
 import { IActiveAsset } from "../types/Types";
+import { AlphaType } from "../utils/constants";
 
 interface IUseLocalStorageProps {
   children: React.ReactNode;
@@ -37,8 +38,8 @@ const initialActiveAccount = keysArr.includes(activeAccountLocal)
 const initialActiveAsset =
   localStorage.getItem("ab_active_asset") ||
   JSON.stringify({
-    name: "ALPHA",
-    typeId: "ALPHA",
+    name: AlphaType,
+    typeId: AlphaType,
   });
 
 const AuthContext = createContext<IUserContext>({
@@ -50,7 +51,7 @@ const AuthContext = createContext<IUserContext>({
   setVault: (e: any) => {},
   activeAccountId: initialActiveAccount,
   setActiveAccountId: () => {},
-  activeAsset: { name: "ALPHA", typeId: "ALPHA" },
+  activeAsset: { name: AlphaType, typeId: AlphaType },
   setActiveAssetLocal: () => {},
 });
 

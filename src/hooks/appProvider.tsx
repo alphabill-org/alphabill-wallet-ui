@@ -24,7 +24,7 @@ import {
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import { addDecimal, separateDigits } from "../utils/utils";
-import { AlphaDecimalPlaces } from "../utils/variables";
+import { AlphaDecimalPlaces, AlphaType } from "../utils/constants";
 
 interface IAppContextShape {
   balances: any;
@@ -80,7 +80,7 @@ export const AppProvider: FunctionComponent<{
     activeAsset.typeId
   );
   const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
-  const billsList = activeAsset.typeId === "ALPHA" ? alphaList : tokenList;
+  const billsList = activeAsset.typeId === AlphaType ? alphaList : tokenList;
   const [accounts, setAccounts] = useState<IAccount[]>(
     keysArr.map((key, idx) => ({
       pubKey: key,
@@ -155,7 +155,7 @@ export const AppProvider: FunctionComponent<{
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
-    const activeAssetTypeId = activeAsset?.typeId || "ALPHA";
+    const activeAssetTypeId = activeAsset?.typeId || AlphaType;
     const accountBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
       ?.assets?.find((asset) => asset.typeId === activeAssetTypeId)?.amount;
@@ -164,7 +164,7 @@ export const AppProvider: FunctionComponent<{
     )?.data?.balance;
 
     const fetchedBalance =
-      activeAssetTypeId === "ALPHA"
+      activeAssetTypeId === AlphaType
         ? ALPHABalance
         : fungibleUTP?.find(
             (token: IFungibleResponse) => token.typeId === activeAssetTypeId
@@ -182,8 +182,8 @@ export const AppProvider: FunctionComponent<{
           name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
           assets: fungibleUTP.concat([
             {
-              id: "ALPHA",
-              name: "ALPHA",
+              id: AlphaType,
+              name: AlphaType,
               network: import.meta.env.VITE_NETWORK_NAME,
               amount: fetchedBalance,
               decimalPlaces: AlphaDecimalPlaces,
@@ -193,7 +193,7 @@ export const AppProvider: FunctionComponent<{
                   AlphaDecimalPlaces
                 )
               ),
-              typeId: "ALPHA",
+              typeId: AlphaType,
               isSendable: true,
             },
           ]),

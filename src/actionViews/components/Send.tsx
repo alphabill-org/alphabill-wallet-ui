@@ -48,7 +48,8 @@ import {
   AlphaSplitType,
   AlphaSystemId,
   TokensSystemId,
-} from "../../utils/variables";
+  AlphaType,
+} from "../../utils/constants";
 
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
@@ -125,7 +126,7 @@ function Send(): JSX.Element | null {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(selectedAsset?.typeId === "ALPHA").then((blockHeight) => {
+      getBlockHeight(selectedAsset?.typeId === AlphaType).then((blockHeight) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockHeight;
         }
@@ -176,7 +177,7 @@ function Send(): JSX.Element | null {
         initialValues={{
           assets: {
             value: defaultAsset,
-            label: "ALPHA",
+            label: AlphaType,
           },
           amount: "",
           address: "",
@@ -242,7 +243,7 @@ function Send(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(selectedAsset?.typeId === "ALPHA").then(async (blockHeight) => {
+          getBlockHeight(selectedAsset?.typeId === AlphaType).then(async (blockHeight) => {
             let transferType = TokensTransferType;
             let splitType = TokensSplitType;
             let systemId = TokensSystemId;
@@ -250,7 +251,7 @@ function Send(): JSX.Element | null {
             let bearerField = "newBearer";
             let transferField = "value";
 
-            if (selectedAsset?.typeId === "ALPHA") {
+            if (selectedAsset?.typeId === AlphaType) {
               transferType = AlphaTransferType;
               splitType = AlphaSplitType;
               systemId = AlphaSystemId;
@@ -266,7 +267,7 @@ function Send(): JSX.Element | null {
                 transactionAttributes: {
                   "@type": transferType,
                   newBearer: newBearer,
-                  [transferField]: bill.value.toString(),
+                  [transferField]: bill.value,
                   backlink: bill.txHash,
                 },
                 timeout: (blockHeight + timeoutBlocks).toString(),
@@ -302,8 +303,9 @@ function Send(): JSX.Element | null {
                 timeout: (blockHeight + timeoutBlocks).toString(),
                 ownerProof: "",
               };
+              console.log((selectedAsset?.typeId));
 
-              if (selectedAsset?.typeId !== "ALPHA") {
+              if (selectedAsset?.typeId !== AlphaType) {
                 getTypeHierarchy(billToSplit.typeId || "")
                   .then(async (hierarchy: ITypeHierarchy[]) => {
                     const parentsIds = hierarchy
@@ -356,14 +358,14 @@ function Send(): JSX.Element | null {
               timeout: (blockHeight + timeoutBlocks).toString(),
             });
 
-            if (selectedAsset?.typeId !== "ALPHA") {
+            if (selectedAsset?.typeId !== AlphaType) {
               dataWithProof = { transactions: [dataWithProof] } as any;
             }
 
             proof.isSignatureValid &&
               makeTransaction(
                 dataWithProof,
-                selectedAsset?.typeId === "ALPHA" ? "" : values.address
+                selectedAsset?.typeId === AlphaType ? "" : values.address
               )
                 .then(() => {
                   const amount: number = Number(
@@ -508,7 +510,7 @@ function Send(): JSX.Element | null {
                         return 0;
                       })
                       .sort(function (a, b) {
-                        if (a.id === "ALPHA") {
+                        if (a.id === AlphaType) {
                           return -1; // Move the object with the given ID to the beginning of the array
                         }
                         return 1;

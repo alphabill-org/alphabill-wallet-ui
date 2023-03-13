@@ -26,6 +26,7 @@ import Spacer from "../../components/Spacer/Spacer";
 import Popup from "../../components/Popup/Popup";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
+import { AlphaType } from "../../utils/constants";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -66,7 +67,7 @@ function AccountView(): JSX.Element | null {
               onClick={() => {
                 setActiveAccountId(account?.pubKey);
                 setActiveAssetLocal(
-                  JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
+                  JSON.stringify({ name: AlphaType, typeId: AlphaType })
                 );
                 setIsActionsViewVisible(false);
                 invalidateAllLists(

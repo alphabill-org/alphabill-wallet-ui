@@ -7,7 +7,8 @@ import {
   DCTransfersLimit,
   swapTimeout,
   AlphaDecimalPlaces,
-} from "../../../utils/variables";
+  AlphaType,
+} from "../../../utils/constants";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
@@ -128,7 +129,7 @@ function BillsList(): JSX.Element | null {
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getBlockHeight(activeAsset?.typeId === "ALPHA").then((blockHeight) => {
+      getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) => {
         if (!initialBlockHeight || !initialBlockHeight?.current) {
           initialBlockHeight.current = blockHeight;
         }
@@ -260,7 +261,7 @@ function BillsList(): JSX.Element | null {
                       Denomination:{" "}
                       {addDecimal(
                         bill.value,
-                        activeAsset.typeId === "ALPHA"
+                        activeAsset.typeId === AlphaType
                           ? AlphaDecimalPlaces
                           : bill?.decimals || 0
                       )}
@@ -283,7 +284,7 @@ function BillsList(): JSX.Element | null {
           })}
         </div>
         <div className="t-medium-small pad-24-h">
-          {activeAsset.typeId === "ALPHA" && (
+          {activeAsset.typeId === AlphaType && (
             <>
               {" "}
               <Spacer mt={16} />

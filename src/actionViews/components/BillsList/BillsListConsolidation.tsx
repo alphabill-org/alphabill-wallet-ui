@@ -13,11 +13,9 @@ import {
   AlphaSystemId,
   swapTimeout,
   timeoutBlocks,
-  TokensDcType,
-  TokensSwapType,
-  TokensSystemId,
   DCTransfersLimit,
-} from "../../../utils/variables";
+  AlphaType,
+} from "../../../utils/constants";
 import {
   IAccount,
   IActiveAsset,
@@ -75,51 +73,45 @@ export const handleSwapRequest = async (
 
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-        getBlockHeight(activeAsset?.typeId === "ALPHA").then(async (blockHeight) => {
-          let swapType = TokensSwapType;
-          let systemId = TokensSystemId;
+        getBlockHeight(activeAsset?.typeId === AlphaType).then(
+          async (blockHeight) => {
+            const transferData: ISwapProps = {
+              systemId: AlphaSystemId,
+              unitId: Buffer.from(nonceHash).toString("base64"),
+              transactionAttributes: {
+                billIdentifiers: sortIDBySize(billIdentifiers),
+                dcTransfers: dcTransfers,
+                ownerCondition: getNewBearer(account),
+                proofs: proofs,
+                targetValue: dcTransfers
+                  .reduce((acc, obj: IProofTx) => {
+                    return acc + BigInt(obj.transactionAttributes.targetValue!);
+                  }, 0n)
 
-          if (activeAsset?.typeId === "ALPHA") {
-            swapType = AlphaSwapType;
-            systemId = AlphaSystemId;
+                  .toString(),
+                "@type": AlphaSwapType,
+              },
+              timeout: (blockHeight + swapTimeout).toString(),
+              ownerProof: "",
+            };
+
+            const msgHash = await swapOrderHash(transferData);
+            const proof = await createOwnerProof(
+              msgHash,
+              hashingPrivateKey,
+              hashingPublicKey
+            );
+
+            const dataWithProof: ISwapTransferProps = await Object.assign(
+              transferData,
+              {
+                ownerProof: proof.ownerProof,
+              }
+            );
+
+            proof.isSignatureValid && makeTransaction(dataWithProof);
           }
-
-          const transferData: ISwapProps = {
-            systemId: systemId,
-            unitId: Buffer.from(nonceHash).toString("base64"),
-            transactionAttributes: {
-              billIdentifiers: sortIDBySize(billIdentifiers),
-              dcTransfers: dcTransfers,
-              ownerCondition: getNewBearer(account),
-              proofs: proofs,
-              targetValue: dcTransfers
-                .reduce((acc, obj: IProofTx) => {
-                  return acc + BigInt(obj.transactionAttributes.targetValue!);
-                }, 0n)
-
-                .toString(),
-              "@type": swapType,
-            },
-            timeout: (blockHeight + swapTimeout).toString(),
-            ownerProof: "",
-          };
-
-          const msgHash = await swapOrderHash(transferData);
-          const proof = await createOwnerProof(
-            msgHash,
-            hashingPrivateKey,
-            hashingPublicKey
-          );
-
-          const dataWithProof: ISwapTransferProps = await Object.assign(
-            transferData,
-            {
-              ownerProof: proof.ownerProof,
-            }
-          );
-
-          proof.isSignatureValid && makeTransaction(dataWithProof);
-        });
+        );
       }
     })
   );
@@ -172,21 +164,13 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight(activeAsset?.typeId === "ALPHA").then((blockHeight) =>
+    getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) =>
       sortedListByID.map(async (bill: IBill, idx) => {
-        let burnType = TokensDcType;
-        let systemId = TokensSystemId;
-
-        if (activeAsset?.typeId === "ALPHA") {
-          burnType = AlphaDcType;
-          systemId = AlphaSystemId;
-        }
-
         const transferData: ITransfer = {
-          systemId: systemId,
+          systemId: AlphaSystemId,
           unitId: bill.id,
           transactionAttributes: {
-            "@type": burnType,
+            "@type": AlphaDcType,
             backlink: bill.txHash,
             nonce: Buffer.from(nonceHash).toString("base64"),
             targetBearer: getNewBearer(account),
@@ -211,7 +195,7 @@ export const handleDC = async (
 
         makeTransaction(
           dataWithProof,
-          activeAsset?.typeId === "ALPHA" ? "" : account.pubKey
+          activeAsset?.typeId === AlphaType ? "" : account.pubKey
         )
           .then(() => handleTransactionEnd())
           .catch(() => handleTransactionEnd());

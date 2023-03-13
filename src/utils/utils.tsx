@@ -19,7 +19,7 @@ import {
   opVerify,
   sigScheme,
   startByte,
-} from "./variables";
+} from "./constants";
 
 export const extractFormikError = (
   errors: unknown,

@@ -9,7 +9,7 @@ import {
   addDecimal,
   separateDigits,
 } from "../../../utils/utils";
-import { AlphaDecimalPlaces } from "../../../utils/variables";
+import { AlphaDecimalPlaces, AlphaType } from "../../../utils/constants";
 
 export interface IBillsListItemProps {
   title: JSX.Element | null;
@@ -68,7 +68,7 @@ function BillsListItem({
                     {separateDigits(
                       addDecimal(
                         bill.value,
-                        activeAsset.typeId === "ALPHA"
+                        activeAsset.typeId === AlphaType
                           ? AlphaDecimalPlaces
                           : bill.decimals || 0
                       )
@@ -81,7 +81,7 @@ function BillsListItem({
               <Spacer mt={8} />
               <div className="flex flex-align-c pad-24-h pad-8-b">
                 <Spacer mt={8} />
-                {bill?.kind !== 2 && (
+                {bill?.typeId === AlphaType && (
                   <Button
                     onClick={() => {
                       setActiveBill(bill);

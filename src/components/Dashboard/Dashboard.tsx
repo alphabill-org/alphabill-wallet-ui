@@ -16,6 +16,7 @@ import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
 import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
+import { AlphaType } from "../../utils/constants";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -155,7 +156,7 @@ function Dashboard(): JSX.Element | null {
           onClick={() => {
             setActionsView("Send");
             setActiveAssetLocal(
-              JSON.stringify({ name: "ALPHA", typeId: "ALPHA" })
+              JSON.stringify({ name: AlphaType, typeId: AlphaType })
             );
             setIsActionsViewVisible(true);
             invalidateAllLists(
@@ -208,7 +209,7 @@ function Dashboard(): JSX.Element | null {
                   return 0;
                 })
                 .sort(function (a, b) {
-                  if (a.id === "ALPHA") {
+                  if (a.id === AlphaType) {
                     return -1; // Move the object with the given ID to the beginning of the array
                   }
                   return 1;
@@ -235,7 +236,7 @@ function Dashboard(): JSX.Element | null {
                       }}
                     >
                       <div className="dashboard__info-item-icon">
-                        {asset?.id === "ALPHA" ? (
+                        {asset?.id === AlphaType ? (
                           <div className="icon-wrap ab-logo">
                             <ABLogo />
                           </div>
