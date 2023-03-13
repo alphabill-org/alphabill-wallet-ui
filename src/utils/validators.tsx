@@ -387,7 +387,7 @@ export const unicitySealIsValid = (
   if (!unicitySeal.previousHash) {
     return "Unicity seal previous hash is missing";
   }
-  if (unicitySeal.rootChainRoundNumber < 1) {
+  if (unicitySeal.rootChainRoundNumber.length <= 0) {
     return "Unicity seal has invalid block number";
   }
   if (!unicitySeal?.signatures || isEmpty(unicitySeal?.signatures)) {

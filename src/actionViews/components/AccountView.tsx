@@ -13,6 +13,7 @@ import {
   checkPassword,
   extractFormikError,
   getKeys,
+  invalidateAllLists,
   unit8ToHexPrefixed,
 } from "../../utils/utils";
 import Button from "../../components/Button/Button";
@@ -25,6 +26,7 @@ import Spacer from "../../components/Spacer/Spacer";
 import Popup from "../../components/Popup/Popup";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
+import { AlphaType } from "../../utils/constants";
 
 function AccountView(): JSX.Element | null {
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
@@ -39,6 +41,8 @@ function AccountView(): JSX.Element | null {
     activeAccountId,
     setActiveAccountId,
     setVault,
+    activeAsset,
+    setActiveAssetLocal,
   } = useAuth();
   const { accounts, setIsActionsViewVisible } = useApp();
   const queryClient = useQueryClient();
@@ -62,9 +66,15 @@ function AccountView(): JSX.Element | null {
               className="account"
               onClick={() => {
                 setActiveAccountId(account?.pubKey);
+                setActiveAssetLocal(
+                  JSON.stringify({ name: AlphaType, typeId: AlphaType })
+                );
                 setIsActionsViewVisible(false);
-                queryClient.invalidateQueries(["balance", account?.pubKey]);
-                queryClient.invalidateQueries(["billsList", activeAccountId]);
+                invalidateAllLists(
+                  activeAccountId,
+                  activeAsset.typeId,
+                  queryClient
+                );
               }}
             >
               <div className="account__item">
@@ -176,7 +186,11 @@ function AccountView(): JSX.Element | null {
 
               setActiveAccountId(prefixedHashingPubKey);
               setIsAddPopupVisible(false);
-              queryClient.invalidateQueries(["balance", prefixedHashingPubKey]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             };
 
             if (

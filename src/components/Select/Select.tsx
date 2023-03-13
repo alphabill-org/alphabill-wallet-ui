@@ -29,13 +29,7 @@ export default function Select(props: ISelectProps): JSX.Element {
 
   const getValue = () => {
     if (props.options) {
-      return (
-        (props.options as IOption[]).find(
-          (option: IOption) => option.value === field.value
-        ) ||
-        props.defaultValue ||
-        ""
-      );
+      return field.value || props.defaultValue || "";
     } else {
       return "" as any;
     }

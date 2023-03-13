@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
+import { addDecimal } from "../../../utils/utils";
 import {
-  addDecimal,
   DCTransfersLimit,
   swapTimeout,
-  ALPHADecimalPlaces,
-} from "../../../utils/utils";
+  AlphaDecimalPlaces,
+  AlphaType,
+} from "../../../utils/constants";
 import { IBill, ILockedBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
@@ -42,7 +43,7 @@ function BillsList(): JSX.Element | null {
   );
   const unlockedBills = billsList.filter(
     (b: IBill) =>
-      b.isDcBill === false &&
+      b.isDcBill !== true &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
   );
   const DCBills = useMemo(
@@ -73,7 +74,7 @@ function BillsList(): JSX.Element | null {
   const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
 
   // Global hooks
-  const { vault, activeAccountId } = useAuth();
+  const { vault, activeAccountId, activeAsset } = useAuth();
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
     "ab_last_nonce",
     null
@@ -128,7 +129,7 @@ function BillsList(): JSX.Element | null {
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getBlockHeight().then((blockHeight) => {
+      getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) => {
         if (!initialBlockHeight || !initialBlockHeight?.current) {
           initialBlockHeight.current = blockHeight;
         }
@@ -162,10 +163,19 @@ function BillsList(): JSX.Element | null {
         DCBills,
         account,
         activeAccountId,
-        lastNonceIDs
+        lastNonceIDs,
+        activeAsset
       );
     },
-    [DCBills, account, lastNonceIDs, password, vault, activeAccountId]
+    [
+      DCBills,
+      account,
+      lastNonceIDs,
+      password,
+      vault,
+      activeAccountId,
+      activeAsset,
+    ]
   );
 
   // Effects
@@ -248,7 +258,13 @@ function BillsList(): JSX.Element | null {
                   <>
                     {idx !== 0 && <Spacer mt={8} />}
                     <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                      Denomination: {addDecimal(bill.value, ALPHADecimalPlaces)}
+                      Denomination:{" "}
+                      {addDecimal(
+                        bill.value,
+                        activeAsset.typeId === AlphaType
+                          ? AlphaDecimalPlaces
+                          : bill?.decimals || 0
+                      )}
                     </div>
                     <Spacer mb={2} />
                   </>
@@ -268,41 +284,46 @@ function BillsList(): JSX.Element | null {
           })}
         </div>
         <div className="t-medium-small pad-24-h">
-          <Spacer mt={16} />
-
-          <Button
-            className="w-100p"
-            small
-            type="button"
-            variant="primary"
-            working={isConsolidationLoading}
-            disabled={
-              (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
-              isConsolidationLoading
-            }
-            onClick={() => {
-              if (password) {
-                handleDC(
-                  addInterval,
-                  setIsConsolidationLoading,
-                  setLastNonceIDsLocal,
-                  setHasSwapBegun,
-                  handleSwap,
-                  account,
-                  password,
-                  vault,
-                  unlockedBills,
-                  DCBills,
-                  lastNonceIDs,
-                  activeAccountId
-                );
-              } else {
-                setIsPasswordFormVisible("handleDC");
-              }
-            }}
-          >
-            Consolidate Bills
-          </Button>
+          {activeAsset.typeId === AlphaType && (
+            <>
+              {" "}
+              <Spacer mt={16} />
+              <Button
+                className="w-100p"
+                small
+                type="button"
+                variant="primary"
+                working={isConsolidationLoading}
+                disabled={
+                  (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
+                  isConsolidationLoading
+                }
+                onClick={() => {
+                  if (password) {
+                    handleDC(
+                      addInterval,
+                      setIsConsolidationLoading,
+                      setLastNonceIDsLocal,
+                      setHasSwapBegun,
+                      handleSwap,
+                      account,
+                      password,
+                      vault,
+                      unlockedBills,
+                      DCBills,
+                      lastNonceIDs,
+                      activeAccountId,
+                      activeAsset
+                    );
+                  } else {
+                    setIsPasswordFormVisible("handleDC");
+                  }
+                }}
+              >
+                Consolidate Bills
+              </Button>
+            </>
+          )}
         </div>
         {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
@@ -335,12 +356,13 @@ function BillsList(): JSX.Element | null {
               setSelectedSendKey={setSelectedSendKey}
               lockedBills={lockedBills}
               setLockedBillsLocal={setLockedBillsLocal}
+              activeAsset={activeAsset}
             />
           </>
         )}
         {sortedListByValue.filter(
           (b: IBill) =>
-            b.isDcBill === false &&
+            b.isDcBill !== true &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length >= 1 && (
           <BillsListItem
@@ -351,7 +373,7 @@ function BillsList(): JSX.Element | null {
             setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue.filter(
               (b: IBill) =>
-                b.isDcBill === false &&
+                b.isDcBill !== true &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}
@@ -364,6 +386,7 @@ function BillsList(): JSX.Element | null {
             setActionsView={setActionsView}
             setIsActionsViewVisible={setIsActionsViewVisible}
             setSelectedSendKey={setSelectedSendKey}
+            activeAsset={activeAsset}
           />
         )}
         <Spacer mt={32} />
@@ -390,7 +413,8 @@ function BillsList(): JSX.Element | null {
               unlockedBills,
               DCBills,
               lastNonceIDs,
-              activeAccountId
+              activeAccountId,
+              activeAsset
             )
           }
           lockedBills={lockedBills}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
@@ -15,24 +15,42 @@ import {
   ILockedBill,
   IProofTx,
   ITransfer,
+  ITypeHierarchy,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import { getBlockHeight, makeTransaction } from "../../hooks/requests";
+import {
+  getBlockHeight,
+  getTypeHierarchy,
+  makeTransaction,
+} from "../../hooks/requests";
 
 import {
   extractFormikError,
   getKeys,
   base64ToHexPrefixed,
-  timeoutBlocks,
   createOwnerProof,
   createNewBearer,
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
+  invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
+  hexToBase64,
 } from "../../utils/utils";
+import {
+  timeoutBlocks,
+  startByte,
+  TokensTransferType,
+  TokensSplitType,
+  AlphaTransferType,
+  AlphaSplitType,
+  AlphaSystemId,
+  TokensSystemId,
+  AlphaType,
+} from "../../utils/constants";
+
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
 function Send(): JSX.Element | null {
@@ -47,34 +65,40 @@ function Send(): JSX.Element | null {
     setActionsView,
     setSelectedSendKey,
   } = useApp();
-  const { vault, activeAccountId } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
+    useAuth();
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
       .filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.id === "ALPHA"),
-    label: "ALPHA",
+      .find((asset) => asset.typeId === activeAsset.typeId),
+    label: activeAsset.name,
   };
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
-    defaultAsset.value
+    defaultAsset?.value
   );
-  const activeAsset =
-    account?.assets.find(
-      (asset: IAsset) => (asset.id = selectedAsset?.id || "ALPHA")
-    ) || account?.assets[0];
 
-  const balance = activeAsset.amount;
-  const decimalPlaces = activeAsset.decimalPlaces;
-  const availableAmount = addDecimal(
-    getBillsSum(
-      billsList.filter(
-        (bill: IBill) =>
-          bill.isDcBill === false &&
-          !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-      )
-    ).toString(),
-    decimalPlaces
+  const getAvailableAmount = useCallback(
+    (decimalPlaces: number) => {
+      return addDecimal(
+        getBillsSum(
+          billsList.filter(
+            (bill: IBill) =>
+              bill.isDcBill !== true &&
+              !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+          )
+        ).toString(),
+        decimalPlaces
+      );
+    },
+    [billsList, lockedBills]
   );
+
+  const [availableAmount, setAvailableAmount] = useState<string>(
+    getAvailableAmount(selectedAsset?.decimalPlaces || 0)
+  );
+
+  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
   const lockedBillsAmount = getBillsSum(
     billsList.filter((bill: IBill) =>
@@ -85,7 +109,10 @@ function Send(): JSX.Element | null {
   const lockedAmountLabel =
     Number(lockedBillsAmount) > 0
       ? " ( Locked bills amount " +
-        addDecimal(lockedBillsAmount.toString(), decimalPlaces) +
+        addDecimal(
+          lockedBillsAmount.toString(),
+          selectedAsset?.decimalPlaces || 0
+        ) +
         " )"
       : "";
 
@@ -94,12 +121,12 @@ function Send(): JSX.Element | null {
   const balanceAfterSending = useRef<bigint | null>(null);
 
   const [isSending, setIsSending] = useState<boolean>(false);
+
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
-      queryClient.invalidateQueries(["balance", activeAccountId]);
-      queryClient.invalidateQueries(["billsList", activeAccountId]);
-      getBlockHeight().then((blockHeight) => {
+      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+      getBlockHeight(selectedAsset?.typeId === AlphaType).then((blockHeight) => {
         if (!initialBlockHeight?.current) {
           initialBlockHeight.current = blockHeight;
         }
@@ -112,7 +139,15 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (BigInt(balance) === balanceAfterSending.current) {
+    setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
+  }, [selectedAsset, getAvailableAmount]);
+
+  useEffect(() => {
+    const activeAssetAmount = account?.assets
+      .filter((asset) => account?.activeNetwork === asset.network)
+      .find((asset) => asset.typeId === activeAsset.typeId)?.amount;
+
+    if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       balanceAfterSending.current = null;
     } else if (
@@ -126,7 +161,13 @@ function Send(): JSX.Element | null {
     if (actionsView !== "Send" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
-  }, [balance, isSending, actionsView]);
+  }, [
+    account.assets,
+    account?.activeNetwork,
+    activeAsset.typeId,
+    isSending,
+    actionsView,
+  ]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -136,7 +177,7 @@ function Send(): JSX.Element | null {
         initialValues={{
           assets: {
             value: defaultAsset,
-            label: "ALPHA",
+            label: AlphaType,
           },
           amount: "",
           address: "",
@@ -159,7 +200,7 @@ function Send(): JSX.Element | null {
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
-              decimalPlaces
+              selectedAsset?.decimalPlaces || 0
             );
           } catch (error) {
             return setErrors({
@@ -173,7 +214,7 @@ function Send(): JSX.Element | null {
               ] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
-                  bill.isDcBill === false &&
+                  bill.isDcBill !== true &&
                   !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
               ) as IBill[]);
 
@@ -202,15 +243,31 @@ function Send(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight().then(async (blockHeight) => {
+          getBlockHeight(selectedAsset?.typeId === AlphaType).then(async (blockHeight) => {
+            let transferType = TokensTransferType;
+            let splitType = TokensSplitType;
+            let systemId = TokensSystemId;
+            let amountField = "targetValue";
+            let bearerField = "newBearer";
+            let transferField = "value";
+
+            if (selectedAsset?.typeId === AlphaType) {
+              transferType = AlphaTransferType;
+              splitType = AlphaSplitType;
+              systemId = AlphaSystemId;
+              bearerField = "targetBearer";
+              amountField = "amount";
+              transferField = "targetValue";
+            }
+
             billsToTransfer.map(async (bill, idx) => {
               const transferData: IProofTx = {
-                systemId: "AAAAAA==",
+                systemId: systemId,
                 unitId: bill.id,
                 transactionAttributes: {
-                  "@type": "type.googleapis.com/rpc.TransferOrder",
+                  "@type": transferType,
                   newBearer: newBearer,
-                  targetValue: bill.value.toString(),
+                  [transferField]: bill.value,
                   backlink: bill.txHash,
                 },
                 timeout: (blockHeight + timeoutBlocks).toString(),
@@ -232,12 +289,12 @@ function Send(): JSX.Element | null {
 
             if (billToSplit && splitBillAmount) {
               const splitData: IProofTx = {
-                systemId: "AAAAAA==",
+                systemId: systemId,
                 unitId: billToSplit.id,
                 transactionAttributes: {
-                  "@type": "type.googleapis.com/rpc.SplitOrder",
-                  amount: splitBillAmount.toString(),
-                  targetBearer: newBearer,
+                  "@type": splitType,
+                  [amountField]: splitBillAmount.toString(),
+                  [bearerField]: newBearer,
                   remainingValue: (
                     BigInt(billToSplit.value) - splitBillAmount
                   ).toString(),
@@ -247,12 +304,39 @@ function Send(): JSX.Element | null {
                 ownerProof: "",
               };
 
-              handleValidation(
-                await splitOrderHash(splitData),
-                blockHeight,
-                splitData as ITransfer,
-                true
-              );
+              if (selectedAsset?.typeId !== AlphaType) {
+                getTypeHierarchy(billToSplit.typeId || "")
+                  .then(async (hierarchy: ITypeHierarchy[]) => {
+                    const parentsIds = hierarchy
+                      .map((parent: ITypeHierarchy) => {
+                        return parent.parentTypeId;
+                      })
+                      .filter((parentTypeId) => parentTypeId !== null);
+
+                    splitData.transactionAttributes.invariantPredicateSignatures =
+                      parentsIds.concat([hexToBase64(startByte)]);
+                    splitData.transactionAttributes.type = billToSplit.typeId;
+                    handleValidation(
+                      await splitOrderHash(splitData),
+                      blockHeight,
+                      splitData as ITransfer,
+                      true
+                    );
+                  })
+                  .catch(() => {
+                    setErrors({
+                      password: "Fetching token hierarchy for failed",
+                    });
+                    setIsSending(false);
+                  });
+              } else {
+                handleValidation(
+                  await splitOrderHash(splitData),
+                  blockHeight,
+                  splitData as ITransfer,
+                  true
+                );
+              }
             }
           });
 
@@ -268,13 +352,20 @@ function Send(): JSX.Element | null {
               hashingPublicKey
             );
 
-            const dataWithProof = Object.assign(billData, {
+            let dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,
               timeout: (blockHeight + timeoutBlocks).toString(),
             });
 
+            if (selectedAsset?.typeId !== AlphaType) {
+              dataWithProof = { transactions: [dataWithProof] } as any;
+            }
+
             proof.isSignatureValid &&
-              makeTransaction(dataWithProof)
+              makeTransaction(
+                dataWithProof,
+                selectedAsset?.typeId === AlphaType ? "" : values.address
+              )
                 .then(() => {
                   const amount: string =
                     billData?.transactionAttributes?.amount ||
@@ -282,7 +373,7 @@ function Send(): JSX.Element | null {
                     "";
                   balanceAfterSending.current = balanceAfterSending.current
                     ? BigInt(balanceAfterSending.current) - BigInt(amount)
-                    : BigInt(balance) - BigInt(amount);
+                    : BigInt(selectedAsset?.amount || "") - BigInt(amount);
                 })
                 .finally(() => {
                   if (isLastTransfer) {
@@ -330,11 +421,6 @@ function Send(): JSX.Element | null {
               (value: string | undefined) => Number(value || "") > 0n
             )
             .test(
-              "value not number",
-              "Value must be greater than 0",
-              (value: string | undefined) => Number(value || "") > 0n
-            )
-            .test(
               "test less than",
               "Amount exceeds available assets",
               (value: string | undefined) =>
@@ -377,10 +463,11 @@ function Send(): JSX.Element | null {
                             onClick={() => {
                               setActionsView("Bills List");
                               setIsActionsViewVisible(true);
-                              queryClient.invalidateQueries([
-                                "billsList",
+                              invalidateAllLists(
                                 activeAccountId,
-                              ]);
+                                activeAsset.typeId,
+                                queryClient
+                              );
                             }}
                             type="button"
                             variant="link"
@@ -407,27 +494,48 @@ function Send(): JSX.Element | null {
                     className={selectedSendKey ? "d-none" : ""}
                     options={account?.assets
                       .filter(
-                        (asset) => account?.activeNetwork === asset.network
+                        (asset) =>
+                          account?.activeNetwork === asset.network &&
+                          asset.isSendable
                       )
                       .sort((a: IAsset, b: IAsset) => {
-                        if (a?.id! < b?.id!) {
+                        if (a?.name! < b?.name!) {
                           return -1;
                         }
-                        if (a?.id! > b?.id!) {
+                        if (a?.name! > b?.name!) {
                           return 1;
                         }
                         return 0;
                       })
+                      .sort(function (a, b) {
+                        if (a.id === AlphaType) {
+                          return -1; // Move the object with the given ID to the beginning of the array
+                        }
+                        return 1;
+                      })
                       .map((asset: IAsset) => ({
                         value: asset,
-                        label: asset.id,
+                        label: asset.name,
                       }))}
                     defaultValue={{
                       value: defaultAsset,
-                      label: "ALPHA",
+                      label: defaultAsset.label,
                     }}
                     error={extractFormikError(errors, touched, ["assets"])}
-                    onChange={(_label, option: any) => setSelectedAsset(option)}
+                    onChange={(_label, option: any) => {
+                      setSelectedAsset(option);
+                      invalidateAllLists(
+                        activeAccountId,
+                        activeAsset.typeId,
+                        queryClient
+                      );
+                      setActiveAssetLocal(
+                        JSON.stringify({
+                          name: option.name,
+                          typeId: option.typeId || option.name,
+                        })
+                      );
+                    }}
                   />
                   <Spacer mb={8} />
                   {selectedSendKey && (
@@ -457,12 +565,12 @@ function Send(): JSX.Element | null {
                       desc={
                         availableAmount +
                         " " +
-                        values.assets.label +
+                        values.assets?.label +
                         " available to send " +
                         lockedAmountLabel
                       }
                       type="text"
-                      floatingFixedPoint={decimalPlaces}
+                      floatingFixedPoint={selectedAsset?.decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
                         !Boolean(values.assets) || Boolean(selectedSendKey)
@@ -473,7 +581,7 @@ function Send(): JSX.Element | null {
                             billsList?.find(
                               (bill: IBill) => bill.id === selectedSendKey
                             )?.value,
-                            decimalPlaces
+                            selectedAsset?.decimalPlaces || 0
                           ) as string | undefined)) ||
                         ""
                       }
@@ -518,7 +626,11 @@ function Send(): JSX.Element | null {
             onClick={() => {
               setActionsView("Bills List");
               setIsActionsViewVisible(true);
-              queryClient.invalidateQueries(["billsList", activeAccountId]);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
             }}
             variant="link"
             type="button"

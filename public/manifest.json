@@ -2,7 +2,7 @@
   "short_name": "Alphabill Wallet",
   "name": "Alphabill Wallet",
   "description": "Alphabill Wallet",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html"
@@ -22,7 +22,10 @@
   ],
   "host_permissions": [
     "*://*.wallet-backend.testnet.alphabill.org/*",
+    "*://*.money-backend.testnet.alphabill.org/*",
     "*://*.money-partition.testnet.alphabill.org/*",
+    "*://*.tokens-backend.testnet.alphabill.org/*",
+    "*://*.dev-ab-tokens-backend.abdev1.guardtime.com/*",
     "*://*.dev-ab-money-backend.abdev1.guardtime.com/*",
     "*://*.dev-ab-money-partition.abdev1.guardtime.com/*"
   ]

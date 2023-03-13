@@ -1,5 +1,3 @@
-import { string } from "yup/lib/locale";
-
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -19,12 +17,76 @@ export interface IAsset {
   decimalFactor: number;
   decimalPlaces: number;
   UIAmount: string;
+  typeId: string;
+  isSendable: boolean;
+}
+
+export interface IUserTokensListTypes {
+  id: string; // base64 encoded hex
+  parentTypeId: string; // base64 encoded hex
+  symbol: string;
+  subTypeCreationPredicate: string;
+  tokenCreationPredicate: string;
+  invariantPredicate: string;
+  decimalPlaces: number; // fungible only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex  creation tx
+}
+
+export interface IFungibleResponse {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  amount: string; // fungible only
+  decimals: number; // fungible only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
+  symbol: string;
+}
+
+export interface IFungibleAsset {
+  id: string;
+  name: string;
+  amount: string;
+  network: string;
+  decimalFactor: number;
+  decimalPlaces: number;
+  UIAmount: string;
+  typeId: string;
+  isSendable: boolean;
+}
+
+export interface IActiveAsset {
+  name: string;
+  typeId: string;
+}
+
+export interface INonFungibleAsset {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  nftUri: string; // nft only
+  nftData: string; // base64 encoded hex - nft only
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
+}
+
+export interface ITypeHierarchy {
+  id: string; //base64 encoded hex
+  parentTypeId: string; //base64 encoded hex
+  symbol: string;
+  decimalPlaces: number; // [0..8] fungible only
+  kind: number; //  [2:Fungible|4:NonFungible],
+  txHash: string; //base64 encoded hex - creation tx
 }
 
 export interface IBill {
   id: string; // base64
   value: string;
   txHash: string;
+  typeId?: string;
+  kind?: number;
+  decimals?: number;
   isDcBill?: boolean;
 }
 
@@ -37,6 +99,10 @@ export interface ILockedBill {
 export interface IBillsList {
   total: number;
   bills: IBill[];
+}
+
+export interface IRoundNumber {
+  roundNumber: string;
 }
 
 export interface IBlockStats {
@@ -60,11 +126,12 @@ export interface ITransfer {
     "@type": string;
     backlink?: string;
     newBearer?: string;
-    targetValue?: string;
     remainingValue?: string;
     targetBearer?: string;
     amount?: string;
     nonce?: string;
+    targetValue?: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: string;
   ownerProof: string;
@@ -101,6 +168,7 @@ export interface ISwapProps {
     ownerCondition: string;
     proofs: IProof[];
     targetValue: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: string;
   ownerProof: string;
@@ -131,15 +199,17 @@ export interface IProofTx {
     "@type": string;
     nonce?: string;
     targetBearer?: string;
-    targetValue?: string;
     backlink: string;
-    newBearer?: string;
     amount?: string;
     ownerCondition?: string;
     billIdentifiers?: string[];
     remainingValue?: string;
     proofs?: IProof[];
     dcTransfers?: IProofTx[];
+    targetValue?: string;
+    newBearer?: string;
+    invariantPredicateSignatures?: string[];
+    type?: string;
   };
   timeout: string;
   ownerProof: string;
@@ -171,7 +241,7 @@ export interface IUnicityCertificate {
 }
 
 export interface IUnicitySeal {
-  rootChainRoundNumber: number;
+  rootChainRoundNumber: string;
   previousHash: string;
   hash: string;
   signatures: {
@@ -216,6 +286,7 @@ export interface ISwapTransferProps {
     ownerCondition: string;
     proofs: IProof[];
     targetValue: string;
+    invariantPredicateSignatures?: string[];
   };
   timeout: string;
   ownerProof: string;
