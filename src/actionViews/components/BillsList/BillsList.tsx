@@ -336,7 +336,7 @@ function BillsList(): JSX.Element | null {
                   LOCKED BILLS
                   <br />
                   <span className="t-small">
-                    Exempt from transfers & consolidation
+                    Exempt from transfers {activeAsset?.typeId === AlphaType && "& consolidation"}
                   </span>
                 </div>
               }
