@@ -8,8 +8,15 @@ import {
   IProofTx,
   ISwapProps,
   ITransfer,
+  ITransferProps,
 } from "../types/Types";
-import { AlphaDcType, AlphaSplitType, TokensSplitType } from "./constants";
+import {
+  AlphaDcType,
+  AlphaSplitType,
+  AlphaTransferType,
+  TokensSplitType,
+  TokensTransferType,
+} from "./constants";
 
 export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
   secp.utils.concatBytes(
@@ -89,25 +96,25 @@ export const swapProofsBuffer = (proofs: IProof[]) =>
 export const identifiersBuffer = (billIdentifiers: string[]) =>
   Buffer.concat(billIdentifiers.map((i) => Buffer.from(i, "base64")));
 
-export const transferAttributesBuffer = (tx: any) => {
-  let transferField = "value";
+export const transferAttributesBuffer = (tx: ITransfer) => {
+  const transferField =
+    tx.transactionAttributes["@type"] === AlphaTransferType
+      ? "targetValue"
+      : "value";
+
   let bytes = secp.utils.concatBytes(
     Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
-    new Uint64BE(tx.transactionAttributes[transferField]).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink, "base64"),
-    Buffer.from(tx.transactionAttributes.invariantPredicateSignatures, "base64")
+    new Uint64BE(tx.transactionAttributes[transferField]!).toBuffer(),
+    Buffer.from(tx.transactionAttributes.backlink!, "base64")
   );
-  if (
-    tx.transactionAttributes["@type"] ===
-    "type.googleapis.com/rpc.TransferOrder"
-  ) {
-    transferField = "targetValue";
-  } else {
+
+  if (tx.transactionAttributes["@type"] === TokensTransferType) {
     bytes = secp.utils.concatBytes(
       bytes,
-      Buffer.from(
-        tx.transactionAttributes.invariantPredicateSignatures,
-        "base64"
+      Buffer.concat(
+        tx.transactionAttributes?.invariantPredicateSignatures!.map((sig: string) =>
+          Buffer.from(sig, "base64")
+        )
       )
     );
   }
