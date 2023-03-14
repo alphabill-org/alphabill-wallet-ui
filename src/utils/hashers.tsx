@@ -8,7 +8,6 @@ import {
   IProofTx,
   ISwapProps,
   ITransfer,
-  ITransferProps,
 } from "../types/Types";
 import {
   AlphaDcType,
