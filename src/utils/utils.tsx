@@ -458,7 +458,7 @@ export const invalidateAllLists = (
   queryClient.invalidateQueries(["balance", pubKey]);
 };
 
-export const getHierarhyParentTypeIds = (hierarchy: ITypeHierarchy[]) =>
+export const getHierarchyParentTypeIds = (hierarchy: ITypeHierarchy[]) =>
   hierarchy.map((parent: ITypeHierarchy) => {
     const id = parent.parentTypeId;
     return id === "AA==" || null ? hexToBase64(startByte) : id;

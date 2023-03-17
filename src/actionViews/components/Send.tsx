@@ -37,7 +37,7 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  getHierarhyParentTypeIds,
+  getHierarchyParentTypeIds,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -283,7 +283,7 @@ function Send(): JSX.Element | null {
                   getTypeHierarchy(bill.typeId || "")
                     .then(async (hierarchy: ITypeHierarchy[]) => {
                       transferData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarhyParentTypeIds(hierarchy);
+                        getHierarchyParentTypeIds(hierarchy);
                       transferData.transactionAttributes.type = bill.typeId;
                       handleValidation(
                         await transferOrderHash(transferData),
@@ -329,7 +329,7 @@ function Send(): JSX.Element | null {
                   getTypeHierarchy(billToSplit.typeId || "")
                     .then(async (hierarchy: ITypeHierarchy[]) => {
                       splitData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarhyParentTypeIds(hierarchy);
+                        getHierarchyParentTypeIds(hierarchy);
                       splitData.transactionAttributes.type = billToSplit.typeId;
                       handleValidation(
                         await splitOrderHash(splitData),
