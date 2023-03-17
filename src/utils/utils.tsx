@@ -23,7 +23,7 @@ import {
   opPushPubKey,
   opPushSig,
   opVerify,
-  boolTrue,
+  sigScheme,
   startByte,
 } from "./constants";
 
@@ -115,14 +115,14 @@ export const getNewBearer = (account: IAccount) => {
     startByte +
       opDup +
       opHash +
-      boolTrue +
+      sigScheme +
       opPushHash +
-      boolTrue +
+      sigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      boolTrue,
+      sigScheme,
     "hex"
   ).toString("base64");
 };
@@ -201,8 +201,8 @@ export const getKeys = (
 export const checkOwnerPredicate = (key: string, predicate: string) => {
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
-    startByte + opDup + opHash + boolTrue + opPushHash + boolTrue;
-  const removeScriptAfter = opEqual + opVerify + opCheckSig + boolTrue;
+    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
   const sha256KeyFromPredicate = hex
     .replace(removeScriptBefore, "")
     .replace(removeScriptAfter, "");
@@ -224,14 +224,14 @@ export const createNewBearer = (address: string) => {
     startByte +
       opDup +
       opHash +
-      boolTrue +
+      sigScheme +
       opPushHash +
-      boolTrue +
+      sigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      boolTrue,
+      sigScheme,
     "hex"
   ).toString("base64");
 };
@@ -253,12 +253,12 @@ export const createOwnerProof = async (
     ownerProof: Buffer.from(
       startByte +
         opPushSig +
-        boolTrue +
+        sigScheme +
         Buffer.from(
           secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
         ).toString("hex") +
         opPushPubKey +
-        boolTrue +
+        sigScheme +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
     ).toString("base64"),

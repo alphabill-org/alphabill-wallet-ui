@@ -33,9 +33,7 @@ import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
-  pushBool,
-  boolTrue,
-  startByte,
+  pushBoolTrue,
 } from "../utils/constants";
 
 interface IAppContextShape {
@@ -166,7 +164,7 @@ export const AppProvider: FunctionComponent<{
           tokenTypes?.find(
             (type: IUserTokensListTypes) => type.id === obj.typeId
           )?.invariantPredicate ===
-          hexToBase64(startByte + pushBool + boolTrue),
+          hexToBase64(pushBoolTrue),
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
