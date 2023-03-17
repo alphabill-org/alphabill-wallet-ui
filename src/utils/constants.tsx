@@ -1,3 +1,4 @@
+export const pushBool = "51";
 export const startByte = "53";
 export const opPushSig = "54";
 export const opPushPubKey = "55";
@@ -7,7 +8,8 @@ export const opPushHash = "4f";
 export const opCheckSig = "ac";
 export const opEqual = "87";
 export const opVerify = "69";
-export const sigScheme = "01";
+export const boolTrue = "01";
+export const boolFalse = "00";
 
 export const timeoutBlocks = 10n;
 export const swapTimeout = 40n;

@@ -23,11 +23,19 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
-import { addDecimal, getAssetSum, separateDigits } from "../utils/utils";
+import {
+  addDecimal,
+  getAssetSum,
+  hexToBase64,
+  separateDigits,
+} from "../utils/utils";
 import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
+  pushBool,
+  boolTrue,
+  startByte,
 } from "../utils/constants";
 
 interface IAppContextShape {
@@ -157,7 +165,8 @@ export const AppProvider: FunctionComponent<{
         isSendable:
           tokenTypes?.find(
             (type: IUserTokensListTypes) => type.id === obj.typeId
-          )?.subTypeCreationPredicate === "U1EB",
+          )?.invariantPredicate ===
+          hexToBase64(startByte + pushBool + boolTrue),
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 

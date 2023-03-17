@@ -7,7 +7,13 @@ import { uniq, isNumber } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
 
-import { IAccount, IAsset, IBill, ITxProof } from "../types/Types";
+import {
+  IAccount,
+  IAsset,
+  IBill,
+  ITxProof,
+  ITypeHierarchy,
+} from "../types/Types";
 import {
   opCheckSig,
   opDup,
@@ -17,7 +23,7 @@ import {
   opPushPubKey,
   opPushSig,
   opVerify,
-  sigScheme,
+  boolTrue,
   startByte,
 } from "./constants";
 
@@ -109,14 +115,14 @@ export const getNewBearer = (account: IAccount) => {
     startByte +
       opDup +
       opHash +
-      sigScheme +
+      boolTrue +
       opPushHash +
-      sigScheme +
+      boolTrue +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      sigScheme,
+      boolTrue,
     "hex"
   ).toString("base64");
 };
@@ -195,8 +201,8 @@ export const getKeys = (
 export const checkOwnerPredicate = (key: string, predicate: string) => {
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
-    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
-  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
+    startByte + opDup + opHash + boolTrue + opPushHash + boolTrue;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + boolTrue;
   const sha256KeyFromPredicate = hex
     .replace(removeScriptBefore, "")
     .replace(removeScriptAfter, "");
@@ -218,14 +224,14 @@ export const createNewBearer = (address: string) => {
     startByte +
       opDup +
       opHash +
-      sigScheme +
+      boolTrue +
       opPushHash +
-      sigScheme +
+      boolTrue +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      sigScheme,
+      boolTrue,
     "hex"
   ).toString("base64");
 };
@@ -247,12 +253,12 @@ export const createOwnerProof = async (
     ownerProof: Buffer.from(
       startByte +
         opPushSig +
-        sigScheme +
+        boolTrue +
         Buffer.from(
           secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
         ).toString("hex") +
         opPushPubKey +
-        sigScheme +
+        boolTrue +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
     ).toString("base64"),
@@ -451,3 +457,9 @@ export const invalidateAllLists = (
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
 };
+
+export const getHierarhyParentTypeIds = (hierarchy: ITypeHierarchy[]) =>
+  hierarchy.map((parent: ITypeHierarchy) => {
+    const id = parent.parentTypeId;
+    return id === "AA==" || null ? hexToBase64(startByte) : id;
+  });

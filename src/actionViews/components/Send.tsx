@@ -37,11 +37,10 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  hexToBase64,
+  getHierarhyParentTypeIds,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
-  startByte,
   TokensTransferType,
   TokensSplitType,
   AlphaTransferType,
@@ -283,14 +282,8 @@ function Send(): JSX.Element | null {
                 if (selectedAsset?.typeId !== AlphaType) {
                   getTypeHierarchy(bill.typeId || "")
                     .then(async (hierarchy: ITypeHierarchy[]) => {
-                      const parentsIds = hierarchy
-                        .map((parent: ITypeHierarchy) => {
-                          return parent.parentTypeId;
-                        })
-                        .filter((parentTypeId) => parentTypeId !== null);
-
                       transferData.transactionAttributes.invariantPredicateSignatures =
-                        parentsIds.concat([hexToBase64(startByte)]);
+                        getHierarhyParentTypeIds(hierarchy);
                       transferData.transactionAttributes.type = bill.typeId;
                       handleValidation(
                         await transferOrderHash(transferData),
@@ -335,14 +328,8 @@ function Send(): JSX.Element | null {
                 if (selectedAsset?.typeId !== AlphaType) {
                   getTypeHierarchy(billToSplit.typeId || "")
                     .then(async (hierarchy: ITypeHierarchy[]) => {
-                      const parentsIds = hierarchy
-                        .map((parent: ITypeHierarchy) => {
-                          return parent.parentTypeId;
-                        })
-                        .filter((parentTypeId) => parentTypeId !== null);
-
                       splitData.transactionAttributes.invariantPredicateSignatures =
-                        parentsIds.concat([hexToBase64(startByte)]);
+                        getHierarhyParentTypeIds(hierarchy);
                       splitData.transactionAttributes.type = billToSplit.typeId;
                       handleValidation(
                         await splitOrderHash(splitData),
