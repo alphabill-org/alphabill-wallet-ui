@@ -21,7 +21,7 @@ export interface IBillsListItemProps {
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
   setIsLockFormVisible: (e: boolean) => void;
-  setActionsView: (e: "Send" | "Bills List" | "Profile" | "") => void;
+  setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
   setIsActionsViewVisible: (e: boolean) => void;
   setSelectedSendKey: (e: string) => void;
   isLockedBills?: boolean;
@@ -136,7 +136,7 @@ function BillsListItem({
                 <span className="pad-8-l">
                   <Button
                     onClick={() => {
-                      setActionsView("Send");
+                      setActionsView("Transfer");
                       setIsActionsViewVisible(true);
                       setSelectedSendKey(bill.id);
                     }}
