@@ -157,7 +157,7 @@ function Send(): JSX.Element | null {
       clearInterval(pollingInterval.current);
     }
 
-    if (actionsView !== "Send" && pollingInterval.current) {
+    if (actionsView !== "Transfer" && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
   }, [
@@ -479,7 +479,7 @@ function Send(): JSX.Element | null {
                           or select a new bill from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("Bills List");
+                              setActionsView("List view");
                               setIsActionsViewVisible(true);
                               invalidateAllLists(
                                 activeAccountId,
@@ -628,7 +628,7 @@ function Send(): JSX.Element | null {
                     variant="primary"
                     working={isSending}
                   >
-                    Send
+                    Transfer
                   </Button>
                 </FormFooter>
               </Form>
@@ -642,7 +642,7 @@ function Send(): JSX.Element | null {
           <Button
             small
             onClick={() => {
-              setActionsView("Bills List");
+              setActionsView("List view");
               setIsActionsViewVisible(true);
               invalidateAllLists(
                 activeAccountId,

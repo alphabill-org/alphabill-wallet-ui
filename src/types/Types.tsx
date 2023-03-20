@@ -145,7 +145,7 @@ export interface IActivity {
   swap?: ISwap;
   time: string;
   address: string;
-  type: "Buy" | "Send" | "Swap" | "Receive";
+  type: "Buy" | "Transfer" | "Swap" | "Receive";
   network: string;
   fromID?: string;
   fromAmount?: string;
