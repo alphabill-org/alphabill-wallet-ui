@@ -37,7 +37,7 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  getHierarchyParentTypeIds,
+  createInvariantPredicateSignatures,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -274,38 +274,22 @@ function Send(): JSX.Element | null {
                   ownerProof: "",
                 };
 
+                if (selectedAsset?.typeId !== AlphaType) {
+                  transferData.transactionAttributes.type = bill.typeId;
+                }
+
                 const isLastTransaction =
                   billsToTransfer.length === idx + 1 &&
                   !billToSplit &&
                   !splitBillAmount;
 
-                if (selectedAsset?.typeId !== AlphaType) {
-                  getTypeHierarchy(bill.typeId || "")
-                    .then(async (hierarchy: ITypeHierarchy[]) => {
-                      transferData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarchyParentTypeIds(hierarchy);
-                      transferData.transactionAttributes.type = bill.typeId;
-                      handleValidation(
-                        await transferOrderHash(transferData),
-                        blockHeight,
-                        transferData as ITransfer,
-                        isLastTransaction
-                      );
-                    })
-                    .catch(() => {
-                      setErrors({
-                        password: "Fetching token hierarchy for failed",
-                      });
-                      setIsSending(false);
-                    });
-                } else {
-                  handleValidation(
-                    await transferOrderHash(transferData),
-                    blockHeight,
-                    transferData as ITransfer,
-                    isLastTransaction
-                  );
-                }
+                handleValidation(
+                  await transferOrderHash(transferData),
+                  blockHeight,
+                  transferData as ITransfer,
+                  isLastTransaction,
+                  bill.typeId
+                );
               });
 
               if (billToSplit && splitBillAmount) {
@@ -326,32 +310,16 @@ function Send(): JSX.Element | null {
                 };
 
                 if (selectedAsset?.typeId !== AlphaType) {
-                  getTypeHierarchy(billToSplit.typeId || "")
-                    .then(async (hierarchy: ITypeHierarchy[]) => {
-                      splitData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarchyParentTypeIds(hierarchy);
-                      splitData.transactionAttributes.type = billToSplit.typeId;
-                      handleValidation(
-                        await splitOrderHash(splitData),
-                        blockHeight,
-                        splitData as ITransfer,
-                        true
-                      );
-                    })
-                    .catch(() => {
-                      setErrors({
-                        password: "Fetching token hierarchy for failed",
-                      });
-                      setIsSending(false);
-                    });
-                } else {
-                  handleValidation(
-                    await splitOrderHash(splitData),
-                    blockHeight,
-                    splitData as ITransfer,
-                    true
-                  );
+                  splitData.transactionAttributes.type = billToSplit.typeId;
                 }
+
+                handleValidation(
+                  await splitOrderHash(splitData),
+                  blockHeight,
+                  splitData as ITransfer,
+                  true,
+                  billToSplit.typeId
+                );
               }
             }
           );
@@ -360,13 +328,35 @@ function Send(): JSX.Element | null {
             msgHash: Uint8Array,
             blockHeight: bigint,
             billData: ITransfer,
-            isLastTransfer: boolean
+            isLastTransfer: boolean,
+            billTypeId?: string
           ) => {
             const proof = await createOwnerProof(
               msgHash,
               hashingPrivateKey,
               hashingPublicKey
             );
+
+            if (selectedAsset?.typeId !== AlphaType) {
+              await getTypeHierarchy(billTypeId || "")
+                .then(async (hierarchy: ITypeHierarchy[]) => {
+                  billData.transactionAttributes.invariantPredicateSignatures =
+                    createInvariantPredicateSignatures(
+                      hierarchy,
+                      proof.ownerProof,
+                      activeAccountId
+                    );
+                })
+                .catch(() => {
+                  setErrors({
+                    password:
+                      "Fetching token hierarchy for " +
+                      billData.typeId +
+                      "failed",
+                  });
+                  setIsSending(false);
+                });
+            }
 
             let dataWithProof = Object.assign(billData, {
               ownerProof: proof.ownerProof,

@@ -12,6 +12,7 @@ export const boolTrue = "01";
 export const boolFalse = "00";
 export const sigScheme = "01";
 export const pushBoolTrue = startByte + pushBool + boolTrue;
+export const pushBoolFalse = startByte + pushBool + boolFalse;
 
 export const timeoutBlocks = 10n;
 export const swapTimeout = 40n;

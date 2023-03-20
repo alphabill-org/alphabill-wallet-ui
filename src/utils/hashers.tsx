@@ -110,14 +110,9 @@ export const transferAttributesBuffer = (tx: ITransfer) => {
   if (tx.transactionAttributes["@type"] === TokensTransferType) {
     bytes = secp.utils.concatBytes(
       bytes,
-      Buffer.concat(
-        tx.transactionAttributes?.invariantPredicateSignatures!.map((sig: string) =>
-          Buffer.from(sig, "base64")
-        )
-      )
+      Buffer.from(tx.transactionAttributes?.type!, "base64")
     );
   }
-
   return bytes;
 };
 
@@ -139,12 +134,8 @@ export const splitAttributesBuffer = (tx: any) => {
 
   if (tx.transactionAttributes["@type"] === TokensSplitType) {
     bytes = secp.utils.concatBytes(
-      Buffer.from(tx.transactionAttributes.type, "base64"),
       bytes,
-      Buffer.from(
-        tx.transactionAttributes.invariantPredicateSignatures,
-        "base64"
-      )
+      Buffer.from(tx.transactionAttributes.type, "base64")
     );
   }
 

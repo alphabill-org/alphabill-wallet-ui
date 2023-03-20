@@ -23,6 +23,8 @@ import {
   opPushPubKey,
   opPushSig,
   opVerify,
+  pushBoolFalse,
+  pushBoolTrue,
   sigScheme,
   startByte,
 } from "./constants";
@@ -212,6 +214,18 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
   const SHA256Key = CryptoJS.SHA256(addressHash);
 
   return sha256KeyFromPredicate === SHA256Key.toString(CryptoJS.enc.Hex);
+};
+
+export const checkOwnerPredicatess = (predicate: string) => {
+  const hex = Buffer.from(predicate, "base64").toString("hex");
+  const removeScriptBefore =
+    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
+  const sha256KeyFromPredicate = hex
+    .replace(removeScriptBefore, "")
+    .replace(removeScriptAfter, "");
+
+  return sha256KeyFromPredicate;
 };
 
 export const createNewBearer = (address: string) => {
@@ -458,8 +472,29 @@ export const invalidateAllLists = (
   queryClient.invalidateQueries(["balance", pubKey]);
 };
 
-export const getHierarchyParentTypeIds = (hierarchy: ITypeHierarchy[]) =>
-  hierarchy.map((parent: ITypeHierarchy) => {
-    const id = parent.parentTypeId;
-    return id === "AA==" || null ? hexToBase64(startByte) : id;
+export const createInvariantPredicateSignatures = (
+  hierarchy: ITypeHierarchy[],
+  ownerProof: string,
+  key: string
+) => {
+  if (
+    hierarchy.filter(
+      (parent: ITypeHierarchy) =>
+        parent.invariantPredicate === hexToBase64(pushBoolFalse)
+    ).length >= 1
+  ) {
+    throw new Error("Token can not be transferred");
+  }
+
+  return hierarchy.map((parent: ITypeHierarchy) => {
+    const predicate = parent.invariantPredicate;
+    if (predicate === hexToBase64(pushBoolTrue)) {
+      return hexToBase64(startByte);
+    } else {
+      if (checkOwnerPredicate(key, predicate) !== true) {
+        throw new Error("Token can not be transferred");
+      }
+      return ownerProof;
+    }
   });
+};
