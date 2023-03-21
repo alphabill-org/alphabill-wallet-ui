@@ -85,7 +85,7 @@ function Send(): JSX.Element | null {
         decimalPlaces
       );
     },
-    [account, selectedAsset?.typeId]
+    [account, selectedAsset]
   );
 
   const [availableAmount, setAvailableAmount] = useState<string>(
@@ -138,8 +138,14 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
+    setSelectedAsset(defaultAsset?.value);
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
-  }, [selectedAsset, getAvailableAmount]);
+  }, [
+    selectedAsset,
+    getAvailableAmount,
+    isActionsViewVisible,
+    defaultAsset?.value,
+  ]);
 
   useEffect(() => {
     const activeAssetAmount = account?.assets
