@@ -76,39 +76,45 @@ function Send(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
     defaultAsset?.value
   );
-
+  const lockedBillsAmount = useCallback(
+    (): bigint =>
+      getBillsSum(
+        billsList.filter((bill: IBill) =>
+          lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+        )
+      ),
+    [billsList, lockedBills]
+  );
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
       return addDecimal(
-        account?.assets.find((asset) => asset.typeId === selectedAsset?.typeId)
-          ?.amount || "0",
+        (
+          BigInt(
+            account?.assets.find(
+              (asset) => asset.typeId === selectedAsset?.typeId
+            )?.amount || "0"
+          ) - lockedBillsAmount()
+        ).toString() || "0",
         decimalPlaces
       );
     },
-    [account, selectedAsset]
+    [account, selectedAsset, lockedBillsAmount]
   );
-
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
-
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
-  const lockedBillsAmount = getBillsSum(
-    billsList.filter((bill: IBill) =>
-      lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-    )
-  ).toString();
+  const createLockedBillsAmountLabel = () => {
+    const amount = lockedBillsAmount();
 
-  const lockedAmountLabel =
-    Number(lockedBillsAmount) > 0
-      ? " ( Locked bills amount " +
-        addDecimal(
-          lockedBillsAmount.toString(),
-          selectedAsset?.decimalPlaces || 0
-        ) +
-        " )"
-      : "";
+    if (amount <= 0n) return "";
+    return (
+      " ( Locked bills amount " +
+      addDecimal(amount.toString(), selectedAsset?.decimalPlaces || 0) +
+      " )"
+    );
+  };
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -595,7 +601,7 @@ function Send(): JSX.Element | null {
                         " " +
                         values.assets?.label +
                         " available to send " +
-                        lockedAmountLabel
+                        createLockedBillsAmountLabel()
                       }
                       type="text"
                       floatingFixedPoint={selectedAsset?.decimalPlaces}
