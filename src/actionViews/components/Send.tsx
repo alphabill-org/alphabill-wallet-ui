@@ -77,12 +77,12 @@ function Send(): JSX.Element | null {
     defaultAsset?.value
   );
   const lockedBillsAmount = useCallback(
-    (): string =>
+    (): bigint =>
       getBillsSum(
         billsList.filter((bill: IBill) =>
           lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
         )
-      ).toString(),
+      ),
     [billsList, lockedBills]
   );
   const getAvailableAmount = useCallback(
@@ -93,7 +93,7 @@ function Send(): JSX.Element | null {
             account?.assets.find(
               (asset) => asset.typeId === selectedAsset?.typeId
             )?.amount || "0"
-          ) - BigInt(lockedBillsAmount())
+          ) - lockedBillsAmount()
         ).toString() || "0",
         decimalPlaces
       );
@@ -106,9 +106,9 @@ function Send(): JSX.Element | null {
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
   const lockedAmountLabel =
-    BigInt(lockedBillsAmount()) > 0n
+    lockedBillsAmount() > 0n
       ? " ( Locked bills amount " +
-        addDecimal(lockedBillsAmount(), selectedAsset?.decimalPlaces || 0) +
+        addDecimal(lockedBillsAmount().toString(), selectedAsset?.decimalPlaces || 0) +
         " )"
       : "";
 
