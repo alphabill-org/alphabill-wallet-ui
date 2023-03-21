@@ -201,6 +201,7 @@ export const getKeys = (
 };
 
 export const checkOwnerPredicate = (key: string, predicate: string) => {
+  if (!predicate) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
     startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
@@ -462,15 +463,15 @@ export const invalidateAllLists = (
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  if (!invariantPredicate || invariantPredicate === hexToBase64(pushBoolFalse)) {
-    return false;
-  }
+  const isOwner = checkOwnerPredicate(key, invariantPredicate);
 
   if (invariantPredicate === hexToBase64(pushBoolTrue)) {
     return true;
+  } else if (isOwner){
+    return isOwner;
   }
 
-  return checkOwnerPredicate(key, invariantPredicate) === true;
+  return false;
 };
 
 export const createInvariantPredicateSignatures = (
@@ -480,20 +481,12 @@ export const createInvariantPredicateSignatures = (
 ) => {
   return hierarchy.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
-    if (
-      !predicate ||
-      parent.invariantPredicate === hexToBase64(pushBoolFalse)
-    ) {
-      throw new Error("Token can not be transferred");
-    }
 
     if (predicate === hexToBase64(pushBoolTrue)) {
       return hexToBase64(startByte);
-    } else {
-      if (checkOwnerPredicate(key, predicate) !== true) {
-        throw new Error("Token can not be transferred");
-      }
+    } else if (checkOwnerPredicate(key, predicate)) {
       return ownerProof;
     }
+    throw new Error("Token can not be transferred");
   });
 };

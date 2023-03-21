@@ -13,7 +13,6 @@ import {
   AlphaDcType,
   AlphaSplitType,
   AlphaTransferType,
-  TokensSplitType,
   TokensTransferType,
 } from "./constants";
 
