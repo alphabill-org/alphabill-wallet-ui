@@ -467,7 +467,7 @@ export const isTokenSendable = (invariantPredicate: string, key: string) => {
 
   if (invariantPredicate === hexToBase64(pushBoolTrue)) {
     return true;
-  } else if (isOwner){
+  } else if (isOwner) {
     return isOwner;
   }
 
