@@ -153,7 +153,7 @@ function Dashboard(): JSX.Element | null {
         <Button
           variant="primary"
           onClick={() => {
-            setActionsView("Send");
+            setActionsView("Transfer");
             setActiveAssetLocal(
               JSON.stringify({ name: AlphaType, typeId: AlphaType })
             );
@@ -165,7 +165,7 @@ function Dashboard(): JSX.Element | null {
             );
           }}
         >
-          Send bills
+          Transfer
         </Button>
       </div>
       <Spacer mb={32} />
@@ -257,7 +257,7 @@ function Dashboard(): JSX.Element | null {
                         className="m-auto-l"
                         small
                         onClick={() => {
-                          setActionsView("Bills List");
+                          setActionsView("List view");
                           setIsActionsViewVisible(true);
                           invalidateAllLists(
                             activeAccountId,
@@ -266,7 +266,7 @@ function Dashboard(): JSX.Element | null {
                           );
                         }}
                       >
-                        Show Bills
+                        Show {asset?.id === AlphaType ? " Bills" : " Tokens"}
                       </Button>
                     </div>
                   );

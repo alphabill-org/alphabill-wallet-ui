@@ -6,6 +6,7 @@ import { useApp } from "../hooks/appProvider";
 import Send from "./components/Send";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
+import { useAuth } from "../hooks/useAuth";
 
 function Actions(): JSX.Element | null {
   const {
@@ -15,7 +16,7 @@ function Actions(): JSX.Element | null {
     accounts,
     setSelectedSendKey,
   } = useApp();
-
+  const { activeAsset } = useAuth();
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
@@ -24,19 +25,21 @@ function Actions(): JSX.Element | null {
         <Button
           onClick={() => {
             setIsActionsViewVisible(!isActionsViewVisible);
-            actionsView === "Send" && setSelectedSendKey(null);
+            actionsView === "Transfer" && setSelectedSendKey(null);
           }}
           className="btn__back"
           variant="icon"
         >
           <Arrow />
         </Button>
-        <div className="actions__title">{actionsView}</div>
+        <div className="actions__title">
+          {actionsView === "List view" ? activeAsset.name : actionsView}
+        </div>
       </div>
       <div className="actions__view">
-        {actionsView === "Send" ? (
+        {actionsView === "Transfer" ? (
           <Send />
-        ) : actionsView === "Bills List" ? (
+        ) : actionsView === "List view" ? (
           <BillsList />
         ) : actionsView === "Profile" && accounts ? (
           <AccountView />
