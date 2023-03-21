@@ -216,18 +216,6 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
   return sha256KeyFromPredicate === SHA256Key.toString(CryptoJS.enc.Hex);
 };
 
-export const checkOwnerPredicatess = (predicate: string) => {
-  const hex = Buffer.from(predicate, "base64").toString("hex");
-  const removeScriptBefore =
-    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
-  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
-  const sha256KeyFromPredicate = hex
-    .replace(removeScriptBefore, "")
-    .replace(removeScriptAfter, "");
-
-  return sha256KeyFromPredicate;
-};
-
 export const createNewBearer = (address: string) => {
   const checkedAddress = address.startsWith("0x")
     ? address.substring(2)
