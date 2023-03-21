@@ -26,7 +26,6 @@ import { useLocalStorage } from "./useLocalStorage";
 import {
   addDecimal,
   getAssetSum,
-  hexToBase64,
   isTokenSendable,
   separateDigits,
 } from "../utils/utils";
@@ -34,7 +33,6 @@ import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
-  pushBoolTrue,
 } from "../utils/constants";
 
 interface IAppContextShape {
