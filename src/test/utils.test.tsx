@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, test } from "vitest";
 import {
   countDecimalLength,
   convertToWholeNumberBigInt,
@@ -6,7 +6,18 @@ import {
   findClosestBigger,
   getClosestSmaller,
   getOptimalBills,
+  checkOwnerPredicate,
+  createInvariantPredicateSignatures,
+  isTokenSendable,
+  hexToBase64,
 } from "../utils/utils";
+
+import {
+  opPushPubKey,
+  pushBoolFalse,
+  pushBoolTrue,
+  startByte,
+} from "../utils/constants";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -195,5 +206,149 @@ describe("Function that gets optimal combination of bills to reach the target am
         isDcBill: false,
       },
     ]);
+  });
+});
+
+describe("Check owner predicate", () => {
+  test("should return true for a valid predicate and key", () => {
+    const key =
+      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
+    const predicate =
+      "U3aoAU8BAJpIz9BB6HSvX5aCXub8H5N0W8zOgewrXqGmqjdQgb6HaawB";
+    const result = checkOwnerPredicate(key, predicate);
+    expect(result).toBe(true);
+  });
+
+  test("should return false for an invalid predicate and key", () => {
+    const key = "0xabcdef";
+    const predicate = "invalid_predicate";
+    const result = checkOwnerPredicate(key, predicate);
+    expect(result).toBe(false);
+  });
+});
+
+describe("isTokenSendable", () => {
+  test("should return false for a pushBoolFalse invariant predicate", () => {
+    const invariantPredicate = pushBoolFalse;
+    const key = "0xabcdef";
+    const result = isTokenSendable(invariantPredicate, key);
+    expect(result).toBe(false);
+  });
+
+  test("should return true for a pushBoolTrue invariant predicate", () => {
+    const invariantPredicate = hexToBase64(pushBoolTrue);
+    const key = "0xabcdef";
+    const result = isTokenSendable(invariantPredicate, key);
+    expect(result).toBe(true);
+  });
+
+  test("should return false for a invalid invariant predicate and key", () => {
+    const invariantPredicate = hexToBase64(startByte + opPushPubKey + "abcdef");
+    const key = "0xabcdef";
+    const result = isTokenSendable(invariantPredicate, key);
+    expect(result).toBe(false);
+  });
+
+  test("should return true for a valid invariant predicate and key", () => {
+    const invariantPredicate =
+      "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB";
+    const key =
+      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
+    const result = isTokenSendable(invariantPredicate, key);
+    expect(result).toBe(false);
+  });
+});
+
+describe("Create invariant predicate signatures", () => {
+  test("should throw an error for an empty string invariant predicate", () => {
+    const hierarchy = [
+      {
+        id: "AA==",
+        parentTypeId: "AA==",
+        symbol: "AA==",
+        decimalPlaces: 2,
+        kind: 2,
+        txHash: "AA==",
+        subTypeCreationPredicate: "AA==",
+        tokenCreationPredicate: "AA==",
+        invariantPredicate: "",
+      },
+    ];
+    const ownerProof = "abcdef";
+    const key = "0xabcdef";
+    expect(() =>
+      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
+    ).toThrow();
+  });
+
+  test("should throw an error for a pushBoolFalse invariant predicate", () => {
+    const hierarchy = [
+      {
+        id: "AA==",
+        parentTypeId: "AA==",
+        symbol: "AA==",
+        decimalPlaces: 2,
+        kind: 2,
+        txHash: "AA==",
+        subTypeCreationPredicate: "AA==",
+        tokenCreationPredicate: "AA==",
+        invariantPredicate: pushBoolFalse,
+      },
+    ];
+    const ownerProof = "abcdef";
+    const key = "0xabcdef";
+    expect(() =>
+      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
+    ).toThrow();
+  });
+
+  test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
+    const hierarchy = [
+      {
+        id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
+        parentTypeId: "AA==",
+        symbol: "SSS",
+        subTypeCreationPredicate: "U1EB",
+        tokenCreationPredicate:
+          "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+        invariantPredicate:
+          "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+        decimalPlaces: 8,
+        kind: 2,
+        txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
+      },
+    ];
+    const ownerProof =
+      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu";
+    const key =
+      "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
+    expect(
+      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
+    ).toEqual([
+      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
+    ]);
+  });
+
+  test("should return true for a valid signatures for valid predicate and key", () => {
+    const hierarchy = [
+      {
+        id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
+        parentTypeId: "AA==",
+        symbol: "SSS",
+        subTypeCreationPredicate: "U1EB",
+        tokenCreationPredicate: "U1EB",
+        invariantPredicate: "U1EB",
+        decimalPlaces: 8,
+        kind: 2,
+        txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
+      },
+    ];
+    const ownerProof =
+      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu";
+    const key =
+      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
+    expect(
+      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
+    ).toEqual(["Uw=="]);
   });
 });
