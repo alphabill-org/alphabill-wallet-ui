@@ -474,20 +474,15 @@ export const invalidateAllLists = (
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  if (!invariantPredicate) return false;
-
-  if (invariantPredicate === hexToBase64(pushBoolFalse)) {
+  if (!invariantPredicate || invariantPredicate === hexToBase64(pushBoolFalse)) {
     return false;
   }
 
   if (invariantPredicate === hexToBase64(pushBoolTrue)) {
     return true;
-  } else {
-    if (checkOwnerPredicate(key, invariantPredicate) !== true) {
-      return false;
-    }
-    return true;
   }
+
+  return checkOwnerPredicate(key, invariantPredicate) === true;
 };
 
 export const createInvariantPredicateSignatures = (
@@ -495,18 +490,14 @@ export const createInvariantPredicateSignatures = (
   ownerProof: string,
   key: string
 ) => {
-  if (
-    hierarchy.filter(
-      (parent: ITypeHierarchy) =>
-        parent.invariantPredicate === hexToBase64(pushBoolFalse)
-    ).length >= 1
-  ) {
-    throw new Error("Token can not be transferred");
-  }
-
   return hierarchy.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
-    if (!predicate) throw new Error("Token can not be transferred");
+    if (
+      !predicate ||
+      parent.invariantPredicate === hexToBase64(pushBoolFalse)
+    ) {
+      throw new Error("Token can not be transferred");
+    }
 
     if (predicate === hexToBase64(pushBoolTrue)) {
       return hexToBase64(startByte);
