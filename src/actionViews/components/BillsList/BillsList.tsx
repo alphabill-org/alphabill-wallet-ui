@@ -89,7 +89,7 @@ function BillsList(): JSX.Element | null {
     [lastNonceIDsLocal]
   );
   const queryClient = useQueryClient();
-
+  const tokenLabel = activeAsset.typeId === AlphaType ? "BILLS" : "TOKENS";
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
@@ -228,103 +228,111 @@ function BillsList(): JSX.Element | null {
   return (
     <>
       <div className="dashboard__info-col active relative bills-list">
-        <Spacer mt={16} />
-        <div className="t-medium-small pad-24-h">
-          To consolidate your bills into one larger bill click on the{" "}
-          <b>Consolidate Bills</b> button.
-          {unlockedBills.length > DCTransfersLimit &&
-            " There is a limit of " +
-              DCTransfersLimit +
-              " bills per consolidation."}
-        </div>
-        <div>
-          {DCBills.length > 0 && (
-            <>
-              <Spacer mt={16} />
-              <div className="t-medium pad-24-h c-primary">
-                BILLS READY FOR CONSOLIDATION
-              </div>
-              <Spacer mt={3} />
-            </>
-          )}
+        {activeAsset.typeId === AlphaType && (
+          <>
+            <Spacer mt={16} />
+            <div className="t-medium-small pad-24-h">
+              To consolidate your bills into one larger bill click on the{" "}
+              <b>Consolidate Bills</b> button.
+              {unlockedBills.length > DCTransfersLimit &&
+                " There is a limit of " +
+                  DCTransfersLimit +
+                  " bills per consolidation."}
+            </div>
 
-          {DCBills.map((bill: IBill, idx: number) => {
-            const isNewDenomination = DCDenomination !== bill.value && true;
-            DCDenomination = bill.value;
+            <div>
+              {DCBills.length > 0 && (
+                <>
+                  <Spacer mt={16} />
+                  <div className="t-medium pad-24-h c-primary">
+                    BILLS READY FOR CONSOLIDATION
+                  </div>
+                  <Spacer mt={3} />
+                </>
+              )}
 
-            return (
-              <div key={bill.id + idx}>
-                {isNewDenomination && (
-                  <>
-                    {idx !== 0 && <Spacer mt={8} />}
-                    <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                      Denomination:{" "}
-                      {addDecimal(
-                        bill.value,
-                        activeAsset.typeId === AlphaType
-                          ? AlphaDecimalPlaces
-                          : bill?.decimals || 0
-                      )}
-                    </div>
-                    <Spacer mb={2} />
-                  </>
-                )}
-                <div key={bill.id} className="dashboard__info-item-wrap small">
-                  <div className="dashboard__info-item-bill">
-                    <div className="flex t-small t-bold c-light pad-8-t">
-                      <span className="pad-8-r">ID:</span>{" "}
-                      <span className="t-ellipsis">
-                        {base64ToHexPrefixed(bill.id)}
-                      </span>
+              {DCBills.map((bill: IBill, idx: number) => {
+                const isNewDenomination = DCDenomination !== bill.value && true;
+                DCDenomination = bill.value;
+
+                return (
+                  <div key={bill.id + idx}>
+                    {isNewDenomination && (
+                      <>
+                        {idx !== 0 && <Spacer mt={8} />}
+                        <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
+                          Denomination:{" "}
+                          {addDecimal(
+                            bill.value,
+                            activeAsset.typeId === AlphaType
+                              ? AlphaDecimalPlaces
+                              : bill?.decimals || 0
+                          )}
+                        </div>
+                        <Spacer mb={2} />
+                      </>
+                    )}
+                    <div
+                      key={bill.id}
+                      className="dashboard__info-item-wrap small"
+                    >
+                      <div className="dashboard__info-item-bill">
+                        <div className="flex t-small t-bold c-light pad-8-t">
+                          <span className="pad-8-r">ID:</span>{" "}
+                          <span className="t-ellipsis">
+                            {base64ToHexPrefixed(bill.id)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="t-medium-small pad-24-h">
-          {activeAsset.typeId === AlphaType && (
-            <>
-              {" "}
-              <Spacer mt={16} />
-              <Button
-                className="w-100p"
-                small
-                type="button"
-                variant="primary"
-                working={isConsolidationLoading}
-                disabled={
-                  (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
-                  isConsolidationLoading
-                }
-                onClick={() => {
-                  if (password) {
-                    handleDC(
-                      addInterval,
-                      setIsConsolidationLoading,
-                      setLastNonceIDsLocal,
-                      setHasSwapBegun,
-                      handleSwap,
-                      account,
-                      password,
-                      vault,
-                      unlockedBills,
-                      DCBills,
-                      lastNonceIDs,
-                      activeAccountId,
-                      activeAsset
-                    );
-                  } else {
-                    setIsPasswordFormVisible("handleDC");
-                  }
-                }}
-              >
-                Consolidate Bills
-              </Button>
-            </>
-          )}
-        </div>
+                );
+              })}
+            </div>
+            <div className="t-medium-small pad-24-h">
+              {activeAsset.typeId === AlphaType && (
+                <>
+                  {" "}
+                  <Spacer mt={16} />
+                  <Button
+                    className="w-100p"
+                    small
+                    type="button"
+                    variant="primary"
+                    working={isConsolidationLoading}
+                    disabled={
+                      (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
+                      isConsolidationLoading
+                    }
+                    onClick={() => {
+                      if (password) {
+                        handleDC(
+                          addInterval,
+                          setIsConsolidationLoading,
+                          setLastNonceIDsLocal,
+                          setHasSwapBegun,
+                          handleSwap,
+                          account,
+                          password,
+                          vault,
+                          unlockedBills,
+                          DCBills,
+                          lastNonceIDs,
+                          activeAccountId,
+                          activeAsset
+                        );
+                      } else {
+                        setIsPasswordFormVisible("handleDC");
+                      }
+                    }}
+                  >
+                    Consolidate Bills
+                  </Button>
+                </>
+              )}
+            </div>
+          </>
+        )}
         {sortedListByValue.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length > 0 && (
@@ -333,10 +341,11 @@ function BillsList(): JSX.Element | null {
             <BillsListItem
               title={
                 <div className="t-medium pad-24-h c-primary">
-                  LOCKED BILLS
+                  LOCKED {tokenLabel}
                   <br />
                   <span className="t-small">
-                    Exempt from transfers {activeAsset?.typeId === AlphaType && "& consolidation"}
+                    Exempt from transfers{" "}
+                    {activeAsset?.typeId === AlphaType && "& consolidation"}
                   </span>
                 </div>
               }
@@ -367,7 +376,9 @@ function BillsList(): JSX.Element | null {
         ).length >= 1 && (
           <BillsListItem
             title={
-              <div className="t-medium pad-24-h c-primary">UNLOCKED BILLS</div>
+              <div className="t-medium pad-24-h c-primary">
+                UNLOCKED {tokenLabel}
+              </div>
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={setLockedBillsLocal}

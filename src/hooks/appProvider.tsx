@@ -44,8 +44,8 @@ interface IAppContextShape {
   account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
-  actionsView: "Send" | "Bills List" | "Profile" | "";
-  setActionsView: (e: "Send" | "Bills List" | "Profile" | "") => void;
+  actionsView: "Transfer" | "List view" | "Profile" | "";
+  setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
   lockedBills: ILockedBill[];
   setLockedBillsLocal: (e: string) => void;
   selectedSendKey: string | null | undefined;
@@ -117,7 +117,7 @@ export const AppProvider: FunctionComponent<{
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState<
-    "Send" | "Bills List" | "Profile" | ""
+    "Transfer" | "List view" | "Profile" | ""
   >("");
 
   // Used when getting keys from localStorage or fetching balance takes time
