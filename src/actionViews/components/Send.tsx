@@ -405,7 +405,7 @@ function Send(): JSX.Element | null {
                   setErrors({
                     password:
                       "Fetching token hierarchy for " +
-                      billData.typeId +
+                      billTypeId +
                       "failed",
                   });
                 });

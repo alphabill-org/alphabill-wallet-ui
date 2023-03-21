@@ -125,7 +125,6 @@ export interface ISwap {
 export interface ITransfer {
   systemId: string;
   unitId: string;
-  typeId?: string;
   transactionAttributes: {
     "@type": string;
     type?: string;
@@ -201,7 +200,6 @@ export interface ITxProof {
 export interface IProofTx {
   systemId: string;
   unitId: string;
-  typeId?: string;
   transactionAttributes: {
     "@type": string;
     nonce?: string;
