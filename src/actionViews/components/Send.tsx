@@ -105,12 +105,16 @@ function Send(): JSX.Element | null {
   );
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
 
-  const lockedAmountLabel =
-    lockedBillsAmount() > 0n
-      ? " ( Locked bills amount " +
-        addDecimal(lockedBillsAmount().toString(), selectedAsset?.decimalPlaces || 0) +
-        " )"
-      : "";
+  const createLockedBillsAmountLabel = () => {
+    const amount = lockedBillsAmount();
+
+    if (amount <= 0n) return "";
+    return (
+      " ( Locked bills amount " +
+      addDecimal(amount.toString(), selectedAsset?.decimalPlaces || 0) +
+      " )"
+    );
+  };
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -587,7 +591,7 @@ function Send(): JSX.Element | null {
                         " " +
                         values.assets?.label +
                         " available to send " +
-                        lockedAmountLabel
+                        createLockedBillsAmountLabel()
                       }
                       type="text"
                       floatingFixedPoint={selectedAsset?.decimalPlaces}
