@@ -27,6 +27,7 @@ import {
   addDecimal,
   getAssetSum,
   hexToBase64,
+  isTokenSendable,
   separateDigits,
 } from "../utils/utils";
 import {
@@ -160,11 +161,12 @@ export const AppProvider: FunctionComponent<{
         amount: obj.amount.toString(),
         decimalFactor: Number("1e" + obj.decimals),
         decimalPlaces: obj.decimals,
-        isSendable:
+        isSendable: isTokenSendable(
           tokenTypes?.find(
             (type: IUserTokensListTypes) => type.id === obj.typeId
-          )?.invariantPredicate ===
-          hexToBase64(pushBoolTrue),
+          )?.invariantPredicate!,
+          activeAccountId
+        ),
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 

@@ -468,8 +468,24 @@ export const invalidateAllLists = (
 ) => {
   queryClient.invalidateQueries(["tokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["tokensList", pubKey]);
+  queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
+};
+
+export const isTokenSendable = (invariantPredicate: string, key: string) => {
+  if (invariantPredicate === hexToBase64(pushBoolFalse)) {
+    return false;
+  }
+
+  if (invariantPredicate === hexToBase64(pushBoolTrue)) {
+    return true;
+  } else {
+    if (checkOwnerPredicate(key, invariantPredicate) !== true) {
+      throw new Error("Token can not be transferred");
+    }
+    return true;
+  }
 };
 
 export const createInvariantPredicateSignatures = (
