@@ -84,7 +84,7 @@ function Send(): JSX.Element | null {
         billsList?.filter((bill: IBill) =>
           lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
         )
-      ),
+      ) || 0n,
     [billsList, lockedBills]
   );
   const getAvailableAmount = useCallback(
@@ -92,7 +92,7 @@ function Send(): JSX.Element | null {
       return addDecimal(
         (
           BigInt(
-            account?.assets.find(
+            account?.assets?.find(
               (asset) => asset.typeId === selectedAsset?.typeId
             )?.amount || "0"
           ) - lockedBillsAmount()
@@ -298,7 +298,7 @@ function Send(): JSX.Element | null {
                 }
 
                 const isLastTransaction =
-                  billsToTransfer.length === idx + 1 &&
+                  Number(billsToTransfer?.length) === idx + 1 &&
                   !billToSplit &&
                   !splitBillAmount;
 

@@ -133,7 +133,7 @@ export const checkPassword = (password: string | undefined) => {
   if (!password) {
     return false;
   }
-  return password.length >= 8;
+  return Number(password?.length) >= 8;
 };
 
 export const getKeys = (
@@ -170,9 +170,9 @@ export const getKeys = (
   const decryptedVaultJSON = JSON.parse(decryptedVault);
 
   if (
-    decryptedVaultJSON?.entropy.length > 16 &&
-    decryptedVaultJSON?.entropy.length < 32 &&
-    decryptedVaultJSON?.entropy.length % 4 === 0
+    decryptedVaultJSON?.entropy?.length > 16 &&
+    decryptedVaultJSON?.entropy?.length < 32 &&
+    decryptedVaultJSON?.entropy?.length % 4 === 0
   ) {
     return {
       hashingPublicKey: null,
@@ -286,7 +286,7 @@ export const findClosestBigger = (
 };
 
 export const getClosestSmaller = (bills: IBill[], target: string) => {
-  if (bills.length === 0) {
+  if (Number(bills?.length) === 0) {
     return null;
   }
 
@@ -403,7 +403,7 @@ export const countDecimalLength = (str: string) => {
   if (decimalIndex === -1) {
     return 0;
   } else {
-    return str.length - decimalIndex - 1;
+    return Number(str?.length) - decimalIndex - 1;
   }
 };
 
@@ -438,7 +438,7 @@ export const separateDigits = (numStr: string) => {
   const [integerPart, decimalPart = ""] = numStr.split(".");
   const formattedIntegerPart = integerPart.replace(/(\d)(?=(\d{3})+$)/g, "$1'");
 
-  if (decimalPart.length > 0) {
+  if (Number(decimalPart?.length) > 0) {
     const formattedDecimalPart = decimalPart
       .replace(/0+$/, "")
       .replace(/(\d{3})(?=\d)/g, "$1'");

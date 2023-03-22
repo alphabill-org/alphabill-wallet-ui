@@ -168,7 +168,7 @@ export const AppProvider: FunctionComponent<{
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 
-    const hasKeys = keysArr.length >= 1;
+    const hasKeys = Number(keysArr?.length) >= 1;
 
     const accountAlphaBalance = accounts
       ?.find((account) => account?.pubKey === activeAccountId)
@@ -178,7 +178,7 @@ export const AppProvider: FunctionComponent<{
     )?.data?.balance;
 
     const fetchedTokensSum =
-      fungibleUTP?.length >= 1 ? getAssetSum(fungibleUTP) : "0n";
+      Number(fungibleUTP?.length) >= 1 ? getAssetSum(fungibleUTP) : "0n";
     const accountTokens = account?.assets?.filter(
       (asset) => asset.typeId !== AlphaType
     );
@@ -188,8 +188,8 @@ export const AppProvider: FunctionComponent<{
     if (
       (hasKeys && ALPHABalance !== accountAlphaBalance) ||
       (hasKeys && accountTokensSum !== fetchedTokensSum) ||
-      (hasKeys && account?.assets?.length !== fungibleUTP.length + 1) ||
-      keysArr.length !== accounts.length
+      (hasKeys && account?.assets?.length !== fungibleUTP?.length + 1) ||
+      keysArr?.length !== accounts.length
     ) {
       setAccounts(
         keysArr?.map((key, idx) => ({

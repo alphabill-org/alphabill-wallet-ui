@@ -69,7 +69,7 @@ function RecoverAccount(): JSX.Element | null {
               }
             });
 
-            if (mnemonicArr.length % 3 !== 0) {
+            if (Number(mnemonicArr?.length) % 3 !== 0) {
               return setErrors({
                 passwordConfirm: "Invalid secret recovery phrase",
               });

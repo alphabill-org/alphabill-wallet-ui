@@ -32,7 +32,11 @@ function Dashboard(): JSX.Element | null {
       ?.UIAmount || "";
 
   const balanceSizeClass =
-    balance?.length > 7 ? (balance?.length > 12 ? "x-small" : "small") : "";
+    Number(balance?.length) > 7
+      ? balance?.length > 12
+        ? "x-small"
+        : "small"
+      : "";
 
   const [isAssetsColActive, setIsAssetsColActive] = useState(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);

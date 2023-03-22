@@ -58,7 +58,7 @@ export const handleSwapRequest = async (
       const txProof = data.bills[0].txProof;
 
       txProofs.push(txProof);
-      if (txProofs.length === DCBills.length) {
+      if (txProofs?.length === DCBills.length) {
         let dcTransfers: IProofTx[] = [];
         let proofs: IProof[] = [];
 
@@ -150,7 +150,7 @@ export const handleDC = async (
 
   setIsConsolidationLoading(true);
 
-  if (DCBills.length >= 1) {
+  if (DCBills?.length >= 1) {
     DCBills?.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
     handleSwapCallBack(password);
     addInterval();
@@ -209,7 +209,7 @@ export const handleDC = async (
             )
           );
 
-          if (sortedListByID.length === idx + 1) {
+          if (sortedListByID?.length === idx + 1) {
             addInterval();
             setHasSwapBegun(false);
           }

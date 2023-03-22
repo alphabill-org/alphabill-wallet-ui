@@ -48,7 +48,7 @@ function AccountView(): JSX.Element | null {
   const queryClient = useQueryClient();
 
   if (
-    userKeys!.length <= 0 ||
+    Number(userKeys?.length) <= 0 ||
     !vault ||
     vault === "null" ||
     userKeys === "null"

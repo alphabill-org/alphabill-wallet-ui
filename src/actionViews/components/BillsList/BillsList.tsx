@@ -41,7 +41,7 @@ function BillsList(): JSX.Element | null {
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
-  const unlockedBills = billsList.filter(
+  const unlockedBills = billsList?.filter(
     (b: IBill) =>
       b.isDcBill !== true &&
       !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
@@ -58,7 +58,7 @@ function BillsList(): JSX.Element | null {
   const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
     "proofCheck" | "handleDC" | null | undefined
   >();
-  const [activeBill, setActiveBill] = useState<IBill>(sortedListByValue[0]);
+  const [activeBill, setActiveBill] = useState<IBill>(sortedListByValue?.[0]);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
   const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
@@ -182,7 +182,7 @@ function BillsList(): JSX.Element | null {
   // Effects
   useEffect(() => {
     if (
-      DCBills?.length >= 1 &&
+      Number(DCBills?.length) >= 1 &&
       DCBills?.length === lastNonceIDs?.[activeAccountId]?.length &&
       password &&
       !hasSwapBegun
@@ -204,7 +204,7 @@ function BillsList(): JSX.Element | null {
 
   useEffect(() => {
     if (
-      DCBills?.length < 1 &&
+      Number(DCBills?.length) < 1 &&
       isConsolidationLoading === true &&
       hasSwapBegun === true
     ) {
@@ -235,14 +235,14 @@ function BillsList(): JSX.Element | null {
             <div className="t-medium-small pad-24-h">
               To consolidate your bills into one larger bill click on the{" "}
               <b>Consolidate Bills</b> button.
-              {unlockedBills.length > DCTransfersLimit &&
+              {Number(unlockedBills?.length) > DCTransfersLimit &&
                 " There is a limit of " +
                   DCTransfersLimit +
                   " bills per consolidation."}
             </div>
 
             <div>
-              {DCBills.length > 0 && (
+              {Number(DCBills?.length) > 0 && (
                 <>
                   <Spacer mt={16} />
                   <div className="t-medium pad-24-h c-primary">
@@ -334,9 +334,11 @@ function BillsList(): JSX.Element | null {
             </div>
           </>
         )}
-        {sortedListByValue?.filter((b: IBill) =>
-          lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-        ).length > 0 && (
+        {Number(
+          sortedListByValue?.filter((b: IBill) =>
+            lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+          )?.length
+        ) > 0 && (
           <>
             <Spacer mt={8} />
             <BillsListItem
@@ -370,11 +372,13 @@ function BillsList(): JSX.Element | null {
             />
           </>
         )}
-        {sortedListByValue?.filter(
-          (b: IBill) =>
-            b.isDcBill !== true &&
-            !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-        ).length >= 1 && (
+        {Number(
+          sortedListByValue?.filter(
+            (b: IBill) =>
+              b.isDcBill !== true &&
+              !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+          )?.length
+        ) >= 1 && (
           <BillsListItem
             title={
               <div className="t-medium pad-24-h c-primary">

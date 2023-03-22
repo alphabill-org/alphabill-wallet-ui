@@ -51,7 +51,7 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
   let offset = 0;
   let totalBills = null;
 
-  while (totalBills === null || billsList.length < totalBills) {
+  while (totalBills === null || Number(billsList?.length) < totalBills) {
     const response = await axios.get<IBillsList>(
       `${MONEY_BACKEND_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
     );
