@@ -50,7 +50,7 @@ function Dashboard(): JSX.Element | null {
       }
       return 0;
     })
-    .filter((asset) => asset.network === account?.activeNetwork);
+    ?.filter((asset) => asset.network === account?.activeNetwork);
 
   useDocumentClick(() => {
     isAccountSettingsVisible === true && setIsAccountSettingsVisible(false);

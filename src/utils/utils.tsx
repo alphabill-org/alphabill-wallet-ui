@@ -23,7 +23,9 @@ import {
   opPushPubKey,
   opPushSig,
   opVerify,
-  boolTrue,
+  pushBoolFalse,
+  pushBoolTrue,
+  sigScheme,
   startByte,
 } from "./constants";
 
@@ -115,14 +117,14 @@ export const getNewBearer = (account: IAccount) => {
     startByte +
       opDup +
       opHash +
-      boolTrue +
+      sigScheme +
       opPushHash +
-      boolTrue +
+      sigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      boolTrue,
+      sigScheme,
     "hex"
   ).toString("base64");
 };
@@ -199,10 +201,11 @@ export const getKeys = (
 };
 
 export const checkOwnerPredicate = (key: string, predicate: string) => {
+  if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
-    startByte + opDup + opHash + boolTrue + opPushHash + boolTrue;
-  const removeScriptAfter = opEqual + opVerify + opCheckSig + boolTrue;
+    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
+  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
   const sha256KeyFromPredicate = hex
     .replace(removeScriptBefore, "")
     .replace(removeScriptAfter, "");
@@ -224,14 +227,14 @@ export const createNewBearer = (address: string) => {
     startByte +
       opDup +
       opHash +
-      boolTrue +
+      sigScheme +
       opPushHash +
-      boolTrue +
+      sigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
       opEqual +
       opVerify +
       opCheckSig +
-      boolTrue,
+      sigScheme,
     "hex"
   ).toString("base64");
 };
@@ -253,12 +256,12 @@ export const createOwnerProof = async (
     ownerProof: Buffer.from(
       startByte +
         opPushSig +
-        boolTrue +
+        sigScheme +
         Buffer.from(
           secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
         ).toString("hex") +
         opPushPubKey +
-        boolTrue +
+        sigScheme +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
     ).toString("base64"),
@@ -318,7 +321,7 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
       let missingSum = amountBigInt - BigInt(initialBill.value);
 
       while (missingSum > zeroBigInt) {
-        const filteredBills = billsArr.filter(
+        const filteredBills = billsArr?.filter(
           (bill) => !selectedBills.includes(bill)
         );
         const filteredBillsSum = getBillsSum(filteredBills);
@@ -454,12 +457,36 @@ export const invalidateAllLists = (
 ) => {
   queryClient.invalidateQueries(["tokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["tokensList", pubKey]);
+  queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
 };
 
-export const getHierarhyParentTypeIds = (hierarchy: ITypeHierarchy[]) =>
-  hierarchy.map((parent: ITypeHierarchy) => {
-    const id = parent.parentTypeId;
-    return id === "AA==" || null ? hexToBase64(startByte) : id;
+export const isTokenSendable = (invariantPredicate: string, key: string) => {
+  const isOwner = checkOwnerPredicate(key, invariantPredicate);
+
+  if (invariantPredicate === hexToBase64(pushBoolTrue)) {
+    return true;
+  } else if (isOwner) {
+    return isOwner;
+  }
+
+  return false;
+};
+
+export const createInvariantPredicateSignatures = (
+  hierarchy: ITypeHierarchy[],
+  ownerProof: string,
+  key: string
+) => {
+  return hierarchy.map((parent: ITypeHierarchy) => {
+    const predicate = parent.invariantPredicate;
+
+    if (predicate === hexToBase64(pushBoolTrue)) {
+      return hexToBase64(startByte);
+    } else if (checkOwnerPredicate(key, predicate)) {
+      return ownerProof;
+    }
+    throw new Error("Token can not be transferred");
   });
+};

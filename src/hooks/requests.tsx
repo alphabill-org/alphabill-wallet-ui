@@ -172,7 +172,7 @@ export const getUserTokens = async (
     };
   });
 
-  const filteredTokens = updatedArray.filter(
+  const filteredTokens = updatedArray?.filter(
     (token: IFungibleAsset) => token.typeId === activeAsset
   );
 

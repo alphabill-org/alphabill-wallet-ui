@@ -37,7 +37,7 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  getHierarhyParentTypeIds,
+  createInvariantPredicateSignatures,
   separateDigits,
 } from "../../utils/utils";
 import {
@@ -70,7 +70,7 @@ function Send(): JSX.Element | null {
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
-      .filter((asset) => account?.activeNetwork === asset.network)
+      ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === activeAsset.typeId),
     label: activeAsset.name,
   };
@@ -80,7 +80,7 @@ function Send(): JSX.Element | null {
   const lockedBillsAmount = useCallback(
     (): bigint =>
       getBillsSum(
-        billsList.filter((bill: IBill) =>
+        billsList?.filter((bill: IBill) =>
           lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
         )
       ),
@@ -99,7 +99,7 @@ function Send(): JSX.Element | null {
         decimalPlaces
       );
     },
-    [account, selectedAsset?.typeId, lockedBillsAmount]
+    [account, selectedAsset, lockedBillsAmount]
   );
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
@@ -149,12 +149,18 @@ function Send(): JSX.Element | null {
   };
 
   useEffect(() => {
+    setSelectedAsset(defaultAsset?.value);
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
-  }, [selectedAsset, getAvailableAmount]);
+  }, [
+    selectedAsset,
+    getAvailableAmount,
+    isActionsViewVisible,
+    defaultAsset?.value,
+  ]);
 
   useEffect(() => {
     const activeAssetAmount = account?.assets
-      .filter((asset) => account?.activeNetwork === asset.network)
+      ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
@@ -242,7 +248,7 @@ function Send(): JSX.Element | null {
               : null;
 
           const billsToTransfer = billToSplit
-            ? selectedBills.filter((bill) => bill.id !== billToSplit?.id)
+            ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
             : selectedBills;
 
           const splitBillAmount = billToSplit
@@ -283,38 +289,22 @@ function Send(): JSX.Element | null {
                   ownerProof: "",
                 };
 
+                if (selectedAsset?.typeId !== AlphaType) {
+                  transferData.transactionAttributes.type = bill.typeId;
+                }
+
                 const isLastTransaction =
                   billsToTransfer.length === idx + 1 &&
                   !billToSplit &&
                   !splitBillAmount;
 
-                if (selectedAsset?.typeId !== AlphaType) {
-                  getTypeHierarchy(bill.typeId || "")
-                    .then(async (hierarchy: ITypeHierarchy[]) => {
-                      transferData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarhyParentTypeIds(hierarchy);
-                      transferData.transactionAttributes.type = bill.typeId;
-                      handleValidation(
-                        await transferOrderHash(transferData),
-                        blockHeight,
-                        transferData as ITransfer,
-                        isLastTransaction
-                      );
-                    })
-                    .catch(() => {
-                      setErrors({
-                        password: "Fetching token hierarchy for failed",
-                      });
-                      setIsSending(false);
-                    });
-                } else {
-                  handleValidation(
-                    await transferOrderHash(transferData),
-                    blockHeight,
-                    transferData as ITransfer,
-                    isLastTransaction
-                  );
-                }
+                handleValidation(
+                  await transferOrderHash(transferData),
+                  blockHeight,
+                  transferData as ITransfer,
+                  isLastTransaction,
+                  bill.typeId
+                );
               });
 
               if (billToSplit && splitBillAmount) {
@@ -335,32 +325,16 @@ function Send(): JSX.Element | null {
                 };
 
                 if (selectedAsset?.typeId !== AlphaType) {
-                  getTypeHierarchy(billToSplit.typeId || "")
-                    .then(async (hierarchy: ITypeHierarchy[]) => {
-                      splitData.transactionAttributes.invariantPredicateSignatures =
-                        getHierarhyParentTypeIds(hierarchy);
-                      splitData.transactionAttributes.type = billToSplit.typeId;
-                      handleValidation(
-                        await splitOrderHash(splitData),
-                        blockHeight,
-                        splitData as ITransfer,
-                        true
-                      );
-                    })
-                    .catch(() => {
-                      setErrors({
-                        password: "Fetching token hierarchy for failed",
-                      });
-                      setIsSending(false);
-                    });
-                } else {
-                  handleValidation(
-                    await splitOrderHash(splitData),
-                    blockHeight,
-                    splitData as ITransfer,
-                    true
-                  );
+                  splitData.transactionAttributes.type = billToSplit.typeId;
                 }
+
+                handleValidation(
+                  await splitOrderHash(splitData),
+                  blockHeight,
+                  splitData as ITransfer,
+                  true,
+                  billToSplit.typeId
+                );
               }
             }
           );
@@ -369,7 +343,8 @@ function Send(): JSX.Element | null {
             msgHash: Uint8Array,
             blockHeight: bigint,
             billData: ITransfer,
-            isLastTransfer: boolean
+            isLastTransfer: boolean,
+            billTypeId?: string
           ) => {
             const proof = await createOwnerProof(
               msgHash,
@@ -377,40 +352,73 @@ function Send(): JSX.Element | null {
               hashingPublicKey
             );
 
-            let dataWithProof = Object.assign(billData, {
-              ownerProof: proof.ownerProof,
-              timeout: (blockHeight + timeoutBlocks).toString(),
-            });
+            const finishTransaction = (billData: ITransfer) => {
+              let dataWithProof = Object.assign(billData, {
+                ownerProof: proof.ownerProof,
+                timeout: (blockHeight + timeoutBlocks).toString(),
+              });
+
+              if (selectedAsset?.typeId !== AlphaType) {
+                dataWithProof = { transactions: [dataWithProof] } as any;
+              }
+
+              proof.isSignatureValid &&
+                makeTransaction(
+                  dataWithProof,
+                  selectedAsset?.typeId === AlphaType ? "" : values.address
+                )
+                  .then(() => {
+                    const amount: string =
+                      billData?.transactionAttributes?.amount ||
+                      billData?.transactionAttributes?.targetValue ||
+                      billData?.transactionAttributes?.value ||
+                      "";
+
+                    balanceAfterSending.current = balanceAfterSending.current
+                      ? BigInt(balanceAfterSending.current) - BigInt(amount)
+                      : BigInt(selectedAsset?.amount || "") - BigInt(amount);
+                  })
+                  .finally(() => {
+                    if (isLastTransfer) {
+                      addPollingInterval();
+                      setIsSending(false);
+                      setSelectedSendKey(null);
+                      setIsActionsViewVisible(false);
+                      resetForm();
+                    }
+                  });
+            };
 
             if (selectedAsset?.typeId !== AlphaType) {
-              dataWithProof = { transactions: [dataWithProof] } as any;
-            }
-
-            proof.isSignatureValid &&
-              makeTransaction(
-                dataWithProof,
-                selectedAsset?.typeId === AlphaType ? "" : values.address
-              )
-                .then(() => {
-                  const amount: string =
-                    billData?.transactionAttributes?.amount ||
-                    billData?.transactionAttributes?.targetValue ||
-                    billData?.transactionAttributes?.value ||
-                    "";
-
-                  balanceAfterSending.current = balanceAfterSending.current
-                    ? BigInt(balanceAfterSending.current) - BigInt(amount)
-                    : BigInt(selectedAsset?.amount || "") - BigInt(amount);
-                })
-                .finally(() => {
-                  if (isLastTransfer) {
-                    addPollingInterval();
+              await getTypeHierarchy(billTypeId || "")
+                .then(async (hierarchy: ITypeHierarchy[]) => {
+                  let signatures;
+                  try {
+                    signatures = createInvariantPredicateSignatures(
+                      hierarchy,
+                      proof.ownerProof,
+                      activeAccountId
+                    );
+                  } catch (error) {
                     setIsSending(false);
-                    setSelectedSendKey(null);
-                    setIsActionsViewVisible(false);
-                    resetForm();
+                    return setErrors({
+                      password: error.message,
+                    });
                   }
+                  billData.transactionAttributes.invariantPredicateSignatures =
+                    signatures;
+                  finishTransaction(billData);
+                })
+                .catch(() => {
+                  setIsSending(false);
+                  setErrors({
+                    password:
+                      "Fetching token hierarchy for " + billTypeId + "failed",
+                  });
                 });
+            } else {
+              finishTransaction(billData);
+            }
           };
         }}
         validationSchema={Yup.object().shape({
@@ -521,7 +529,7 @@ function Send(): JSX.Element | null {
                     name="assets"
                     className={selectedSendKey ? "d-none" : ""}
                     options={account?.assets
-                      .filter(
+                      ?.filter(
                         (asset) =>
                           account?.activeNetwork === asset.network &&
                           asset.isSendable
