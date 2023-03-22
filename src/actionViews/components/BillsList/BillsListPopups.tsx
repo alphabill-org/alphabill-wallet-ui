@@ -43,6 +43,7 @@ export interface IBillsListItemProps {
   isPasswordFormVisible: "proofCheck" | "handleDC" | null | undefined;
   isLockFormVisible: boolean;
   sortedListByValue: IBill[];
+  tokenLabel: string;
 }
 
 function BillsListPopups({
@@ -62,6 +63,7 @@ function BillsListPopups({
   isPasswordFormVisible,
   isLockFormVisible,
   sortedListByValue,
+  tokenLabel,
 }: IBillsListItemProps): JSX.Element | null {
   const { vault } = useAuth();
 
@@ -73,7 +75,7 @@ function BillsListPopups({
           setIsProofVisible(false);
         }}
         isPopoverVisible={isProofVisible}
-        title="BILL PROOF VERIFICATION"
+        title={tokenLabel.toUpperCase() + " PROOF VERIFICATION"}
       >
         <>
           <Spacer mt={16} />
@@ -187,7 +189,7 @@ function BillsListPopups({
       <Popup
         isPopupVisible={isLockFormVisible}
         setIsPopupVisible={setIsLockFormVisible}
-        title="Add locked bill description"
+        title={"Add locked " + tokenLabel + " description"}
       >
         <Spacer mt={16} />
         <Formik
@@ -226,7 +228,12 @@ function BillsListPopups({
                       <Textfield
                         id="desc"
                         name="desc"
-                        label="Bill description visible in bills list"
+                        label={
+                          tokenLabel +
+                          " description visible in " +
+                          tokenLabel +
+                          " list"
+                        }
                         type="desc"
                         error={extractFormikError(errors, touched, ["desc"])}
                       />

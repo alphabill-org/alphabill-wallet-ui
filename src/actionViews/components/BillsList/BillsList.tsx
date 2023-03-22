@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
-import { addDecimal } from "../../../utils/utils";
+import { addDecimal, getTokensLabel } from "../../../utils/utils";
 import {
   DCTransfersLimit,
   swapTimeout,
@@ -89,7 +89,8 @@ function BillsList(): JSX.Element | null {
     [lastNonceIDsLocal]
   );
   const queryClient = useQueryClient();
-  const tokenLabel = activeAsset.typeId === AlphaType ? "BILLS" : "TOKENS";
+  const tokenLabel = getTokensLabel(activeAsset.typeId);
+
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
@@ -341,7 +342,7 @@ function BillsList(): JSX.Element | null {
             <BillsListItem
               title={
                 <div className="t-medium pad-24-h c-primary">
-                  LOCKED {tokenLabel}
+                  LOCKED {tokenLabel.toUpperCase()}S
                   <br />
                   <span className="t-small">
                     Exempt from transfers{" "}
@@ -377,7 +378,7 @@ function BillsList(): JSX.Element | null {
           <BillsListItem
             title={
               <div className="t-medium pad-24-h c-primary">
-                UNLOCKED {tokenLabel}
+                UNLOCKED {tokenLabel.toUpperCase()}S
               </div>
             }
             lockedBills={lockedBills}
@@ -436,6 +437,7 @@ function BillsList(): JSX.Element | null {
           isPasswordFormVisible={isPasswordFormVisible}
           isLockFormVisible={isLockFormVisible}
           sortedListByValue={sortedListByValue}
+          tokenLabel={tokenLabel}
         />
       )}
     </>

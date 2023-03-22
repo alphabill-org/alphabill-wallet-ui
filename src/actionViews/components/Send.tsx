@@ -39,6 +39,7 @@ import {
   convertToWholeNumberBigInt,
   createInvariantPredicateSignatures,
   separateDigits,
+  getTokensLabel,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -105,13 +106,16 @@ function Send(): JSX.Element | null {
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
+  const tokenLabel = getTokensLabel(activeAsset.typeId);
 
   const createLockedBillsAmountLabel = () => {
     const amount = lockedBillsAmount();
 
     if (amount <= 0n) return "";
     return (
-      " ( Locked bills amount " +
+      " ( Locked " +
+      tokenLabel +
+      " amount " +
       addDecimal(amount.toString(), selectedAsset?.decimalPlaces || 0) +
       " )"
     );
@@ -479,7 +483,8 @@ function Send(): JSX.Element | null {
                     <>
                       {selectedSendKey && (
                         <div className="t-medium-small">
-                          You have selected a specific bill with a value of{" "}
+                          You have selected a specific {tokenLabel} with a value
+                          of{" "}
                           {separateDigits(
                             addDecimal(
                               selectedBillValue,
@@ -492,9 +497,9 @@ function Send(): JSX.Element | null {
                             variant="link"
                             type="button"
                           >
-                            REMOVE BILL
+                            REMOVE {tokenLabel.toUpperCase()}
                           </Button>{" "}
-                          or select a new bill from the{" "}
+                          or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
                               setActionsView("List view");
@@ -508,7 +513,7 @@ function Send(): JSX.Element | null {
                             type="button"
                             variant="link"
                           >
-                            BILLS LIST
+                            {tokenLabel.toUpperCase()}S LIST
                           </Button>{" "}
                           .
                         </div>
@@ -517,7 +522,7 @@ function Send(): JSX.Element | null {
                       <Textfield
                         id="selectedBillId"
                         name="selectedBillId"
-                        label="SELECTED BILL ID"
+                        label={"SELECTED " + tokenLabel + " ID"}
                         type="selectedBillId"
                         value={base64ToHexPrefixed(selectedSendKey)}
                       />
@@ -654,7 +659,7 @@ function Send(): JSX.Element | null {
       </Formik>
       {!selectedSendKey && (
         <div className="t-medium-small pad-24-h">
-          To select a specific bill open your{" "}
+          To select a specific {tokenLabel} open your{" "}
           <Button
             small
             onClick={() => {
@@ -669,9 +674,9 @@ function Send(): JSX.Element | null {
             variant="link"
             type="button"
           >
-            BILLS LIST
+            {tokenLabel.toUpperCase()}S LIST
           </Button>{" "}
-          and select it from bills options.
+          and select it from {tokenLabel}s options.
         </div>
       )}
     </div>
