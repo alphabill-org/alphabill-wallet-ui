@@ -252,7 +252,7 @@ function BillsList(): JSX.Element | null {
                 </>
               )}
 
-              {DCBills.map((bill: IBill, idx: number) => {
+              {DCBills?.map((bill: IBill, idx: number) => {
                 const isNewDenomination = DCDenomination !== bill.value && true;
                 DCDenomination = bill.value;
 

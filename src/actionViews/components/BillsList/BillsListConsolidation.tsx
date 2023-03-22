@@ -53,7 +53,7 @@ export const handleSwapRequest = async (
     billIdentifiers.push(id);
   });
 
-  DCBills.map((bill: IBill, idx: number) =>
+  DCBills?.map((bill: IBill, idx: number) =>
     getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
       const txProof = data.bills[0].txProof;
 
@@ -84,7 +84,7 @@ export const handleSwapRequest = async (
                 ownerCondition: getNewBearer(account),
                 proofs: proofs,
                 targetValue: dcTransfers
-                  .reduce((acc, obj: IProofTx) => {
+                  ?.reduce((acc, obj: IProofTx) => {
                     return acc + BigInt(obj.transactionAttributes.targetValue!);
                   }, 0n)
 
@@ -151,7 +151,7 @@ export const handleDC = async (
   setIsConsolidationLoading(true);
 
   if (DCBills.length >= 1) {
-    DCBills.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
+    DCBills?.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
     handleSwapCallBack(password);
     addInterval();
   } else {
@@ -165,7 +165,7 @@ export const handleDC = async (
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
     getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) =>
-      sortedListByID.map(async (bill: IBill, idx) => {
+      sortedListByID?.map(async (bill: IBill, idx) => {
         const transferData: ITransfer = {
           systemId: AlphaSystemId,
           unitId: bill.id,

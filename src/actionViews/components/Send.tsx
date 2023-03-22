@@ -279,7 +279,7 @@ function Send(): JSX.Element | null {
                 transferField = "targetValue";
               }
 
-              billsToTransfer.map(async (bill, idx) => {
+              billsToTransfer?.map(async (bill, idx) => {
                 const transferData: IProofTx = {
                   systemId: systemId,
                   unitId: bill.id,

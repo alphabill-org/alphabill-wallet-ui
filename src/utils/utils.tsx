@@ -359,12 +359,12 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
 };
 
 export const getBillsSum = (bills: IBill[]) =>
-  bills.reduce((acc, obj: IBill) => {
+  bills?.reduce((acc, obj: IBill) => {
     return acc + BigInt(obj.value);
   }, 0n);
 
 export const getAssetSum = (asset: IAsset[]) =>
-  asset.reduce((acc, obj: IAsset) => {
+  asset?.reduce((acc, obj: IAsset) => {
     return acc + BigInt(obj.amount);
   }, 0n);
 
@@ -480,7 +480,7 @@ export const createInvariantPredicateSignatures = (
   ownerProof: string,
   key: string
 ) => {
-  return hierarchy.map((parent: ITypeHierarchy) => {
+  return hierarchy?.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
 
     if (predicate === hexToBase64(pushBoolTrue)) {
