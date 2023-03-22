@@ -117,9 +117,10 @@ function Send(): JSX.Element | null {
     );
   };
 
-  const selectedBillValue =
-    billsList?.find((bill: IBill) => bill.id === selectedSendKey)?.value || "";
-
+  const selectedBill = billsList?.find(
+    (bill: IBill) => bill.id === selectedSendKey
+  );
+  const selectedBillValue = selectedBill?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
@@ -224,7 +225,7 @@ function Send(): JSX.Element | null {
           }
 
           const billsArr = selectedSendKey
-            ? ([selectedBillValue] as IBill[])
+            ? ([selectedBill] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
                   bill.isDcBill !== true &&
