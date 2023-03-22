@@ -78,6 +78,9 @@ export interface ITypeHierarchy {
   decimalPlaces: number; // [0..8] fungible only
   kind: number; //  [2:Fungible|4:NonFungible],
   txHash: string; //base64 encoded hex - creation tx
+  invariantPredicate: string;
+  tokenCreationPredicate: string;
+  subTypeCreationPredicate: string;
 }
 
 export interface IBill {
@@ -124,6 +127,7 @@ export interface ITransfer {
   unitId: string;
   transactionAttributes: {
     "@type": string;
+    type?: string;
     backlink?: string;
     newBearer?: string;
     remainingValue?: string;
