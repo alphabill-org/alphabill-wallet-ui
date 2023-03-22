@@ -201,7 +201,7 @@ export const getKeys = (
 };
 
 export const checkOwnerPredicate = (key: string, predicate: string) => {
-  if (!predicate) return false;
+  if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
     startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;

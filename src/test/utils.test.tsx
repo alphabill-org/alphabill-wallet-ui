@@ -281,6 +281,27 @@ describe("Create invariant predicate signatures", () => {
     ).toThrow();
   });
 
+  test("should throw an error for invariant predicate with null value", () => {
+    const hierarchy: any = [
+      {
+        id: "AA==",
+        parentTypeId: "AA==",
+        symbol: "AA==",
+        decimalPlaces: 2,
+        kind: 2,
+        txHash: "AA==",
+        subTypeCreationPredicate: "AA==",
+        tokenCreationPredicate: "AA==",
+        invariantPredicate: null,
+      },
+    ];
+    const ownerProof = "abcdef";
+    const key = "0xabcdef";
+    expect(() =>
+      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
+    ).toThrow();
+  });
+
   test("should throw an error for a pushBoolFalse invariant predicate", () => {
     const hierarchy = [
       {
@@ -350,5 +371,36 @@ describe("Create invariant predicate signatures", () => {
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
     ).toEqual(["Uw=="]);
+  });
+});
+
+describe('Check if owner predicate', () => {
+  const validKey = '0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11';
+  const validPredicate = 'U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB';
+  const invalidKey = '0x1234567890123456789012345678901234567890123456789012345678901234';
+  const invalidPredicate = '';
+
+  it('returns true when the sha256KeyFromPredicate matches the SHA256 hash of the key parameter', () => {
+    expect(checkOwnerPredicate(validKey, validPredicate)).toBe(true);
+  });
+
+  it('returns false when the sha256KeyFromPredicate does not match the SHA256 hash of the key parameter', () => {
+    expect(checkOwnerPredicate(invalidKey, validPredicate)).toBe(false);
+  });
+
+  it('returns false when the predicate parameter is falsy', () => {
+    expect(checkOwnerPredicate(validKey, invalidPredicate)).toBe(false);
+  });
+
+  it('returns false when both the key and predicate parameters are falsy', () => {
+    expect(checkOwnerPredicate(invalidKey, invalidPredicate)).toBe(false);
+  });
+
+  it('returns false when predicate is null', () => {
+    expect(checkOwnerPredicate(validKey, null as any)).toBe(false);
+  });
+
+  it('returns false when key is null', () => {
+    expect(checkOwnerPredicate(null as any, validPredicate)).toBe(false);
   });
 });
