@@ -120,7 +120,7 @@ function BillsListItem({
                       onClick={() => {
                         setLockedBillsLocal(
                           JSON.stringify(
-                            lockedBills.filter((key) => key.billId !== bill.id)
+                            lockedBills?.filter((key) => key.billId !== bill.id)
                           )
                         );
                         setActiveBill(bill);

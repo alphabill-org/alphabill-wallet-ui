@@ -26,16 +26,13 @@ import { useLocalStorage } from "./useLocalStorage";
 import {
   addDecimal,
   getAssetSum,
-  hexToBase64,
+  isTokenSendable,
   separateDigits,
 } from "../utils/utils";
 import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
-  pushBool,
-  boolTrue,
-  startByte,
 } from "../utils/constants";
 
 interface IAppContextShape {
@@ -162,11 +159,12 @@ export const AppProvider: FunctionComponent<{
         amount: obj.amount.toString(),
         decimalFactor: Number("1e" + obj.decimals),
         decimalPlaces: obj.decimals,
-        isSendable:
+        isSendable: isTokenSendable(
           tokenTypes?.find(
             (type: IUserTokensListTypes) => type.id === obj.typeId
-          )?.invariantPredicate ===
-          hexToBase64(startByte + pushBool + boolTrue),
+          )?.invariantPredicate!,
+          activeAccountId
+        ),
         UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
       })) || [];
 

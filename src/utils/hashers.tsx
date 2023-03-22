@@ -13,7 +13,6 @@ import {
   AlphaDcType,
   AlphaSplitType,
   AlphaTransferType,
-  TokensSplitType,
   TokensTransferType,
 } from "./constants";
 
@@ -110,41 +109,29 @@ export const transferAttributesBuffer = (tx: ITransfer) => {
   if (tx.transactionAttributes["@type"] === TokensTransferType) {
     bytes = secp.utils.concatBytes(
       bytes,
-      Buffer.concat(
-        tx.transactionAttributes?.invariantPredicateSignatures!.map((sig: string) =>
-          Buffer.from(sig, "base64")
-        )
-      )
+      Buffer.from(tx.transactionAttributes?.type!, "base64")
     );
   }
-
   return bytes;
 };
 
 export const splitAttributesBuffer = (tx: any) => {
-  let amountField: string = "targetValue";
-  let bearerField: string = "newBearer";
+  let bytes;
 
   if (tx.transactionAttributes["@type"] === AlphaSplitType) {
-    amountField = "amount";
-    bearerField = "targetBearer";
-  } else {
-  }
-  let bytes = secp.utils.concatBytes(
-    new Uint64BE(tx.transactionAttributes[amountField]).toBuffer(),
-    Buffer.from(tx.transactionAttributes[bearerField] as string, "base64"),
-    new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink!, "base64")
-  );
-
-  if (tx.transactionAttributes["@type"] === TokensSplitType) {
     bytes = secp.utils.concatBytes(
+      new Uint64BE(tx.transactionAttributes.amount).toBuffer(),
+      Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
+      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
+      Buffer.from(tx.transactionAttributes.backlink!, "base64")
+    );
+  } else {
+    bytes = secp.utils.concatBytes(
+      Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
+      new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
+      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
+      Buffer.from(tx.transactionAttributes.backlink!, "base64"),
       Buffer.from(tx.transactionAttributes.type, "base64"),
-      bytes,
-      Buffer.from(
-        tx.transactionAttributes.invariantPredicateSignatures,
-        "base64"
-      )
     );
   }
 
