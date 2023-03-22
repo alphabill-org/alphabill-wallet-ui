@@ -197,7 +197,7 @@ function Send(): JSX.Element | null {
         initialValues={{
           assets: {
             value: defaultAsset,
-            label: AlphaType,
+            label: defaultAsset.label,
           },
           amount: "",
           address: "",
