@@ -54,7 +54,7 @@ export const inputRecordBuffer = (inputRecord: IInputRecord) =>
 
 export const swapProofsBuffer = (proofs: IProof[]) =>
   Buffer.concat(
-    proofs.map((p: IProof) => {
+    proofs?.map((p: IProof) => {
       const chainItems = p.blockTreeHashChain.items.map((i) =>
         Buffer.concat([
           Buffer.from(i.val, "base64"),

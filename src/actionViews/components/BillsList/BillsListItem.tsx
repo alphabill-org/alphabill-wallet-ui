@@ -55,7 +55,7 @@ function BillsListItem({
       {title}
       <Spacer mt={8} />
 
-      {filteredList.map((bill: IBill, idx: number) => {
+      {filteredList?.map((bill: IBill, idx: number) => {
         const isNewDenomination = denomination !== bill.value;
         denomination = bill.value;
 
