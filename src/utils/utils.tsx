@@ -24,7 +24,6 @@ import {
   opPushPubKey,
   opPushSig,
   opVerify,
-  pushBoolFalse,
   pushBoolTrue,
   sigScheme,
   startByte,
