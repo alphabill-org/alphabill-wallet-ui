@@ -91,7 +91,7 @@ export const AppProvider: FunctionComponent<{
   const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
   const billsList = activeAsset.typeId === AlphaType ? alphaList : tokenList;
   const [accounts, setAccounts] = useState<IAccount[]>(
-    keysArr.map((key, idx) => ({
+    keysArr?.map((key, idx) => ({
       pubKey: key,
       idx: idx,
       name: accountNamesObj["_" + idx],
@@ -192,7 +192,7 @@ export const AppProvider: FunctionComponent<{
       keysArr.length !== accounts.length
     ) {
       setAccounts(
-        keysArr.map((key, idx) => ({
+        keysArr?.map((key, idx) => ({
           pubKey: key,
           idx: idx,
           name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
