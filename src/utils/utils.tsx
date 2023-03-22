@@ -15,6 +15,7 @@ import {
   ITypeHierarchy,
 } from "../types/Types";
 import {
+  AlphaType,
   opCheckSig,
   opDup,
   opEqual,
@@ -490,3 +491,5 @@ export const createInvariantPredicateSignatures = (
     throw new Error("Token can not be transferred");
   });
 };
+
+export const getTokensLabel = (typeId: string) => (typeId === AlphaType ? "bill" : "token");
