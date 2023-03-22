@@ -38,6 +38,7 @@ import {
   addDecimal,
   convertToWholeNumberBigInt,
   getHierarhyParentTypeIds,
+  separateDigits,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -115,6 +116,10 @@ function Send(): JSX.Element | null {
       " )"
     );
   };
+
+  const selectedBillValue = billsList?.find(
+    (bill: IBill) => bill.id === selectedSendKey
+  )?.value || "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -214,9 +219,7 @@ function Send(): JSX.Element | null {
           }
 
           const billsArr = selectedSendKey
-            ? ([
-                billsList?.find((bill: IBill) => bill.id === selectedSendKey),
-              ] as IBill[])
+            ? ([selectedBillValue] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) =>
                   bill.isDcBill !== true &&
@@ -469,11 +472,12 @@ function Send(): JSX.Element | null {
                       {selectedSendKey && (
                         <div className="t-medium-small">
                           You have selected a specific bill with a value of{" "}
-                          {
-                            billsList?.find(
-                              (bill: IBill) => bill.id === selectedSendKey
-                            )?.value
-                          }
+                          {separateDigits(
+                            addDecimal(
+                              selectedBillValue,
+                              selectedAsset?.decimalPlaces || 0
+                            )
+                          )}
                           . You can deselect it by clicking{" "}
                           <Button
                             onClick={() => setSelectedSendKey(null)}
@@ -602,9 +606,7 @@ function Send(): JSX.Element | null {
                       value={
                         (selectedSendKey &&
                           (addDecimal(
-                            billsList?.find(
-                              (bill: IBill) => bill.id === selectedSendKey
-                            )?.value,
+                            selectedBillValue,
                             selectedAsset?.decimalPlaces || 0
                           ) as string | undefined)) ||
                         ""
