@@ -70,7 +70,7 @@ function Send(): JSX.Element | null {
   const queryClient = useQueryClient();
   const defaultAsset: { value: IAsset | undefined; label: string } = {
     value: account?.assets
-      .filter((asset) => account?.activeNetwork === asset.network)
+      ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === activeAsset.typeId),
     label: activeAsset.name,
   };
@@ -80,7 +80,7 @@ function Send(): JSX.Element | null {
   const lockedBillsAmount = useCallback(
     (): bigint =>
       getBillsSum(
-        billsList.filter((bill: IBill) =>
+        billsList?.filter((bill: IBill) =>
           lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
         )
       ),
@@ -117,9 +117,8 @@ function Send(): JSX.Element | null {
     );
   };
 
-  const selectedBillValue = billsList?.find(
-    (bill: IBill) => bill.id === selectedSendKey
-  )?.value || "";
+  const selectedBillValue =
+    billsList?.find((bill: IBill) => bill.id === selectedSendKey)?.value || "";
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -160,7 +159,7 @@ function Send(): JSX.Element | null {
 
   useEffect(() => {
     const activeAssetAmount = account?.assets
-      .filter((asset) => account?.activeNetwork === asset.network)
+      ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
@@ -248,7 +247,7 @@ function Send(): JSX.Element | null {
               : null;
 
           const billsToTransfer = billToSplit
-            ? selectedBills.filter((bill) => bill.id !== billToSplit?.id)
+            ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
             : selectedBills;
 
           const splitBillAmount = billToSplit
@@ -413,9 +412,7 @@ function Send(): JSX.Element | null {
                   setIsSending(false);
                   setErrors({
                     password:
-                      "Fetching token hierarchy for " +
-                      billTypeId +
-                      "failed",
+                      "Fetching token hierarchy for " + billTypeId + "failed",
                   });
                 });
             } else {
@@ -531,7 +528,7 @@ function Send(): JSX.Element | null {
                     name="assets"
                     className={selectedSendKey ? "d-none" : ""}
                     options={account?.assets
-                      .filter(
+                      ?.filter(
                         (asset) =>
                           account?.activeNetwork === asset.network &&
                           asset.isSendable

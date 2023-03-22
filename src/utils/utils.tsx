@@ -321,7 +321,7 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
       let missingSum = amountBigInt - BigInt(initialBill.value);
 
       while (missingSum > zeroBigInt) {
-        const filteredBills = billsArr.filter(
+        const filteredBills = billsArr?.filter(
           (bill) => !selectedBills.includes(bill)
         );
         const filteredBillsSum = getBillsSum(filteredBills);

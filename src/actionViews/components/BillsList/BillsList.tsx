@@ -49,7 +49,7 @@ function BillsList(): JSX.Element | null {
   const DCBills = useMemo(
     () =>
       sortedListByValue
-        ? sortBillsByID(sortedListByValue).filter((b: IBill) => b.isDcBill)
+        ? sortBillsByID(sortedListByValue)?.filter((b: IBill) => b.isDcBill)
         : [],
     [sortedListByValue]
   );
@@ -333,7 +333,7 @@ function BillsList(): JSX.Element | null {
             </div>
           </>
         )}
-        {sortedListByValue.filter((b: IBill) =>
+        {sortedListByValue?.filter((b: IBill) =>
           lockedBills?.find((key: ILockedBill) => key.billId === b.id)
         ).length > 0 && (
           <>
@@ -349,7 +349,7 @@ function BillsList(): JSX.Element | null {
                   </span>
                 </div>
               }
-              filteredList={sortedListByValue.filter((b: IBill) =>
+              filteredList={sortedListByValue?.filter((b: IBill) =>
                 lockedBills?.find((key: ILockedBill) => key.billId === b.id)
               )}
               isLockedBills
@@ -369,7 +369,7 @@ function BillsList(): JSX.Element | null {
             />
           </>
         )}
-        {sortedListByValue.filter(
+        {sortedListByValue?.filter(
           (b: IBill) =>
             b.isDcBill !== true &&
             !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
@@ -382,7 +382,7 @@ function BillsList(): JSX.Element | null {
             }
             lockedBills={lockedBills}
             setLockedBillsLocal={setLockedBillsLocal}
-            filteredList={sortedListByValue.filter(
+            filteredList={sortedListByValue?.filter(
               (b: IBill) =>
                 b.isDcBill !== true &&
                 !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
