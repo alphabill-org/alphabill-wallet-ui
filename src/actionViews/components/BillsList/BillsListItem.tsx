@@ -144,7 +144,7 @@ function BillsListItem({
                     type="button"
                     variant="primary"
                   >
-                    Send
+                    Transfer
                   </Button>
                 </span>
               </div>
