@@ -504,6 +504,7 @@ function Send(): JSX.Element | null {
                             onClick={() => {
                               setActionsView("List view");
                               setIsActionsViewVisible(true);
+                              setSelectedSendKey(null);
                               invalidateAllLists(
                                 activeAccountId,
                                 activeAsset.typeId,
