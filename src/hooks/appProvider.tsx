@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { isString } from "lodash";
+import { isString, isEqual, sortBy } from "lodash";
 
 import {
   IAccount,
@@ -23,12 +23,7 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
-import {
-  addDecimal,
-  getAssetSum,
-  isTokenSendable,
-  separateDigits,
-} from "../utils/utils";
+import { addDecimal, isTokenSendable, separateDigits } from "../utils/utils";
 import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
@@ -150,7 +145,7 @@ export const AppProvider: FunctionComponent<{
       }
     }
 
-    const fungibleUTP =
+    const fungibleUTPAssets =
       userTokens?.map((obj: IFungibleResponse) => ({
         id: obj.id,
         typeId: obj.typeId,
@@ -170,25 +165,30 @@ export const AppProvider: FunctionComponent<{
 
     const hasKeys = Number(keysArr?.length) >= 1;
 
-    const accountAlphaBalance = accounts
-      ?.find((account) => account?.pubKey === activeAccountId)
-      ?.assets?.find((asset) => asset.typeId === AlphaType)?.amount;
     const ALPHABalance = balances?.find(
       (balance: any) => balance?.data?.pubKey === activeAccountId
     )?.data?.balance;
 
-    const fetchedTokensSum =
-      Number(fungibleUTP?.length) >= 1 ? getAssetSum(fungibleUTP) : "0n";
-    const accountTokens = account?.assets?.filter(
-      (asset) => asset.typeId !== AlphaType
-    );
-    const accountTokensSum =
-      accountTokens?.length >= 1 ? getAssetSum(accountTokens) : "0n";
+    const alphaAsset = {
+      id: AlphaType,
+      name: AlphaType,
+      network: import.meta.env.VITE_NETWORK_NAME,
+      amount: ALPHABalance,
+      decimalFactor: AlphaDecimalFactor,
+      decimalPlaces: AlphaDecimalPlaces,
+      UIAmount: separateDigits(
+        addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
+      ),
+      typeId: AlphaType,
+      isSendable: true,
+    };
+
+    const updatedAssets = sortBy(fungibleUTPAssets.concat([alphaAsset]), [
+      "id",
+    ]);
 
     if (
-      (hasKeys && ALPHABalance !== accountAlphaBalance) ||
-      (hasKeys && accountTokensSum !== fetchedTokensSum) ||
-      (hasKeys && account?.assets?.length !== fungibleUTP?.length + 1) ||
+      (hasKeys && !isEqual(updatedAssets, sortBy(account?.assets, ["id"]))) ||
       keysArr?.length !== accounts.length
     ) {
       setAccounts(
@@ -196,21 +196,7 @@ export const AppProvider: FunctionComponent<{
           pubKey: key,
           idx: idx,
           name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
-          assets: fungibleUTP.concat([
-            {
-              id: AlphaType,
-              name: AlphaType,
-              network: import.meta.env.VITE_NETWORK_NAME,
-              amount: ALPHABalance,
-              decimalFactor: AlphaDecimalFactor,
-              decimalPlaces: AlphaDecimalPlaces,
-              UIAmount: separateDigits(
-                addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
-              ),
-              typeId: AlphaType,
-              isSendable: true,
-            },
-          ]),
+          assets: updatedAssets,
           activeNetwork: import.meta.env.VITE_NETWORK_NAME,
           activeAccount: activeAccountId,
           networks: [
