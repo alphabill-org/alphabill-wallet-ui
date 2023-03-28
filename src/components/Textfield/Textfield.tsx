@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import classNames from "classnames";
 import { useField, useFormikContext } from "formik";
@@ -31,6 +31,7 @@ export interface ITextfieldProps {
   maxLength?: number;
   desc?: string;
   removeApostrophes?: boolean;
+  focusInput?: boolean;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
@@ -41,16 +42,25 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     floatingFixedPoint,
     isNumberFloat,
     removeApostrophes,
+    focusInput,
     ...inputProps
   } = props;
   const { setFieldValue, handleBlur } = useFormikContext();
   const [field] = useField(props as any);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (field.value !== props.value && props.value) {
       setFieldValue(field.name, props.value);
     }
   }, [field.value, props.value, setFieldValue, field.name]);
+
+
+  useEffect(() => {
+    if (focusInput) {
+        inputRef.current?.focus();
+    }
+  }, [focusInput]);
 
   const className = classNames(
     "textfield",
@@ -101,6 +111,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
         )}
         <input
           {...inputProps}
+          ref={inputRef}
           autoComplete="off"
           onChange={handleChange}
           onBlur={handleBlur}
