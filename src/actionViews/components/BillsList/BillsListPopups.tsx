@@ -3,12 +3,7 @@ import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
-import {
-  IAccount,
-  IBill,
-  ILockedBill,
-  IProofsProps,
-} from "../../../types/Types";
+import { IAccount, IBill, IProofsProps } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import {
@@ -27,8 +22,6 @@ import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 export interface IBillsListItemProps {
   setVisibleBillSettingID: (e: string | null) => void;
   setIsProofVisible: (e: boolean) => void;
-  setIsLockFormVisible: (e: boolean) => void;
-  setLockedBillsLocal: (e: string) => void;
   setIsPasswordFormVisible: (
     e: "proofCheck" | "handleDC" | null | undefined
   ) => void;
@@ -39,9 +32,7 @@ export interface IBillsListItemProps {
   account: IAccount;
   activeBill: IBill;
   isProofVisible: boolean;
-  lockedBills: ILockedBill[];
   isPasswordFormVisible: "proofCheck" | "handleDC" | null | undefined;
-  isLockFormVisible: boolean;
   sortedListByValue: IBill[];
   tokenLabel: string;
 }
@@ -50,18 +41,14 @@ function BillsListPopups({
   setVisibleBillSettingID,
   setIsProofVisible,
   setProofCheckStatus,
-  setIsLockFormVisible,
-  setLockedBillsLocal,
   setIsPasswordFormVisible,
   setPassword,
   handleDC,
-  lockedBills,
   isProofVisible,
   account,
   activeBill,
   proofCheckStatus,
   isPasswordFormVisible,
-  isLockFormVisible,
   sortedListByValue,
   tokenLabel,
 }: IBillsListItemProps): JSX.Element | null {
@@ -186,75 +173,6 @@ function BillsListPopups({
           </Formik>
         </>
       </SelectPopover>
-      <Popup
-        isPopupVisible={isLockFormVisible}
-        setIsPopupVisible={setIsLockFormVisible}
-        title={"Add locked " + tokenLabel + " description"}
-      >
-        <Spacer mt={16} />
-        <Formik
-          initialValues={{
-            desc: "",
-          }}
-          validationSchema={Yup.object().shape({
-            desc: Yup.string().required("Description is required"),
-          })}
-          onSubmit={(values, { resetForm }) => {
-            setLockedBillsLocal(
-              JSON.stringify([
-                ...lockedBills,
-                {
-                  billId: activeBill.id,
-                  desc: values.desc,
-                  value: sortedListByValue.find(
-                    (bill: IBill) => bill.id === activeBill.id
-                  )?.value,
-                },
-              ])
-            );
-            setVisibleBillSettingID(null);
-            resetForm();
-            setIsLockFormVisible(false);
-          }}
-        >
-          {(formikProps) => {
-            const { handleSubmit, errors, touched } = formikProps;
-
-            return (
-              <div className="w-100p">
-                <form onSubmit={handleSubmit}>
-                  <Form>
-                    <FormContent>
-                      <Textfield
-                        id="desc"
-                        name="desc"
-                        label={
-                          tokenLabel +
-                          " description visible in " +
-                          tokenLabel +
-                          " list"
-                        }
-                        type="desc"
-                        error={extractFormikError(errors, touched, ["desc"])}
-                      />
-                    </FormContent>
-                    <FormFooter>
-                      <Button
-                        big={true}
-                        block={true}
-                        type="submit"
-                        variant="primary"
-                      >
-                        Lock & add description
-                      </Button>
-                    </FormFooter>
-                  </Form>
-                </form>
-              </div>
-            );
-          }}
-        </Formik>
-      </Popup>
     </>
   );
 }

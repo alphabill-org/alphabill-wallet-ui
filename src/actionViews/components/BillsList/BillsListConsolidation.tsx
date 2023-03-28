@@ -126,7 +126,7 @@ export const handleDC = async (
   account: IAccount,
   password: string,
   vault: any,
-  unlockedBills: IBill[],
+  billsList: IBill[],
   DCBills: IBill[],
   lastNonceIDs: any[],
   activeAccountId: string,
@@ -142,9 +142,9 @@ export const handleDC = async (
     return;
   }
 
-  const limitedUnlockedBills = unlockedBills.slice(0, DCTransfersLimit);
+  const limitedBillsList = billsList.slice(0, DCTransfersLimit);
 
-  const sortedListByID = sortBillsByID(limitedUnlockedBills);
+  const sortedListByID = sortBillsByID(limitedBillsList);
   let nonce: Buffer[] = [];
   let IDs: string[] = [];
 
