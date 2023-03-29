@@ -12,7 +12,6 @@ import Select from "../../components/Select/Select";
 import {
   IAsset,
   IBill,
-  ILockedBill,
   IProofTx,
   ITransfer,
   ITypeHierarchy,
@@ -61,7 +60,6 @@ function Send(): JSX.Element | null {
     actionsView,
     account,
     billsList,
-    lockedBills,
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
@@ -78,48 +76,25 @@ function Send(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
     defaultAsset?.value
   );
-  const lockedBillsAmount = useCallback(
-    (): bigint =>
-      getBillsSum(
-        billsList?.filter((bill: IBill) =>
-          lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
-        )
-      ) || 0n,
-    [billsList, lockedBills]
-  );
+
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
       return addDecimal(
-        (
-          BigInt(
-            account?.assets?.find(
-              (asset) => asset.typeId === selectedAsset?.typeId
-            )?.amount || "0"
-          ) - lockedBillsAmount()
+        BigInt(
+          account?.assets?.find(
+            (asset) => asset.typeId === selectedAsset?.typeId
+          )?.amount || "0"
         ).toString() || "0",
         decimalPlaces
       );
     },
-    [account, selectedAsset, lockedBillsAmount]
+    [account, selectedAsset]
   );
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
-
-  const createLockedBillsAmountLabel = () => {
-    const amount = lockedBillsAmount();
-
-    if (amount <= 0n) return "";
-    return (
-      " ( Locked " +
-      tokenLabel +
-      " amount " +
-      addDecimal(amount.toString(), selectedAsset?.decimalPlaces || 0) +
-      " )"
-    );
-  };
 
   const selectedBill = billsList?.find(
     (bill: IBill) => bill.id === selectedSendKey
@@ -231,9 +206,7 @@ function Send(): JSX.Element | null {
           const billsArr = selectedSendKey
             ? ([selectedBill] as IBill[])
             : (billsList?.filter(
-                (bill: IBill) =>
-                  bill.isDcBill !== true &&
-                  !lockedBills?.find((b: ILockedBill) => b.billId === bill.id)
+                (bill: IBill) => bill.isDcBill !== true
               ) as IBill[]);
 
           const selectedBills = getOptimalBills(
@@ -604,13 +577,7 @@ function Send(): JSX.Element | null {
                       id="amount"
                       name="amount"
                       label="Amount"
-                      desc={
-                        availableAmount +
-                        " " +
-                        values.assets?.label +
-                        " available to send " +
-                        createLockedBillsAmountLabel()
-                      }
+                      desc={availableAmount + " " + values.assets?.label}
                       type="text"
                       floatingFixedPoint={selectedAsset?.decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}

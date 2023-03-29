@@ -1,6 +1,6 @@
 import { useQueryClient } from "react-query";
 
-import { IActiveAsset, IBill, ILockedBill } from "../../../types/Types";
+import { IActiveAsset, IBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
@@ -14,19 +14,15 @@ import { FungibleTokenKind } from "../../../utils/constants";
 import { NonFungibleTokenKind } from "../../../utils/constants";
 
 export interface IBillsListItemProps {
-  title: JSX.Element | null;
+  title?: JSX.Element | null;
   filteredList: IBill[];
   setVisibleBillSettingID: (e: string | null) => void;
   visibleBillSettingID: string | null;
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
-  setIsLockFormVisible: (e: boolean) => void;
   setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
   setIsActionsViewVisible: (e: boolean) => void;
   setSelectedSendKey: (e: string) => void;
-  isLockedBills?: boolean;
-  lockedBills: ILockedBill[];
-  setLockedBillsLocal: (e: string) => void;
   activeAsset: IActiveAsset;
 }
 
@@ -36,14 +32,10 @@ function BillsListItem({
   visibleBillSettingID,
   setActiveBill,
   setIsProofVisible,
-  setIsLockFormVisible,
   setActionsView,
   setIsActionsViewVisible,
   setSelectedSendKey,
   title,
-  isLockedBills,
-  setLockedBillsLocal,
-  lockedBills,
   activeAsset,
 }: IBillsListItemProps): JSX.Element | null {
   let denomination: string | null = null;
@@ -52,8 +44,12 @@ function BillsListItem({
   return (
     <>
       <Spacer mt={32} />
-      {title}
-      <Spacer mt={8} />
+      {title && (
+        <>
+          {title}
+          <Spacer mt={8} />
+        </>
+      )}
 
       {filteredList?.map((bill: IBill, idx: number) => {
         const isNewDenomination = denomination !== bill.value;
@@ -103,37 +99,6 @@ function BillsListItem({
                   )}
 
                 <span className="pad-8-l">
-                  {!isLockedBills ? (
-                    <Button
-                      onClick={() => {
-                        setIsLockFormVisible(true);
-                        setActiveBill(bill);
-                      }}
-                      xSmall
-                      type="button"
-                      variant="primary"
-                    >
-                      Lock
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        setLockedBillsLocal(
-                          JSON.stringify(
-                            lockedBills?.filter((key) => key.billId !== bill.id)
-                          )
-                        );
-                        setActiveBill(bill);
-                      }}
-                      xSmall
-                      type="button"
-                      variant="primary"
-                    >
-                      Unlock
-                    </Button>
-                  )}
-                </span>
-                <span className="pad-8-l">
                   <Button
                     onClick={() => {
                       setActionsView("Transfer");
@@ -157,19 +122,6 @@ function BillsListItem({
                     {base64ToHexPrefixed(bill.id)}
                   </span>
                 </div>
-                {lockedBills?.find((key) => key.billId === bill.id) && (
-                  <>
-                    <div className="flex t-small t-bold c-light pad-8-t">
-                      <span className="pad-8-r">Desc:</span>{" "}
-                      <span className="t-ellipsis">
-                        {
-                          lockedBills?.find((key) => key.billId === bill.id)
-                            ?.desc
-                        }
-                      </span>
-                    </div>
-                  </>
-                )}
               </div>
               <span className="pad-16-l">
                 <Button

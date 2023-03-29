@@ -9,7 +9,7 @@ import {
   AlphaDecimalPlaces,
   AlphaType,
 } from "../../../utils/constants";
-import { IBill, ILockedBill } from "../../../types/Types";
+import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
@@ -31,8 +31,6 @@ function BillsList(): JSX.Element | null {
   const {
     billsList,
     account,
-    lockedBills,
-    setLockedBillsLocal,
     setActionsView,
     setIsActionsViewVisible,
     setSelectedSendKey,
@@ -41,11 +39,7 @@ function BillsList(): JSX.Element | null {
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
-  const unlockedBills = billsList?.filter(
-    (b: IBill) =>
-      b.isDcBill !== true &&
-      !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-  );
+
   const DCBills = useMemo(
     () =>
       sortedListByValue
@@ -60,7 +54,6 @@ function BillsList(): JSX.Element | null {
   >();
   const [activeBill, setActiveBill] = useState<IBill>(sortedListByValue?.[0]);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
-  const [isLockFormVisible, setIsLockFormVisible] = useState<boolean>(false);
   const [visibleBillSettingID, setVisibleBillSettingID] = useState<
     string | null
   >(null);
@@ -235,7 +228,7 @@ function BillsList(): JSX.Element | null {
             <div className="t-medium-small pad-24-h">
               To consolidate your bills into one larger bill click on the{" "}
               <b>Consolidate Bills</b> button.
-              {Number(unlockedBills?.length) > DCTransfersLimit &&
+              {Number(billsList?.length) > DCTransfersLimit &&
                 " There is a limit of " +
                   DCTransfersLimit +
                   " bills per consolidation."}
@@ -302,7 +295,7 @@ function BillsList(): JSX.Element | null {
                     variant="primary"
                     working={isConsolidationLoading}
                     disabled={
-                      (unlockedBills?.length <= 1 && DCBills.length <= 0) ||
+                      (billsList?.length <= 1 && DCBills.length <= 0) ||
                       isConsolidationLoading
                     }
                     onClick={() => {
@@ -316,7 +309,7 @@ function BillsList(): JSX.Element | null {
                           account,
                           password,
                           vault,
-                          unlockedBills,
+                          billsList,
                           DCBills,
                           lastNonceIDs,
                           activeAccountId,
@@ -334,63 +327,17 @@ function BillsList(): JSX.Element | null {
             </div>
           </>
         )}
-        {Number(
-          sortedListByValue?.filter((b: IBill) =>
-            lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-          )?.length
-        ) > 0 && (
-          <>
-            <Spacer mt={8} />
-            <BillsListItem
-              title={
-                <div className="t-medium pad-24-h c-primary">
-                  LOCKED {tokenLabel.toUpperCase()}S
-                  <br />
-                  <span className="t-small">
-                    Exempt from transfers{" "}
-                    {activeAsset?.typeId === AlphaType && "& consolidation"}
-                  </span>
-                </div>
-              }
-              filteredList={sortedListByValue?.filter((b: IBill) =>
-                lockedBills?.find((key: ILockedBill) => key.billId === b.id)
-              )}
-              isLockedBills
-              setVisibleBillSettingID={setVisibleBillSettingID}
-              visibleBillSettingID={visibleBillSettingID}
-              setActiveBill={setActiveBill}
-              setIsProofVisible={(bill) => {
-                handleProof(bill);
-              }}
-              setIsLockFormVisible={setIsLockFormVisible}
-              setActionsView={setActionsView}
-              setIsActionsViewVisible={setIsActionsViewVisible}
-              setSelectedSendKey={setSelectedSendKey}
-              lockedBills={lockedBills}
-              setLockedBillsLocal={setLockedBillsLocal}
-              activeAsset={activeAsset}
-            />
-          </>
-        )}
+
         {Number(
           sortedListByValue?.filter(
             (b: IBill) =>
-              b.isDcBill !== true &&
-              !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+              b.isDcBill !== true
           )?.length
         ) >= 1 && (
           <BillsListItem
-            title={
-              <div className="t-medium pad-24-h c-primary">
-                UNLOCKED {tokenLabel.toUpperCase()}S
-              </div>
-            }
-            lockedBills={lockedBills}
-            setLockedBillsLocal={setLockedBillsLocal}
             filteredList={sortedListByValue?.filter(
               (b: IBill) =>
-                b.isDcBill !== true &&
-                !lockedBills?.find((key: ILockedBill) => key.billId === b.id)
+                b.isDcBill !== true
             )}
             setVisibleBillSettingID={setVisibleBillSettingID}
             visibleBillSettingID={visibleBillSettingID}
@@ -398,7 +345,6 @@ function BillsList(): JSX.Element | null {
             setIsProofVisible={(bill) => {
               handleProof(bill);
             }}
-            setIsLockFormVisible={setIsLockFormVisible}
             setActionsView={setActionsView}
             setIsActionsViewVisible={setIsActionsViewVisible}
             setSelectedSendKey={setSelectedSendKey}
@@ -412,8 +358,6 @@ function BillsList(): JSX.Element | null {
           setVisibleBillSettingID={setVisibleBillSettingID}
           setIsProofVisible={setIsProofVisible}
           setProofCheckStatus={setProofCheckStatus}
-          setIsLockFormVisible={setIsLockFormVisible}
-          setLockedBillsLocal={setLockedBillsLocal}
           setIsPasswordFormVisible={setIsPasswordFormVisible}
           setPassword={setPassword}
           handleDC={(formPassword) =>
@@ -426,20 +370,18 @@ function BillsList(): JSX.Element | null {
               account,
               formPassword,
               vault,
-              unlockedBills,
+              billsList,
               DCBills,
               lastNonceIDs,
               activeAccountId,
               activeAsset
             )
           }
-          lockedBills={lockedBills}
           isProofVisible={isProofVisible}
           account={account}
           activeBill={activeBill}
           proofCheckStatus={proofCheckStatus}
           isPasswordFormVisible={isPasswordFormVisible}
-          isLockFormVisible={isLockFormVisible}
           sortedListByValue={sortedListByValue}
           tokenLabel={tokenLabel}
         />
