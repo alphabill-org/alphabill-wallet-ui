@@ -63,6 +63,7 @@ function Popups({
               setIsRenamePopupVisible(false);
               resetForm();
             }}
+            validateOnBlur={false}
             validationSchema={Yup.object().shape({
               accountName: Yup.string()
                 .required("Address is required")
@@ -89,6 +90,7 @@ function Popups({
                   <Form>
                     <FormContent>
                       <Textfield
+                        focusInput={isRenamePopupVisible}
                         id="accountName"
                         name="accountName"
                         label="Public key name (max 26 characters)"

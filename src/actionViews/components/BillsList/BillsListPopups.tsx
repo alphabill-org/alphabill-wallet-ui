@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
@@ -103,6 +104,7 @@ function BillsListPopups({
             initialValues={{
               password: "",
             }}
+            validateOnBlur={false}
             validationSchema={Yup.object().shape({
               password: Yup.string().required("Password is required"),
             })}
@@ -146,6 +148,7 @@ function BillsListPopups({
                     <Form>
                       <FormContent>
                         <Textfield
+                          focusInput={Boolean(isPasswordFormVisible)}
                           id="password"
                           name="password"
                           label=""
