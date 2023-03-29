@@ -10,7 +10,6 @@ import { isString, isEqual, sortBy } from "lodash";
 
 import {
   IAccount,
-  ILockedBill,
   IFungibleResponse,
   IUserTokensListTypes,
 } from "../types/Types";
@@ -40,8 +39,6 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: "Transfer" | "List view" | "Profile" | "";
   setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
-  lockedBills: ILockedBill[];
-  setLockedBillsLocal: (e: string) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
 }
@@ -59,7 +56,6 @@ export const AppProvider: FunctionComponent<{
     useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
-  const initialLockedBills = localStorage.getItem("ab_locked_bills") || null;
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
@@ -67,15 +63,7 @@ export const AppProvider: FunctionComponent<{
   const [selectedSendKey, setSelectedSendKey] = useState<
     string | null | undefined
   >();
-  const [lockedBillsLocal, setLockedBillsLocal] = useLocalStorage(
-    "ab_locked_bills",
-    initialLockedBills
-  );
-  const lockedBills: ILockedBill[] = lockedBillsLocal
-    ? isString(lockedBillsLocal)
-      ? JSON.parse(lockedBillsLocal)
-      : lockedBillsLocal
-    : [];
+
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: userTokensList } = useGetAllUserTokens(activeAccountId);
@@ -237,8 +225,6 @@ export const AppProvider: FunctionComponent<{
         setIsActionsViewVisible,
         actionsView,
         setActionsView,
-        lockedBills,
-        setLockedBillsLocal,
         selectedSendKey,
         setSelectedSendKey,
       }}
