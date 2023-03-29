@@ -206,6 +206,7 @@ function AccountView(): JSX.Element | null {
 
             resetForm();
           }}
+          validateOnBlur={false}
           validationSchema={Yup.object().shape({
             accountName: Yup.string().test(
               "account-name-taken",
@@ -231,6 +232,7 @@ function AccountView(): JSX.Element | null {
                 <Form>
                   <FormContent>
                     <Textfield
+                      focusInput={isAddPopupVisible}
                       id="passwordAddAccount"
                       name="password"
                       label="Add your password for decryption"
@@ -320,6 +322,7 @@ function AccountView(): JSX.Element | null {
 
             resetForm();
           }}
+          validateOnBlur={false}
           validationSchema={Yup.object().shape({
             currentPassword: Yup.string().required("Password is required"),
             passwordConfirm: Yup.string().test(
@@ -344,6 +347,7 @@ function AccountView(): JSX.Element | null {
                 <Form>
                   <FormContent>
                     <Textfield
+                      focusInput={isChangePasswordPopupVisible}
                       id="currentPassword"
                       name="currentPassword"
                       label="Insert current password"
