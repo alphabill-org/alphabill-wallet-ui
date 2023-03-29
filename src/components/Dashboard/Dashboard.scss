@@ -4,7 +4,7 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  background-color: $color-secondary-op;
+  background-color: $color-blue;
 
   &__account {
     min-width: 278px;
@@ -125,43 +125,6 @@
     width: 100%;
   }
 
-  &__balance {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 0 8px;
-
-    &-amount {
-      font-weight: 400;
-      font-size: 56px;
-      line-height: 28px;
-      padding-right: 8px;
-      word-break: break-all;
-
-      &.small {
-        font-size: 40px;
-      }
-
-      &.x-small {
-        font-size: 28px;
-      }
-    }
-
-    &-id {
-      font-weight: 400;
-      font-size: 24px;
-      line-height: 24px;
-      max-width: 300px;
-      padding: 8px;
-
-      &.small,
-      &.x-small {
-        font-size: 18px;
-      }
-    }
-  }
-
   &__navbar {
     display: flex;
     justify-content: space-between;
@@ -175,8 +138,8 @@
       width: 100%;
       text-align: center;
       padding-bottom: 12px;
-      cursor: pointer;
-      transition: all .3;
+      transition: all .3s;
+      width: 50%;
 
       &.active,
       &:hover {
@@ -188,19 +151,12 @@
 
   &__info {
     background-color: $color-body-background;
-    min-height: 230px;
+    min-height: 318px;
     position: relative;
 
     &-col {
       overflow: auto;
       opacity: 0;
-      transition: all $main-transition-duration;
-      width: 100%;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
       font-weight: 600;
       font-size: 15px;
       line-height: 22px;

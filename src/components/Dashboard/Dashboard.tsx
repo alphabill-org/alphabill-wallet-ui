@@ -70,24 +70,7 @@ function Dashboard(): JSX.Element | null {
 
   return (
     <div className="dashboard">
-      <Spacer mb={48} />
-      <div className="dashboard__balance">
-        <div
-          className={classNames("dashboard__balance-amount", balanceSizeClass)}
-        >
-          {balance || "0"}
-        </div>
-        <div
-          className={classNames(
-            "dashboard__balance-id t-ellipsis",
-            balanceSizeClass
-          )}
-        >
-          {AlphaType}
-        </div>
-      </div>
       <Spacer mb={32} />
-
       <div className="dashboard__account">
         <div className="dashboard__account-id">
           <span className="dashboard__account-name">{account?.name}</span>
@@ -143,7 +126,7 @@ function Dashboard(): JSX.Element | null {
           </div>
         </div>
       </div>
-      <Spacer mb={8} />
+      <Spacer mb={16} />
       <div className="dashboard__buttons">
         <Button
           onClick={() =>

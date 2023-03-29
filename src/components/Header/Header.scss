@@ -7,6 +7,7 @@
   width: 100%;
   background-color: $color-body-background;
   justify-content: space-between;
+  border-bottom: 1px solid $color-secondary;
 
   &__ico {
     display: flex;
