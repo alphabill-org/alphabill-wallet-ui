@@ -2,14 +2,14 @@ export interface IAccount {
   pubKey: string;
   name: string;
   balance?: string;
-  assets: IAsset[];
+  assets: { fungible: IFungibleAsset[]; nft: INFTAsset[] | [] };
   activities: IActivity[];
   activeNetwork?: string;
   networks: INetwork[];
   idx?: number | string;
 }
 
-export interface IAsset {
+export interface IFungibleAsset {
   id: string;
   name: string;
   amount: string;
@@ -21,27 +21,41 @@ export interface IAsset {
   isSendable: boolean;
 }
 
-export interface IUserTokensListTypes {
+export interface INFTAsset {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
+  symbol: string;
+  nftData: string;
+  nftDataUpdatePredicate: string;
+}
+
+export interface ITokensListTypes {
   id: string; // base64 encoded hex
   parentTypeId: string; // base64 encoded hex
   symbol: string;
   subTypeCreationPredicate: string;
   tokenCreationPredicate: string;
   invariantPredicate: string;
-  decimalPlaces: number; // fungible only
+  decimalPlaces?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
+  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
 }
 
-export interface IFungibleResponse {
+export interface IListTokensResponse {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
-  amount: string; // fungible only
-  decimals: number; // fungible only
+  amount?: string; // fungible only
+  decimals?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
   symbol: string;
+  nftData?: string; // nft only
+  nftDataUpdatePredicate?: string; // nft only
 }
 
 export interface IFungibleAsset {
@@ -75,12 +89,13 @@ export interface ITypeHierarchy {
   id: string; //base64 encoded hex
   parentTypeId: string; //base64 encoded hex
   symbol: string;
-  decimalPlaces: number; // [0..8] fungible only
+  decimalPlaces?: number; // [0..8] fungible only
   kind: number; //  [2:Fungible|4:NonFungible],
   txHash: string; //base64 encoded hex - creation tx
   invariantPredicate: string;
   tokenCreationPredicate: string;
   subTypeCreationPredicate: string;
+  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
 }
 
 export interface IBill {

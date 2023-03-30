@@ -3,16 +3,18 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq, isNumber } from "lodash";
+import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
 
 import {
   IAccount,
-  IAsset,
+  IFungibleAsset,
   IBill,
   ITxProof,
   ITypeHierarchy,
+  IListTokensResponse,
+  ITokensListTypes,
 } from "../types/Types";
 import {
   AlphaType,
@@ -362,8 +364,8 @@ export const getBillsSum = (bills: IBill[]) =>
     return acc + BigInt(obj.value);
   }, 0n);
 
-export const getAssetSum = (asset: IAsset[]) =>
-  asset?.reduce((acc, obj: IAsset) => {
+export const getAssetSum = (asset: IFungibleAsset[]) =>
+  asset?.reduce((acc, obj: IFungibleAsset) => {
     return acc + BigInt(obj.amount);
   }, 0n);
 
@@ -455,8 +457,10 @@ export const invalidateAllLists = (
   assetTypeId: string,
   queryClient: QueryClient
 ) => {
-  queryClient.invalidateQueries(["tokenList", pubKey, assetTypeId]);
-  queryClient.invalidateQueries(["tokensList", pubKey]);
+  queryClient.invalidateQueries(["fungibleTokenList", pubKey, assetTypeId]);
+  queryClient.invalidateQueries(["fungibleTokensList", pubKey]);
+  queryClient.invalidateQueries(["NFTList", pubKey, assetTypeId]);
+  queryClient.invalidateQueries(["NFTsList", pubKey]);
   queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
@@ -491,4 +495,86 @@ export const createInvariantPredicateSignatures = (
   });
 };
 
-export const getTokensLabel = (typeId: string) => (typeId === AlphaType ? "bill" : "token");
+export const getTokensLabel = (typeId: string) =>
+  typeId === AlphaType ? "bill" : "token";
+
+export const getUpdatedFungibleAssets = (
+  fungibleTokensList: IListTokensResponse[] | undefined = [],
+  tokenTypes: ITokensListTypes[] | undefined = [],
+  activeAccountId: string,
+  balances: any[]
+) => {
+  let userTokens: any = [];
+  let typeIDs: string[] = [];
+
+  if (fungibleTokensList) {
+    for (let token of fungibleTokensList) {
+      if (!typeIDs.includes(token.typeId)) {
+        typeIDs.push(token.typeId);
+        userTokens.push({
+          id: token.id, // base64 encoded hex
+          typeId: token.typeId, // base64 encoded hex
+          owner: token.owner, // base64 encoded hex - bearer predicate
+          amount: token.amount, // fungible only
+          kind: token.kind,
+          decimals: token?.decimals || 0, // fungible only
+          txHash: token.txHash, // base64 encoded hex - latest tx
+          symbol: token.symbol,
+        });
+      } else {
+        for (let resultToken of userTokens) {
+          if (resultToken.typeId === token.typeId) {
+            resultToken.amount = (
+              BigInt(resultToken.amount) + BigInt(token.amount!)
+            ).toString();
+          }
+        }
+      }
+    }
+  }
+
+  const fungibleUTPAssets =
+    userTokens?.map((obj: IListTokensResponse) => ({
+      id: obj.id,
+      typeId: obj.typeId,
+      name: obj.symbol,
+      network: import.meta.env.VITE_NETWORK_NAME,
+      amount: obj.amount!.toString(),
+      decimalFactor: Number("1e" + obj.decimals),
+      decimalPlaces: obj.decimals,
+      isSendable: isTokenSendable(
+        tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
+          ?.invariantPredicate!,
+        activeAccountId
+      ),
+      UIAmount: separateDigits(addDecimal(obj.amount!, obj?.decimals || 0)),
+    })) || [];
+
+  const AlphaType = "ALPHA";
+  const AlphaDecimalFactor = 1e18;
+  const AlphaDecimalPlaces = 18;
+
+  const ALPHABalance = balances?.find(
+    (balance: any) => balance?.data?.pubKey === activeAccountId
+  )?.data?.balance;
+
+  const alphaAsset = {
+    id: AlphaType,
+    name: AlphaType,
+    network: import.meta.env.VITE_NETWORK_NAME,
+    amount: ALPHABalance,
+    decimalFactor: AlphaDecimalFactor,
+    decimalPlaces: AlphaDecimalPlaces,
+    UIAmount: separateDigits(
+      addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
+    ),
+    typeId: AlphaType,
+    isSendable: true,
+  };
+
+  const updatedFungibleAssets = sortBy(fungibleUTPAssets.concat([alphaAsset]), [
+    "id",
+  ]);
+
+  return updatedFungibleAssets;
+};

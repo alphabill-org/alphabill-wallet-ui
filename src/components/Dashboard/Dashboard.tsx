@@ -5,7 +5,7 @@ import { useQueryClient } from "react-query";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
-import { IAccount, IAsset, IFungibleAsset } from "../../types/Types";
+import { IAccount, IFungibleAsset } from "../../types/Types";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
@@ -28,7 +28,7 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets?.find((asset: IAsset) => asset.typeId === AlphaType)
+    account?.assets?.fungible?.find((asset: IFungibleAsset) => asset.typeId === AlphaType)
       ?.UIAmount || "";
 
   const balanceSizeClass =
@@ -38,14 +38,14 @@ function Dashboard(): JSX.Element | null {
         : "small"
       : "";
 
-  const [isAssetsColActive, setIsAssetsColActive] = useState(true);
+  const [activeAssetKind, setActiveAssetKind] = useState<"fungible" | "nft">("fungible");
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
   const popupRef = useRef<HTMLDivElement>(null);
-  const sortedAssets = account?.assets
-    ?.sort((a: IAsset, b: IAsset) => {
+  const sortedFungibleAssets = account?.assets?.fungible
+    ?.sort((a: IFungibleAsset, b: IFungibleAsset) => {
       if (a?.id! < b?.id!) {
         return -1;
       }
@@ -177,7 +177,7 @@ function Dashboard(): JSX.Element | null {
         <div className="dashboard__navbar">
           <div
             onClick={() => {
-              setIsAssetsColActive(true);
+              setActiveAssetKind("fungible");
               invalidateAllLists(
                 activeAccountId,
                 activeAsset.typeId,
@@ -185,24 +185,40 @@ function Dashboard(): JSX.Element | null {
               );
             }}
             className={classNames("dashboard__navbar-item", {
-              active: isAssetsColActive === true,
+              active: activeAssetKind === "fungible",
             })}
           >
-            Assets
+            Fungible
+          </div>
+
+          <div
+            onClick={() => {
+              setActiveAssetKind("nft");
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
+            }}
+            className={classNames("dashboard__navbar-item", {
+              active: activeAssetKind === "nft",
+            })}
+          >
+            Non Fungible
           </div>
         </div>
         <div className="dashboard__info">
           <div
             className={classNames("dashboard__info-col", {
-              active: isAssetsColActive === true,
+              active: activeAssetKind === "fungible",
             })}
           >
-            {sortedAssets &&
-              sortedAssets
+            {sortedFungibleAssets &&
+              sortedFungibleAssets
                 .filter(
-                  (asset: IAsset) => asset.network === account?.activeNetwork
+                  (asset: IFungibleAsset) => asset.network === account?.activeNetwork
                 )
-                .sort((a: IAsset, b: IAsset) => {
+                .sort((a: IFungibleAsset, b: IFungibleAsset) => {
                   if (a?.name! < b?.name!) {
                     return -1;
                   }
@@ -217,7 +233,7 @@ function Dashboard(): JSX.Element | null {
                   }
                   return 1;
                 })
-                .map((asset: IAsset | IFungibleAsset, idx: number) => {
+                .map((asset: IFungibleAsset | IFungibleAsset, idx: number) => {
                   return (
                     <div
                       key={idx}

@@ -10,7 +10,7 @@ import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
 import {
-  IAsset,
+  IFungibleAsset,
   IBill,
   IProofTx,
   ITransfer,
@@ -67,21 +67,21 @@ function Send(): JSX.Element | null {
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
-  const defaultAsset: { value: IAsset | undefined; label: string } = {
-    value: account?.assets
+  const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
+    value: account?.assets.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === activeAsset.typeId),
     label: activeAsset.name,
   };
-  const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
-    defaultAsset?.value
-  );
+  const [selectedAsset, setSelectedAsset] = useState<
+    IFungibleAsset | undefined
+  >(defaultAsset?.value);
 
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
       return addDecimal(
         BigInt(
-          account?.assets?.find(
+          account?.assets.fungible?.find(
             (asset) => asset.typeId === selectedAsset?.typeId
           )?.amount || "0"
         ).toString() || "0",
@@ -138,7 +138,7 @@ function Send(): JSX.Element | null {
   ]);
 
   useEffect(() => {
-    const activeAssetAmount = account?.assets
+    const activeAssetAmount = account?.assets.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
@@ -507,13 +507,13 @@ function Send(): JSX.Element | null {
                     label="Assets"
                     name="assets"
                     className={selectedSendKey ? "d-none" : ""}
-                    options={account?.assets
+                    options={account?.assets.fungible
                       ?.filter(
                         (asset) =>
                           account?.activeNetwork === asset.network &&
                           asset.isSendable
                       )
-                      .sort((a: IAsset, b: IAsset) => {
+                      .sort((a: IFungibleAsset, b: IFungibleAsset) => {
                         if (a?.name! < b?.name!) {
                           return -1;
                         }
@@ -528,7 +528,7 @@ function Send(): JSX.Element | null {
                         }
                         return 1;
                       })
-                      .map((asset: IAsset) => ({
+                      .map((asset: IFungibleAsset) => ({
                         value: asset,
                         label: asset.name,
                       }))}

@@ -6,12 +6,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import { isString, isEqual, sortBy } from "lodash";
+import { isEqual, sortBy } from "lodash";
 
 import {
   IAccount,
-  IFungibleResponse,
-  IUserTokensListTypes,
+  INFTAsset,
 } from "../types/Types";
 import {
   useGetAllTokenTypes,
@@ -19,15 +18,16 @@ import {
   useGetBalances,
   useGetBillsList,
   useGetUserTokens,
+  useGetAllNFTs,
+  useGetNFTs,
 } from "./api";
 import { useAuth } from "./useAuth";
-import { useLocalStorage } from "./useLocalStorage";
-import { addDecimal, isTokenSendable, separateDigits } from "../utils/utils";
 import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
 } from "../utils/constants";
+import { getUpdatedFungibleAssets } from "../utils/utils";
 
 interface IAppContextShape {
   balances: any;
@@ -66,29 +66,17 @@ export const AppProvider: FunctionComponent<{
 
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
-  const { data: userTokensList } = useGetAllUserTokens(activeAccountId);
-  const { data: tokenList } = useGetUserTokens(
+  const { data: fungibleTokensList } = useGetAllUserTokens(activeAccountId);
+  const { data: NFTsList } = useGetAllNFTs(activeAccountId);
+  const { data: fungibleTokenList } = useGetUserTokens(
     activeAccountId,
     activeAsset.typeId
   );
+  const { data: NFTList } = useGetNFTs(activeAccountId, activeAsset.typeId);
   const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
-  const billsList = activeAsset.typeId === AlphaType ? alphaList : tokenList;
-  const [accounts, setAccounts] = useState<IAccount[]>(
-    keysArr?.map((key, idx) => ({
-      pubKey: key,
-      idx: idx,
-      name: accountNamesObj["_" + idx],
-      assets: [],
-      activeNetwork: import.meta.env.VITE_NETWORK_NAME,
-      networks: [
-        {
-          id: import.meta.env.VITE_NETWORK_NAME,
-          isTestNetwork: true,
-        },
-      ],
-      activities: [],
-    }))
-  );
+  const billsList =
+    activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
+  const [accounts, setAccounts] = useState<IAccount[] | []>([]);
   const account = useMemo(
     () =>
       accounts?.find(
@@ -104,79 +92,17 @@ export const AppProvider: FunctionComponent<{
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
-    let userTokens: any = [];
-    let typeIDs: string[] = [];
-
-    if (userTokensList) {
-      for (let token of userTokensList) {
-        if (!typeIDs.includes(token.typeId)) {
-          typeIDs.push(token.typeId);
-          userTokens.push({
-            id: token.id, // base64 encoded hex
-            typeId: token.typeId, // base64 encoded hex
-            owner: token.owner, // base64 encoded hex - bearer predicate
-            amount: token.amount, // fungible only
-            kind: token.kind,
-            decimals: token?.decimals || 0, // fungible only
-            txHash: token.txHash, // base64 encoded hex - latest tx
-            symbol: token.symbol,
-          });
-        } else {
-          for (let resultToken of userTokens) {
-            if (resultToken.typeId === token.typeId) {
-              resultToken.amount = (
-                BigInt(resultToken.amount) + BigInt(token.amount)
-              ).toString();
-            }
-          }
-        }
-      }
-    }
-
-    const fungibleUTPAssets =
-      userTokens?.map((obj: IFungibleResponse) => ({
-        id: obj.id,
-        typeId: obj.typeId,
-        name: obj.symbol,
-        network: import.meta.env.VITE_NETWORK_NAME,
-        amount: obj.amount.toString(),
-        decimalFactor: Number("1e" + obj.decimals),
-        decimalPlaces: obj.decimals,
-        isSendable: isTokenSendable(
-          tokenTypes?.find(
-            (type: IUserTokensListTypes) => type.id === obj.typeId
-          )?.invariantPredicate!,
-          activeAccountId
-        ),
-        UIAmount: separateDigits(addDecimal(obj.amount, obj?.decimals || 0)),
-      })) || [];
-
     const hasKeys = Number(keysArr?.length) >= 1;
 
-    const ALPHABalance = balances?.find(
-      (balance: any) => balance?.data?.pubKey === activeAccountId
-    )?.data?.balance;
-
-    const alphaAsset = {
-      id: AlphaType,
-      name: AlphaType,
-      network: import.meta.env.VITE_NETWORK_NAME,
-      amount: ALPHABalance,
-      decimalFactor: AlphaDecimalFactor,
-      decimalPlaces: AlphaDecimalPlaces,
-      UIAmount: separateDigits(
-        addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
-      ),
-      typeId: AlphaType,
-      isSendable: true,
+    const assets = {
+      fungible: getUpdatedFungibleAssets(fungibleTokensList, tokenTypes, activeAccountId, balances),
+      nft: (NFTsList as INFTAsset[]) || [],
     };
 
-    const updatedAssets = sortBy(fungibleUTPAssets.concat([alphaAsset]), [
-      "id",
-    ]);
-
     if (
-      (hasKeys && !isEqual(updatedAssets, sortBy(account?.assets, ["id"]))) ||
+      (hasKeys &&
+        !isEqual(assets.fungible, sortBy(account?.assets.fungible, ["id"]))) ||
+      (hasKeys && !isEqual(assets.nft, sortBy(account?.assets?.nft, ["id"]))) ||
       keysArr?.length !== accounts.length
     ) {
       setAccounts(
@@ -184,7 +110,7 @@ export const AppProvider: FunctionComponent<{
           pubKey: key,
           idx: idx,
           name: accountNamesObj["_" + idx] || "Public key " + (idx + 1),
-          assets: updatedAssets,
+          assets: assets,
           activeNetwork: import.meta.env.VITE_NETWORK_NAME,
           activeAccount: activeAccountId,
           networks: [
@@ -208,7 +134,7 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     setActiveAccountId,
     activeAsset,
-    userTokensList,
+    fungibleTokensList,
     tokenTypes,
     account?.assets,
   ]);

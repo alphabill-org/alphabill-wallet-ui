@@ -8,7 +8,7 @@ import {
   ISwapTransferProps,
   IBill,
   IFungibleAsset,
-  IFungibleResponse,
+  IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,
 } from "../types/Types";
@@ -114,8 +114,8 @@ export const getTypeHierarchy = async (typeId: string) => {
 
 export const getUserTokens = async (
   owner: string,
+  kind: string,
   activeAsset?: string,
-  kind: string = "fungible",
   limit = 100,
   offsetKey = ""
 ) => {
@@ -159,17 +159,24 @@ export const getUserTokens = async (
     }
   }
 
-  const updatedArray = tokens?.map((obj: IFungibleResponse) => {
-    return {
+  const updatedArray = tokens?.map((obj: IListTokensResponse) => {
+    const token: any = {
       id: obj.id,
       typeId: obj.typeId,
       owner: obj.owner,
-      value: obj.amount,
-      decimals: obj.decimals,
       kind: obj.kind,
       txHash: obj.txHash,
       symbol: obj.symbol,
     };
+
+    if (kind === "fungible") {
+      token.decimals = obj.decimals;
+      token.value = obj.amount;
+    } else {
+      token.nftData = obj.nftData;
+      token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
+    }
+    return token;
   });
 
   const filteredTokens = updatedArray?.filter(
@@ -211,7 +218,7 @@ export const makeTransaction = async (
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
   const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    `${url}/transactions${pubKey ? "/" + pubKey : ''}`,
+    `${url}/transactions${pubKey ? "/" + pubKey : ""}`,
     {
       ...data,
     }
