@@ -531,18 +531,19 @@ export const getUpdatedFungibleAssets = (
   let userTokens: any = [];
   let typeIDs: string[] = [];
 
+  // This is needed to calculate the sum of tokens with same type & combine them
   if (fungibleTokensList.length >= 1) {
     for (let token of fungibleTokensList) {
       if (!typeIDs.includes(token.typeId)) {
         typeIDs.push(token.typeId);
         userTokens.push({
-          id: token.id, // base64 encoded hex
-          typeId: token.typeId, // base64 encoded hex
-          owner: token.owner, // base64 encoded hex - bearer predicate
-          amount: token.amount, // fungible only
+          id: token.id,
+          typeId: token.typeId,
+          owner: token.owner,
+          amount: token.amount,
           kind: token.kind,
-          decimals: token?.decimals || 0, // fungible only
-          txHash: token.txHash, // base64 encoded hex - latest tx
+          decimals: token?.decimals || 0,
+          txHash: token.txHash,
           symbol: token.symbol,
           network: token.network,
         });
@@ -585,10 +586,12 @@ export const getUpdatedFungibleAssets = (
     id: AlphaType,
     name: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
-    amount: "100",
+    amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
     decimalPlaces: AlphaDecimalPlaces,
-    UIAmount: separateDigits(addDecimal("100" || "0", AlphaDecimalPlaces)),
+    UIAmount: separateDigits(
+      addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
+    ),
     typeId: AlphaType,
     isSendable: true,
   };
