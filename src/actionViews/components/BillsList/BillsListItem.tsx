@@ -20,7 +20,9 @@ export interface IBillsListItemProps {
   visibleBillSettingID: string | null;
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
-  setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
+  setActionsView: (
+    e: "Transfer" | "Fungible list view" | "Profile" | "NFT list view" | ""
+  ) => void;
   setIsActionsViewVisible: (e: boolean) => void;
   setSelectedSendKey: (e: string) => void;
   activeAsset: IActiveAsset;

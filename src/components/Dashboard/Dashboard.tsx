@@ -6,17 +6,18 @@ import { useQueryClient } from "react-query";
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
 import { IAccount, IFungibleAsset } from "../../types/Types";
-import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import { ReactComponent as Sync } from "../../images/sync-ico.svg";
-import Popups from "./Popups/Popups";
+import Popups from "./components/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
 import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
 import { AlphaType } from "../../utils/constants";
+import FungibleAssetsCol from "./components/FungibleAssetsCol";
+import NFTAssetsCol from "./components/NFTAssetsCol";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -28,8 +29,9 @@ function Dashboard(): JSX.Element | null {
     setAccounts,
   } = useApp();
   const balance: string =
-    account?.assets?.fungible?.find((asset: IFungibleAsset) => asset.typeId === AlphaType)
-      ?.UIAmount || "";
+    account?.assets?.fungible?.find(
+      (asset: IFungibleAsset) => asset.typeId === AlphaType
+    )?.UIAmount || "";
 
   const balanceSizeClass =
     Number(balance?.length) > 7
@@ -38,23 +40,14 @@ function Dashboard(): JSX.Element | null {
         : "small"
       : "";
 
-  const [activeAssetKind, setActiveAssetKind] = useState<"fungible" | "nft">("fungible");
+  const [activeAssetKind, setActiveAssetKind] = useState<"fungible" | "nft">(
+    "fungible"
+  );
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
   const queryClient = useQueryClient();
   const popupRef = useRef<HTMLDivElement>(null);
-  const sortedFungibleAssets = account?.assets?.fungible
-    ?.sort((a: IFungibleAsset, b: IFungibleAsset) => {
-      if (a?.id! < b?.id!) {
-        return -1;
-      }
-      if (a?.id! > b?.id!) {
-        return 1;
-      }
-      return 0;
-    })
-    ?.filter((asset) => asset.network === account?.activeNetwork);
 
   useDocumentClick(() => {
     isAccountSettingsVisible === true && setIsAccountSettingsVisible(false);
@@ -208,90 +201,7 @@ function Dashboard(): JSX.Element | null {
           </div>
         </div>
         <div className="dashboard__info">
-          <div
-            className={classNames("dashboard__info-col", {
-              active: activeAssetKind === "fungible",
-            })}
-          >
-            {sortedFungibleAssets &&
-              sortedFungibleAssets
-                .filter(
-                  (asset: IFungibleAsset) => asset.network === account?.activeNetwork
-                )
-                .sort((a: IFungibleAsset, b: IFungibleAsset) => {
-                  if (a?.name! < b?.name!) {
-                    return -1;
-                  }
-                  if (a?.name! > b?.name!) {
-                    return 1;
-                  }
-                  return 0;
-                })
-                .sort(function (a, b) {
-                  if (a.id === AlphaType) {
-                    return -1; // Move the object with the given ID to the beginning of the array
-                  }
-                  return 1;
-                })
-                .map((asset: IFungibleAsset | IFungibleAsset, idx: number) => {
-                  return (
-                    <div
-                      key={idx}
-                      className="dashboard__info-item-wrap"
-                      onClick={() => {
-                        setActiveAssetLocal(
-                          JSON.stringify({
-                            name: asset.name,
-                            typeId: asset.typeId,
-                            decimalFactor: asset.decimalFactor,
-                            decimalPlaces: asset.decimalPlaces,
-                          })
-                        );
-                        invalidateAllLists(
-                          activeAccountId,
-                          activeAsset.typeId,
-                          queryClient
-                        );
-                      }}
-                    >
-                      <div className="dashboard__info-item-icon">
-                        {asset?.id === AlphaType ? (
-                          <div className="icon-wrap ab-logo">
-                            <ABLogo />
-                          </div>
-                        ) : (
-                          <div className="utp-icon">
-                            {(asset as IFungibleAsset)?.name[0]}
-                          </div>
-                        )}
-                      </div>
-                      <div className="dashboard__info-item-desc">
-                        <span className="t-ellipsis pad-8-r">
-                          {asset.UIAmount || 0}
-                        </span>
-                        <span className="t-ellipsis">{asset?.name}</span>
-                      </div>
-
-                      <Button
-                        variant="primary"
-                        className="m-auto-l"
-                        small
-                        onClick={() => {
-                          setActionsView("List view");
-                          setIsActionsViewVisible(true);
-                          invalidateAllLists(
-                            activeAccountId,
-                            activeAsset.typeId,
-                            queryClient
-                          );
-                        }}
-                      >
-                        Show {asset?.id === AlphaType ? " Bills" : " Tokens"}
-                      </Button>
-                    </div>
-                  );
-                })}
-          </div>
+          {activeAssetKind === "nft" ? <NFTAssetsCol /> : <FungibleAssetsCol />}
         </div>
       </div>
       <Popups

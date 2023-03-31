@@ -22,12 +22,8 @@ import {
   useGetNFTs,
 } from "./api";
 import { useAuth } from "./useAuth";
-import {
-  AlphaDecimalFactor,
-  AlphaDecimalPlaces,
-  AlphaType,
-} from "../utils/constants";
-import { getUpdatedFungibleAssets } from "../utils/utils";
+import { AlphaType } from "../utils/constants";
+import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
 
 interface IAppContextShape {
   balances: any;
@@ -37,8 +33,15 @@ interface IAppContextShape {
   account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
-  actionsView: "Transfer" | "List view" | "Profile" | "";
-  setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
+  actionsView:
+    | "Transfer"
+    | "Fungible list view"
+    | "NFT list view"
+    | "Profile"
+    | "";
+  setActionsView: (
+    e: "Transfer" | "Fungible list view" | "NFT list view" | "Profile" | ""
+  ) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
 }
@@ -87,22 +90,35 @@ export const AppProvider: FunctionComponent<{
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
   const [actionsView, setActionsView] = useState<
-    "Transfer" | "List view" | "Profile" | ""
+    "Transfer" | "Fungible list view" | "NFT list view" | "Profile" | ""
   >("");
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
     const hasKeys = Number(keysArr?.length) >= 1;
-
     const assets = {
-      fungible: getUpdatedFungibleAssets(fungibleTokensList, tokenTypes, activeAccountId, balances),
-      nft: (NFTsList as INFTAsset[]) || [],
+      fungible: getUpdatedFungibleAssets(
+        fungibleTokensList,
+        tokenTypes,
+        activeAccountId,
+        balances
+      ),
+      nft:
+        (getUpdatedNFTAssets(
+          NFTsList,
+          tokenTypes,
+          activeAccountId
+        ) as INFTAsset[]) || [],
     };
 
     if (
       (hasKeys &&
         !isEqual(assets.fungible, sortBy(account?.assets.fungible, ["id"]))) ||
-      (hasKeys && !isEqual(assets.nft, sortBy(account?.assets?.nft, ["id"]))) ||
+      (hasKeys &&
+        !isEqual(
+          sortBy(assets.nft, ["id"]),
+          sortBy(account?.assets?.nft, ["id"])
+        )) ||
       keysArr?.length !== accounts.length
     ) {
       setAccounts(
@@ -137,6 +153,7 @@ export const AppProvider: FunctionComponent<{
     fungibleTokensList,
     tokenTypes,
     account?.assets,
+    NFTsList,
   ]);
 
   return (

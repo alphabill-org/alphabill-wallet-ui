@@ -17,6 +17,8 @@ import {
   ITokensListTypes,
 } from "../types/Types";
 import {
+  AlphaDecimalFactor,
+  AlphaDecimalPlaces,
   AlphaType,
   opCheckSig,
   opDup,
@@ -498,6 +500,28 @@ export const createInvariantPredicateSignatures = (
 export const getTokensLabel = (typeId: string) =>
   typeId === AlphaType ? "bill" : "token";
 
+export const getUpdatedNFTAssets = (
+  NFTsList: IListTokensResponse[] | undefined = [],
+  tokenTypes: ITokensListTypes[] | undefined = [],
+  activeAccountId: string
+) => {
+  return (
+    NFTsList?.map((nft) => {
+      return Object.assign(nft, {
+        isSendable: isTokenSendable(
+          tokenTypes?.find((type: ITokensListTypes) => type.id === nft.typeId)
+            ?.invariantPredicate!,
+          activeAccountId
+        ),
+        amountOfSameType:
+          NFTsList.filter(
+            (obj: IListTokensResponse) => obj.typeId === nft.typeId
+          )?.length || "0",
+      });
+    }) || []
+  );
+};
+
 export const getUpdatedFungibleAssets = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
   tokenTypes: ITokensListTypes[] | undefined = [],
@@ -507,7 +531,7 @@ export const getUpdatedFungibleAssets = (
   let userTokens: any = [];
   let typeIDs: string[] = [];
 
-  if (fungibleTokensList) {
+  if (fungibleTokensList.length >= 1) {
     for (let token of fungibleTokensList) {
       if (!typeIDs.includes(token.typeId)) {
         typeIDs.push(token.typeId);
@@ -520,10 +544,11 @@ export const getUpdatedFungibleAssets = (
           decimals: token?.decimals || 0, // fungible only
           txHash: token.txHash, // base64 encoded hex - latest tx
           symbol: token.symbol,
+          network: token.network,
         });
       } else {
         for (let resultToken of userTokens) {
-          if (resultToken.typeId === token.typeId) {
+          if (resultToken.typeId === token.typeId && token?.amount) {
             resultToken.amount = (
               BigInt(resultToken.amount) + BigInt(token.amount!)
             ).toString();
@@ -538,8 +563,8 @@ export const getUpdatedFungibleAssets = (
       id: obj.id,
       typeId: obj.typeId,
       name: obj.symbol,
-      network: import.meta.env.VITE_NETWORK_NAME,
-      amount: obj.amount!.toString(),
+      network: obj.network,
+      amount: obj.amount?.toString(),
       decimalFactor: Number("1e" + obj.decimals),
       decimalPlaces: obj.decimals,
       isSendable: isTokenSendable(
@@ -547,12 +572,10 @@ export const getUpdatedFungibleAssets = (
           ?.invariantPredicate!,
         activeAccountId
       ),
-      UIAmount: separateDigits(addDecimal(obj.amount!, obj?.decimals || 0)),
+      UIAmount: separateDigits(
+        addDecimal(obj.amount || "0", obj.decimals || 0)
+      ),
     })) || [];
-
-  const AlphaType = "ALPHA";
-  const AlphaDecimalFactor = 1e18;
-  const AlphaDecimalPlaces = 18;
 
   const ALPHABalance = balances?.find(
     (balance: any) => balance?.data?.pubKey === activeAccountId
@@ -562,12 +585,10 @@ export const getUpdatedFungibleAssets = (
     id: AlphaType,
     name: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
-    amount: ALPHABalance,
+    amount: "100",
     decimalFactor: AlphaDecimalFactor,
     decimalPlaces: AlphaDecimalPlaces,
-    UIAmount: separateDigits(
-      addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
-    ),
+    UIAmount: separateDigits(addDecimal("100" || "0", AlphaDecimalPlaces)),
     typeId: AlphaType,
     isSendable: true,
   };
@@ -578,3 +599,21 @@ export const getUpdatedFungibleAssets = (
 
   return updatedFungibleAssets;
 };
+
+const sortByTypeId = (arr: any) =>
+  arr.sort((a: any, b: any) =>
+    a.typeId < b.typeId ? -1 : a.typeId > b.typeId ? 1 : 0
+  );
+
+const filterUniqueTypes = (arr: any) =>
+  arr.filter(
+    ({ typeId }: any, index: any, array: any) =>
+      index === 0 || typeId !== array[index - 1].typeId
+  );
+
+const sortBySymbol = (arr: any) =>
+  arr.sort((a: any, b: any) =>
+    a.symbol < b.symbol ? -1 : a.symbol > b.symbol ? 1 : 0
+  );
+
+export { sortByTypeId, filterUniqueTypes, sortBySymbol };

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
@@ -12,7 +11,6 @@ import {
   extractFormikError,
   getKeys,
 } from "../../../utils/utils";
-import Popup from "../../../components/Popup/Popup";
 
 import Check from "./../../../images/checkmark.gif";
 import { useAuth } from "../../../hooks/useAuth";
@@ -39,7 +37,6 @@ export interface IBillsListItemProps {
 }
 
 function BillsListPopups({
-  setVisibleBillSettingID,
   setIsProofVisible,
   setProofCheckStatus,
   setIsPasswordFormVisible,
@@ -50,7 +47,6 @@ function BillsListPopups({
   activeBill,
   proofCheckStatus,
   isPasswordFormVisible,
-  sortedListByValue,
   tokenLabel,
 }: IBillsListItemProps): JSX.Element | null {
   const { vault } = useAuth();

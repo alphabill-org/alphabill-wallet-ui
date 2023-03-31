@@ -67,7 +67,7 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
 };
 
 export const fetchAllTypes = async (
-  kind: string = "fungible",
+  kind: string = "all",
   limit: number = 100,
   offsetKey: string = ""
 ) => {
@@ -159,7 +159,7 @@ export const getUserTokens = async (
     }
   }
 
-  const updatedArray = tokens?.map((obj: IListTokensResponse) => {
+  const updatedArray = await tokens?.map((obj: IListTokensResponse) => {
     const token: any = {
       id: obj.id,
       typeId: obj.typeId,
@@ -167,23 +167,25 @@ export const getUserTokens = async (
       kind: obj.kind,
       txHash: obj.txHash,
       symbol: obj.symbol,
+      network: import.meta.env.VITE_NETWORK_NAME,
     };
 
     if (kind === "fungible") {
       token.decimals = obj.decimals;
-      token.value = obj.amount;
+      token.amount = obj.amount;
     } else {
       token.nftData = obj.nftData;
       token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
     }
+
     return token;
   });
 
-  const filteredTokens = updatedArray?.filter(
+  const filteredTokens = await updatedArray?.filter(
     (token: IFungibleAsset) => token.typeId === activeAsset
   );
 
-  return activeAsset ? filteredTokens : tokens;
+  return activeAsset ? filteredTokens : updatedArray;
 };
 
 export const getProof = async (billID: string): Promise<any> => {

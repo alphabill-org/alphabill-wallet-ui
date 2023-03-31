@@ -30,6 +30,8 @@ export interface INFTAsset {
   symbol: string;
   nftData: string;
   nftDataUpdatePredicate: string;
+  network: string;
+  amountOfSameType?: string;
 }
 
 export interface ITokensListTypes {
@@ -54,8 +56,10 @@ export interface IListTokensResponse {
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
   symbol: string;
+  nftUri?: string;
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
+  network: string;
 }
 
 export interface IFungibleAsset {

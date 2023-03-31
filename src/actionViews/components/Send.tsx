@@ -475,7 +475,7 @@ function Send(): JSX.Element | null {
                           or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("List view");
+                              setActionsView("Fungible list view");
                               setIsActionsViewVisible(true);
                               setSelectedSendKey(null);
                               invalidateAllLists(
@@ -631,7 +631,7 @@ function Send(): JSX.Element | null {
           <Button
             small
             onClick={() => {
-              setActionsView("List view");
+              setActionsView("Fungible list view");
               setIsActionsViewVisible(true);
               invalidateAllLists(
                 activeAccountId,

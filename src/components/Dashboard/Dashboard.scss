@@ -193,7 +193,6 @@
 
     &-col {
       overflow: auto;
-      opacity: 0;
       transition: all $main-transition-duration;
       width: 100%;
       position: absolute;
@@ -204,15 +203,9 @@
       font-weight: 600;
       font-size: 15px;
       line-height: 22px;
-      pointer-events: none;
 
       &.relative {
         position: relative;
-      }
-
-      &.active {
-        opacity: 1;
-        pointer-events: all;
       }
     }
 

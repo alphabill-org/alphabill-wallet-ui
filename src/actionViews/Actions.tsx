@@ -33,13 +33,13 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === "List view" ? activeAsset.name : actionsView}
+          {actionsView === "Fungible list view" ? activeAsset.name : actionsView}
         </div>
       </div>
       <div className="actions__view">
         {actionsView === "Transfer" ? (
           <Send />
-        ) : actionsView === "List view" ? (
+        ) : actionsView === "Fungible list view" ? (
           <BillsList />
         ) : actionsView === "Profile" && accounts ? (
           <AccountView />
