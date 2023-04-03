@@ -1,3 +1,4 @@
+import { useState } from "react";
 import classNames from "classnames";
 
 import Button from "../components/Button/Button";
@@ -7,6 +8,9 @@ import Send from "./components/Send";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
+import TransferNFTs from "./components/TransferNFTs";
+import Navbar from "../components/Navbar/Navbar";
+import Spacer from "../components/Spacer/Spacer";
 
 function Actions(): JSX.Element | null {
   const {
@@ -17,6 +21,8 @@ function Actions(): JSX.Element | null {
     setSelectedSendKey,
   } = useApp();
   const { activeAsset } = useAuth();
+  const [isFungibleTransfer, setIsFungibleTransfer] = useState<boolean>(true);
+
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
@@ -33,12 +39,24 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === "Fungible list view" ? activeAsset.name : actionsView}
+          {actionsView === "Fungible list view"
+            ? activeAsset.name
+            : actionsView}
         </div>
       </div>
       <div className="actions__view">
+        {actionsView === "Transfer" && (
+          <>
+            <Spacer mt={8} />
+            <Navbar onChange={(v: boolean) => setIsFungibleTransfer(v)} />
+          </>
+        )}
         {actionsView === "Transfer" ? (
-          <Send />
+          isFungibleTransfer ? (
+            <Send />
+          ) : (
+            <TransferNFTs />
+          )
         ) : actionsView === "Fungible list view" ? (
           <BillsList />
         ) : actionsView === "Profile" && accounts ? (

@@ -162,30 +162,6 @@
     }
   }
 
-  &__navbar {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid $color-secondary;
-
-    &-item {
-      font-weight: 600;
-      font-size: 15px;
-      line-height: 22px;
-      color: $color-underpants;
-      width: 50%;
-      text-align: center;
-      padding-bottom: 12px;
-      cursor: pointer;
-      transition: all .3;
-
-      &.active,
-      &:hover {
-        color: $color-light;
-        border-bottom: 2px solid $color-link;
-      }
-    }
-  }
-
   &__info {
     background-color: $color-body-background;
     min-height: 230px;
@@ -281,6 +257,30 @@
       &-bill {
         overflow: auto;
       }
+    }
+  }
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid $color-secondary;
+
+  &-item {
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 22px;
+    color: $color-underpants;
+    width: 50%;
+    text-align: center;
+    padding-bottom: 12px;
+    cursor: pointer;
+    transition: all .3;
+
+    &.active,
+    &:hover {
+      color: $color-light;
+      border-bottom: 2px solid $color-link;
     }
   }
 }

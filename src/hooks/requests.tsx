@@ -11,6 +11,7 @@ import {
   IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,
+  INFTTransferPayload,
 } from "../types/Types";
 import { base64ToHexPrefixed } from "../utils/utils";
 
@@ -172,7 +173,7 @@ export const getUserTokens = async (
 
     if (kind === "fungible") {
       token.decimals = obj.decimals;
-      token.amount = obj.amount;
+      token.value = obj.amount;
     } else {
       token.nftData = obj.nftData;
       token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
@@ -215,7 +216,7 @@ export const getBlockHeight = async (isAlpha: boolean): Promise<bigint> => {
 };
 
 export const makeTransaction = async (
-  data: ITransfer,
+  data: ITransfer | INFTTransferPayload,
   pubKey?: string
 ): Promise<{ data: ITransfer }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;

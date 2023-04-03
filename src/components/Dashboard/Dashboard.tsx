@@ -18,6 +18,7 @@ import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
 import { AlphaType } from "../../utils/constants";
 import FungibleAssetsCol from "./components/FungibleAssetsCol";
 import NFTAssetsCol from "./components/NFTAssetsCol";
+import Navbar from "../Navbar/Navbar";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -40,9 +41,7 @@ function Dashboard(): JSX.Element | null {
         : "small"
       : "";
 
-  const [activeAssetKind, setActiveAssetKind] = useState<"fungible" | "nft">(
-    "fungible"
-  );
+  const [isFungibleActive, setIsFungibleActive] = useState<boolean>(true);
   const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
   const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
     useState(false);
@@ -167,41 +166,9 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Spacer mb={32} />
       <div className="dashboard__footer">
-        <div className="dashboard__navbar">
-          <div
-            onClick={() => {
-              setActiveAssetKind("fungible");
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
-            }}
-            className={classNames("dashboard__navbar-item", {
-              active: activeAssetKind === "fungible",
-            })}
-          >
-            Fungible
-          </div>
-
-          <div
-            onClick={() => {
-              setActiveAssetKind("nft");
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
-            }}
-            className={classNames("dashboard__navbar-item", {
-              active: activeAssetKind === "nft",
-            })}
-          >
-            Non Fungible
-          </div>
-        </div>
+        <Navbar onChange={(v: boolean) => setIsFungibleActive(v)} />
         <div className="dashboard__info">
-          {activeAssetKind === "nft" ? <NFTAssetsCol /> : <FungibleAssetsCol />}
+          {isFungibleActive === true ? <FungibleAssetsCol /> : <NFTAssetsCol />}
         </div>
       </div>
       <Popups

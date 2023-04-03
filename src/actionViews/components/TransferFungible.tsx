@@ -53,7 +53,7 @@ import {
 
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
-function Send(): JSX.Element | null {
+export default function TransferFungible(): JSX.Element | null {
   const {
     setIsActionsViewVisible,
     isActionsViewVisible,
@@ -76,6 +76,16 @@ function Send(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | undefined
   >(defaultAsset?.value);
+  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
+  const tokenLabel = getTokensLabel(activeAsset.typeId);
+  const selectedBill = billsList?.find(
+    (bill: IBill) => bill.id === selectedSendKey
+  );
+  const selectedBillValue = selectedBill?.value || "";
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const initialBlockHeight = useRef<bigint | null | undefined>(null);
+  const balanceAfterSending = useRef<bigint | null>(null);
+  const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
@@ -93,18 +103,6 @@ function Send(): JSX.Element | null {
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
-  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
-  const tokenLabel = getTokensLabel(activeAsset.typeId);
-
-  const selectedBill = billsList?.find(
-    (bill: IBill) => bill.id === selectedSendKey
-  );
-  const selectedBillValue = selectedBill?.value || "";
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<bigint | null | undefined>(null);
-  const balanceAfterSending = useRef<bigint | null>(null);
-
-  const [isSending, setIsSending] = useState<boolean>(false);
 
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
@@ -650,5 +648,3 @@ function Send(): JSX.Element | null {
     </div>
   );
 }
-
-export default Send;

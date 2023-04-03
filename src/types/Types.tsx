@@ -32,6 +32,21 @@ export interface INFTAsset {
   nftDataUpdatePredicate: string;
   network: string;
   amountOfSameType?: string;
+  isSendable?: boolean;
+}
+
+export interface INFTTransferPayload {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    nftType: string;
+    backlink: string;
+    newBearer?: string;
+    invariantPredicateSignatures?: string[];
+  };
+  timeout: string;
+  ownerProof: string;
 }
 
 export interface ITokensListTypes {
@@ -52,6 +67,7 @@ export interface IListTokensResponse {
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
   amount?: string; // fungible only
+  value?: string; // fungible only
   decimals?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx

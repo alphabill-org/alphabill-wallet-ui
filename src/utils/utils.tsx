@@ -540,7 +540,7 @@ export const getUpdatedFungibleAssets = (
           id: token.id,
           typeId: token.typeId,
           owner: token.owner,
-          amount: token.amount,
+          amount: token.value,
           kind: token.kind,
           decimals: token?.decimals || 0,
           txHash: token.txHash,
@@ -549,9 +549,10 @@ export const getUpdatedFungibleAssets = (
         });
       } else {
         for (let resultToken of userTokens) {
-          if (resultToken.typeId === token.typeId && token?.amount) {
+
+          if (resultToken.typeId === token.typeId && token?.value) {
             resultToken.amount = (
-              BigInt(resultToken.amount) + BigInt(token.amount!)
+              BigInt(resultToken.amount) + BigInt(token.value!)
             ).toString();
           }
         }

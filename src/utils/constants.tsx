@@ -32,6 +32,8 @@ export const TokensSplitType =
   tokensTypeURLPrefix + "SplitFungibleTokenAttributes";
 export const TokensTransferType =
   tokensTypeURLPrefix + "TransferFungibleTokenAttributes";
+export const NFTTokensTransferType =
+  tokensTypeURLPrefix + "TransferNonFungibleTokenAttributes";
 
 export const AlphaSystemId = "AAAAAA==";
 export const TokensSystemId = "AAAAAg==";

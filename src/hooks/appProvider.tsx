@@ -8,10 +8,7 @@ import {
 } from "react";
 import { isEqual, sortBy } from "lodash";
 
-import {
-  IAccount,
-  INFTAsset,
-} from "../types/Types";
+import { IAccount, IListTokensResponse, INFTAsset } from "../types/Types";
 import {
   useGetAllTokenTypes,
   useGetAllUserTokens,
@@ -28,6 +25,7 @@ import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
 interface IAppContextShape {
   balances: any;
   billsList: any;
+  NFTList: IListTokensResponse[] | undefined;
   accounts: IAccount[];
   setAccounts: (e: IAccount[]) => void;
   account: IAccount;
@@ -159,6 +157,7 @@ export const AppProvider: FunctionComponent<{
   return (
     <AppContext.Provider
       value={{
+        NFTList,
         billsList,
         balances,
         accounts,
