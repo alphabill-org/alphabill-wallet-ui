@@ -23,7 +23,7 @@ interface IUserContext {
   setVault: (e: string) => void;
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
-  activeAsset: IActiveAsset;
+  activeAsset: any;
   setActiveAssetLocal: (e: string) => void;
 }
 

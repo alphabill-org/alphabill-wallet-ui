@@ -2,11 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
-import { addDecimal, getTokensLabel } from "../../../utils/utils";
+import { getTokensLabel } from "../../../utils/utils";
 import {
   DCTransfersLimit,
   swapTimeout,
-  AlphaDecimalPlaces,
   AlphaType,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
@@ -17,7 +16,6 @@ import Button from "../../../components/Button/Button";
 import { getBlockHeight, getProof } from "../../../hooks/requests";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Verify } from "../../../utils/validators";
-import BillsListItem from "./BillsListItem";
 import BillsListPopups from "./BillsListPopups";
 import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
 import {
@@ -25,16 +23,11 @@ import {
   base64ToHexPrefixed,
   sortBillsByID,
 } from "../../../utils/utils";
+import AssetsList from "../../../components/AssetsList/AssetsList";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const {
-    billsList,
-    account,
-    setActionsView,
-    setIsActionsViewVisible,
-    setSelectedSendKey,
-  } = useApp();
+  const { billsList, account } = useApp();
   // Bills lists
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
@@ -52,11 +45,7 @@ function BillsList(): JSX.Element | null {
   const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
     "proofCheck" | "handleDC" | null | undefined
   >();
-  const [activeBill, setActiveBill] = useState<IBill>(sortedListByValue?.[0]);
   const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
-  const [visibleBillSettingID, setVisibleBillSettingID] = useState<
-    string | null
-  >(null);
 
   // Swap related hooks
   const [isConsolidationLoading, setIsConsolidationLoading] =
@@ -88,7 +77,6 @@ function BillsList(): JSX.Element | null {
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null>(null);
-  let DCDenomination: string | null = null;
 
   // Bills list functions
   const handleProof = (bill: IBill) => {
@@ -225,7 +213,7 @@ function BillsList(): JSX.Element | null {
         {activeAsset.typeId === AlphaType && (
           <>
             <Spacer mt={16} />
-            <div className="t-medium-small pad-24-h">
+            <div className="t-medium-small pad-16-h">
               To consolidate your bills into one larger bill click on the{" "}
               <b>Consolidate Bills</b> button.
               {Number(billsList?.length) > DCTransfersLimit &&
@@ -233,57 +221,7 @@ function BillsList(): JSX.Element | null {
                   DCTransfersLimit +
                   " bills per consolidation."}
             </div>
-
-            <div>
-              {Number(DCBills?.length) > 0 && (
-                <>
-                  <Spacer mt={16} />
-                  <div className="t-medium pad-24-h c-primary">
-                    BILLS READY FOR CONSOLIDATION
-                  </div>
-                  <Spacer mt={3} />
-                </>
-              )}
-
-              {DCBills?.map((bill: IBill, idx: number) => {
-                const isNewDenomination = DCDenomination !== bill.value && true;
-                DCDenomination = bill.value;
-
-                return (
-                  <div key={bill.id + idx}>
-                    {isNewDenomination && (
-                      <>
-                        {idx !== 0 && <Spacer mt={8} />}
-                        <div className="t-medium-small t-bold pad-24-h flex flex-align-c flex-justify-sb">
-                          Denomination:{" "}
-                          {addDecimal(
-                            bill.value,
-                            activeAsset.typeId === AlphaType
-                              ? AlphaDecimalPlaces
-                              : bill?.decimals || 0
-                          )}
-                        </div>
-                        <Spacer mb={2} />
-                      </>
-                    )}
-                    <div
-                      key={bill.id}
-                      className="dashboard__info-item-wrap small"
-                    >
-                      <div className="dashboard__info-item-bill">
-                        <div className="flex t-small t-bold c-light pad-8-t">
-                          <span className="pad-8-r">ID:</span>{" "}
-                          <span className="t-ellipsis">
-                            {base64ToHexPrefixed(bill.id)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="t-medium-small pad-24-h">
+            <div className="t-medium-small pad-16-h">
               {activeAsset.typeId === AlphaType && (
                 <>
                   {" "}
@@ -324,38 +262,31 @@ function BillsList(): JSX.Element | null {
                   </Button>
                 </>
               )}
+              <Spacer mt={8} />
             </div>
           </>
         )}
-
+        <Spacer mt={24} />
         {Number(
-          sortedListByValue?.filter(
-            (b: IBill) =>
-              b.isDcBill !== true
-          )?.length
+          sortedListByValue?.filter((b: IBill) => b.isDcBill !== true)?.length
         ) >= 1 && (
-          <BillsListItem
-            filteredList={sortedListByValue?.filter(
-              (b: IBill) =>
-                b.isDcBill !== true
+          <AssetsList
+            assetList={sortedListByValue?.filter(
+              (b: IBill) => b.isDcBill !== true
             )}
-            setVisibleBillSettingID={setVisibleBillSettingID}
-            visibleBillSettingID={visibleBillSettingID}
-            setActiveBill={setActiveBill}
-            setIsProofVisible={(bill) => {
-              handleProof(bill);
+            isSingle
+            setIsProofVisible={(asset) => {
+              handleProof(asset);
             }}
-            setActionsView={setActionsView}
-            setIsActionsViewVisible={setIsActionsViewVisible}
-            setSelectedSendKey={setSelectedSendKey}
-            activeAsset={activeAsset}
+            isProofButton
+            isTransferButton
+            isHoverDisabled
           />
         )}
         <Spacer mt={32} />
       </div>
       {!isConsolidationLoading && (
         <BillsListPopups
-          setVisibleBillSettingID={setVisibleBillSettingID}
           setIsProofVisible={setIsProofVisible}
           setProofCheckStatus={setProofCheckStatus}
           setIsPasswordFormVisible={setIsPasswordFormVisible}
@@ -379,7 +310,7 @@ function BillsList(): JSX.Element | null {
           }
           isProofVisible={isProofVisible}
           account={account}
-          activeBill={activeBill}
+          activeBill={activeAsset}
           proofCheckStatus={proofCheckStatus}
           isPasswordFormVisible={isPasswordFormVisible}
           sortedListByValue={sortedListByValue}

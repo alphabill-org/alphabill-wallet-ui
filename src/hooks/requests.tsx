@@ -13,7 +13,16 @@ import {
   IRoundNumber,
   INFTTransferPayload,
 } from "../types/Types";
-import { base64ToHexPrefixed } from "../utils/utils";
+import {
+  AlphaDecimalFactor,
+  AlphaDecimalPlaces,
+  AlphaType,
+} from "../utils/constants";
+import {
+  addDecimal,
+  base64ToHexPrefixed,
+  separateDigits,
+} from "../utils/utils";
 
 export const MONEY_NODE_URL = import.meta.env.VITE_MONEY_NODE_URL;
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
@@ -58,9 +67,22 @@ export const getBillsList = async (pubKey: string): Promise<any> => {
     );
 
     const { bills, total } = response.data;
-    totalBills = total;
-    billsList = billsList.concat(bills);
+    const billsWithType = bills.map((bill) =>
+      Object.assign(bill, {
+        typeId: AlphaType,
+        name: AlphaType,
+        network: import.meta.env.VITE_NETWORK_NAME,
+        decimalFactor: AlphaDecimalFactor,
+        decimalPlaces: AlphaDecimalPlaces,
+        UIAmount: separateDigits(
+          addDecimal(bill.value || "0", AlphaDecimalPlaces)
+        ),
+        isSendable: true,
+      })
+    );
 
+    totalBills = total;
+    billsList = billsList.concat(billsWithType);
     offset += limit;
   }
 

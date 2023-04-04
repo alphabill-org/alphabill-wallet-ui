@@ -542,12 +542,7 @@ export default function TransferFungible(): JSX.Element | null {
                         activeAsset.typeId,
                         queryClient
                       );
-                      setActiveAssetLocal(
-                        JSON.stringify({
-                          name: option.name,
-                          typeId: option.typeId || option.name,
-                        })
-                      );
+                      setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
                   <Spacer mb={8} />

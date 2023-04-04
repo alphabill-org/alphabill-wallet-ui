@@ -19,7 +19,6 @@ import { Verify } from "../../../utils/validators";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 
 export interface IBillsListItemProps {
-  setVisibleBillSettingID: (e: string | null) => void;
   setIsProofVisible: (e: boolean) => void;
   setIsPasswordFormVisible: (
     e: "proofCheck" | "handleDC" | null | undefined

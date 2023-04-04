@@ -4,7 +4,7 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  background-color: $color-secondary-op;
+  background-color: $color-blue;
 
   &__account {
     min-width: 278px;
@@ -166,98 +166,6 @@
     background-color: $color-body-background;
     min-height: 230px;
     position: relative;
-
-    &-col {
-      overflow: auto;
-      transition: all $main-transition-duration;
-      width: 100%;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      font-weight: 600;
-      font-size: 15px;
-      line-height: 22px;
-
-      &.relative {
-        position: relative;
-      }
-    }
-
-    &-item {
-      &-wrap {
-        padding: 20px 0 16px;
-        margin: 0 24px;
-        display: flex;
-        border-bottom: 1px solid $color-secondary;
-        display: flex;
-        align-items: center;
-
-        &.small {
-          padding: 0;
-          align-items: baseline;
-        }
-
-        .button--small {
-          font-size: 12px;
-          width: 92px;
-          padding: 8px;
-          line-height: 14px;
-          height: auto;
-        }
-      }
-
-      &-icon {
-        padding-right: 10px;
-
-        .ab-logo svg,
-        .ab-logo path {
-          fill: $color-secondary;
-          width: 18px;
-          margin-right: -2px;
-        }
-
-        .utp-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: $color-white;
-          color: $color-secondary;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          font-size: 18px;
-        }
-
-        .receive {
-          transform: rotate(180deg);
-        }
-      }
-
-      &-type {
-        margin-right: auto;
-        padding-right: 10px;
-        max-width: 76%;
-      }
-
-      &-amount {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-      }
-
-      &-desc {
-        max-width: 182px;
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      &-bill {
-        overflow: auto;
-      }
-    }
   }
 }
 

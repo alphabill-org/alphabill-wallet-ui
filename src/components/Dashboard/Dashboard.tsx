@@ -151,7 +151,11 @@ function Dashboard(): JSX.Element | null {
           onClick={() => {
             setActionsView("Transfer");
             setActiveAssetLocal(
-              JSON.stringify({ name: AlphaType, typeId: AlphaType })
+              JSON.stringify(
+                account.assets.fungible.find(
+                  (asset) => asset.typeId === AlphaType
+                )
+              )
             );
             setIsActionsViewVisible(true);
             invalidateAllLists(

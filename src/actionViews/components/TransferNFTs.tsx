@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
@@ -30,7 +30,6 @@ import {
   createOwnerProof,
   createNewBearer,
   invalidateAllLists,
-  addDecimal,
   createInvariantPredicateSignatures,
 } from "../../utils/utils";
 import {
@@ -101,7 +100,7 @@ export default function TransferNFTs(): JSX.Element | null {
         initialValues={{
           assets: {
             value: "",
-            label: ""
+            label: "",
           },
           address: "",
           password: "",
@@ -174,10 +173,12 @@ export default function TransferNFTs(): JSX.Element | null {
                     signatures;
 
                   const dataWithProof = {
-                    transactions: [Object.assign(tokenData, {
-                      ownerProof: proof.ownerProof,
-                      timeout: (blockHeight + timeoutBlocks).toString(),
-                    })],
+                    transactions: [
+                      Object.assign(tokenData, {
+                        ownerProof: proof.ownerProof,
+                        timeout: (blockHeight + timeoutBlocks).toString(),
+                      }),
+                    ],
                   } as any;
 
                   proof.isSignatureValid &&
@@ -322,12 +323,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         activeAsset.typeId,
                         queryClient
                       );
-                      setActiveAssetLocal(
-                        JSON.stringify({
-                          name: option.id,
-                          typeId: option.typeId || option.name,
-                        })
-                      );
+                      setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
                   <Spacer mb={8} />

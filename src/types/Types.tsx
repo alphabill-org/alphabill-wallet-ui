@@ -339,3 +339,10 @@ export interface IDCTransferProps {
   timeout: string;
   ownerProof: string;
 }
+
+export type IActionVies =
+  | "Transfer"
+  | "Fungible list view"
+  | "NFT list view"
+  | "Profile"
+  | "";

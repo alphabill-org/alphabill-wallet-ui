@@ -8,7 +8,12 @@ import {
 } from "react";
 import { isEqual, sortBy } from "lodash";
 
-import { IAccount, IListTokensResponse, INFTAsset } from "../types/Types";
+import {
+  IAccount,
+  IActionVies,
+  IListTokensResponse,
+  INFTAsset,
+} from "../types/Types";
 import {
   useGetAllTokenTypes,
   useGetAllUserTokens,
@@ -31,15 +36,8 @@ interface IAppContextShape {
   account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
-  actionsView:
-    | "Transfer"
-    | "Fungible list view"
-    | "NFT list view"
-    | "Profile"
-    | "";
-  setActionsView: (
-    e: "Transfer" | "Fungible list view" | "NFT list view" | "Profile" | ""
-  ) => void;
+  actionsView: IActionVies;
+  setActionsView: (e: IActionVies) => void;
   selectedSendKey: string | null | undefined;
   setSelectedSendKey: (e: string | null) => void;
 }
@@ -87,9 +85,7 @@ export const AppProvider: FunctionComponent<{
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
-  const [actionsView, setActionsView] = useState<
-    "Transfer" | "Fungible list view" | "NFT list view" | "Profile" | ""
-  >("");
+  const [actionsView, setActionsView] = useState<IActionVies>("");
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {

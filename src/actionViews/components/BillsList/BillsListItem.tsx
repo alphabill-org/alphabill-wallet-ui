@@ -1,6 +1,6 @@
 import { useQueryClient } from "react-query";
 
-import { IActiveAsset, IBill } from "../../../types/Types";
+import { IActionVies, IActiveAsset, IBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
@@ -20,9 +20,7 @@ export interface IBillsListItemProps {
   visibleBillSettingID: string | null;
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
-  setActionsView: (
-    e: "Transfer" | "Fungible list view" | "Profile" | "NFT list view" | ""
-  ) => void;
+  setActionsView: (e: IActionVies) => void;
   setIsActionsViewVisible: (e: boolean) => void;
   setSelectedSendKey: (e: string) => void;
   activeAsset: IActiveAsset;

@@ -11,6 +11,7 @@ import { useAuth } from "../hooks/useAuth";
 import TransferNFTs from "./components/TransferNFTs";
 import Navbar from "../components/Navbar/Navbar";
 import Spacer from "../components/Spacer/Spacer";
+import AssetsList from "../components/AssetsList/AssetsList";
 
 function Actions(): JSX.Element | null {
   const {
@@ -19,6 +20,7 @@ function Actions(): JSX.Element | null {
     actionsView,
     accounts,
     setSelectedSendKey,
+    NFTList,
   } = useApp();
   const { activeAsset } = useAuth();
   const [isFungibleTransfer, setIsFungibleTransfer] = useState<boolean>(true);
@@ -59,6 +61,8 @@ function Actions(): JSX.Element | null {
           )
         ) : actionsView === "Fungible list view" ? (
           <BillsList />
+        ) : actionsView === "NFT list view" ? (
+          <AssetsList assetList={NFTList} isTransferButton isHoverDisabled />
         ) : actionsView === "Profile" && accounts ? (
           <AccountView />
         ) : (
