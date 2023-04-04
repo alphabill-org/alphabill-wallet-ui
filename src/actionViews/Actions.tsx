@@ -4,7 +4,7 @@ import classNames from "classnames";
 import Button from "../components/Button/Button";
 import { ReactComponent as Arrow } from "./../images/arrow.svg";
 import { useApp } from "../hooks/appProvider";
-import Send from "./components/Send";
+import TransferFungible from "./components/TransferFungible";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
@@ -53,7 +53,7 @@ function Actions(): JSX.Element | null {
         )}
         {actionsView === "Transfer" ? (
           isFungibleTransfer ? (
-            <Send />
+            <TransferFungible />
           ) : (
             <TransferNFTs />
           )
