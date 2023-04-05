@@ -3,7 +3,7 @@ import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
-import { IAccount, IBill, IProofsProps } from "../../../types/Types";
+import { IAccount, IActiveAsset, IBill, IProofsProps } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import {
@@ -28,7 +28,7 @@ export interface IBillsListItemProps {
   handleDC: (e: string) => void;
   proofCheckStatus: string | null | undefined;
   account: IAccount;
-  activeBill: IBill;
+  activeBill: IActiveAsset;
   isProofVisible: boolean;
   isPasswordFormVisible: "proofCheck" | "handleDC" | null | undefined;
   sortedListByValue: IBill[];
@@ -122,7 +122,7 @@ function BillsListPopups({
                         setProofCheckStatus(
                           await Verify(
                             data.bills[0],
-                            activeBill,
+                            activeBill as IBill,
                             hashingPrivateKey,
                             hashingPublicKey
                           )

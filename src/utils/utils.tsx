@@ -522,11 +522,10 @@ export const getUpdatedNFTAssets = (
   );
 };
 
-export const getUpdatedFungibleAssets = (
+const getUpdatesUTPFungibleTokens = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
   tokenTypes: ITokensListTypes[] | undefined = [],
-  activeAccountId: string,
-  balances: any[]
+  activeAccountId: string
 ) => {
   let userTokens: any = [];
   let typeIDs: string[] = [];
@@ -549,7 +548,6 @@ export const getUpdatedFungibleAssets = (
         });
       } else {
         for (let resultToken of userTokens) {
-
           if (resultToken.typeId === token.typeId && token?.value) {
             resultToken.amount = (
               BigInt(resultToken.amount) + BigInt(token.value!)
@@ -560,7 +558,7 @@ export const getUpdatedFungibleAssets = (
     }
   }
 
-  const fungibleUTPAssets =
+  return (
     userTokens?.map((obj: IListTokensResponse) => ({
       id: obj.id,
       typeId: obj.typeId,
@@ -577,8 +575,21 @@ export const getUpdatedFungibleAssets = (
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
-    })) || [];
+    })) || []
+  );
+};
 
+export const getUpdatedFungibleAssets = (
+  fungibleTokensList: IListTokensResponse[] | undefined = [],
+  tokenTypes: ITokensListTypes[] | undefined = [],
+  activeAccountId: string,
+  balances: any[]
+) => {
+  const fungibleUTPAssets = getUpdatesUTPFungibleTokens(
+    fungibleTokensList,
+    tokenTypes,
+    activeAccountId
+  );
   const ALPHABalance = balances?.find(
     (balance: any) => balance?.data?.pubKey === activeAccountId
   )?.data?.balance;

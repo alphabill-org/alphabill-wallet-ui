@@ -10,6 +10,8 @@ import {
   createInvariantPredicateSignatures,
   isTokenSendable,
   hexToBase64,
+  getUpdatedNFTAssets,
+  getUpdatedFungibleAssets,
 } from "../utils/utils";
 
 import {
@@ -18,6 +20,23 @@ import {
   pushBoolTrue,
   startByte,
 } from "../utils/constants";
+import {
+  activeAccountId,
+  NFTsList_1,
+  NFTsList_2,
+  tokenTypes,
+  NFTsList_3,
+  updatedFungibleAssetsFalse,
+  updatedFungibleAssetsTrue,
+  fungibleTokensList_1,
+  fungibleTokensList_2,
+  fungibleTokenTypes,
+  fungibleBalances,
+  NFTDifferentTypeResult,
+  NFTIsSendableFalseResult,
+  NFTSameTypeResult,
+  testBills,
+} from "./constants";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -91,38 +110,13 @@ describe("Function return a formatted number string with separated digits", () =
   });
 });
 
-const BILLS = [
-  {
-    id: "1",
-    value: "100",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzR=",
-    isDcBill: false,
-  },
-  {
-    id: "2",
-    value: "200",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
-    isDcBill: false,
-  },
-  {
-    id: "3",
-    value: "500",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-    isDcBill: false,
-  },
-  {
-    id: "4",
-    value: "1000",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-    isDcBill: false,
-  },
-];
+
 
 describe("Function that finds an object that has a value greater than or equal to the target value", () => {
   it("should return the bill object that has a value greater than or equal to the target value", () => {
     const target = "300";
 
-    const result = findClosestBigger(BILLS, target);
+    const result = findClosestBigger(testBills, target);
 
     expect(result).toEqual({
       id: "3",
@@ -135,7 +129,7 @@ describe("Function that finds an object that has a value greater than or equal t
   it("should return undefined if there are no bills with a value greater than or equal to the target value", () => {
     const target = "1500";
 
-    const result = findClosestBigger(BILLS, target);
+    const result = findClosestBigger(testBills, target);
 
     expect(result).toBeUndefined();
   });
@@ -145,7 +139,7 @@ describe("Function that gets closest value to the target value", () => {
   it("should return the bill object with the closest value to the target value", () => {
     const target = "300";
 
-    const result = getClosestSmaller(BILLS, target);
+    const result = getClosestSmaller(testBills, target);
 
     expect(result).toEqual({
       id: "2",
@@ -160,7 +154,7 @@ describe("Function that gets optimal combination of bills to reach the target am
   it("should return the optimal combination of bills to reach the target amount", () => {
     const amount = "1300";
 
-    const result = getOptimalBills(amount, BILLS);
+    const result = getOptimalBills(amount, testBills);
 
     expect(result).toEqual([
       {
@@ -190,7 +184,7 @@ describe("Function that gets optimal combination of bills to reach the target am
   it("should return an array with the closest bill if there are no bills with a value greater than or equal to the target amount", () => {
     const amount = "1500";
 
-    const result = getOptimalBills(amount, BILLS);
+    const result = getOptimalBills(amount, testBills);
 
     expect(result).toEqual([
       {
@@ -374,33 +368,95 @@ describe("Create invariant predicate signatures", () => {
   });
 });
 
-describe('Check if owner predicate', () => {
-  const validKey = '0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11';
-  const validPredicate = 'U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB';
-  const invalidKey = '0x1234567890123456789012345678901234567890123456789012345678901234';
-  const invalidPredicate = '';
+describe("Check if owner predicate", () => {
+  const validKey =
+    "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
+  const validPredicate =
+    "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB";
+  const invalidKey =
+    "0x1234567890123456789012345678901234567890123456789012345678901234";
+  const invalidPredicate = "";
 
-  it('returns true when the sha256KeyFromPredicate matches the SHA256 hash of the key parameter', () => {
+  it("returns true when the sha256KeyFromPredicate matches the SHA256 hash of the key parameter", () => {
     expect(checkOwnerPredicate(validKey, validPredicate)).toBe(true);
   });
 
-  it('returns false when the sha256KeyFromPredicate does not match the SHA256 hash of the key parameter', () => {
+  it("returns false when the sha256KeyFromPredicate does not match the SHA256 hash of the key parameter", () => {
     expect(checkOwnerPredicate(invalidKey, validPredicate)).toBe(false);
   });
 
-  it('returns false when the predicate parameter is falsy', () => {
+  it("returns false when the predicate parameter is falsy", () => {
     expect(checkOwnerPredicate(validKey, invalidPredicate)).toBe(false);
   });
 
-  it('returns false when both the key and predicate parameters are falsy', () => {
+  it("returns false when both the key and predicate parameters are falsy", () => {
     expect(checkOwnerPredicate(invalidKey, invalidPredicate)).toBe(false);
   });
 
-  it('returns false when predicate is null', () => {
+  it("returns false when predicate is null", () => {
     expect(checkOwnerPredicate(validKey, null as any)).toBe(false);
   });
 
-  it('returns false when key is null', () => {
+  it("returns false when key is null", () => {
     expect(checkOwnerPredicate(null as any, validPredicate)).toBe(false);
+  });
+});
+
+describe("Get updated NFT assets with is sendable & amount of same type", () => {
+  it("should return updated NFT assets with correct properties with two of the same type", () => {
+
+
+    const actualOutput = getUpdatedNFTAssets(
+      NFTsList_1,
+      tokenTypes,
+      activeAccountId
+    );
+
+    expect(actualOutput).toEqual(NFTSameTypeResult);
+  });
+
+  it("should return updated NFT assets with correct properties with one of the each type", () => {
+    const actualOutput = getUpdatedNFTAssets(
+      NFTsList_2,
+      tokenTypes,
+      activeAccountId
+    );
+
+    expect(actualOutput).toEqual(NFTDifferentTypeResult);
+  });
+
+  it("should return updated NFT assets with correct properties with isSendable false", () => {
+
+    const actualOutput = getUpdatedNFTAssets(
+      NFTsList_3,
+      tokenTypes,
+      activeAccountId
+    );
+
+    expect(actualOutput).toEqual(NFTIsSendableFalseResult);
+  });
+});
+
+describe("Get updated fungible assets with is sendable & sum of same type", () => {
+  it("should return updated fungible assets with correct properties with UIAmount 30 & UTP isSendable true", () => {
+    const actualOutput = getUpdatedFungibleAssets(
+      fungibleTokensList_1,
+      fungibleTokenTypes,
+      activeAccountId,
+      fungibleBalances
+    );
+
+    expect(actualOutput).toEqual(updatedFungibleAssetsTrue);
+  });
+
+  it("should return updated NFT assets with correct properties with UIAmount 30 & UTP isSendable false", () => {
+    const actualOutput = getUpdatedFungibleAssets(
+      fungibleTokensList_2,
+      fungibleTokenTypes,
+      activeAccountId,
+      fungibleBalances
+    );
+
+    expect(actualOutput).toEqual(updatedFungibleAssetsFalse);
   });
 });
