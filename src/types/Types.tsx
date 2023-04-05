@@ -93,6 +93,18 @@ export interface IFungibleAsset {
 export interface IActiveAsset {
   name: string;
   typeId: string;
+  id?: string;
+  amount?: string;
+  network?: string;
+  decimalFactor?: number;
+  decimalPlaces?: number;
+  UIAmount?: string;
+  isSendable?: boolean;
+  value?: string;
+  txHash?: string;
+  kind?: number;
+  decimals?: number;
+  isDcBill?: boolean;
 }
 
 export interface INonFungibleAsset {

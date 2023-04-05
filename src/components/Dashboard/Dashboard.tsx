@@ -9,6 +9,7 @@ import { IAccount, IFungibleAsset } from "../../types/Types";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import { ReactComponent as Sync } from "../../images/sync-ico.svg";
+import { ReactComponent as Send } from "../../images/send-ico.svg";
 import Popups from "./components/Popups";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
@@ -143,8 +144,8 @@ function Dashboard(): JSX.Element | null {
           }
           variant="primary"
         >
-          <div className="pad-8-r">Refresh</div>
           <Sync height="16" width="16" />
+          <div className="pad-8-l">Refresh</div>
         </Button>
         <Button
           variant="primary"
@@ -165,12 +166,13 @@ function Dashboard(): JSX.Element | null {
             );
           }}
         >
-          Transfer
+          <Send height="16" width="16" />
+          <div className="pad-8-l">Transfer</div>
         </Button>
       </div>
       <Spacer mb={32} />
       <div className="dashboard__footer">
-        <Navbar onChange={(v: boolean) => setIsFungibleActive(v)} />
+        <Navbar isFungibleActive={isFungibleActive} onChange={(v: boolean) => setIsFungibleActive(v)} />
         <div className="dashboard__info">
           {isFungibleActive === true ? <FungibleAssetsCol /> : <NFTAssetsCol />}
         </div>

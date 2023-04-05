@@ -246,8 +246,11 @@ export default function TransferNFTs(): JSX.Element | null {
                     <>
                       {selectedSendKey && (
                         <div className="t-medium-small">
-                          You have selected a specific token with an id of{" "}
-                          {selectedNFTId}. You can deselect it by clicking{" "}
+                          You have selected a specific token with an id:{" "}
+                          <span className="t-ellipsis block">
+                            {base64ToHexPrefixed(selectedNFTId)}
+                          </span>
+                          You can deselect it by clicking{" "}
                           <Button
                             onClick={() => setSelectedSendKey(null)}
                             variant="link"
@@ -258,7 +261,7 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("Fungible list view");
+                              setActionsView("NFT list view");
                               setIsActionsViewVisible(true);
                               setSelectedSendKey(null);
                               invalidateAllLists(

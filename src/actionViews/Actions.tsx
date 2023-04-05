@@ -12,6 +12,7 @@ import TransferNFTs from "./components/TransferNFTs";
 import Navbar from "../components/Navbar/Navbar";
 import Spacer from "../components/Spacer/Spacer";
 import AssetsList from "../components/AssetsList/AssetsList";
+import { NonFungibleTokenKind } from "../utils/constants";
 
 function Actions(): JSX.Element | null {
   const {
@@ -23,7 +24,9 @@ function Actions(): JSX.Element | null {
     NFTList,
   } = useApp();
   const { activeAsset } = useAuth();
-  const [isFungibleTransfer, setIsFungibleTransfer] = useState<boolean>(true);
+  const [isFungibleActive, setIsFungibleActive] = useState<boolean>(
+    activeAsset?.kind !== NonFungibleTokenKind
+  );
 
   return (
     <div
@@ -50,11 +53,14 @@ function Actions(): JSX.Element | null {
         {actionsView === "Transfer" && (
           <>
             <Spacer mt={8} />
-            <Navbar onChange={(v: boolean) => setIsFungibleTransfer(v)} />
+            <Navbar
+              isFungibleActive={isFungibleActive}
+              onChange={(v: boolean) => setIsFungibleActive(v)}
+            />
           </>
         )}
         {actionsView === "Transfer" ? (
-          isFungibleTransfer ? (
+          isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind ? (
             <TransferFungible />
           ) : (
             <TransferNFTs />

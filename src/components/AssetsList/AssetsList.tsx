@@ -55,6 +55,7 @@ export default function AssetsList({
       {assetList?.map((asset: any) => {
         const hexId = base64ToHexPrefixed(asset?.id);
         const label = isSingle ? hexId : asset?.name || asset?.symbol || hexId;
+        const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isProofButton || isTransferButton;
         return (
@@ -66,7 +67,7 @@ export default function AssetsList({
             onClick={() => handleClick(asset)}
           >
             <div className="assets-list__item-icon">
-              {asset?.typeId === AlphaType ? <ABLogo /> : label[0]}
+              {asset?.typeId === AlphaType ? <ABLogo /> : iconEmblem}
             </div>
             <div className="assets-list__item-title">{label}</div>
             {amount && <div className="assets-list__item-amount">{amount}</div>}
