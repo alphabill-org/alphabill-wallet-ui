@@ -20,7 +20,7 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
-    setSelectedSendKey,
+    setSelectedTransferKey,
     NFTList,
   } = useApp();
   const { activeAsset } = useAuth();
@@ -36,7 +36,7 @@ function Actions(): JSX.Element | null {
         <Button
           onClick={() => {
             setIsActionsViewVisible(!isActionsViewVisible);
-            actionsView === "Transfer" && setSelectedSendKey(null);
+            actionsView === "Transfer" && setSelectedTransferKey(null);
           }}
           className="btn__back"
           variant="icon"
@@ -54,8 +54,13 @@ function Actions(): JSX.Element | null {
           <>
             <Spacer mt={8} />
             <Navbar
-              isFungibleActive={isFungibleActive}
-              onChange={(v: boolean) => setIsFungibleActive(v)}
+              isFungibleActive={
+                isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind
+              }
+              onChange={(v: boolean) => {
+                setIsFungibleActive(v);
+                setSelectedTransferKey(null);
+              }}
             />
           </>
         )}

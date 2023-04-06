@@ -39,8 +39,8 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: IActionVies;
   setActionsView: (e: IActionVies) => void;
-  selectedSendKey: string | null | undefined;
-  setSelectedSendKey: (e: string | null) => void;
+  selectedTransferKey: string | null | undefined;
+  setSelectedTransferKey: (e: string | null) => void;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -60,7 +60,7 @@ export const AppProvider: FunctionComponent<{
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
   );
-  const [selectedSendKey, setSelectedSendKey] = useState<
+  const [selectedTransferKey, setSelectedTransferKey] = useState<
     string | null | undefined
   >();
 
@@ -165,8 +165,8 @@ export const AppProvider: FunctionComponent<{
         setIsActionsViewVisible,
         actionsView,
         setActionsView,
-        selectedSendKey,
-        setSelectedSendKey,
+        selectedTransferKey,
+        setSelectedTransferKey,
       }}
     >
       {children}

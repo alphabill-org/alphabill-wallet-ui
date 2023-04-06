@@ -37,7 +37,7 @@ export default function AssetsList({
 }: IAssetsListProps): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
-  const { setIsActionsViewVisible, setActionsView, setSelectedSendKey } =
+  const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
     useApp();
 
   const handleClick = (asset: any) => {
@@ -115,7 +115,7 @@ export default function AssetsList({
                     onClick={() => {
                       setActionsView("Transfer");
                       setIsActionsViewVisible(true);
-                      setSelectedSendKey(asset.id);
+                      setSelectedTransferKey(asset.id);
                       handleClick(asset);
                     }}
                     type="button"

@@ -60,9 +60,9 @@ export default function TransferFungible(): JSX.Element | null {
     actionsView,
     account,
     billsList,
-    selectedSendKey,
+    selectedTransferKey,
     setActionsView,
-    setSelectedSendKey,
+    setSelectedTransferKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -79,7 +79,7 @@ export default function TransferFungible(): JSX.Element | null {
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
   const selectedBill = billsList?.find(
-    (bill: IBill) => bill.id === selectedSendKey
+    (bill: IBill) => bill.id === selectedTransferKey
   );
   const selectedBillValue = selectedBill?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -201,7 +201,7 @@ export default function TransferFungible(): JSX.Element | null {
             });
           }
 
-          const billsArr = selectedSendKey
+          const billsArr = selectedTransferKey
             ? ([selectedBill] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) => bill.isDcBill !== true
@@ -357,7 +357,7 @@ export default function TransferFungible(): JSX.Element | null {
                     if (isLastTransfer) {
                       addPollingInterval();
                       setIsSending(false);
-                      setSelectedSendKey(null);
+                      setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
                     }
@@ -434,7 +434,7 @@ export default function TransferFungible(): JSX.Element | null {
               "test less than",
               "Amount exceeds available assets",
               (value: string | undefined) =>
-                selectedSendKey
+                selectedTransferKey
                   ? true
                   : value
                   ? convertToWholeNumberBigInt(value || "", decimalPlaces) <=
@@ -450,11 +450,11 @@ export default function TransferFungible(): JSX.Element | null {
             <form className="pad-24" onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <>
-                      {selectedSendKey && (
+                      {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a specific {tokenLabel} with a value
+                          You have selected a {tokenLabel} with a value
                           of{" "}
                           {separateDigits(
                             addDecimal(
@@ -464,7 +464,7 @@ export default function TransferFungible(): JSX.Element | null {
                           )}
                           . You can deselect it by clicking{" "}
                           <Button
-                            onClick={() => setSelectedSendKey(null)}
+                            onClick={() => setSelectedTransferKey(null)}
                             variant="link"
                             type="button"
                           >
@@ -475,7 +475,7 @@ export default function TransferFungible(): JSX.Element | null {
                             onClick={() => {
                               setActionsView("Fungible list view");
                               setIsActionsViewVisible(true);
-                              setSelectedSendKey(null);
+                              setSelectedTransferKey(null);
                               invalidateAllLists(
                                 activeAccountId,
                                 activeAsset.typeId,
@@ -486,8 +486,7 @@ export default function TransferFungible(): JSX.Element | null {
                             variant="link"
                           >
                             {tokenLabel.toUpperCase()}S LIST
-                          </Button>{" "}
-                          .
+                          </Button>
                         </div>
                       )}
                       <Spacer mt={16} />
@@ -496,7 +495,7 @@ export default function TransferFungible(): JSX.Element | null {
                         name="selectedBillId"
                         label={"SELECTED " + tokenLabel + " ID"}
                         type="selectedBillId"
-                        value={base64ToHexPrefixed(selectedSendKey)}
+                        value={base64ToHexPrefixed(selectedTransferKey)}
                       />
                       <Spacer mb={16} />
                     </>
@@ -504,7 +503,7 @@ export default function TransferFungible(): JSX.Element | null {
                   <Select
                     label="Assets"
                     name="assets"
-                    className={selectedSendKey ? "d-none" : ""}
+                    className={selectedTransferKey ? "d-none" : ""}
                     options={account?.assets.fungible
                       ?.filter(
                         (asset) =>
@@ -546,7 +545,7 @@ export default function TransferFungible(): JSX.Element | null {
                     }}
                   />
                   <Spacer mb={8} />
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <div>
                       <Spacer mt={8} />
                       <div className="t-medium c-primary">
@@ -565,7 +564,7 @@ export default function TransferFungible(): JSX.Element | null {
                   />
                   <Spacer mb={8} />
 
-                  <div className={selectedSendKey ? "d-none" : ""}>
+                  <div className={selectedTransferKey ? "d-none" : ""}>
                     <Textfield
                       id="amount"
                       name="amount"
@@ -575,10 +574,10 @@ export default function TransferFungible(): JSX.Element | null {
                       floatingFixedPoint={selectedAsset?.decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
-                        !Boolean(values.assets) || Boolean(selectedSendKey)
+                        !Boolean(values.assets) || Boolean(selectedTransferKey)
                       }
                       value={
-                        (selectedSendKey &&
+                        (selectedTransferKey &&
                           (addDecimal(
                             selectedBillValue,
                             selectedAsset?.decimalPlaces || 0
@@ -597,7 +596,7 @@ export default function TransferFungible(): JSX.Element | null {
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
                     disabled={
-                      !Boolean(values.assets) && !Boolean(selectedSendKey)
+                      !Boolean(values.assets) && !Boolean(selectedTransferKey)
                     }
                   />
                   <Spacer mb={4} />
@@ -618,7 +617,7 @@ export default function TransferFungible(): JSX.Element | null {
           );
         }}
       </Formik>
-      {!selectedSendKey && (
+      {!selectedTransferKey && (
         <div className="t-medium-small pad-24-h">
           To select a specific {tokenLabel} open your{" "}
           <Button

@@ -22,7 +22,7 @@ export interface IBillsListItemProps {
   setIsProofVisible: (e: IBill) => void;
   setActionsView: (e: IActionVies) => void;
   setIsActionsViewVisible: (e: boolean) => void;
-  setSelectedSendKey: (e: string) => void;
+  setSelectedTransferKey: (e: string) => void;
   activeAsset: IActiveAsset;
 }
 
@@ -34,7 +34,7 @@ function BillsListItem({
   setIsProofVisible,
   setActionsView,
   setIsActionsViewVisible,
-  setSelectedSendKey,
+  setSelectedTransferKey,
   title,
   activeAsset,
 }: IBillsListItemProps): JSX.Element | null {
@@ -103,7 +103,7 @@ function BillsListItem({
                     onClick={() => {
                       setActionsView("Transfer");
                       setIsActionsViewVisible(true);
-                      setSelectedSendKey(bill.id);
+                      setSelectedTransferKey(bill.id);
                     }}
                     xSmall
                     type="button"

@@ -47,9 +47,9 @@ export default function TransferNFTs(): JSX.Element | null {
     isActionsViewVisible,
     account,
     NFTsList,
-    selectedSendKey,
+    selectedTransferKey,
     setActionsView,
-    setSelectedSendKey,
+    setSelectedTransferKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -67,7 +67,7 @@ export default function TransferNFTs(): JSX.Element | null {
   );
 
   const selectedNFT = NFTsList?.find(
-    (token: IListTokensResponse) => token.id === selectedSendKey
+    (token: IListTokensResponse) => token.id === selectedTransferKey
   );
   const selectedNFTId = selectedNFT?.id || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -121,7 +121,7 @@ export default function TransferNFTs(): JSX.Element | null {
             });
           }
 
-          const selectedNFTs = selectedSendKey
+          const selectedNFTs = selectedTransferKey
             ? (selectedNFT as IListTokensResponse)
             : NFTsList?.find(
                 (token: IListTokensResponse) => selectedAsset?.id === token.id
@@ -193,7 +193,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       tokensAmount.current = Number(NFTsList?.length) - 1;
                       addPollingInterval();
                       setIsSending(false);
-                      setSelectedSendKey(null);
+                      setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
                     });
@@ -246,17 +246,14 @@ export default function TransferNFTs(): JSX.Element | null {
             <form className="pad-24" onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <>
-                      {selectedSendKey && (
+                      {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a specific token with an id:{" "}
-                          <span className="t-ellipsis block">
-                            {base64ToHexPrefixed(selectedNFTId)}
-                          </span>
+                          You have selected a specific NFT.
                           You can deselect it by clicking{" "}
                           <Button
-                            onClick={() => setSelectedSendKey(null)}
+                            onClick={() => setSelectedTransferKey(null)}
                             variant="link"
                             type="button"
                           >
@@ -267,7 +264,7 @@ export default function TransferNFTs(): JSX.Element | null {
                             onClick={() => {
                               setActionsView("NFT list view");
                               setIsActionsViewVisible(true);
-                              setSelectedSendKey(null);
+                              setSelectedTransferKey(null);
                               invalidateAllLists(
                                 activeAccountId,
                                 activeAsset.typeId,
@@ -288,7 +285,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         name="selectedNFTId"
                         label={"SELECTED TOKEN ID"}
                         type="selectedNFTId"
-                        value={base64ToHexPrefixed(selectedSendKey)}
+                        value={base64ToHexPrefixed(selectedTransferKey)}
                       />
                       <Spacer mb={16} />
                     </>
@@ -296,7 +293,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   <Select
                     label="Assets"
                     name="assets"
-                    className={selectedSendKey ? "d-none" : ""}
+                    className={selectedTransferKey ? "d-none" : ""}
                     options={account?.assets.nft
                       ?.filter(
                         (asset) =>
@@ -338,7 +335,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     }}
                   />
                   <Spacer mb={8} />
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <div>
                       <Spacer mt={8} />
                       <div className="t-medium c-primary">
@@ -363,7 +360,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
                     disabled={
-                      !Boolean(values.assets) && !Boolean(selectedSendKey)
+                      !Boolean(values.assets) && !Boolean(selectedTransferKey)
                     }
                   />
                   <Spacer mb={4} />
