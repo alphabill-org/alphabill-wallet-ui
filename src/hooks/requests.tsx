@@ -7,7 +7,6 @@ import {
   IProofsProps,
   ISwapTransferProps,
   IBill,
-  IFungibleAsset,
   IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,

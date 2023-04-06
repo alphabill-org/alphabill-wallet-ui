@@ -3,7 +3,12 @@ import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
-import { IAccount, IActiveAsset, IBill, IProofsProps } from "../../../types/Types";
+import {
+  IAccount,
+  IActiveAsset,
+  IBill,
+  IProofsProps,
+} from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import {
@@ -117,7 +122,7 @@ function BillsListPopups({
               setPassword(values.password);
               isPasswordFormVisible === "proofCheck"
                 ? getProof(base64ToHexPrefixed(activeBill.id)).then(
-                    async (data: IProofsProps) => {
+                    async (data: IProofsProps | undefined) => {
                       data?.bills[0] &&
                         setProofCheckStatus(
                           await Verify(
