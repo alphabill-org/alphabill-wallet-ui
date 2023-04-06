@@ -68,7 +68,15 @@ function Actions(): JSX.Element | null {
         ) : actionsView === "Fungible list view" ? (
           <BillsList />
         ) : actionsView === "NFT list view" ? (
-          <AssetsList assetList={NFTList} isTransferButton isHoverDisabled />
+          <>
+            <Spacer mt={24} />
+            <AssetsList
+              isTypeListItem
+              assetList={NFTList}
+              isTransferButton
+              isHoverDisabled
+            />
+          </>
         ) : actionsView === "Profile" && accounts ? (
           <AccountView />
         ) : (

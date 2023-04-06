@@ -182,30 +182,38 @@ export const getUserTokens = async (
     }
   }
 
-  const updatedArray = await tokens?.map((obj: IListTokensResponse) => {
-    const token: any = {
-      id: obj.id,
-      typeId: obj.typeId,
-      owner: obj.owner,
-      kind: obj.kind,
-      txHash: obj.txHash,
-      symbol: obj.symbol,
-      network: import.meta.env.VITE_NETWORK_NAME,
-    };
+  const updatedArray = await Promise.all(
+    tokens?.map(async (obj: IListTokensResponse) => {
+      const token: any = {
+        id: obj.id,
+        typeId: obj.typeId,
+        owner: obj.owner,
+        kind: obj.kind,
+        txHash: obj.txHash,
+        symbol: obj.symbol,
+        network: import.meta.env.VITE_NETWORK_NAME,
+      };
 
-    if (kind === "fungible") {
-      token.decimals = obj.decimals;
-      token.value = obj.amount;
-    } else {
-      token.nftData = obj.nftData;
-      token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
-    }
+      if (kind === "fungible") {
+        token.decimals = obj.decimals;
+        token.value = obj.amount;
+      } else {
+        token.nftData = obj.nftData;
+        token.nftUri = obj.nftUri;
+        token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
+        token.isImageUrl = false; // add the initial field value
+        const imageUrl = await fetchImage(obj?.nftUri);
+        if (imageUrl) {
+          token.isImageUrl = true;
+        }
+      }
 
-    return token;
-  });
+      return token;
+    })
+  );
 
   const filteredTokens = await updatedArray?.filter(
-    (token: IFungibleAsset) => token.typeId === activeAsset
+    (token: any) => token.typeId === activeAsset
   );
 
   return activeAsset ? filteredTokens : updatedArray;
@@ -250,4 +258,21 @@ export const makeTransaction = async (
   );
 
   return response.data;
+};
+
+export const fetchImage = async (url?: string) => {
+  if (!url) return false;
+  try {
+    const response = await axios.head(url, { timeout: 3000 });
+    if (response.status === 200) {
+      const contentType = response.headers['content-type'];
+      if (contentType && contentType.startsWith('image/')) {
+        return url;
+      }
+    }
+    return false;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 };

@@ -63,6 +63,13 @@
           fill: #4e3eb6;
         }
       }
+
+      img {
+        object-fit: cover;
+        border-radius: 50%;
+        height: 100%;
+        width: 100%;
+      }
     }
 
     &-actions {

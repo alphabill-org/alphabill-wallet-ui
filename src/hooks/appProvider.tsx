@@ -31,6 +31,7 @@ interface IAppContextShape {
   balances: any;
   billsList: any;
   NFTList: IListTokensResponse[] | undefined;
+  NFTsList: IListTokensResponse[] | undefined;
   accounts: IAccount[];
   setAccounts: (e: IAccount[]) => void;
   account: IAccount;
@@ -154,6 +155,7 @@ export const AppProvider: FunctionComponent<{
     <AppContext.Provider
       value={{
         NFTList,
+        NFTsList,
         billsList,
         balances,
         accounts,

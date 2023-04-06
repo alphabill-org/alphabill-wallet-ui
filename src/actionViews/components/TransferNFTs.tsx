@@ -46,7 +46,7 @@ export default function TransferNFTs(): JSX.Element | null {
     setIsActionsViewVisible,
     isActionsViewVisible,
     account,
-    NFTList,
+    NFTsList,
     selectedSendKey,
     setActionsView,
     setSelectedSendKey,
@@ -54,16 +54,19 @@ export default function TransferNFTs(): JSX.Element | null {
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
+  const activeNFT = account?.assets.nft
+    ?.filter((asset) => account?.activeNetwork === asset.network)
+    .find((asset) => asset.typeId === activeAsset.typeId);
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
-    value: account?.assets.nft
-      ?.filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === activeAsset.typeId),
-    label: activeAsset.name,
+    value: activeNFT || account?.assets.nft[0],
+    label: base64ToHexPrefixed(activeNFT?.id || account?.assets.nft[0]?.id),
   };
+
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
   );
-  const selectedNFT = NFTList?.find(
+
+  const selectedNFT = NFTsList?.find(
     (token: IListTokensResponse) => token.id === selectedSendKey
   );
   const selectedNFTId = selectedNFT?.id || "";
@@ -99,8 +102,8 @@ export default function TransferNFTs(): JSX.Element | null {
       <Formik
         initialValues={{
           assets: {
-            value: "",
-            label: "",
+            value: defaultAsset,
+            label: defaultAsset.label,
           },
           address: "",
           password: "",
@@ -120,9 +123,10 @@ export default function TransferNFTs(): JSX.Element | null {
 
           const selectedNFTs = selectedSendKey
             ? (selectedNFT as IListTokensResponse)
-            : NFTList?.find(
+            : NFTsList?.find(
                 (token: IListTokensResponse) => selectedAsset?.id === token.id
               );
+
           if (!selectedNFTs) {
             return setErrors({
               password: error || "Selected NFT is missing!",
@@ -186,7 +190,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
                     ).then(() => {
-                      tokensAmount.current = Number(NFTList?.length) - 1;
+                      tokensAmount.current = Number(NFTsList?.length) - 1;
                       addPollingInterval();
                       setIsSending(false);
                       setSelectedSendKey(null);
@@ -316,7 +320,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       })
                       .map((asset: INFTAsset) => ({
                         value: asset,
-                        label: asset.id,
+                        label: base64ToHexPrefixed(asset.id),
                       }))}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={(_label, option: any) => {
@@ -327,6 +331,10 @@ export default function TransferNFTs(): JSX.Element | null {
                         queryClient
                       );
                       setActiveAssetLocal(JSON.stringify(option));
+                    }}
+                    defaultValue={{
+                      value: defaultAsset,
+                      label: defaultAsset.label,
                     }}
                   />
                   <Spacer mb={8} />

@@ -70,8 +70,8 @@ export default function TransferFungible(): JSX.Element | null {
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
     value: account?.assets.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === activeAsset.typeId),
-    label: activeAsset.name,
+      .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
+    label: activeAsset.name || AlphaType,
   };
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | undefined

@@ -274,7 +274,7 @@ function BillsList(): JSX.Element | null {
             assetList={sortedListByValue?.filter(
               (b: IBill) => b.isDcBill !== true
             )}
-            isSingle
+            isTypeListItem
             setIsProofVisible={(asset) => {
               handleProof(asset);
             }}

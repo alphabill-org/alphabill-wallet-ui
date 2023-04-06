@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import {
   AlphaType,
@@ -17,7 +18,7 @@ import { IBill } from "../../types/Types";
 
 export interface IAssetsListProps {
   assetList: any;
-  isSingle?: boolean;
+  isTypeListItem?: boolean;
   onItemClick?: () => void;
   setIsProofVisible?: (e: IBill) => void;
   isProofButton?: boolean;
@@ -27,7 +28,7 @@ export interface IAssetsListProps {
 
 export default function AssetsList({
   assetList,
-  isSingle,
+  isTypeListItem,
   onItemClick,
   setIsProofVisible,
   isTransferButton,
@@ -48,16 +49,33 @@ export default function AssetsList({
   return (
     <div
       className={classNames("assets-list", {
-        single: isSingle === true,
+        single: isTypeListItem === true,
         "no-hover": isHoverDisabled === true,
       })}
     >
       {assetList?.map((asset: any) => {
         const hexId = base64ToHexPrefixed(asset?.id);
-        const label = isSingle ? hexId : asset?.name || asset?.symbol || hexId;
+        const label = isTypeListItem
+          ? hexId
+          : asset?.name || asset?.symbol || hexId;
         const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isProofButton || isTransferButton;
+        let icon = null;
+
+        if (asset?.isImageUrl && isTypeListItem) {
+          icon = (
+            <LazyLoadImage
+              alt={label}
+              height={32}
+              src={asset?.nftUri}
+              width={32}
+            />
+          );
+        } else {
+          icon = iconEmblem;
+        }
+
         return (
           <div
             key={asset.id}
@@ -67,7 +85,7 @@ export default function AssetsList({
             onClick={() => handleClick(asset)}
           >
             <div className="assets-list__item-icon">
-              {asset?.typeId === AlphaType ? <ABLogo /> : iconEmblem}
+              {asset?.typeId === AlphaType ? <ABLogo /> : icon}
             </div>
             <div className="assets-list__item-title">{label}</div>
             {amount && <div className="assets-list__item-amount">{amount}</div>}
