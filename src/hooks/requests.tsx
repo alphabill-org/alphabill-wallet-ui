@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import {
   IBillsList,
@@ -12,6 +12,7 @@ import {
   ITypeHierarchy,
   IRoundNumber,
   INFTTransferPayload,
+  IBalance,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -28,7 +29,9 @@ export const MONEY_NODE_URL = import.meta.env.VITE_MONEY_NODE_URL;
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
 
-export const getBalance = async (pubKey: string): Promise<any> => {
+export const getBalance = async (
+  pubKey: string
+): Promise<IBalance | undefined> => {
   if (
     !pubKey ||
     Number(pubKey) === 0 ||
@@ -47,7 +50,9 @@ export const getBalance = async (pubKey: string): Promise<any> => {
   return res;
 };
 
-export const getBillsList = async (pubKey: string): Promise<any> => {
+export const getBillsList = async (
+  pubKey: string
+): Promise<IBill[] | undefined> => {
   if (
     !pubKey ||
     Number(pubKey) === 0 ||
@@ -98,7 +103,7 @@ export const fetchAllTypes = async (
   let nextOffsetKey: string | null = offsetKey;
 
   while (nextOffsetKey !== null) {
-    const response: any = await axios.get(
+    const response: AxiosResponse = await axios.get(
       TOKENS_BACKEND_URL +
         (nextOffsetKey ? nextOffsetKey : `/kinds/${kind}/types?limit=${limit}`)
     );
@@ -154,7 +159,7 @@ export const getUserTokens = async (
   let nextOffsetKey: string | null = offsetKey;
 
   while (nextOffsetKey !== null) {
-    const response: any = await axios.get(
+    const response: AxiosResponse = await axios.get(
       TOKENS_BACKEND_URL +
         (nextOffsetKey
           ? nextOffsetKey
@@ -184,7 +189,7 @@ export const getUserTokens = async (
 
   const updatedArray = await Promise.all(
     tokens?.map(async (obj: IListTokensResponse) => {
-      const token: any = {
+      const token: IListTokensResponse = {
         id: obj.id,
         typeId: obj.typeId,
         owner: obj.owner,
@@ -219,7 +224,9 @@ export const getUserTokens = async (
   return activeAsset ? filteredTokens : updatedArray;
 };
 
-export const getProof = async (billID: string): Promise<any> => {
+export const getProof = async (
+  billID: string
+): Promise<IProofsProps | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
@@ -265,8 +272,8 @@ export const fetchImage = async (url?: string) => {
   try {
     const response = await axios.head(url, { timeout: 3000 });
     if (response.status === 200) {
-      const contentType = response.headers['content-type'];
-      if (contentType && contentType.startsWith('image/')) {
+      const contentType = response.headers["content-type"];
+      if (contentType && contentType.startsWith("image/")) {
         return url;
       }
     }

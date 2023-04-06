@@ -73,7 +73,7 @@ export interface IListTokensResponse {
   txHash: string; // base64 encoded hex - latest tx
   symbol: string;
   nftUri?: string; // nft only
-  isImageUrl?: string; // nft only
+  isImageUrl?: boolean; // nft only
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
   network: string;
@@ -113,7 +113,7 @@ export interface INonFungibleAsset {
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
   nftUri: string; // nft only
-  isImageUrl?: string; // nft only
+  isImageUrl?: boolean; // nft only
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
@@ -352,6 +352,11 @@ export interface IDCTransferProps {
   };
   timeout: string;
   ownerProof: string;
+}
+
+export interface IBalance {
+  balance: number;
+  pubKey: string;
 }
 
 export type IActionVies =

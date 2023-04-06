@@ -61,15 +61,12 @@ export default function TransferNFTs(): JSX.Element | null {
     value: activeNFT || account?.assets.nft[0],
     label: base64ToHexPrefixed(activeNFT?.id || account?.assets.nft[0]?.id),
   };
-
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
   );
-
   const selectedNFT = NFTsList?.find(
     (token: IListTokensResponse) => token.id === selectedTransferKey
   );
-  const selectedNFTId = selectedNFT?.id || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
   const tokensAmount = useRef<number | null>(null);
