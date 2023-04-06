@@ -12,7 +12,13 @@ import TransferNFTs from "./components/TransferNFTs";
 import Navbar from "../components/Navbar/Navbar";
 import Spacer from "../components/Spacer/Spacer";
 import AssetsList from "../components/AssetsList/AssetsList";
-import { NonFungibleTokenKind } from "../utils/constants";
+import {
+  FungibleListView,
+  NFTListView,
+  NonFungibleTokenKind,
+  ProfileView,
+  TransferView,
+} from "../utils/constants";
 
 function Actions(): JSX.Element | null {
   const {
@@ -36,7 +42,7 @@ function Actions(): JSX.Element | null {
         <Button
           onClick={() => {
             setIsActionsViewVisible(!isActionsViewVisible);
-            actionsView === "Transfer" && setSelectedTransferKey(null);
+            actionsView === TransferView && setSelectedTransferKey(null);
           }}
           className="btn__back"
           variant="icon"
@@ -44,13 +50,13 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === "Fungible list view"
-            ? activeAsset.name
+          {actionsView === NFTListView || NFTListView
+            ? activeAsset?.name || activeAsset?.symbol
             : actionsView}
         </div>
       </div>
       <div className="actions__view">
-        {actionsView === "Transfer" && (
+        {actionsView === TransferView && (
           <>
             <Spacer mt={8} />
             <Navbar
@@ -64,15 +70,15 @@ function Actions(): JSX.Element | null {
             />
           </>
         )}
-        {actionsView === "Transfer" ? (
+        {actionsView === TransferView ? (
           isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind ? (
             <TransferFungible />
           ) : (
             <TransferNFTs />
           )
-        ) : actionsView === "Fungible list view" ? (
+        ) : actionsView === FungibleListView ? (
           <BillsList />
-        ) : actionsView === "NFT list view" ? (
+        ) : actionsView === NFTListView ? (
           <>
             <Spacer mt={24} />
             <AssetsList
@@ -82,7 +88,7 @@ function Actions(): JSX.Element | null {
               isHoverDisabled
             />
           </>
-        ) : actionsView === "Profile" && accounts ? (
+        ) : actionsView === ProfileView && accounts ? (
           <AccountView />
         ) : (
           <></>

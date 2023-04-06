@@ -41,3 +41,8 @@ export const TokensSystemId = "AAAAAg==";
 export const AlphaType = "ALPHA";
 export const NonFungibleTokenKind = 4;
 export const FungibleTokenKind = 2;
+
+export const NFTListView = "NFT list view";
+export const FungibleListView = "Fungible list view";
+export const ProfileView = "Profile view";
+export const TransferView = "Transfer view";

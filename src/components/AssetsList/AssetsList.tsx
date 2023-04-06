@@ -6,6 +6,7 @@ import {
   AlphaType,
   FungibleTokenKind,
   NonFungibleTokenKind,
+  TransferView,
 } from "../../utils/constants";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
@@ -113,7 +114,7 @@ export default function AssetsList({
                 {isTransferButton && (
                   <Button
                     onClick={() => {
-                      setActionsView("Transfer");
+                      setActionsView(TransferView);
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(asset.id);
                       handleClick(asset);

@@ -1,6 +1,6 @@
 import { IFungibleAsset } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
-import { AlphaType } from "../../../utils/constants";
+import { AlphaType, FungibleListView } from "../../../utils/constants";
 import AssetsList from "../../AssetsList/AssetsList";
 
 function FungibleAssetsCol(): JSX.Element | null {
@@ -27,7 +27,7 @@ function FungibleAssetsCol(): JSX.Element | null {
     <AssetsList
       assetList={sortedFungibleAssets}
       onItemClick={() => {
-        setActionsView("Fungible list view");
+        setActionsView(FungibleListView);
         setIsActionsViewVisible(true);
       }}
     />

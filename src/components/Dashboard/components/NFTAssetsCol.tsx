@@ -5,6 +5,7 @@ import {
 } from "../../../utils/utils";
 import { useApp } from "../../../hooks/appProvider";
 import AssetsList from "../../AssetsList/AssetsList";
+import { NFTListView } from "../../../utils/constants";
 
 export default function NFTAssetsCol(): JSX.Element | null {
   const { setIsActionsViewVisible, setActionsView, account } = useApp();
@@ -17,7 +18,7 @@ export default function NFTAssetsCol(): JSX.Element | null {
     <AssetsList
       assetList={sortedBySymbol}
       onItemClick={() => {
-        setActionsView("NFT list view");
+        setActionsView(NFTListView);
         setIsActionsViewVisible(true);
       }}
     />

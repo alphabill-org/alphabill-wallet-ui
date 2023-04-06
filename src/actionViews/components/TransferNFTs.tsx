@@ -37,6 +37,7 @@ import {
   TokensSystemId,
   AlphaType,
   NFTTokensTransferType,
+  NFTListView,
 } from "../../utils/constants";
 
 import { NFTTransferOrderHash } from "../../utils/hashers";
@@ -259,7 +260,7 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("NFT list view");
+                              setActionsView(NFTListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
                               invalidateAllLists(

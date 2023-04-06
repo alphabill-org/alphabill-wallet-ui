@@ -101,6 +101,7 @@ export interface IActiveAsset {
   decimalPlaces?: number;
   UIAmount?: string;
   isSendable?: boolean;
+  symbol?: string;
   value?: string;
   txHash?: string;
   kind?: number;
@@ -360,8 +361,8 @@ export interface IBalance {
 }
 
 export type IActionVies =
-  | "Transfer"
+  | "Transfer view"
   | "Fungible list view"
   | "NFT list view"
-  | "Profile"
+  | "Profile view"
   | "";

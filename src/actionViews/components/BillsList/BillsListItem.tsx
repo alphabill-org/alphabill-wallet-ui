@@ -9,7 +9,11 @@ import {
   addDecimal,
   separateDigits,
 } from "../../../utils/utils";
-import { AlphaDecimalPlaces, AlphaType } from "../../../utils/constants";
+import {
+  AlphaDecimalPlaces,
+  AlphaType,
+  TransferView,
+} from "../../../utils/constants";
 import { FungibleTokenKind } from "../../../utils/constants";
 import { NonFungibleTokenKind } from "../../../utils/constants";
 
@@ -101,7 +105,7 @@ function BillsListItem({
                 <span className="pad-8-l">
                   <Button
                     onClick={() => {
-                      setActionsView("Transfer");
+                      setActionsView(TransferView);
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(bill.id);
                     }}

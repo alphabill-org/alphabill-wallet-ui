@@ -49,6 +49,8 @@ import {
   AlphaSystemId,
   TokensSystemId,
   AlphaType,
+  FungibleListView,
+  TransferView,
 } from "../../utils/constants";
 
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
@@ -151,7 +153,7 @@ export default function TransferFungible(): JSX.Element | null {
       clearInterval(pollingInterval.current);
     }
 
-    if (actionsView !== "Transfer" && pollingInterval.current) {
+    if (actionsView !== TransferView && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
   }, [
@@ -454,8 +456,7 @@ export default function TransferFungible(): JSX.Element | null {
                     <>
                       {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a {tokenLabel} with a value
-                          of{" "}
+                          You have selected a {tokenLabel} with a value of{" "}
                           {separateDigits(
                             addDecimal(
                               selectedBillValue,
@@ -473,7 +474,7 @@ export default function TransferFungible(): JSX.Element | null {
                           or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("Fungible list view");
+                              setActionsView(FungibleListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
                               invalidateAllLists(
@@ -623,7 +624,7 @@ export default function TransferFungible(): JSX.Element | null {
           <Button
             small
             onClick={() => {
-              setActionsView("Fungible list view");
+              setActionsView(FungibleListView);
               setIsActionsViewVisible(true);
               invalidateAllLists(
                 activeAccountId,

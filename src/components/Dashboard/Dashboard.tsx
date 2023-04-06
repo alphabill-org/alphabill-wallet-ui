@@ -16,7 +16,11 @@ import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
 import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
-import { AlphaType } from "../../utils/constants";
+import {
+  AlphaType,
+  ProfileView,
+  TransferView,
+} from "../../utils/constants";
 import FungibleAssetsCol from "./components/FungibleAssetsCol";
 import NFTAssetsCol from "./components/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
@@ -124,7 +128,7 @@ function Dashboard(): JSX.Element | null {
               </div>
               <div
                 onClick={() => {
-                  setActionsView("Profile");
+                  setActionsView(ProfileView);
                   setIsActionsViewVisible(true);
                   setIsAccountSettingsVisible(false);
                 }}
@@ -150,7 +154,7 @@ function Dashboard(): JSX.Element | null {
         <Button
           variant="primary"
           onClick={() => {
-            setActionsView("Transfer");
+            setActionsView(TransferView);
             setActiveAssetLocal(
               JSON.stringify(
                 account.assets.fungible.find(
@@ -172,7 +176,10 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Spacer mb={32} />
       <div className="dashboard__footer">
-        <Navbar isFungibleActive={isFungibleActive} onChange={(v: boolean) => setIsFungibleActive(v)} />
+        <Navbar
+          isFungibleActive={isFungibleActive}
+          onChange={(v: boolean) => setIsFungibleActive(v)}
+        />
         <div className="dashboard__info">
           {isFungibleActive === true ? <FungibleAssetsCol /> : <NFTAssetsCol />}
         </div>
