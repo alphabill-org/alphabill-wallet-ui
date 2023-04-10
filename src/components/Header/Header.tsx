@@ -10,6 +10,7 @@ import { useApp } from "../../hooks/appProvider";
 import Checkbox from "../Checkbox/Checkbox";
 import { useDocumentClick } from "../../utils/utils";
 import SelectPopover from "../SelectPopover/SelectPopover";
+import { ProfileView } from "../../utils/constants";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -41,7 +42,12 @@ function Header(): JSX.Element | null {
   return (
     <div className="header">
       <div className="header__ico">
-        <Button target="_blank" type="button" variant="icon" url="https://alphabill.org/">
+        <Button
+          target="_blank"
+          type="button"
+          variant="icon"
+          url="https://alphabill.org/"
+        >
           <Logo height="40" width="40px" />
         </Button>
       </div>
@@ -131,7 +137,7 @@ function Header(): JSX.Element | null {
       <Button
         variant="icon"
         onClick={() => {
-          setActionsView("Profile");
+          setActionsView(ProfileView);
           setIsActionsViewVisible(true);
         }}
       >

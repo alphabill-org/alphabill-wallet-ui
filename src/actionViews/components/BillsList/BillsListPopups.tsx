@@ -1,10 +1,14 @@
-import { useEffect, useRef } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
-import { IAccount, IBill, IProofsProps } from "../../../types/Types";
+import {
+  IAccount,
+  IActiveAsset,
+  IBill,
+  IProofsProps,
+} from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import {
@@ -12,7 +16,6 @@ import {
   extractFormikError,
   getKeys,
 } from "../../../utils/utils";
-import Popup from "../../../components/Popup/Popup";
 
 import Check from "./../../../images/checkmark.gif";
 import { useAuth } from "../../../hooks/useAuth";
@@ -21,7 +24,6 @@ import { Verify } from "../../../utils/validators";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 
 export interface IBillsListItemProps {
-  setVisibleBillSettingID: (e: string | null) => void;
   setIsProofVisible: (e: boolean) => void;
   setIsPasswordFormVisible: (
     e: "proofCheck" | "handleDC" | null | undefined
@@ -31,7 +33,7 @@ export interface IBillsListItemProps {
   handleDC: (e: string) => void;
   proofCheckStatus: string | null | undefined;
   account: IAccount;
-  activeBill: IBill;
+  activeBill: IActiveAsset;
   isProofVisible: boolean;
   isPasswordFormVisible: "proofCheck" | "handleDC" | null | undefined;
   sortedListByValue: IBill[];
@@ -39,7 +41,6 @@ export interface IBillsListItemProps {
 }
 
 function BillsListPopups({
-  setVisibleBillSettingID,
   setIsProofVisible,
   setProofCheckStatus,
   setIsPasswordFormVisible,
@@ -50,7 +51,6 @@ function BillsListPopups({
   activeBill,
   proofCheckStatus,
   isPasswordFormVisible,
-  sortedListByValue,
   tokenLabel,
 }: IBillsListItemProps): JSX.Element | null {
   const { vault } = useAuth();
@@ -122,12 +122,12 @@ function BillsListPopups({
               setPassword(values.password);
               isPasswordFormVisible === "proofCheck"
                 ? getProof(base64ToHexPrefixed(activeBill.id)).then(
-                    async (data: IProofsProps) => {
+                    async (data: IProofsProps | undefined) => {
                       data?.bills[0] &&
                         setProofCheckStatus(
                           await Verify(
                             data.bills[0],
-                            activeBill,
+                            activeBill as IBill,
                             hashingPrivateKey,
                             hashingPublicKey
                           )

@@ -2,14 +2,14 @@ export interface IAccount {
   pubKey: string;
   name: string;
   balance?: string;
-  assets: IAsset[];
+  assets: { fungible: IFungibleAsset[]; nft: INFTAsset[] | [] };
   activities: IActivity[];
   activeNetwork?: string;
   networks: INetwork[];
   idx?: number | string;
 }
 
-export interface IAsset {
+export interface IFungibleAsset {
   id: string;
   name: string;
   amount: string;
@@ -21,27 +21,62 @@ export interface IAsset {
   isSendable: boolean;
 }
 
-export interface IUserTokensListTypes {
+export interface INFTAsset {
+  id: string; // base64 encoded hex
+  typeId: string; // base64 encoded hex
+  owner: string; // base64 encoded hex - bearer predicate
+  kind: number; // [2:Fungible|4:NonFungible]
+  txHash: string; // base64 encoded hex - latest tx
+  symbol: string;
+  nftData: string;
+  nftDataUpdatePredicate: string;
+  network: string;
+  amountOfSameType?: string;
+  isSendable?: boolean;
+}
+
+export interface INFTTransferPayload {
+  systemId: string;
+  unitId: string;
+  transactionAttributes: {
+    "@type": string;
+    nftType: string;
+    backlink: string;
+    newBearer?: string;
+    invariantPredicateSignatures?: string[];
+  };
+  timeout: string;
+  ownerProof: string;
+}
+
+export interface ITokensListTypes {
   id: string; // base64 encoded hex
   parentTypeId: string; // base64 encoded hex
   symbol: string;
   subTypeCreationPredicate: string;
   tokenCreationPredicate: string;
   invariantPredicate: string;
-  decimalPlaces: number; // fungible only
+  decimalPlaces?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
+  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
 }
 
-export interface IFungibleResponse {
+export interface IListTokensResponse {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
-  amount: string; // fungible only
-  decimals: number; // fungible only
+  amount?: string; // fungible only
+  value?: string; // fungible only
+  decimals?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
   symbol: string;
+  nftUri?: string; // nft only
+  isImageUrl?: boolean; // nft only
+  nftData?: string; // nft only
+  nftDataUpdatePredicate?: string; // nft only
+  network: string;
 }
 
 export interface IFungibleAsset {
@@ -59,6 +94,19 @@ export interface IFungibleAsset {
 export interface IActiveAsset {
   name: string;
   typeId: string;
+  id?: string;
+  amount?: string;
+  network?: string;
+  decimalFactor?: number;
+  decimalPlaces?: number;
+  UIAmount?: string;
+  isSendable?: boolean;
+  symbol?: string;
+  value?: string;
+  txHash?: string;
+  kind?: number;
+  decimals?: number;
+  isDcBill?: boolean;
 }
 
 export interface INonFungibleAsset {
@@ -66,6 +114,7 @@ export interface INonFungibleAsset {
   typeId: string; // base64 encoded hex
   owner: string; // base64 encoded hex - bearer predicate
   nftUri: string; // nft only
+  isImageUrl?: boolean; // nft only
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
@@ -75,12 +124,13 @@ export interface ITypeHierarchy {
   id: string; //base64 encoded hex
   parentTypeId: string; //base64 encoded hex
   symbol: string;
-  decimalPlaces: number; // [0..8] fungible only
+  decimalPlaces?: number; // [0..8] fungible only
   kind: number; //  [2:Fungible|4:NonFungible],
   txHash: string; //base64 encoded hex - creation tx
   invariantPredicate: string;
   tokenCreationPredicate: string;
   subTypeCreationPredicate: string;
+  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
 }
 
 export interface IBill {
@@ -304,3 +354,15 @@ export interface IDCTransferProps {
   timeout: string;
   ownerProof: string;
 }
+
+export interface IBalance {
+  balance: number;
+  pubKey: string;
+}
+
+export type IActionVies =
+  | "Transfer view"
+  | "Fungible list view"
+  | "NFT list view"
+  | "Profile view"
+  | "";

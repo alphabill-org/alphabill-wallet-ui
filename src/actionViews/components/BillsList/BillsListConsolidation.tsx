@@ -55,9 +55,9 @@ export const handleSwapRequest = async (
 
   DCBills?.map((bill: IBill, idx: number) =>
     getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
-      const txProof = data.bills[0].txProof;
+      const txProof = data?.bills[0].txProof;
 
-      txProofs.push(txProof);
+      txProof && txProofs.push(txProof);
       if (txProofs?.length === DCBills.length) {
         let dcTransfers: IProofTx[] = [];
         let proofs: IProof[] = [];

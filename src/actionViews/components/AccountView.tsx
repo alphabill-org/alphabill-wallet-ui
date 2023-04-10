@@ -67,7 +67,11 @@ function AccountView(): JSX.Element | null {
               onClick={() => {
                 setActiveAccountId(account?.pubKey);
                 setActiveAssetLocal(
-                  JSON.stringify({ name: AlphaType, typeId: AlphaType })
+                  JSON.stringify(
+                    account.assets.fungible.find(
+                      (asset) => asset.typeId === AlphaType
+                    )
+                  )
                 );
                 setIsActionsViewVisible(false);
                 invalidateAllLists(
