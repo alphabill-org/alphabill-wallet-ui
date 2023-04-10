@@ -25,6 +25,13 @@
     transition: background-color .3s ease;
     cursor: pointer;
 
+    &.no-hover {
+      cursor: unset;
+      &:hover {
+        background-color: $color-secondary-op;
+      }
+    }
+
     &:hover {
       background-color: $color-primary--hover;
     }
