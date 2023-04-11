@@ -1,6 +1,6 @@
 import { useQueryClient } from "react-query";
 
-import { IActiveAsset, IBill } from "../../../types/Types";
+import { IActionVies, IActiveAsset, IBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { ReactComponent as MoreIco } from "./../../../images/more-ico.svg";
@@ -9,7 +9,11 @@ import {
   addDecimal,
   separateDigits,
 } from "../../../utils/utils";
-import { AlphaDecimalPlaces, AlphaType } from "../../../utils/constants";
+import {
+  AlphaDecimalPlaces,
+  AlphaType,
+  TransferView,
+} from "../../../utils/constants";
 import { FungibleTokenKind } from "../../../utils/constants";
 import { NonFungibleTokenKind } from "../../../utils/constants";
 
@@ -20,9 +24,9 @@ export interface IBillsListItemProps {
   visibleBillSettingID: string | null;
   setActiveBill: (e: IBill) => void;
   setIsProofVisible: (e: IBill) => void;
-  setActionsView: (e: "Transfer" | "List view" | "Profile" | "") => void;
+  setActionsView: (e: IActionVies) => void;
   setIsActionsViewVisible: (e: boolean) => void;
-  setSelectedSendKey: (e: string) => void;
+  setSelectedTransferKey: (e: string) => void;
   activeAsset: IActiveAsset;
 }
 
@@ -34,7 +38,7 @@ function BillsListItem({
   setIsProofVisible,
   setActionsView,
   setIsActionsViewVisible,
-  setSelectedSendKey,
+  setSelectedTransferKey,
   title,
   activeAsset,
 }: IBillsListItemProps): JSX.Element | null {
@@ -101,9 +105,9 @@ function BillsListItem({
                 <span className="pad-8-l">
                   <Button
                     onClick={() => {
-                      setActionsView("Transfer");
+                      setActionsView(TransferView);
                       setIsActionsViewVisible(true);
-                      setSelectedSendKey(bill.id);
+                      setSelectedTransferKey(bill.id);
                     }}
                     xSmall
                     type="button"

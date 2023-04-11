@@ -4,6 +4,7 @@ import { Uint64BE } from "int64-buffer";
 import {
   IBill,
   IInputRecord,
+  INFTTransferPayload,
   IProof,
   IProofTx,
   ISwapProps,
@@ -131,7 +132,7 @@ export const splitAttributesBuffer = (tx: any) => {
       new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
       new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
       Buffer.from(tx.transactionAttributes.backlink!, "base64"),
-      Buffer.from(tx.transactionAttributes.type, "base64"),
+      Buffer.from(tx.transactionAttributes.type, "base64")
     );
   }
 
@@ -162,6 +163,21 @@ export const transferOrderHash = async (tx: IProofTx, isProof?: boolean) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(
     secp.utils.concatBytes(transferBaseBuffer, transferAttributesBuffer(tx))
+  );
+};
+
+export const NFTTransferOrderHash = async (
+  tx: INFTTransferPayload,
+  isProof?: boolean
+) => {
+  const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+  return await secp.utils.sha256(
+    secp.utils.concatBytes(
+      transferBaseBuffer,
+      Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
+      Buffer.from(tx.transactionAttributes.backlink!, "base64"),
+      Buffer.from(tx.transactionAttributes?.nftType!, "base64")
+    )
   );
 };
 

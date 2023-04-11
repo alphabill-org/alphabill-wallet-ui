@@ -10,7 +10,7 @@ import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
 import {
-  IAsset,
+  IFungibleAsset,
   IBill,
   IProofTx,
   ITransfer,
@@ -49,39 +49,51 @@ import {
   AlphaSystemId,
   TokensSystemId,
   AlphaType,
+  FungibleListView,
+  TransferView,
 } from "../../utils/constants";
 
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
 
-function Send(): JSX.Element | null {
+export default function TransferFungible(): JSX.Element | null {
   const {
     setIsActionsViewVisible,
     isActionsViewVisible,
     actionsView,
     account,
     billsList,
-    selectedSendKey,
+    selectedTransferKey,
     setActionsView,
-    setSelectedSendKey,
+    setSelectedTransferKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
-  const defaultAsset: { value: IAsset | undefined; label: string } = {
-    value: account?.assets
+  const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
+    value: account?.assets.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === activeAsset.typeId),
-    label: activeAsset.name,
+      .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
+    label: activeAsset.name || AlphaType,
   };
-  const [selectedAsset, setSelectedAsset] = useState<IAsset | undefined>(
-    defaultAsset?.value
+  const [selectedAsset, setSelectedAsset] = useState<
+    IFungibleAsset | undefined
+  >(defaultAsset?.value);
+  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
+  const tokenLabel = getTokensLabel(activeAsset.typeId);
+  const selectedBill = billsList?.find(
+    (bill: IBill) => bill.id === selectedTransferKey
   );
+  const selectedBillValue = selectedBill?.value || "";
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const initialBlockHeight = useRef<bigint | null | undefined>(null);
+  const balanceAfterSending = useRef<bigint | null>(null);
+  const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
     (decimalPlaces: number) => {
       return addDecimal(
         BigInt(
-          account?.assets?.find(
+          account?.assets.fungible?.find(
             (asset) => asset.typeId === selectedAsset?.typeId
           )?.amount || "0"
         ).toString() || "0",
@@ -93,18 +105,6 @@ function Send(): JSX.Element | null {
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimalPlaces || 0)
   );
-  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
-  const tokenLabel = getTokensLabel(activeAsset.typeId);
-
-  const selectedBill = billsList?.find(
-    (bill: IBill) => bill.id === selectedSendKey
-  );
-  const selectedBillValue = selectedBill?.value || "";
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<bigint | null | undefined>(null);
-  const balanceAfterSending = useRef<bigint | null>(null);
-
-  const [isSending, setIsSending] = useState<boolean>(false);
 
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
@@ -138,7 +138,7 @@ function Send(): JSX.Element | null {
   ]);
 
   useEffect(() => {
-    const activeAssetAmount = account?.assets
+    const activeAssetAmount = account?.assets.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
@@ -153,7 +153,7 @@ function Send(): JSX.Element | null {
       clearInterval(pollingInterval.current);
     }
 
-    if (actionsView !== "Transfer" && pollingInterval.current) {
+    if (actionsView !== TransferView && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
   }, [
@@ -203,7 +203,7 @@ function Send(): JSX.Element | null {
             });
           }
 
-          const billsArr = selectedSendKey
+          const billsArr = selectedTransferKey
             ? ([selectedBill] as IBill[])
             : (billsList?.filter(
                 (bill: IBill) => bill.isDcBill !== true
@@ -359,7 +359,7 @@ function Send(): JSX.Element | null {
                     if (isLastTransfer) {
                       addPollingInterval();
                       setIsSending(false);
-                      setSelectedSendKey(null);
+                      setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
                     }
@@ -436,7 +436,7 @@ function Send(): JSX.Element | null {
               "test less than",
               "Amount exceeds available assets",
               (value: string | undefined) =>
-                selectedSendKey
+                selectedTransferKey
                   ? true
                   : value
                   ? convertToWholeNumberBigInt(value || "", decimalPlaces) <=
@@ -452,12 +452,11 @@ function Send(): JSX.Element | null {
             <form className="pad-24" onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <>
-                      {selectedSendKey && (
+                      {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a specific {tokenLabel} with a value
-                          of{" "}
+                          You have selected a {tokenLabel} with a value of{" "}
                           {separateDigits(
                             addDecimal(
                               selectedBillValue,
@@ -466,7 +465,7 @@ function Send(): JSX.Element | null {
                           )}
                           . You can deselect it by clicking{" "}
                           <Button
-                            onClick={() => setSelectedSendKey(null)}
+                            onClick={() => setSelectedTransferKey(null)}
                             variant="link"
                             type="button"
                           >
@@ -475,9 +474,9 @@ function Send(): JSX.Element | null {
                           or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
-                              setActionsView("List view");
+                              setActionsView(FungibleListView);
                               setIsActionsViewVisible(true);
-                              setSelectedSendKey(null);
+                              setSelectedTransferKey(null);
                               invalidateAllLists(
                                 activeAccountId,
                                 activeAsset.typeId,
@@ -488,8 +487,7 @@ function Send(): JSX.Element | null {
                             variant="link"
                           >
                             {tokenLabel.toUpperCase()}S LIST
-                          </Button>{" "}
-                          .
+                          </Button>
                         </div>
                       )}
                       <Spacer mt={16} />
@@ -498,7 +496,7 @@ function Send(): JSX.Element | null {
                         name="selectedBillId"
                         label={"SELECTED " + tokenLabel + " ID"}
                         type="selectedBillId"
-                        value={base64ToHexPrefixed(selectedSendKey)}
+                        value={base64ToHexPrefixed(selectedTransferKey)}
                       />
                       <Spacer mb={16} />
                     </>
@@ -506,14 +504,14 @@ function Send(): JSX.Element | null {
                   <Select
                     label="Assets"
                     name="assets"
-                    className={selectedSendKey ? "d-none" : ""}
-                    options={account?.assets
+                    className={selectedTransferKey ? "d-none" : ""}
+                    options={account?.assets.fungible
                       ?.filter(
                         (asset) =>
                           account?.activeNetwork === asset.network &&
                           asset.isSendable
                       )
-                      .sort((a: IAsset, b: IAsset) => {
+                      .sort((a: IFungibleAsset, b: IFungibleAsset) => {
                         if (a?.name! < b?.name!) {
                           return -1;
                         }
@@ -528,7 +526,7 @@ function Send(): JSX.Element | null {
                         }
                         return 1;
                       })
-                      .map((asset: IAsset) => ({
+                      .map((asset: IFungibleAsset) => ({
                         value: asset,
                         label: asset.name,
                       }))}
@@ -544,16 +542,11 @@ function Send(): JSX.Element | null {
                         activeAsset.typeId,
                         queryClient
                       );
-                      setActiveAssetLocal(
-                        JSON.stringify({
-                          name: option.name,
-                          typeId: option.typeId || option.name,
-                        })
-                      );
+                      setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
                   <Spacer mb={8} />
-                  {selectedSendKey && (
+                  {selectedTransferKey && (
                     <div>
                       <Spacer mt={8} />
                       <div className="t-medium c-primary">
@@ -572,7 +565,7 @@ function Send(): JSX.Element | null {
                   />
                   <Spacer mb={8} />
 
-                  <div className={selectedSendKey ? "d-none" : ""}>
+                  <div className={selectedTransferKey ? "d-none" : ""}>
                     <Textfield
                       id="amount"
                       name="amount"
@@ -582,10 +575,10 @@ function Send(): JSX.Element | null {
                       floatingFixedPoint={selectedAsset?.decimalPlaces}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
-                        !Boolean(values.assets) || Boolean(selectedSendKey)
+                        !Boolean(values.assets) || Boolean(selectedTransferKey)
                       }
                       value={
-                        (selectedSendKey &&
+                        (selectedTransferKey &&
                           (addDecimal(
                             selectedBillValue,
                             selectedAsset?.decimalPlaces || 0
@@ -604,7 +597,7 @@ function Send(): JSX.Element | null {
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
                     disabled={
-                      !Boolean(values.assets) && !Boolean(selectedSendKey)
+                      !Boolean(values.assets) && !Boolean(selectedTransferKey)
                     }
                   />
                   <Spacer mb={4} />
@@ -625,13 +618,13 @@ function Send(): JSX.Element | null {
           );
         }}
       </Formik>
-      {!selectedSendKey && (
+      {!selectedTransferKey && (
         <div className="t-medium-small pad-24-h">
           To select a specific {tokenLabel} open your{" "}
           <Button
             small
             onClick={() => {
-              setActionsView("List view");
+              setActionsView(FungibleListView);
               setIsActionsViewVisible(true);
               invalidateAllLists(
                 activeAccountId,
@@ -650,5 +643,3 @@ function Send(): JSX.Element | null {
     </div>
   );
 }
-
-export default Send;

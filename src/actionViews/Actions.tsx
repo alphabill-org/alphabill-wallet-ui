@@ -1,12 +1,24 @@
+import { useState } from "react";
 import classNames from "classnames";
 
 import Button from "../components/Button/Button";
 import { ReactComponent as Arrow } from "./../images/arrow.svg";
 import { useApp } from "../hooks/appProvider";
-import Send from "./components/Send";
+import TransferFungible from "./components/TransferFungible";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
+import TransferNFTs from "./components/TransferNFTs";
+import Navbar from "../components/Navbar/Navbar";
+import Spacer from "../components/Spacer/Spacer";
+import AssetsList from "../components/AssetsList/AssetsList";
+import {
+  FungibleListView,
+  NFTListView,
+  NonFungibleTokenKind,
+  ProfileView,
+  TransferView,
+} from "../utils/constants";
 
 function Actions(): JSX.Element | null {
   const {
@@ -14,9 +26,14 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
-    setSelectedSendKey,
+    setSelectedTransferKey,
+    NFTList,
   } = useApp();
   const { activeAsset } = useAuth();
+  const [isFungibleActive, setIsFungibleActive] = useState<boolean>(
+    activeAsset?.kind !== NonFungibleTokenKind
+  );
+
   return (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
@@ -25,7 +42,7 @@ function Actions(): JSX.Element | null {
         <Button
           onClick={() => {
             setIsActionsViewVisible(!isActionsViewVisible);
-            actionsView === "Transfer" && setSelectedSendKey(null);
+            actionsView === TransferView && setSelectedTransferKey(null);
           }}
           className="btn__back"
           variant="icon"
@@ -33,15 +50,45 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === "List view" ? activeAsset.name : actionsView}
+          {actionsView === NFTListView || NFTListView
+            ? activeAsset?.name || activeAsset?.symbol
+            : actionsView}
         </div>
       </div>
       <div className="actions__view">
-        {actionsView === "Transfer" ? (
-          <Send />
-        ) : actionsView === "List view" ? (
+        {actionsView === TransferView && (
+          <>
+            <Spacer mt={8} />
+            <Navbar
+              isFungibleActive={
+                isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind
+              }
+              onChange={(v: boolean) => {
+                setIsFungibleActive(v);
+                setSelectedTransferKey(null);
+              }}
+            />
+          </>
+        )}
+        {actionsView === TransferView ? (
+          isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind ? (
+            <TransferFungible />
+          ) : (
+            <TransferNFTs />
+          )
+        ) : actionsView === FungibleListView ? (
           <BillsList />
-        ) : actionsView === "Profile" && accounts ? (
+        ) : actionsView === NFTListView ? (
+          <>
+            <Spacer mt={24} />
+            <AssetsList
+              isTypeListItem
+              assetList={NFTList}
+              isTransferButton
+              isHoverDisabled
+            />
+          </>
+        ) : actionsView === ProfileView && accounts ? (
           <AccountView />
         ) : (
           <></>

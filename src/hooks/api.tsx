@@ -2,12 +2,12 @@ import { AxiosError } from "axios";
 import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
-  IFungibleResponse,
+  IListTokensResponse,
   IProofsProps,
   ISwapTransferProps,
   ITransfer,
   ITypeHierarchy,
-  IUserTokensListTypes,
+  ITokensListTypes,
 } from "../types/Types";
 
 import {
@@ -43,23 +43,56 @@ export function useGetBillsList(
   });
 }
 
+export function useGetAllNFTs(
+  pubKey: string
+): QueryObserverResult<IListTokensResponse[], AxiosError> {
+  return useQuery(
+    [`NFTsList`, pubKey],
+    async () => getUserTokens(pubKey, "nft"),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
+}
+
+export function useGetNFTs(
+  pubKey: string,
+  activeAsset: string
+): QueryObserverResult<IListTokensResponse[], AxiosError> {
+  return useQuery(
+    [`NFTList`, pubKey, activeAsset],
+    async () => getUserTokens(pubKey, "nft", activeAsset),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
+}
+
 export function useGetAllUserTokens(
   pubKey: string
-): QueryObserverResult<IFungibleResponse[], AxiosError> {
-  return useQuery([`tokensList`, pubKey], async () => getUserTokens(pubKey), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
+): QueryObserverResult<IListTokensResponse[], AxiosError> {
+  return useQuery(
+    [`fungibleTokensList`, pubKey],
+    async () => getUserTokens(pubKey, "fungible"),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
 }
 
 export function useGetUserTokens(
   pubKey: string,
   activeAsset: string
-): QueryObserverResult<IFungibleResponse[], AxiosError> {
+): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
-    [`tokenList`, pubKey, activeAsset],
-    async () => getUserTokens(pubKey, activeAsset),
+    [`fungibleTokenList`, pubKey, activeAsset],
+    async () => getUserTokens(pubKey, "fungible", activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
@@ -70,7 +103,7 @@ export function useGetUserTokens(
 
 export function useGetAllTokenTypes(
   pubKey: string
-): QueryObserverResult<IUserTokensListTypes[], AxiosError> {
+): QueryObserverResult<ITokensListTypes[], AxiosError> {
   return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
     enabled: true,
     keepPreviousData: true,
