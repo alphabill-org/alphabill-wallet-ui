@@ -6,7 +6,11 @@ import { TransferView } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Download } from "../../images/download.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
+import {
+  base64ToHexPrefixed,
+  downloadHexFile,
+  invalidateAllLists,
+} from "../../utils/utils";
 import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
@@ -22,6 +26,8 @@ export default function NFTDetailsView({
   const queryClient = useQueryClient();
   const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
     useApp();
+  const isDownloadButton =
+    (activeAsset?.isImageUrl && activeAsset?.nftUri) || activeAsset?.nftData;
 
   const handleClick = (asset: any) => {
     onItemClick && onItemClick();
@@ -30,9 +36,23 @@ export default function NFTDetailsView({
 
   return (
     <div className={"asset-details pad-view"}>
-      <div className="asset-details__key">
-        <div className="t-ellipsis">
-          Unit ID {base64ToHexPrefixed(activeAsset?.id)}
+      <div className="asset-details__head">
+        <div className="asset-details__key">
+          <div className="t-ellipsis">
+            Unit ID {base64ToHexPrefixed(activeAsset?.id)}
+          </div>
+          <Button
+            onClick={() => {
+              setActionsView(TransferView);
+              setIsActionsViewVisible(true);
+              activeAsset && setSelectedTransferKey(activeAsset.id!);
+              handleClick(activeAsset);
+            }}
+            type="button"
+            variant="icon"
+          >
+            <Send height="14" width="14" />
+          </Button>
         </div>
       </div>
       <div
@@ -56,30 +76,33 @@ export default function NFTDetailsView({
           <Button
             type="button"
             variant="primary"
-            onClick={() =>
+            onClick={() => {
               downloadFile(
                 activeAsset.nftUri!,
                 base64ToHexPrefixed(activeAsset?.id)
-              )
-            }
+              );
+            }}
           >
             <Download />
-            <div className="pad-8-l">Download</div>
+            <div className="pad-8-l">Image</div>
           </Button>
         )}
-        <Button
-          onClick={() => {
-            setActionsView(TransferView);
-            setIsActionsViewVisible(true);
-            activeAsset && setSelectedTransferKey(activeAsset.id!);
-            handleClick(activeAsset);
-          }}
-          type="button"
-          variant="primary"
-        >
-          <Send height="16" width="16" />
-          <div className="pad-8-l">Transfer</div>
-        </Button>
+
+        {activeAsset?.nftData && (
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => {
+              downloadHexFile(
+                activeAsset.nftData!,
+                base64ToHexPrefixed(activeAsset?.id)
+              );
+            }}
+          >
+            <Download />
+            <div className="pad-8-l">Data</div>
+          </Button>
+        )}
       </div>
     </div>
   );

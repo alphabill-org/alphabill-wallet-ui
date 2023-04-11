@@ -194,6 +194,26 @@
     font-size: 14px;
     line-height: 18px;
     padding: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    button.button--icon {
+      background-color: $color-primary;
+      padding: 6px;
+      border-radius: 4px;
+      height: 24px;
+      width: 24px;
+      display: flex;
+
+      &:hover {
+        background-color: rgba($color-primary, .7);
+
+        path {
+          fill: $color-white;
+        }
+      }
+    }
   }
 
   &__content {
@@ -217,6 +237,8 @@
       height: 200px;
       border-radius: 8px;
       overflow: hidden;
+      padding: 24px;
+      margin: auto;
     }
 
     img {

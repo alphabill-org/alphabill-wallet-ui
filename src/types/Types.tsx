@@ -109,6 +109,7 @@ export interface IActiveAsset {
   isDcBill?: boolean;
   isImageUrl?: boolean;
   nftUri?: string;
+  nftData?: string;
 }
 
 export interface INonFungibleAsset {

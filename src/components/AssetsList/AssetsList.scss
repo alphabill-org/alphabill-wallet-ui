@@ -107,10 +107,10 @@
         display: flex;
 
         &:hover {
-          opacity: .7 !important;
+          background-color: rgba($color-primary, .7);
 
-          svg path {
-            fill: $color-blue;
+          path {
+            fill: $color-white;
           }
         }
 
