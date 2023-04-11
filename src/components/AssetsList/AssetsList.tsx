@@ -42,7 +42,6 @@ export default function AssetsList({
     useApp();
 
   const handleClick = (asset: any) => {
-    onItemClick && onItemClick();
     setActiveAssetLocal(JSON.stringify(asset));
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
@@ -85,6 +84,10 @@ export default function AssetsList({
             })}
             onClick={() => handleClick(asset)}
           >
+            <div
+              onClick={() => onItemClick && onItemClick()}
+              className="assets-list__item-clicker"
+            ></div>
             <div className="assets-list__item-icon">
               {asset?.typeId === AlphaType ? <ABLogo /> : icon}
             </div>

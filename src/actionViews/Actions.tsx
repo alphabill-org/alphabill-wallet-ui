@@ -21,6 +21,7 @@ import {
   TransferView,
 } from "../utils/constants";
 import NFTDetailsView from "./components/NFTDetailsView";
+import { IListTokensResponse } from "../types/Types";
 
 function Actions(): JSX.Element | null {
   const {
@@ -28,13 +29,18 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
+    selectedTransferKey,
     setSelectedTransferKey,
     NFTList,
     setActionsView,
+    NFTsList
   } = useApp();
   const { activeAsset } = useAuth();
+  const selectedNFT = NFTsList?.find(
+    (token: IListTokensResponse) => token.id === selectedTransferKey
+  );
   const [isFungibleActive, setIsFungibleActive] = useState<boolean>(
-    activeAsset?.kind !== NonFungibleTokenKind
+    activeAsset?.kind !== NonFungibleTokenKind && !selectedNFT
   );
 
   return (
@@ -68,7 +74,7 @@ function Actions(): JSX.Element | null {
             <Spacer mt={8} />
             <Navbar
               isFungibleActive={
-                isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind
+                isFungibleActive && !selectedNFT
               }
               onChange={(v: boolean) => {
                 setIsFungibleActive(v);
@@ -78,7 +84,7 @@ function Actions(): JSX.Element | null {
           </>
         )}
         {actionsView === TransferView ? (
-          isFungibleActive && activeAsset?.kind !== NonFungibleTokenKind ? (
+          isFungibleActive && !selectedNFT ? (
             <TransferFungible />
           ) : (
             <TransferNFTs />
