@@ -46,3 +46,4 @@ export const NFTListView = "NFT list view";
 export const FungibleListView = "Fungible list view";
 export const ProfileView = "Profile view";
 export const TransferView = "Transfer view";
+export const NFTDetailsView = "NFT details view";

@@ -14,11 +14,13 @@ import Spacer from "../components/Spacer/Spacer";
 import AssetsList from "../components/AssetsList/AssetsList";
 import {
   FungibleListView,
+  NFTDetailsView as NFTDetailsActionView,
   NFTListView,
   NonFungibleTokenKind,
   ProfileView,
   TransferView,
 } from "../utils/constants";
+import NFTDetailsView from "./components/NFTDetailsView";
 
 function Actions(): JSX.Element | null {
   const {
@@ -28,6 +30,7 @@ function Actions(): JSX.Element | null {
     accounts,
     setSelectedTransferKey,
     NFTList,
+    setActionsView,
   } = useApp();
   const { activeAsset } = useAuth();
   const [isFungibleActive, setIsFungibleActive] = useState<boolean>(
@@ -41,8 +44,12 @@ function Actions(): JSX.Element | null {
       <div className="actions__header">
         <Button
           onClick={() => {
-            setIsActionsViewVisible(!isActionsViewVisible);
-            actionsView === TransferView && setSelectedTransferKey(null);
+            if (actionsView === NFTDetailsActionView) {
+              setActionsView(NFTListView);
+            } else {
+              setIsActionsViewVisible(!isActionsViewVisible);
+              actionsView === TransferView && setSelectedTransferKey(null);
+            }
           }}
           className="btn__back"
           variant="icon"
@@ -76,6 +83,8 @@ function Actions(): JSX.Element | null {
           ) : (
             <TransferNFTs />
           )
+        ) : actionsView === NFTDetailsActionView ? (
+          <NFTDetailsView />
         ) : actionsView === FungibleListView ? (
           <BillsList />
         ) : actionsView === NFTListView ? (
@@ -85,7 +94,10 @@ function Actions(): JSX.Element | null {
               isTypeListItem
               assetList={NFTList}
               isTransferButton
-              isHoverDisabled
+              onItemClick={() => {
+                setIsActionsViewVisible(true);
+                setActionsView(NFTDetailsActionView);
+              }}
             />
           </>
         ) : actionsView === ProfileView && accounts ? (

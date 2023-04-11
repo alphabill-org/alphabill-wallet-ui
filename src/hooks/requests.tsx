@@ -282,3 +282,19 @@ export const fetchImage = async (url?: string) => {
     return false;
   }
 };
+
+export const downloadFile = async (url: string, filename: string) => {
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "blob"
+  });
+  const objectUrl = URL.createObjectURL(response.data);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(objectUrl);
+};

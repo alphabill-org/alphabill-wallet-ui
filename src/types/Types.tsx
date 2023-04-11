@@ -107,6 +107,8 @@ export interface IActiveAsset {
   kind?: number;
   decimals?: number;
   isDcBill?: boolean;
+  isImageUrl?: boolean;
+  nftUri?: string;
 }
 
 export interface INonFungibleAsset {
@@ -365,4 +367,5 @@ export type IActionVies =
   | "Fungible list view"
   | "NFT list view"
   | "Profile view"
+  | "NFT details view"
   | "";
