@@ -17,6 +17,7 @@ import {
   AlphaDecimalFactor,
   AlphaDecimalPlaces,
   AlphaType,
+  downloadableTypes,
 } from "../utils/constants";
 import {
   addDecimal,
@@ -205,8 +206,15 @@ export const getUserTokens = async (
         token.nftData = obj.nftData;
         token.nftUri = obj.nftUri;
         token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
-        token.isImageUrl = false; // add the initial field value
-        const imageUrl = await fetchImage(obj?.nftUri);
+        token.isImageUrl = false;
+        token.downloadableItemType = null;
+        const imageUrl = await getImageUrl(obj?.nftUri);
+        const contentType = obj?.nftUri && await getDownloadType(obj?.nftUri);
+
+        if (contentType) {
+          token.downloadableItemType = contentType;
+        }
+
         if (imageUrl) {
           token.isImageUrl = true;
         }
@@ -266,7 +274,7 @@ export const makeTransaction = async (
   return response.data;
 };
 
-export const fetchImage = async (url?: string) => {
+export const getImageUrl = async (url?: string) => {
   if (!url) return false;
   try {
     const response = await axios.head(url, { timeout: 3000 });
@@ -283,11 +291,24 @@ export const fetchImage = async (url?: string) => {
   }
 };
 
+export const getDownloadType = async (url: string) => {
+  try {
+    const response = await axios.head(url);
+    const contentType = response.headers["content-type"];
+    if (contentType && downloadableTypes.includes(contentType)) {
+      return contentType;
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
+
 export const downloadFile = async (url: string, filename: string) => {
   const response = await axios({
     url,
     method: "GET",
-    responseType: "blob"
+    responseType: "blob",
   });
   const objectUrl = URL.createObjectURL(response.data);
   const link = document.createElement("a");

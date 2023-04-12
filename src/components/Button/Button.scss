@@ -19,14 +19,7 @@
     padding: 0;
 
     &:hover {
-      opacity: 1 !important;
-
-      svg,
-      path,
-      g
-       {
-        fill: $color-primary;
-      }
+      opacity: .7;
 
       .profile-ico {
         circle:first-child {

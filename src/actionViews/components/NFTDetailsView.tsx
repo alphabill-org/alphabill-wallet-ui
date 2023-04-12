@@ -26,8 +26,6 @@ export default function NFTDetailsView({
   const queryClient = useQueryClient();
   const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
     useApp();
-  const isDownloadButton =
-    (activeAsset?.isImageUrl && activeAsset?.nftUri) || activeAsset?.nftData;
 
   const handleClick = (asset: any) => {
     onItemClick && onItemClick();
@@ -57,10 +55,10 @@ export default function NFTDetailsView({
       </div>
       <div
         className={classNames("asset-details__content", {
-          "is-empty": !activeAsset?.nftUri,
+          "is-empty": !activeAsset?.isImageUrl,
         })}
       >
-        {activeAsset?.nftUri ? (
+        {activeAsset?.isImageUrl ? (
           <LazyLoadImage
             alt={base64ToHexPrefixed(activeAsset?.id)}
             height={32}
@@ -68,11 +66,13 @@ export default function NFTDetailsView({
             width={32}
           />
         ) : (
-          <div>Unable to preview content</div>
+          <div>
+            Unable to preview {activeAsset?.downloadableItemType} content.
+          </div>
         )}
       </div>
       <div className="asset-details__actions">
-        {activeAsset?.isImageUrl && activeAsset?.nftUri && (
+        {activeAsset?.downloadableItemType && (
           <Button
             type="button"
             variant="primary"
@@ -84,7 +84,7 @@ export default function NFTDetailsView({
             }}
           >
             <Download />
-            <div className="pad-8-l">Image</div>
+            <div className="pad-8-l">{activeAsset?.downloadableItemType}</div>
           </Button>
         )}
 

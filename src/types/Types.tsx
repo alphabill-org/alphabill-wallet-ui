@@ -74,6 +74,7 @@ export interface IListTokensResponse {
   symbol: string;
   nftUri?: string; // nft only
   isImageUrl?: boolean; // nft only
+  downloadableItemType?: string | null;
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
   network: string;
@@ -108,6 +109,7 @@ export interface IActiveAsset {
   decimals?: number;
   isDcBill?: boolean;
   isImageUrl?: boolean;
+  downloadableItemType?: string | null;
   nftUri?: string;
   nftData?: string;
 }
@@ -118,6 +120,7 @@ export interface INonFungibleAsset {
   owner: string; // base64 encoded hex - bearer predicate
   nftUri: string; // nft only
   isImageUrl?: boolean; // nft only
+  downloadableItemType?: string | null;
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
