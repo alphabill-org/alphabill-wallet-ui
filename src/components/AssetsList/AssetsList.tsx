@@ -4,9 +4,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import {
   AlphaType,
-  FungibleListView,
   FungibleTokenKind,
-  NFTListView,
   NonFungibleTokenKind,
   TransferView,
 } from "../../utils/constants";

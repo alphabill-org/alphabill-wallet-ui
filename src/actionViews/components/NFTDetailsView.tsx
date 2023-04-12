@@ -89,7 +89,7 @@ export default function NFTDetailsView({
             }}
           >
             <Download />
-            <div className="pad-8-l">{activeAsset?.downloadableItemType}</div>
+            <div className="pad-8-l t-ellipsis">{activeAsset?.downloadableItemType}</div>
           </Button>
         )}
 
@@ -105,7 +105,7 @@ export default function NFTDetailsView({
             }}
           >
             <Download />
-            <div className="pad-8-l">Data</div>
+            <div className="pad-8-l ">Data</div>
           </Button>
         )}
       </div>
