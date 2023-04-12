@@ -126,6 +126,7 @@ function RecoverAccount(): JSX.Element | null {
                       error={extractFormikError(errors, touched, [
                         "mnemonicRecovery",
                       ])}
+                      focusInput
                     />
                     <Spacer mb={8} />
                     <Textfield

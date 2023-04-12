@@ -84,6 +84,7 @@ function Login(): JSX.Element | null {
                     label="password"
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
+                    focusInput
                   />
                 </FormContent>
                 <FormFooter>
