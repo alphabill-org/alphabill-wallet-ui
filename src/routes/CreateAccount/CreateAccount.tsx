@@ -121,6 +121,7 @@ function CreateAccount(): JSX.Element | null {
                       label="New password (8 characters min)"
                       type="password"
                       error={extractFormikError(errors, touched, ["password"])}
+                      focusInput
                     />
                     <Textfield
                       id="passwordCreateAccountConfirm"
