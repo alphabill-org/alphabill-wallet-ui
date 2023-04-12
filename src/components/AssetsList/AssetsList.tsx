@@ -4,7 +4,9 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import {
   AlphaType,
+  FungibleListView,
   FungibleTokenKind,
+  NFTListView,
   NonFungibleTokenKind,
   TransferView,
 } from "../../utils/constants";
@@ -15,12 +17,13 @@ import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IBill } from "../../types/Types";
+import { IActiveAsset, IBill } from "../../types/Types";
 
 export interface IAssetsListProps {
   assetList: any;
   isTypeListItem?: boolean;
   onItemClick?: () => void;
+  onSendClick?: (e: IActiveAsset) => void;
   setIsProofVisible?: (e: IBill) => void;
   isProofButton?: boolean;
   isTransferButton?: boolean;
@@ -35,6 +38,7 @@ export default function AssetsList({
   isTransferButton,
   isProofButton,
   isHoverDisabled,
+  onSendClick,
 }: IAssetsListProps): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
@@ -121,6 +125,7 @@ export default function AssetsList({
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(asset.id);
                       handleClick(asset);
+                      onSendClick && onSendClick(asset)
                     }}
                     type="button"
                     variant="icon"

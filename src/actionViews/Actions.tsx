@@ -21,7 +21,7 @@ import {
   TransferView,
 } from "../utils/constants";
 import NFTDetailsView from "./components/NFTDetailsView";
-import { IListTokensResponse } from "../types/Types";
+import { IActionVies, IListTokensResponse } from "../types/Types";
 
 function Actions(): JSX.Element | null {
   const {
@@ -33,7 +33,9 @@ function Actions(): JSX.Element | null {
     setSelectedTransferKey,
     NFTList,
     setActionsView,
-    NFTsList
+    NFTsList,
+    setPreviousView,
+    previousView,
   } = useApp();
   const { activeAsset } = useAuth();
   const selectedNFT = NFTsList?.find(
@@ -52,9 +54,16 @@ function Actions(): JSX.Element | null {
           onClick={() => {
             if (actionsView === NFTDetailsActionView) {
               setActionsView(NFTListView);
+            } else if (previousView) {
+              setActionsView(previousView as IActionVies);
             } else {
               setIsActionsViewVisible(!isActionsViewVisible);
               actionsView === TransferView && setSelectedTransferKey(null);
+            }
+
+            if (TransferView) {
+              setPreviousView(null);
+              setSelectedTransferKey(null);
             }
           }}
           className="btn__back"
@@ -73,9 +82,7 @@ function Actions(): JSX.Element | null {
           <>
             <Spacer mt={8} />
             <Navbar
-              isFungibleActive={
-                isFungibleActive && !selectedNFT
-              }
+              isFungibleActive={isFungibleActive && !selectedNFT}
               onChange={(v: boolean) => {
                 setIsFungibleActive(v);
                 setSelectedTransferKey(null);
@@ -104,6 +111,7 @@ function Actions(): JSX.Element | null {
                 setIsActionsViewVisible(true);
                 setActionsView(NFTDetailsActionView);
               }}
+              onSendClick={() => setPreviousView(NFTListView)}
             />
           </>
         ) : actionsView === ProfileView && accounts ? (
