@@ -24,8 +24,13 @@
     &-id {
       display: flex;
       align-items: center;
-      max-width: 197px;
+      max-width: 227px;
       white-space: pre;
+      cursor: pointer;
+
+      &:hover {
+        opacity: .7;
+      }
 
       &-item {
         text-overflow: ellipsis;
@@ -44,20 +49,10 @@
     }
 
     &-buttons {
-      min-width: 50px;
-      display: flex;
-      flex: 1 1 auto;
-      margin-left: 8px;
-      z-index: 1;
-
       button {
         background-color: $color-blue;
         padding: 4px;
         border-radius: 4px;
-
-        &.copy-btn {
-          margin-right: 8px;
-        }
       }
     }
 
@@ -92,6 +87,117 @@
 
       &:hover {
         background-color: $color-secondary;
+      }
+    }
+  }
+
+  .accounts {
+    .account__item.account__item-name {
+      max-width: 265px;
+      padding-left: 16px;
+      margin-right: auto;
+    }
+
+    .form {
+      flex-direction: row;
+      gap: 8px;
+      border: 1px solid;
+      border-radius: 4px;
+      padding-right: 8px;
+
+      .textfield__input {
+        background-color: $color-white;
+        color: $color-blue;
+      }
+
+      .form-footer {
+        padding-top: 12px;
+
+        svg {
+          background: $color-secondary;
+          border-radius: 50%;
+          padding: 4px;
+          min-width: 20px;
+          min-height: 20px;
+          fill: $color-white;
+
+          &:hover {
+            opacity: .7;
+          }
+
+          path {
+            fill: $color-white;
+          }
+        }
+
+      }
+    }
+
+
+    .select__option-wrap {
+      display: flex;
+      position: relative;
+      align-items: center;
+
+      .select__option {
+        max-height: unset;
+      }
+
+      .edit-ico {
+        position: absolute;
+        right: 20px;
+        cursor: pointer;
+        z-index: 1;
+
+        &:hover {
+          opacity: .7;
+        }
+      }
+
+      &.selected {
+        background-color: $color-secondary;
+        color: $color-white;
+
+        &:hover {
+          color: initial;
+
+          .edit-ico path {
+            stroke: $color-white;
+          }
+        }
+
+        .select__option:hover {
+          background-color: $color-secondary;
+        }
+
+        .edit-ico path {
+          stroke: $color-white;
+        }
+      }
+
+      .edit-ico path {
+        stroke: $color-secondary;
+      }
+    }
+
+
+    .add-key {
+      display: flex;
+      padding: 16px 24px;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+      transition: all .3 ease;
+
+      &:hover {
+        opacity: .7;
+      }
+
+      path {
+        fill: $color-secondary;
       }
     }
   }
