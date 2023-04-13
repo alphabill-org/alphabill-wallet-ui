@@ -632,3 +632,15 @@ const sortBySymbol = (arr: any) =>
   );
 
 export { sortByTypeId, filterUniqueTypes, sortBySymbol };
+
+export const downloadHexFile = (hexString: string, filename: string) => {
+  const blob = new Blob([hexString], { type: "text/plain" });
+  const url = window.URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = url;
+  downloadLink.setAttribute("download", `${filename}.txt`);
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  window.URL.revokeObjectURL(url);
+};

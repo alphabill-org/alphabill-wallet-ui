@@ -15,12 +15,13 @@ import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IBill } from "../../types/Types";
+import { IActiveAsset, IBill } from "../../types/Types";
 
 export interface IAssetsListProps {
   assetList: any;
   isTypeListItem?: boolean;
   onItemClick?: () => void;
+  onSendClick?: (e: IActiveAsset) => void;
   setIsProofVisible?: (e: IBill) => void;
   isProofButton?: boolean;
   isTransferButton?: boolean;
@@ -35,6 +36,7 @@ export default function AssetsList({
   isTransferButton,
   isProofButton,
   isHoverDisabled,
+  onSendClick,
 }: IAssetsListProps): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
@@ -42,7 +44,6 @@ export default function AssetsList({
     useApp();
 
   const handleClick = (asset: any) => {
-    onItemClick && onItemClick();
     setActiveAssetLocal(JSON.stringify(asset));
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
@@ -85,6 +86,10 @@ export default function AssetsList({
             })}
             onClick={() => handleClick(asset)}
           >
+            <div
+              onClick={() => onItemClick && onItemClick()}
+              className="assets-list__item-clicker"
+            ></div>
             <div className="assets-list__item-icon">
               {asset?.typeId === AlphaType ? <ABLogo /> : icon}
             </div>
@@ -118,6 +123,7 @@ export default function AssetsList({
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(asset.id);
                       handleClick(asset);
+                      onSendClick && onSendClick(asset)
                     }}
                     type="button"
                     variant="icon"

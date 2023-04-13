@@ -7,6 +7,7 @@ import {
   DCTransfersLimit,
   swapTimeout,
   AlphaType,
+  FungibleListView,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -27,7 +28,7 @@ import AssetsList from "../../../components/AssetsList/AssetsList";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const { billsList, account } = useApp();
+  const { billsList, account, setPreviousView } = useApp();
   // Bills lists
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
@@ -281,6 +282,7 @@ function BillsList(): JSX.Element | null {
             isProofButton
             isTransferButton
             isHoverDisabled
+            onSendClick={() => setPreviousView(FungibleListView)}
           />
         )}
         <Spacer mt={32} />

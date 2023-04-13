@@ -39,6 +39,8 @@ interface IAppContextShape {
   setIsActionsViewVisible: (e: boolean) => void;
   actionsView: IActionVies;
   setActionsView: (e: IActionVies) => void;
+  previousView: string | null;
+  setPreviousView: (e: string | null) => void;
   selectedTransferKey: string | null | undefined;
   setSelectedTransferKey: (e: string | null) => void;
 }
@@ -63,7 +65,7 @@ export const AppProvider: FunctionComponent<{
   const [selectedTransferKey, setSelectedTransferKey] = useState<
     string | null | undefined
   >();
-
+  const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: fungibleTokensList } = useGetAllUserTokens(activeAccountId);
@@ -167,6 +169,8 @@ export const AppProvider: FunctionComponent<{
         setActionsView,
         selectedTransferKey,
         setSelectedTransferKey,
+        previousView,
+        setPreviousView,
       }}
     >
       {children}
