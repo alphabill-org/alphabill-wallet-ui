@@ -545,17 +545,6 @@ export default function TransferFungible(): JSX.Element | null {
                       setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
-                  <Spacer mb={8} />
-                  {selectedTransferKey && (
-                    <div>
-                      <Spacer mt={8} />
-                      <div className="t-medium c-primary">
-                        ADD RECEIVER ADDRESS & PASSWORD
-                      </div>
-
-                      <Spacer mb={16} />
-                    </div>
-                  )}
                   <Textfield
                     id="address"
                     name="address"
@@ -564,7 +553,6 @@ export default function TransferFungible(): JSX.Element | null {
                     error={extractFormikError(errors, touched, ["address"])}
                   />
                   <Spacer mb={8} />
-
                   <div className={selectedTransferKey ? "d-none" : ""}>
                     <Textfield
                       id="amount"

@@ -332,17 +332,6 @@ export default function TransferNFTs(): JSX.Element | null {
                       label: defaultAsset.label,
                     }}
                   />
-                  <Spacer mb={8} />
-                  {selectedTransferKey && (
-                    <div>
-                      <Spacer mt={8} />
-                      <div className="t-medium c-primary">
-                        ADD RECEIVER ADDRESS & PASSWORD
-                      </div>
-
-                      <Spacer mb={16} />
-                    </div>
-                  )}
                   <Textfield
                     id="address"
                     name="address"

@@ -24,6 +24,7 @@
     background-color: $color-secondary-op;
     transition: background-color .3s ease;
     cursor: pointer;
+    position: relative;
 
     &.no-hover {
       cursor: unset;
@@ -34,6 +35,17 @@
 
     &:hover {
       background-color: $color-primary--hover;
+    }
+
+    &-clicker {
+      z-index: 1;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
     }
 
     &-title {
@@ -84,6 +96,7 @@
       gap: 6px;
       align-items: center;
       padding-left: 8px;
+      z-index: 10;
 
       button {
         background-color: $color-primary;
@@ -94,10 +107,10 @@
         display: flex;
 
         &:hover {
-          opacity: .7 !important;
+          background-color: rgba($color-primary, .7);
 
-          svg path {
-            fill: $color-blue;
+          path {
+            fill: $color-white;
           }
         }
 
