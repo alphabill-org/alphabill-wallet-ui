@@ -72,7 +72,7 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === NFTListView || NFTListView
+          {actionsView === NFTListView || actionsView === FungibleListView
             ? activeAsset?.name || activeAsset?.symbol
             : actionsView}
         </div>
