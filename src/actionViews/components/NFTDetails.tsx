@@ -15,13 +15,13 @@ import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
 
-export interface INFTDetailsViewProps {
+export interface INFTDetailsProps {
   onItemClick?: () => void;
 }
 
-export default function NFTDetailsView({
+export default function NFTDetails({
   onItemClick,
-}: INFTDetailsViewProps): JSX.Element | null {
+}: INFTDetailsProps): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const {

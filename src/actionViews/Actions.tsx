@@ -14,13 +14,13 @@ import Spacer from "../components/Spacer/Spacer";
 import AssetsList from "../components/AssetsList/AssetsList";
 import {
   FungibleListView,
-  NFTDetailsView as NFTDetailsActionView,
+  NFTDetailsView,
   NFTListView,
   NonFungibleTokenKind,
   ProfileView,
   TransferView,
 } from "../utils/constants";
-import NFTDetailsView from "./components/NFTDetailsView";
+import NFTDetails from "./components/NFTDetails";
 import { IActionVies, IListTokensResponse } from "../types/Types";
 
 function Actions(): JSX.Element | null {
@@ -52,7 +52,7 @@ function Actions(): JSX.Element | null {
       <div className="actions__header">
         <Button
           onClick={() => {
-            if (actionsView === NFTDetailsActionView) {
+            if (actionsView === NFTDetailsView) {
               setActionsView(NFTListView);
             } else if (previousView) {
               setActionsView(previousView as IActionVies);
@@ -96,8 +96,8 @@ function Actions(): JSX.Element | null {
           ) : (
             <TransferNFTs />
           )
-        ) : actionsView === NFTDetailsActionView ? (
-          <NFTDetailsView />
+        ) : actionsView === NFTDetailsView ? (
+          <NFTDetails />
         ) : actionsView === FungibleListView ? (
           <BillsList />
         ) : actionsView === NFTListView ? (
@@ -109,7 +109,7 @@ function Actions(): JSX.Element | null {
               isTransferButton
               onItemClick={() => {
                 setIsActionsViewVisible(true);
-                setActionsView(NFTDetailsActionView);
+                setActionsView(NFTDetailsView);
               }}
               onSendClick={() => setPreviousView(NFTListView)}
             />
