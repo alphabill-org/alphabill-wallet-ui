@@ -1,4 +1,3 @@
-import { useState } from "react";
 import classNames from "classnames";
 
 import Button from "../components/Button/Button";
@@ -16,12 +15,12 @@ import {
   FungibleListView,
   NFTDetailsView,
   NFTListView,
-  NonFungibleTokenKind,
   ProfileView,
-  TransferView,
+  TransferFungibleView,
+  TransferNFTView,
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
-import { IActionVies, IListTokensResponse } from "../types/Types";
+import { IActionVies } from "../types/Types";
 
 function Actions(): JSX.Element | null {
   const {
@@ -29,21 +28,15 @@ function Actions(): JSX.Element | null {
     setIsActionsViewVisible,
     actionsView,
     accounts,
-    selectedTransferKey,
     setSelectedTransferKey,
     NFTList,
     setActionsView,
-    NFTsList,
     setPreviousView,
     previousView,
   } = useApp();
   const { activeAsset } = useAuth();
-  const selectedNFT = NFTsList?.find(
-    (token: IListTokensResponse) => token.id === selectedTransferKey
-  );
-  const [isFungibleActive, setIsFungibleActive] = useState<boolean>(
-    activeAsset?.kind !== NonFungibleTokenKind && !selectedNFT
-  );
+  const isTransferView =
+    actionsView === TransferFungibleView || actionsView === TransferNFTView;
 
   return (
     <div
@@ -58,10 +51,9 @@ function Actions(): JSX.Element | null {
               setActionsView(previousView as IActionVies);
             } else {
               setIsActionsViewVisible(!isActionsViewVisible);
-              actionsView === TransferView && setSelectedTransferKey(null);
             }
 
-            if (TransferView) {
+            if (isTransferView) {
               setPreviousView(null);
               setSelectedTransferKey(null);
             }
@@ -74,28 +66,31 @@ function Actions(): JSX.Element | null {
         <div className="actions__title">
           {actionsView === NFTListView || actionsView === FungibleListView
             ? activeAsset?.name || activeAsset?.symbol
-            : actionsView}
+            : actionsView.replace("view", "")}
         </div>
       </div>
       <div className="actions__view">
-        {actionsView === TransferView && (
+        {isTransferView && (
           <>
             <Spacer mt={8} />
             <Navbar
-              isFungibleActive={isFungibleActive && !selectedNFT}
-              onChange={(v: boolean) => {
-                setIsFungibleActive(v);
+              isFungibleActive={actionsView === TransferFungibleView}
+              onChange={(isFungibleView: boolean) => {
+                setActionsView(
+                  isFungibleView === true
+                    ? TransferFungibleView
+                    : TransferNFTView
+                );
                 setSelectedTransferKey(null);
+                setPreviousView(null);
               }}
             />
           </>
         )}
-        {actionsView === TransferView ? (
-          isFungibleActive && !selectedNFT ? (
-            <TransferFungible />
-          ) : (
-            <TransferNFTs />
-          )
+        {actionsView === TransferFungibleView ? (
+          <TransferFungible />
+        ) : actionsView === TransferNFTView ? (
+          <TransferNFTs />
         ) : actionsView === NFTDetailsView ? (
           <NFTDetails />
         ) : actionsView === FungibleListView ? (
