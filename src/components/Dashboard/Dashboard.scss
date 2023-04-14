@@ -114,12 +114,18 @@
         padding-top: 12px;
 
         svg {
-          background: $color-secondary;
+          background: $color-blue;
           border-radius: 50%;
           padding: 4px;
           min-width: 20px;
           min-height: 20px;
           fill: $color-white;
+          stroke: $color-white;
+
+          &.cancel {
+            background: $color-error;
+            stroke: transparent;
+          }
 
           &:hover {
             opacity: .7;
@@ -159,7 +165,7 @@
         color: $color-white;
 
         &:hover {
-          color: initial;
+          color: $color-white;
 
           .edit-ico path {
             stroke: $color-white;
@@ -168,6 +174,7 @@
 
         .select__option:hover {
           background-color: $color-secondary;
+          color: $color-white;
         }
 
         .edit-ico path {
@@ -176,7 +183,7 @@
       }
 
       .edit-ico path {
-        stroke: $color-secondary;
+        stroke: $color-blue;
       }
     }
 

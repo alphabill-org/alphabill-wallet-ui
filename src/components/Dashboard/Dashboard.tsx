@@ -303,7 +303,7 @@ function Dashboard(): JSX.Element | null {
                                         block={true}
                                         variant="icon"
                                       >
-                                        <Close width="16" height="16" />
+                                        <Close className="cancel" width="16" height="16" />
                                       </Button>
                                       <Button
                                         className="submit"
