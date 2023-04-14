@@ -215,7 +215,9 @@
       max-width: calc(100% - 98px);
 
       &:hover {
-        svg {
+        svg,
+        path,
+        g {
           fill: $color-white;
         }
       }
