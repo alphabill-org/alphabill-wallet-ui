@@ -101,17 +101,27 @@
     .form {
       flex-direction: row;
       gap: 8px;
-      border: 1px solid;
       border-radius: 4px;
       padding-right: 8px;
+      position: relative;
+      padding: 0;
+      background: white;
+
+      .textfield__error {
+        padding: 8px;
+      }
 
       .textfield__input {
         background-color: $color-white;
         color: $color-blue;
+        border: 1px solid;
+        padding-right: 64px;
       }
 
       .form-footer {
         padding-top: 12px;
+        position: absolute;
+        right: 8px;
 
         svg {
           background: $color-blue;
@@ -222,6 +232,7 @@
       max-width: calc(100% - 98px);
 
       &:hover {
+
         svg,
         path,
         g {
@@ -282,7 +293,16 @@
     min-height: 230px;
     position: relative;
   }
+
+  .select__popover {
+    padding-bottom: 0;
+  }
+
+  .select__popover-header {
+    padding: 12px 24px;
+  }
 }
+
 
 .navbar {
   display: flex;
