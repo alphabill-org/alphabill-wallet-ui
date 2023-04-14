@@ -4,6 +4,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
 import * as Yup from "yup";
 import { Formik } from "formik";
+import CryptoJS from "crypto-js";
 
 import { Form, FormFooter, FormContent } from "./../Form/Form";
 import { ReactComponent as AddIco } from "./../../images/add-ico.svg";
