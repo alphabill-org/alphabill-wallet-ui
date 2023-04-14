@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
@@ -70,7 +70,7 @@ export default function TransferNFTs(): JSX.Element | null {
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
-  const tokensAmount = useRef<number | null>(null);
+  const transferredToken = useRef<INFTAsset | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
@@ -92,6 +92,15 @@ export default function TransferNFTs(): JSX.Element | null {
       );
     }, 500);
   };
+
+  useEffect(() => {
+    const isTokenTransferred = !NFTsList?.find(
+      (token) => token.id === transferredToken.current?.id
+    );
+    if (pollingInterval.current && isTokenTransferred) {
+      clearInterval(pollingInterval.current);
+    }
+  }, [NFTsList]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -188,7 +197,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
                     ).then(() => {
-                      tokensAmount.current = Number(NFTsList?.length) - 1;
+                      transferredToken.current = selectedAsset || null;
                       addPollingInterval();
                       setIsSending(false);
                       setSelectedTransferKey(null);
@@ -248,8 +257,8 @@ export default function TransferNFTs(): JSX.Element | null {
                     <>
                       {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a specific NFT.
-                          You can deselect it by clicking{" "}
+                          You have selected a specific NFT. You can deselect it
+                          by clicking{" "}
                           <Button
                             onClick={() => setSelectedTransferKey(null)}
                             variant="link"
