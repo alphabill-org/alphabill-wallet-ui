@@ -128,13 +128,11 @@ export default function TransferFungible(): JSX.Element | null {
   };
 
   useEffect(() => {
-    setSelectedAsset(defaultAsset?.value);
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
   }, [
     selectedAsset,
     getAvailableAmount,
     isActionsViewVisible,
-    defaultAsset?.value,
   ]);
 
   useEffect(() => {
@@ -607,7 +605,7 @@ export default function TransferFungible(): JSX.Element | null {
         }}
       </Formik>
       {!selectedTransferKey && (
-        <div className="t-medium-small pad-24-h">
+        <div className="t-medium-small pad-24-h pad-24-b">
           To select a specific {tokenLabel} open your{" "}
           <Button
             small
