@@ -1,27 +1,3 @@
-@import './variables.scss';
-@import './utils.scss';
-@import './reset.scss';
-
-@import '../actionViews/Actions.scss';
-@import '../actionViews/components/BillsList/BillsList.scss';
-@import '../components/Popup/Popup.scss';
-@import '../components/Animations/Animations.scss';
-@import '../components/Button/Button.scss';
-
-@import '../components/AssetsList/AssetsList.scss';
-@import '../components/Form/Form.scss';
-@import '../components/Checkbox/Checkbox.scss';
-@import '../components/Header/Header.scss';
-@import '../components/Select/Select.scss';
-@import '../components/Spacer/Spacer.scss';
-@import '../components/Spinner/Spinner.scss';
-@import '../components/Textfield/Textfield.scss';
-@import '../components/Dashboard/Dashboard.scss';
-@import '../components/SelectPopover/SelectPopover.scss';
-
-@import '../routes/Login/Login.scss';
-@import 'react-tooltip/dist/react-tooltip.css';
-
 @font-face {
   font-family: "grotesk";
   font-style: normal;
@@ -56,6 +32,30 @@
   font-weight: 700;
   src: url("./fonts/SpaceGrotesk-Bold.ttf") format("truetype");
 }
+
+@import './variables.scss';
+@import './utils.scss';
+@import './reset.scss';
+
+@import '../actionViews/Actions.scss';
+@import '../actionViews/components/BillsList/BillsList.scss';
+@import '../components/Popup/Popup.scss';
+@import '../components/Animations/Animations.scss';
+@import '../components/Button/Button.scss';
+
+@import '../components/AssetsList/AssetsList.scss';
+@import '../components/Form/Form.scss';
+@import '../components/Checkbox/Checkbox.scss';
+@import '../components/Header/Header.scss';
+@import '../components/Select/Select.scss';
+@import '../components/Spacer/Spacer.scss';
+@import '../components/Spinner/Spinner.scss';
+@import '../components/Textfield/Textfield.scss';
+@import '../components/Dashboard/Dashboard.scss';
+@import '../components/SelectPopover/SelectPopover.scss';
+
+@import '../routes/Login/Login.scss';
+@import 'react-tooltip/dist/react-tooltip.css';
 
 .app {
   min-width: 375px;
