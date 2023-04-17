@@ -155,10 +155,6 @@
       position: relative;
       align-items: center;
 
-      .select__options {
-        overflow: auto;
-        max-height: 560px;
-      }
       .select__option {
         max-height: unset;
       }
@@ -296,6 +292,11 @@
     background-color: $color-body-background;
     min-height: 230px;
     position: relative;
+  }
+
+  .select__options {
+    overflow: auto;
+    max-height: 560px;
   }
 
   .select__popover {
