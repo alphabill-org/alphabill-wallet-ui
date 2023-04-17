@@ -5,15 +5,10 @@ import * as Yup from "yup";
 import { Navigate } from "react-router-dom";
 
 import CryptoJS from "crypto-js";
-import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Textfield from "../../components/Textfield/Textfield";
-import {
-  checkPassword,
-  extractFormikError,
-  getKeys,
-} from "../../utils/utils";
+import { checkPassword, extractFormikError, getKeys } from "../../utils/utils";
 import Button from "../../components/Button/Button";
 import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
 import { ReactComponent as PasswordIco } from "./../../images/password-ico.svg";
@@ -25,18 +20,8 @@ import { useApp } from "../../hooks/appProvider";
 function AccountView(): JSX.Element | null {
   const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] =
     useState(false);
-  const {
-    logout,
-    userKeys,
-    setUserKeys,
-    vault,
-    activeAccountId,
-    setActiveAccountId,
-    setVault,
-    activeAsset,
-  } = useAuth();
+  const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
   const { accounts, setIsActionsViewVisible } = useApp();
-  const queryClient = useQueryClient();
 
   if (
     Number(userKeys?.length) <= 0 ||
@@ -77,7 +62,6 @@ function AccountView(): JSX.Element | null {
           <div className="account__menu-item-title">Lock</div>
         </div>
       </div>
-
 
       <Popup
         isPopupVisible={isChangePasswordPopupVisible}

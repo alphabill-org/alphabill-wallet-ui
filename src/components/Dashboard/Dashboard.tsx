@@ -15,11 +15,8 @@ import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
-import {
-  AlphaType,
-  TransferFungibleView,
-} from "../../utils/constants";
+import { invalidateAllLists } from "../../utils/utils";
+import { AlphaType, TransferFungibleView } from "../../utils/constants";
 import FungibleAssetsCol from "./components/FungibleAssetsCol";
 import NFTAssetsCol from "./components/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
