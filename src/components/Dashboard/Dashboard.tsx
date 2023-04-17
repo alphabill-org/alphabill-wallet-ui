@@ -19,7 +19,7 @@ import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
 import {
   AlphaType,
   ProfileView,
-  TransferView,
+  TransferFungibleView,
 } from "../../utils/constants";
 import FungibleAssetsCol from "./components/FungibleAssetsCol";
 import NFTAssetsCol from "./components/NFTAssetsCol";
@@ -154,7 +154,7 @@ function Dashboard(): JSX.Element | null {
         <Button
           variant="primary"
           onClick={() => {
-            setActionsView(TransferView);
+            setActionsView(TransferFungibleView);
             setActiveAssetLocal(
               JSON.stringify(
                 account.assets.fungible.find(

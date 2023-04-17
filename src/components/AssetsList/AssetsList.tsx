@@ -6,7 +6,8 @@ import {
   AlphaType,
   FungibleTokenKind,
   NonFungibleTokenKind,
-  TransferView,
+  TransferFungibleView,
+  TransferNFTView,
 } from "../../utils/constants";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
@@ -63,6 +64,7 @@ export default function AssetsList({
         const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isProofButton || isTransferButton;
+        const isFungibleKind = asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
         let icon = null;
 
         if (asset?.isImageUrl && isTypeListItem) {
@@ -98,7 +100,7 @@ export default function AssetsList({
             {isButtons && (
               <div className="assets-list__item-actions">
                 {isProofButton &&
-                  asset?.kind !== FungibleTokenKind &&
+                  isFungibleKind &&
                   asset?.kind !== NonFungibleTokenKind && (
                     <Button
                       onClick={() => {
@@ -119,11 +121,15 @@ export default function AssetsList({
                 {isTransferButton && (
                   <Button
                     onClick={() => {
-                      setActionsView(TransferView);
+                      setActionsView(
+                        isFungibleKind
+                          ? TransferFungibleView
+                          : TransferNFTView
+                      );
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(asset.id);
                       handleClick(asset);
-                      onSendClick && onSendClick(asset)
+                      onSendClick && onSendClick(asset);
                     }}
                     type="button"
                     variant="icon"
