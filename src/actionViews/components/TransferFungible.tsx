@@ -50,7 +50,7 @@ import {
   TokensSystemId,
   AlphaType,
   FungibleListView,
-  TransferView,
+  TransferFungibleView,
 } from "../../utils/constants";
 
 import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
@@ -151,7 +151,7 @@ export default function TransferFungible(): JSX.Element | null {
       clearInterval(pollingInterval.current);
     }
 
-    if (actionsView !== TransferView && pollingInterval.current) {
+    if (actionsView !== TransferFungibleView && pollingInterval.current) {
       clearInterval(pollingInterval.current);
     }
   }, [

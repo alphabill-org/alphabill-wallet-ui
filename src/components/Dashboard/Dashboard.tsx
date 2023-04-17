@@ -15,8 +15,11 @@ import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { invalidateAllLists } from "../../utils/utils";
-import { AlphaType, TransferView } from "../../utils/constants";
+import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
+import {
+  AlphaType,
+  TransferFungibleView,
+} from "../../utils/constants";
 import FungibleAssetsCol from "./components/FungibleAssetsCol";
 import NFTAssetsCol from "./components/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
@@ -109,7 +112,7 @@ function Dashboard(): JSX.Element | null {
         <Button
           variant="primary"
           onClick={() => {
-            setActionsView(TransferView);
+            setActionsView(TransferFungibleView);
             setActiveAssetLocal(
               JSON.stringify(
                 account.assets.fungible.find(
