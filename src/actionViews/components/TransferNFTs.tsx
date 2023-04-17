@@ -51,6 +51,7 @@ export default function TransferNFTs(): JSX.Element | null {
     selectedTransferKey,
     setActionsView,
     setSelectedTransferKey,
+    setPreviousView
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -203,6 +204,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
+                      setPreviousView(null);
                     });
                 })
                 .catch(() => {

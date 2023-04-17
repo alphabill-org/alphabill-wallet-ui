@@ -65,24 +65,28 @@ export default function TransferFungible(): JSX.Element | null {
     selectedTransferKey,
     setActionsView,
     setSelectedTransferKey,
+    setPreviousView,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
+  const selectedBill = billsList?.find(
+    (bill: IBill) => bill.id === selectedTransferKey
+  );
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
-    value: account?.assets.fungible
-      ?.filter((asset) => account?.activeNetwork === asset.network)
-      .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
-    label: activeAsset.name || AlphaType,
+    value: selectedBill
+      ? selectedBill
+      : account?.assets.fungible
+          ?.filter((asset) => account?.activeNetwork === asset.network)
+          .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
+    label: selectedBill?.id || activeAsset.name || AlphaType,
   };
+
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | undefined
   >(defaultAsset?.value);
   const decimalPlaces = selectedAsset?.decimalPlaces || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
-  const selectedBill = billsList?.find(
-    (bill: IBill) => bill.id === selectedTransferKey
-  );
   const selectedBillValue = selectedBill?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -129,11 +133,7 @@ export default function TransferFungible(): JSX.Element | null {
 
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
-  }, [
-    selectedAsset,
-    getAvailableAmount,
-    isActionsViewVisible,
-  ]);
+  }, [selectedAsset, getAvailableAmount, isActionsViewVisible]);
 
   useEffect(() => {
     const activeAssetAmount = account?.assets.fungible
@@ -343,6 +343,7 @@ export default function TransferFungible(): JSX.Element | null {
                   selectedAsset?.typeId === AlphaType ? "" : values.address
                 )
                   .then(() => {
+                    setPreviousView(null);
                     const amount: string =
                       billData?.transactionAttributes?.amount ||
                       billData?.transactionAttributes?.targetValue ||
