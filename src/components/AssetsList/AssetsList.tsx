@@ -64,7 +64,8 @@ export default function AssetsList({
         const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isProofButton || isTransferButton;
-        const isFungibleKind = asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
+        const isFungibleKind =
+          asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
         let icon = null;
 
         if (asset?.isImageUrl && isTypeListItem) {
@@ -99,32 +100,28 @@ export default function AssetsList({
             {amount && <div className="assets-list__item-amount">{amount}</div>}
             {isButtons && (
               <div className="assets-list__item-actions">
-                {isProofButton &&
-                  isFungibleKind &&
-                  asset?.kind !== NonFungibleTokenKind && (
-                    <Button
-                      onClick={() => {
-                        setIsProofVisible && setIsProofVisible(asset);
-                        handleClick(asset);
-                        queryClient.invalidateQueries([
-                          "proof",
-                          base64ToHexPrefixed(asset.id),
-                        ]);
-                      }}
-                      type="button"
-                      variant="icon"
-                    >
-                      <Proof />
-                    </Button>
-                  )}
+                {isProofButton && (
+                  <Button
+                    onClick={() => {
+                      setIsProofVisible && setIsProofVisible(asset);
+                      handleClick(asset);
+                      queryClient.invalidateQueries([
+                        "proof",
+                        base64ToHexPrefixed(asset.id),
+                      ]);
+                    }}
+                    type="button"
+                    variant="icon"
+                  >
+                    <Proof />
+                  </Button>
+                )}
 
                 {isTransferButton && (
                   <Button
                     onClick={() => {
                       setActionsView(
-                        isFungibleKind
-                          ? TransferFungibleView
-                          : TransferNFTView
+                        isFungibleKind ? TransferFungibleView : TransferNFTView
                       );
                       setIsActionsViewVisible(true);
                       setSelectedTransferKey(asset.id);
