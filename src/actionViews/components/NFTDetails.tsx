@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useQueryClient } from "react-query";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
-import { NFTListView, TransferView } from "../../utils/constants";
+import { NFTListView, TransferNFTView } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Download } from "../../images/download.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -45,7 +45,7 @@ export default function NFTDetails({
           </div>
           <Button
             onClick={() => {
-              setActionsView(TransferView);
+              setActionsView(TransferNFTView);
               setIsActionsViewVisible(true);
               activeAsset && setSelectedTransferKey(activeAsset.id!);
               handleClick(activeAsset);
