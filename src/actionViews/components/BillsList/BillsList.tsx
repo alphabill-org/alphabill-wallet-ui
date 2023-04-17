@@ -25,7 +25,6 @@ import {
   sortBillsByID,
 } from "../../../utils/utils";
 import AssetsList from "../../../components/AssetsList/AssetsList";
-import { assertType } from "vitest";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
