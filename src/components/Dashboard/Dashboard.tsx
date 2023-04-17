@@ -1,39 +1,31 @@
 import classNames from "classnames";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
 
-import Button from "../Button/Button";
-import Spacer from "../Spacer/Spacer";
-import { IAccount, IFungibleAsset } from "../../types/Types";
+import { IFungibleAsset } from "../../types/Types";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
-import { ReactComponent as MoreIco } from "../../images/more-ico.svg";
 import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
-import Popups from "./components/Popups";
+import { ReactComponent as Arrow } from "../../images/arrow.svg";
+
+import Button from "../Button/Button";
+import Spacer from "../Spacer/Spacer";
 import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { invalidateAllLists, useDocumentClick } from "../../utils/utils";
-import {
-  AlphaType,
-  ProfileView,
-  TransferFungibleView,
-} from "../../utils/constants";
-import FungibleAssetsCol from "./components/FungibleAssetsCol";
-import NFTAssetsCol from "./components/NFTAssetsCol";
+import { invalidateAllLists } from "../../utils/utils";
+import { AlphaType, TransferFungibleView } from "../../utils/constants";
+import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
+import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
+import Popovers from "./Popovers";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
-  const {
-    setIsActionsViewVisible,
-    setActionsView,
-    account,
-    accounts,
-    setAccounts,
-  } = useApp();
+  const { setIsActionsViewVisible, setActionsView, account, accounts } =
+    useApp();
   const balance: string =
     account?.assets?.fungible?.find(
       (asset: IFungibleAsset) => asset.typeId === AlphaType
@@ -47,15 +39,9 @@ function Dashboard(): JSX.Element | null {
       : "";
 
   const [isFungibleActive, setIsFungibleActive] = useState<boolean>(true);
-  const [isRenamePopupVisible, setIsRenamePopupVisible] = useState(false);
-  const [isAccountSettingsVisible, setIsAccountSettingsVisible] =
-    useState(false);
-  const queryClient = useQueryClient();
-  const popupRef = useRef<HTMLDivElement>(null);
+  const [isKeySelectOpen, setIsKeySelectOpen] = useState(false);
 
-  useDocumentClick(() => {
-    isAccountSettingsVisible === true && setIsAccountSettingsVisible(false);
-  }, popupRef);
+  const queryClient = useQueryClient();
 
   if (!accounts) {
     return (
@@ -86,11 +72,15 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={32} />
 
       <div className="dashboard__account">
-        <div className="dashboard__account-id">
+        <div
+          className="dashboard__account-id"
+          onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
+        >
           <span className="dashboard__account-name">{account?.name}</span>
           <span className="dashboard__account-id-item">
             {account?.name && "-"} {account?.pubKey}
           </span>
+          <Arrow />
         </div>
         <div className="dashboard__account-buttons">
           <CopyToClipboard text={account?.pubKey || ""}>
@@ -103,41 +93,6 @@ function Dashboard(): JSX.Element | null {
               <CopyIco className="textfield__btn" height="12px" />
             </Button>
           </CopyToClipboard>
-          <div className="p-rel" ref={popupRef}>
-            <Button
-              onClick={() =>
-                setIsAccountSettingsVisible(!isAccountSettingsVisible)
-              }
-              variant="icon"
-            >
-              <MoreIco className="textfield__btn" height="12px" />
-            </Button>
-            <div
-              className={classNames("dashboard__account-options", {
-                active: isAccountSettingsVisible === true,
-              })}
-            >
-              <div
-                onClick={() => {
-                  setIsRenamePopupVisible(!isRenamePopupVisible);
-                  setIsAccountSettingsVisible(false);
-                }}
-                className="dashboard__account-option"
-              >
-                Rename
-              </div>
-              <div
-                onClick={() => {
-                  setActionsView(ProfileView);
-                  setIsActionsViewVisible(true);
-                  setIsAccountSettingsVisible(false);
-                }}
-                className="dashboard__account-option"
-              >
-                Change public key
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       <Spacer mb={8} />
@@ -184,12 +139,9 @@ function Dashboard(): JSX.Element | null {
           {isFungibleActive === true ? <FungibleAssetsCol /> : <NFTAssetsCol />}
         </div>
       </div>
-      <Popups
-        accounts={accounts}
-        account={account as IAccount}
-        setAccounts={setAccounts}
-        isRenamePopupVisible={isRenamePopupVisible}
-        setIsRenamePopupVisible={setIsRenamePopupVisible}
+      <Popovers
+        isKeySelectOpen={isKeySelectOpen}
+        setIsKeySelectOpen={(v) => setIsKeySelectOpen(v)}
       />
     </div>
   );
