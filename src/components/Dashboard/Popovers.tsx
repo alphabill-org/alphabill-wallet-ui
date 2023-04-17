@@ -227,9 +227,9 @@ export default function Popovers({
                     className="edit-ico"
                     onClick={() => {
                       setRenamePopupAccountIndex(
-                        renamePopupAccountIndex === Number(account.idx)
+                        renamePopupAccountIndex === Number(account?.idx)
                           ? null
-                          : Number(account.idx)
+                          : Number(account?.idx)
                       );
                     }}
                   />

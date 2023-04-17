@@ -85,7 +85,7 @@ function BillsList(): JSX.Element | null {
       ? getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             password,
-            Number(account.idx),
+            Number(account?.idx),
             vault
           );
 
@@ -130,7 +130,7 @@ function BillsList(): JSX.Element | null {
     (formPassword?: string) => {
       const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
         formPassword || password,
-        Number(account.idx),
+        Number(account?.idx),
         vault
       );
 
@@ -178,7 +178,7 @@ function BillsList(): JSX.Element | null {
     DCBills,
     lastNonceIDs,
     password,
-    account.idx,
+    account?.idx,
     vault,
     activeAccountId,
     account,

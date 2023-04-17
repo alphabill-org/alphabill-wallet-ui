@@ -111,7 +111,7 @@ function BillsListPopups({
             onSubmit={async (values, { setErrors }) => {
               const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
                 values.password,
-                Number(account.idx),
+                Number(account?.idx),
                 vault
               );
 

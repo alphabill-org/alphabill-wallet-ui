@@ -134,7 +134,7 @@ export const handleDC = async (
 ) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,
-    Number(account.idx),
+    Number(account?.idx),
     vault
   );
 

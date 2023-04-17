@@ -119,7 +119,7 @@ export default function TransferNFTs(): JSX.Element | null {
         onSubmit={(values, { setErrors, resetForm }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
-            Number(account.idx),
+            Number(account?.idx),
             vault
           );
 
