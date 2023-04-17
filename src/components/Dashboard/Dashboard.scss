@@ -155,6 +155,10 @@
       position: relative;
       align-items: center;
 
+      .select__options {
+        overflow: auto;
+        max-height: 560px;
+      }
       .select__option {
         max-height: unset;
       }

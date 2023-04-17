@@ -616,18 +616,18 @@ export const getUpdatedFungibleAssets = (
 };
 
 const sortByTypeId = (arr: any) =>
-  arr.sort((a: any, b: any) =>
+  arr?.sort((a: any, b: any) =>
     a.typeId < b.typeId ? -1 : a.typeId > b.typeId ? 1 : 0
   );
 
 const filterUniqueTypes = (arr: any) =>
-  arr.filter(
+  arr?.filter(
     ({ typeId }: any, index: any, array: any) =>
       index === 0 || typeId !== array[index - 1].typeId
   );
 
 const sortBySymbol = (arr: any) =>
-  arr.sort((a: any, b: any) =>
+  arr?.sort((a: any, b: any) =>
     a.symbol < b.symbol ? -1 : a.symbol > b.symbol ? 1 : 0
   );
 
