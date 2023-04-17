@@ -77,9 +77,7 @@ function Actions(): JSX.Element | null {
               isFungibleActive={actionsView === TransferFungibleView}
               onChange={(isFungibleView: boolean) => {
                 setActionsView(
-                  isFungibleView === true
-                    ? TransferFungibleView
-                    : TransferNFTView
+                  isFungibleView ? TransferFungibleView : TransferNFTView
                 );
                 setSelectedTransferKey(null);
                 setPreviousView(null);
