@@ -17,10 +17,10 @@ import { useAuth } from "../../hooks/useAuth";
 
 import { invalidateAllLists } from "../../utils/utils";
 import { AlphaType, TransferFungibleView } from "../../utils/constants";
-import FungibleAssetsCol from "./components/FungibleAssetsCol";
-import NFTAssetsCol from "./components/NFTAssetsCol";
+import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
+import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
-import Popovers from "./components/Popovers";
+import Popovers from "./Popovers";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();

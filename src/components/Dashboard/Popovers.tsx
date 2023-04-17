@@ -5,29 +5,29 @@ import { Formik } from "formik";
 import CryptoJS from "crypto-js";
 import { useQueryClient } from "react-query";
 
-import { Form, FormFooter, FormContent } from "../../Form/Form";
-import { ReactComponent as AddIco } from "../../../images/add-ico.svg";
-import { IAccount } from "../../../types/Types";
-import { ReactComponent as Edit } from "../../../images/edit.svg";
-import { ReactComponent as CheckIco } from "../../../images/check-ico.svg";
-import { ReactComponent as Close } from "../../../images/close.svg";
-import Profile from "../../../images/profile.svg";
+import { Form, FormFooter, FormContent } from "../Form/Form";
+import { ReactComponent as AddIco } from "../../images/add-ico.svg";
+import { IAccount } from "../../types/Types";
+import { ReactComponent as Edit } from "../../images/edit.svg";
+import { ReactComponent as CheckIco } from "../../images/check-ico.svg";
+import { ReactComponent as Close } from "../../images/close.svg";
+import Profile from "../../images/profile.svg";
 
-import Button from "../../Button/Button";
-import Spacer from "../../Spacer/Spacer";
-import { useApp } from "../../../hooks/appProvider";
-import { useAuth } from "../../../hooks/useAuth";
+import Button from "../Button/Button";
+import Spacer from "../Spacer/Spacer";
+import { useApp } from "../../hooks/appProvider";
+import { useAuth } from "../../hooks/useAuth";
 
 import {
   extractFormikError,
   getKeys,
   invalidateAllLists,
   unit8ToHexPrefixed,
-} from "../../../utils/utils";
-import { AlphaType } from "../../../utils/constants";
-import SelectPopover from "../../SelectPopover/SelectPopover";
-import Textfield from "../../Textfield/Textfield";
-import Popup from "../../Popup/Popup";
+} from "../../utils/utils";
+import { AlphaType } from "../../utils/constants";
+import SelectPopover from "../SelectPopover/SelectPopover";
+import Textfield from "../Textfield/Textfield";
+import Popup from "../Popup/Popup";
 
 export interface IPopoversProps {
   setIsKeySelectOpen: (e: boolean) => void;
@@ -88,7 +88,7 @@ export default function Popovers({
                         )
                       );
                       setIsActionsViewVisible(false);
-                      !renamePopupAccountIndex && setIsKeySelectOpen(false);
+                      renamePopupAccountIndex === null && setIsKeySelectOpen(false);
                       invalidateAllLists(
                         account?.pubKey,
                         activeAsset.typeId,
