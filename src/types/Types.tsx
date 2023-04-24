@@ -15,7 +15,7 @@ export interface IFungibleAsset {
   amount: string;
   network: string;
   decimalFactor: number;
-  decimalPlaces: number;
+  decimals: number;
   UIAmount: string;
   typeId: string;
   isSendable: boolean;
@@ -56,7 +56,7 @@ export interface ITokensListTypes {
   subTypeCreationPredicate: string;
   tokenCreationPredicate: string;
   invariantPredicate: string;
-  decimalPlaces?: number; // fungible only
+  decimals?: number; // fungible only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
   nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
@@ -87,7 +87,7 @@ export interface IFungibleAsset {
   amount: string;
   network: string;
   decimalFactor: number;
-  decimalPlaces: number;
+  decimals: number;
   UIAmount: string;
   typeId: string;
   isSendable: boolean;
@@ -100,7 +100,7 @@ export interface IActiveAsset {
   amount?: string;
   network?: string;
   decimalFactor?: number;
-  decimalPlaces?: number;
+  decimals?: number;
   UIAmount?: string;
   isSendable?: boolean;
   symbol?: string;
@@ -131,7 +131,7 @@ export interface ITypeHierarchy {
   id: string; //base64 encoded hex
   parentTypeId: string; //base64 encoded hex
   symbol: string;
-  decimalPlaces?: number; // [0..8] fungible only
+  decimals?: number; // [0..8] fungible only
   kind: number; //  [2:Fungible|4:NonFungible],
   txHash: string; //base64 encoded hex - creation tx
   invariantPredicate: string;
