@@ -140,7 +140,7 @@ export default function Popovers({
                           validateOnBlur={false}
                           validationSchema={Yup.object().shape({
                             accountName: Yup.string()
-                              .required("Address is required")
+                              .required("Public key name is required")
                               .test(
                                 "account-name-taken",
                                 `The public key name is taken`,
