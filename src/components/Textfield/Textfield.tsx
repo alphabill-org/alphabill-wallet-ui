@@ -32,6 +32,7 @@ export interface ITextfieldProps {
   desc?: string;
   removeApostrophes?: boolean;
   focusInput?: boolean;
+  selectInput?: boolean;
 }
 
 export default function Textfield(props: ITextfieldProps): JSX.Element {
@@ -43,6 +44,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     isNumberFloat,
     removeApostrophes,
     focusInput,
+    selectInput,
     ...inputProps
   } = props;
   const { setFieldValue, handleBlur } = useFormikContext();
@@ -59,6 +61,10 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
   useEffect(() => {
     if (focusInput) {
         inputRef.current?.focus();
+    }
+
+    if (selectInput) {
+      inputRef.current?.select();
     }
   }, [focusInput]);
 
