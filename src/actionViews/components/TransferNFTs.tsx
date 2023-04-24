@@ -51,7 +51,7 @@ export default function TransferNFTs(): JSX.Element | null {
     selectedTransferKey,
     setActionsView,
     setSelectedTransferKey,
-    setPreviousView
+    setPreviousView,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -59,9 +59,10 @@ export default function TransferNFTs(): JSX.Element | null {
   const activeNFT = account?.assets.nft
     ?.filter((asset) => account?.activeNetwork === asset.network)
     .find((asset) => asset.typeId === activeAsset.typeId);
+  const defaultAssetId = activeNFT?.id || account?.assets.nft[0]?.id;
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
     value: activeNFT || account?.assets.nft[0],
-    label: base64ToHexPrefixed(activeNFT?.id || account?.assets.nft[0]?.id),
+    label: defaultAssetId && base64ToHexPrefixed(defaultAssetId),
   };
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
@@ -93,6 +94,7 @@ export default function TransferNFTs(): JSX.Element | null {
       );
     }, 500);
   };
+  console.log(activeNFT, defaultAsset, account?.assets.nft);
 
   useEffect(() => {
     const isTokenTransferred = !NFTsList?.find(
@@ -137,7 +139,7 @@ export default function TransferNFTs(): JSX.Element | null {
 
           if (!selectedNFTs) {
             return setErrors({
-              password: error || "Selected NFT is missing!",
+              password: error || "NFT is required",
             });
           }
 
