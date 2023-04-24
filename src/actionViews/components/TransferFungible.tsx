@@ -76,7 +76,7 @@ export default function TransferFungible(): JSX.Element | null {
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
     value: selectedBill
       ? selectedBill
-      : account?.assets.fungible
+      : account?.assets?.fungible
           ?.filter((asset) => account?.activeNetwork === asset.network)
           .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
     label: selectedBill?.id || activeAsset.name || AlphaType,
@@ -97,7 +97,7 @@ export default function TransferFungible(): JSX.Element | null {
     (decimalPlaces: number) => {
       return addDecimal(
         BigInt(
-          account?.assets.fungible?.find(
+          account?.assets?.fungible?.find(
             (asset) => asset.typeId === selectedAsset?.typeId
           )?.amount || "0"
         ).toString() || "0",
@@ -136,7 +136,7 @@ export default function TransferFungible(): JSX.Element | null {
   }, [selectedAsset, getAvailableAmount, isActionsViewVisible]);
 
   useEffect(() => {
-    const activeAssetAmount = account?.assets.fungible
+    const activeAssetAmount = account?.assets?.fungible
       ?.filter((asset) => account?.activeNetwork === asset.network)
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
@@ -155,7 +155,7 @@ export default function TransferFungible(): JSX.Element | null {
       clearInterval(pollingInterval.current);
     }
   }, [
-    account.assets,
+    account?.assets,
     account?.activeNetwork,
     selectedAsset?.typeId,
     isSending,
@@ -504,7 +504,7 @@ export default function TransferFungible(): JSX.Element | null {
                     label="Assets"
                     name="assets"
                     className={selectedTransferKey ? "d-none" : ""}
-                    options={account?.assets.fungible
+                    options={account?.assets?.fungible
                       ?.filter(
                         (asset) =>
                           account?.activeNetwork === asset.network &&

@@ -110,7 +110,10 @@ export const AppProvider: FunctionComponent<{
 
     if (
       (hasKeys &&
-        !isEqual(assets.fungible, sortBy(account?.assets.fungible, ["id"]))) ||
+        !isEqual(
+          assets?.fungible,
+          sortBy(account?.assets?.fungible, ["id"])
+        )) ||
       (hasKeys &&
         !isEqual(
           sortBy(assets.nft, ["id"]),
