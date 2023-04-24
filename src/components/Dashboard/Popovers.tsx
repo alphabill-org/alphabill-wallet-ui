@@ -82,7 +82,7 @@ export default function Popovers({
                       setActiveAccountId(account?.pubKey);
                       setActiveAssetLocal(
                         JSON.stringify(
-                          account.assets.fungible.find(
+                          account?.assets?.fungible.find(
                             (asset) => asset.typeId === AlphaType
                           )
                         )
@@ -165,7 +165,8 @@ export default function Popovers({
                                 <Form>
                                   <FormContent>
                                     <Textfield
-                                      focusInput={true}
+                                      focusInput
+                                      selectInput
                                       id="accountName"
                                       name="accountName"
                                       label=""

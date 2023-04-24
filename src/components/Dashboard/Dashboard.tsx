@@ -112,7 +112,7 @@ function Dashboard(): JSX.Element | null {
             setActionsView(TransferFungibleView);
             setActiveAssetLocal(
               JSON.stringify(
-                account.assets.fungible.find(
+                account?.assets?.fungible.find(
                   (asset) => asset.typeId === AlphaType
                 )
               )
