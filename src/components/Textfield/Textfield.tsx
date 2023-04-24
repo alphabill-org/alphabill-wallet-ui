@@ -66,7 +66,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     if (selectInput) {
       inputRef.current?.select();
     }
-  }, [focusInput]);
+  }, [focusInput, selectInput]);
 
   const className = classNames(
     "textfield",
