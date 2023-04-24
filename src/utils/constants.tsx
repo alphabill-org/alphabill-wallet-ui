@@ -17,8 +17,8 @@ export const pushBoolFalse = startByte + pushBool + boolFalse;
 export const timeoutBlocks = 10n;
 export const swapTimeout = 40n;
 export const DCTransfersLimit = 100;
-export const AlphaDecimalPlaces = 8;
-export const AlphaDecimalFactor = Number("1e" + AlphaDecimalPlaces);
+export const AlphaDecimals = 8;
+export const AlphaDecimalFactor = Number("1e" + AlphaDecimals);
 
 export const moneyTypeURLPrefix = "type.googleapis.com/rpc.";
 export const tokensTypeURLPrefix = "type.googleapis.com/alphabill.tokens.v1.";

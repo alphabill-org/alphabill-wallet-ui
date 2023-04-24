@@ -18,7 +18,7 @@ import {
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
-  AlphaDecimalPlaces,
+  AlphaDecimals,
   AlphaType,
   opCheckSig,
   opDup,
@@ -413,7 +413,7 @@ export const countDecimalLength = (str: string) => {
 
 export const convertToWholeNumberBigInt = (
   val: string | number,
-  decimalPlaces: number
+  decimals: number
 ): bigint => {
   let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
@@ -423,7 +423,7 @@ export const convertToWholeNumberBigInt = (
   }
 
   const numStrWithoutDecimal = numStr.replace(".", "");
-  const decimalDifference = decimalPlaces - countDecimalLength(numStr);
+  const decimalDifference = decimals - countDecimalLength(numStr);
   const fullNumber =
     decimalDifference > 0
       ? numStrWithoutDecimal + "0".repeat(decimalDifference)
@@ -566,7 +566,7 @@ const getUpdatesUTPFungibleTokens = (
       network: obj.network,
       amount: obj.amount?.toString(),
       decimalFactor: Number("1e" + obj.decimals),
-      decimalPlaces: obj.decimals,
+      decimals: obj.decimals,
       isSendable: isTokenSendable(
         tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
           ?.invariantPredicate!,
@@ -600,9 +600,9 @@ export const getUpdatedFungibleAssets = (
     network: import.meta.env.VITE_NETWORK_NAME,
     amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
-    decimalPlaces: AlphaDecimalPlaces,
+    decimals: AlphaDecimals,
     UIAmount: separateDigits(
-      addDecimal(ALPHABalance || "0", AlphaDecimalPlaces)
+      addDecimal(ALPHABalance || "0", AlphaDecimals)
     ),
     typeId: AlphaType,
     isSendable: true,
