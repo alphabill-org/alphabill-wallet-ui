@@ -94,7 +94,6 @@ export default function TransferNFTs(): JSX.Element | null {
       );
     }, 500);
   };
-  console.log(activeNFT, defaultAsset, account?.assets.nft);
 
   useEffect(() => {
     const isTokenTransferred = !NFTsList?.find(
