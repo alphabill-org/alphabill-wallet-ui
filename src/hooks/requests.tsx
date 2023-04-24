@@ -15,7 +15,7 @@ import {
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
-  AlphaDecimalPlaces,
+  AlphaDecimals,
   AlphaType,
   downloadableTypes,
 } from "../utils/constants";
@@ -78,9 +78,9 @@ export const getBillsList = async (
         name: AlphaType,
         network: import.meta.env.VITE_NETWORK_NAME,
         decimalFactor: AlphaDecimalFactor,
-        decimalPlaces: AlphaDecimalPlaces,
+        decimals: AlphaDecimals,
         UIAmount: separateDigits(
-          addDecimal(bill.value || "0", AlphaDecimalPlaces)
+          addDecimal(bill.value || "0", AlphaDecimals)
         ),
         isSendable: true,
       })

@@ -85,7 +85,7 @@ export default function TransferFungible(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | undefined
   >(defaultAsset?.value);
-  const decimalPlaces = selectedAsset?.decimalPlaces || 0;
+  const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
   const selectedBillValue = selectedBill?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -94,20 +94,20 @@ export default function TransferFungible(): JSX.Element | null {
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimalPlaces: number) => {
+    (decimals: number) => {
       return addDecimal(
         BigInt(
           account?.assets?.fungible?.find(
             (asset) => asset.typeId === selectedAsset?.typeId
           )?.amount || "0"
         ).toString() || "0",
-        decimalPlaces
+        decimals
       );
     },
     [account, selectedAsset]
   );
   const [availableAmount, setAvailableAmount] = useState<string>(
-    getAvailableAmount(selectedAsset?.decimalPlaces || 0)
+    getAvailableAmount(selectedAsset?.decimals || 0)
   );
 
   const addPollingInterval = () => {
@@ -132,7 +132,7 @@ export default function TransferFungible(): JSX.Element | null {
   };
 
   useEffect(() => {
-    setAvailableAmount(getAvailableAmount(selectedAsset?.decimalPlaces || 0));
+    setAvailableAmount(getAvailableAmount(selectedAsset?.decimals || 0));
   }, [selectedAsset, getAvailableAmount, isActionsViewVisible]);
 
   useEffect(() => {
@@ -193,7 +193,7 @@ export default function TransferFungible(): JSX.Element | null {
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
-              selectedAsset?.decimalPlaces || 0
+              selectedAsset?.decimals || 0
             );
           } catch (error) {
             return setErrors({
@@ -439,8 +439,8 @@ export default function TransferFungible(): JSX.Element | null {
                 selectedTransferKey
                   ? true
                   : value
-                  ? convertToWholeNumberBigInt(value || "", decimalPlaces) <=
-                    convertToWholeNumberBigInt(availableAmount, decimalPlaces)
+                  ? convertToWholeNumberBigInt(value || "", decimals) <=
+                    convertToWholeNumberBigInt(availableAmount, decimals)
                   : true
             ),
         })}
@@ -460,7 +460,7 @@ export default function TransferFungible(): JSX.Element | null {
                           {separateDigits(
                             addDecimal(
                               selectedBillValue,
-                              selectedAsset?.decimalPlaces || 0
+                              selectedAsset?.decimals || 0
                             )
                           )}
                           . You can deselect it by clicking{" "}
@@ -560,7 +560,7 @@ export default function TransferFungible(): JSX.Element | null {
                       label="Amount"
                       desc={availableAmount + " " + values.assets?.label}
                       type="text"
-                      floatingFixedPoint={selectedAsset?.decimalPlaces}
+                      floatingFixedPoint={selectedAsset?.decimals}
                       error={extractFormikError(errors, touched, ["amount"])}
                       disabled={
                         !Boolean(values.assets) || Boolean(selectedTransferKey)
@@ -569,7 +569,7 @@ export default function TransferFungible(): JSX.Element | null {
                         (selectedTransferKey &&
                           (addDecimal(
                             selectedBillValue,
-                            selectedAsset?.decimalPlaces || 0
+                            selectedAsset?.decimals || 0
                           ) as string | undefined)) ||
                         ""
                       }
