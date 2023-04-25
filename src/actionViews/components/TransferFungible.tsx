@@ -75,19 +75,20 @@ export default function TransferFungible(): JSX.Element | null {
     (bill: IBill) => bill.id === selectedTransferKey
   );
   const fungibleActiveAsset = account?.assets?.fungible
-  ?.filter((asset) => account?.activeNetwork === asset.network)
-  .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
+    ?.filter((asset) => account?.activeNetwork === asset.network)
+    .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
 
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
-    value: directlySelectedAsset
-      ? directlySelectedAsset
-      : fungibleActiveAsset,
+    value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
     label: directlySelectedAsset?.id || fungibleActiveAsset.name || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
+  const fungibleSelectedAssets = account?.assets?.fungible
+    ?.filter((asset) => account?.activeNetwork === asset.network)
+    .find((asset) => asset.typeId === selectedAsset!.typeId || AlphaType);
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
@@ -116,7 +117,11 @@ export default function TransferFungible(): JSX.Element | null {
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
-      invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
+      invalidateAllLists(
+        activeAccountId,
+        fungibleActiveAsset.typeId,
+        queryClient
+      );
       getBlockHeight(selectedAsset?.typeId === AlphaType).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
@@ -352,7 +357,11 @@ export default function TransferFungible(): JSX.Element | null {
 
                     balanceAfterSending.current = balanceAfterSending.current
                       ? BigInt(balanceAfterSending.current) - BigInt(amount)
-                      : BigInt(selectedAsset?.amount || "") - BigInt(amount);
+                      : BigInt(
+                          fungibleSelectedAssets?.amount ||
+                            fungibleSelectedAssets?.value ||
+                            ""
+                        ) - BigInt(amount);
                   })
                   .finally(() => {
                     if (isLastTransfer) {
@@ -602,6 +611,7 @@ export default function TransferFungible(): JSX.Element | null {
                     type="submit"
                     variant="primary"
                     working={isSending}
+                    disabled={isSending}
                   >
                     Transfer
                   </Button>
