@@ -70,16 +70,16 @@ export default function TransferFungible(): JSX.Element | null {
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
-  const selectedBill = billsList?.find(
+  const directlySelectedAsset = billsList?.find(
     (bill: IBill) => bill.id === selectedTransferKey
   );
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
-    value: selectedBill
-      ? selectedBill
+    value: directlySelectedAsset
+      ? directlySelectedAsset
       : account?.assets?.fungible
           ?.filter((asset) => account?.activeNetwork === asset.network)
           .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
-    label: selectedBill?.id || activeAsset.name || AlphaType,
+    label: directlySelectedAsset?.id || activeAsset.name || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
@@ -87,7 +87,7 @@ export default function TransferFungible(): JSX.Element | null {
   >(defaultAsset?.value);
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
-  const selectedBillValue = selectedBill?.value || "";
+  const selectedBillValue = directlySelectedAsset?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
@@ -168,10 +168,7 @@ export default function TransferFungible(): JSX.Element | null {
     <div className="w-100p">
       <Formik
         initialValues={{
-          assets: {
-            value: defaultAsset,
-            label: defaultAsset.label,
-          },
+          assets: defaultAsset,
           amount: "",
           address: "",
           password: "",
@@ -202,14 +199,14 @@ export default function TransferFungible(): JSX.Element | null {
           }
 
           const billsArr = selectedTransferKey
-            ? ([selectedBill] as IBill[])
-            : (billsList?.filter(
-                (bill: IBill) => bill.isDcBill !== true
-              ) as IBill[]);
+            ? [directlySelectedAsset]
+            : billsList?.filter(
+                (bill: IFungibleAsset) => bill.isDcBill !== true
+              );
 
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
-            billsArr
+            billsArr as IBill[]
           );
 
           const newBearer = createNewBearer(values.address);
@@ -445,7 +442,8 @@ export default function TransferFungible(): JSX.Element | null {
         })}
       >
         {(formikProps) => {
-          const { handleSubmit, errors, touched, values } = formikProps;
+          const { handleSubmit, setFieldValue, errors, touched, values } =
+            formikProps;
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
@@ -464,7 +462,14 @@ export default function TransferFungible(): JSX.Element | null {
                           )}
                           . You can deselect it by clicking{" "}
                           <Button
-                            onClick={() => setSelectedTransferKey(null)}
+                            onClick={() => {
+                              setSelectedTransferKey(null);
+                              setSelectedAsset(defaultAsset?.value);
+                              setFieldValue("assets", {
+                                value: activeAsset,
+                                label: activeAsset?.name || activeAsset?.symbol,
+                              });
+                            }}
                             variant="link"
                             type="button"
                           >
@@ -529,10 +534,7 @@ export default function TransferFungible(): JSX.Element | null {
                         value: asset,
                         label: asset.name,
                       }))}
-                    defaultValue={{
-                      value: defaultAsset,
-                      label: defaultAsset.label,
-                    }}
+                    defaultValue={defaultAsset}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={(_label, option: any) => {
                       setSelectedAsset(option);
@@ -606,26 +608,29 @@ export default function TransferFungible(): JSX.Element | null {
         }}
       </Formik>
       {!selectedTransferKey && (
-        <div className="t-medium-small pad-24-h pad-24-b">
-          To select a specific {tokenLabel} open your{" "}
-          <Button
-            small
-            onClick={() => {
-              setActionsView(FungibleListView);
-              setIsActionsViewVisible(true);
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
-            }}
-            variant="link"
-            type="button"
-          >
-            {tokenLabel.toUpperCase()}S LIST
-          </Button>{" "}
-          and select it from {tokenLabel}s options.
-        </div>
+        <>
+          <div className="t-medium-small pad-24-h pad-24-b">
+            To select a specific {tokenLabel} open your{" "}
+            <Button
+              small
+              onClick={() => {
+                setActionsView(FungibleListView);
+                setIsActionsViewVisible(true);
+                invalidateAllLists(
+                  activeAccountId,
+                  activeAsset.typeId,
+                  queryClient
+                );
+              }}
+              variant="link"
+              type="button"
+            >
+              {tokenLabel.toUpperCase()}S LIST
+            </Button>{" "}
+            and select it from {tokenLabel}s options.
+          </div>
+          <Spacer mb={24} />
+        </>
       )}
     </div>
   );
