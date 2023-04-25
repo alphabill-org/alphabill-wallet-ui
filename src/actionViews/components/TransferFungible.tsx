@@ -474,6 +474,7 @@ export default function TransferFungible(): JSX.Element | null {
                           or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
+                              setPreviousView(null);
                               setActionsView(FungibleListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
@@ -612,6 +613,7 @@ export default function TransferFungible(): JSX.Element | null {
           <Button
             small
             onClick={() => {
+              setPreviousView(null);
               setActionsView(FungibleListView);
               setIsActionsViewVisible(true);
               invalidateAllLists(

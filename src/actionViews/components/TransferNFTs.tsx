@@ -272,6 +272,7 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
+                              setPreviousView(null);
                               setActionsView(NFTListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
