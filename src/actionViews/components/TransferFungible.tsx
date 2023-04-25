@@ -74,20 +74,22 @@ export default function TransferFungible(): JSX.Element | null {
   const directlySelectedAsset = billsList?.find(
     (bill: IBill) => bill.id === selectedTransferKey
   );
+  const fungibleActiveAsset = account?.assets?.fungible
+  ?.filter((asset) => account?.activeNetwork === asset.network)
+  .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
+
   const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
     value: directlySelectedAsset
       ? directlySelectedAsset
-      : account?.assets?.fungible
-          ?.filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
-    label: directlySelectedAsset?.id || activeAsset.name || AlphaType,
+      : fungibleActiveAsset,
+    label: directlySelectedAsset?.id || fungibleActiveAsset.name || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
     IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
   const decimals = selectedAsset?.decimals || 0;
-  const tokenLabel = getTokensLabel(activeAsset.typeId);
+  const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
@@ -114,7 +116,7 @@ export default function TransferFungible(): JSX.Element | null {
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
-      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+      invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
       getBlockHeight(selectedAsset?.typeId === AlphaType).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
@@ -485,7 +487,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedTransferKey(null);
                               invalidateAllLists(
                                 activeAccountId,
-                                activeAsset.typeId,
+                                fungibleActiveAsset.typeId,
                                 queryClient
                               );
                             }}
@@ -542,7 +544,7 @@ export default function TransferFungible(): JSX.Element | null {
                       setSelectedAsset(option);
                       invalidateAllLists(
                         activeAccountId,
-                        activeAsset.typeId,
+                        fungibleActiveAsset.typeId,
                         queryClient
                       );
                       setActiveAssetLocal(JSON.stringify(option));
@@ -620,7 +622,7 @@ export default function TransferFungible(): JSX.Element | null {
                 setIsActionsViewVisible(true);
                 invalidateAllLists(
                   activeAccountId,
-                  activeAsset.typeId,
+                  fungibleActiveAsset.typeId,
                   queryClient
                 );
               }}
