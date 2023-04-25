@@ -58,6 +58,7 @@ function BillsListPopups({
   return (
     <>
       <SelectPopover
+        key="proofVerification"
         onClose={() => {
           setProofCheckStatus(null);
           setIsProofVisible(false);
@@ -92,6 +93,7 @@ function BillsListPopups({
         </>
       </SelectPopover>
       <SelectPopover
+        key="password"
         onClose={() => {
           setIsPasswordFormVisible(null);
         }}

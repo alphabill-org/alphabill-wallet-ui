@@ -371,6 +371,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     type="submit"
                     variant="primary"
                     working={isSending}
+                    disabled={isSending}
                   >
                     Transfer
                   </Button>
