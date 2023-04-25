@@ -15,6 +15,7 @@ import {
   IProofTx,
   ITransfer,
   ITypeHierarchy,
+  IActiveAsset,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -83,7 +84,7 @@ export default function TransferFungible(): JSX.Element | null {
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
-    IFungibleAsset | undefined
+    IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(activeAsset.typeId);
@@ -358,7 +359,7 @@ export default function TransferFungible(): JSX.Element | null {
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
-                      setSelectedAsset(defaultAsset?.value);
+                      setSelectedAsset(activeAsset);
                     }
                   });
             };
@@ -465,7 +466,7 @@ export default function TransferFungible(): JSX.Element | null {
                           <Button
                             onClick={() => {
                               setSelectedTransferKey(null);
-                              setSelectedAsset(defaultAsset?.value);
+                              setSelectedAsset(activeAsset);
                               setFieldValue("assets", {
                                 value: activeAsset,
                                 label: activeAsset?.name || activeAsset?.symbol,
