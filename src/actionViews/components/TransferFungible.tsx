@@ -358,6 +358,7 @@ export default function TransferFungible(): JSX.Element | null {
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
+                      setSelectedAsset(defaultAsset?.value);
                     }
                   });
             };
