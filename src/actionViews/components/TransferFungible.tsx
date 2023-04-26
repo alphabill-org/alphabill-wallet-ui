@@ -495,6 +495,7 @@ export default function TransferFungible(): JSX.Element | null {
                           or select a new {tokenLabel} from the{" "}
                           <Button
                             onClick={() => {
+                              setPreviousView(null);
                               setActionsView(FungibleListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
@@ -626,29 +627,27 @@ export default function TransferFungible(): JSX.Element | null {
         }}
       </Formik>
       {!selectedTransferKey && (
-        <>
-          <div className="t-medium-small pad-24-h pad-24-b">
-            To select a specific {tokenLabel} open your{" "}
-            <Button
-              small
-              onClick={() => {
-                setActionsView(FungibleListView);
-                setIsActionsViewVisible(true);
-                invalidateAllLists(
-                  activeAccountId,
-                  fungibleActiveAsset.typeId,
-                  queryClient
-                );
-              }}
-              variant="link"
-              type="button"
-            >
-              {tokenLabel.toUpperCase()}S LIST
-            </Button>{" "}
-            and select it from {tokenLabel}s options.
-          </div>
-          <Spacer mb={24} />
-        </>
+        <div className="t-medium-small pad-24-h pad-24-b">
+          To select a specific {tokenLabel} open your{" "}
+          <Button
+            small
+            onClick={() => {
+              setPreviousView(null);
+              setActionsView(FungibleListView);
+              setIsActionsViewVisible(true);
+              invalidateAllLists(
+                activeAccountId,
+                activeAsset.typeId,
+                queryClient
+              );
+            }}
+            variant="link"
+            type="button"
+          >
+            {tokenLabel.toUpperCase()}S LIST
+          </Button>{" "}
+          and select it from {tokenLabel}s options.
+        </div>
       )}
     </div>
   );
