@@ -38,7 +38,12 @@ export default function AssetsList({
   isHoverDisabled,
   onSendClick,
 }: IAssetsListProps): JSX.Element | null {
-  const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
+  const {
+    activeAccountId,
+    activeAsset,
+    setActiveAssetLocal,
+    setActiveNFTLocal,
+  } = useAuth();
   const queryClient = useQueryClient();
   const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
     useApp();
@@ -71,7 +76,10 @@ export default function AssetsList({
             className={classNames("assets-list__item", {
               "no-hover": isHoverDisabled === true,
             })}
-            onClick={() => handleClick(asset)}
+            onClick={() => {
+              handleClick(asset);
+              !isFungibleKind && setActiveNFTLocal(asset);
+            }}
           >
             <div
               onClick={() => onItemClick && onItemClick()}

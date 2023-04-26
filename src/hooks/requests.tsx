@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, isCancel } from "axios";
 
 import {
   IBillsList,
@@ -79,9 +79,7 @@ export const getBillsList = async (
         network: import.meta.env.VITE_NETWORK_NAME,
         decimalFactor: AlphaDecimalFactor,
         decimals: AlphaDecimals,
-        UIAmount: separateDigits(
-          addDecimal(bill.value || "0", AlphaDecimals)
-        ),
+        UIAmount: separateDigits(addDecimal(bill.value || "0", AlphaDecimals)),
         isSendable: true,
       })
     );
@@ -204,7 +202,7 @@ export const getUserTokens = async (
         token.value = obj.amount;
         token.UIAmount = separateDigits(
           addDecimal(obj.amount || "0", obj.decimals || 0)
-        )
+        );
       } else {
         token.nftData = obj.nftData;
         token.nftUri = obj.nftUri;
@@ -265,33 +263,65 @@ export const makeTransaction = async (
   return response.data;
 };
 
-export const getImageUrl = async (url?: string) => {
-  if (!url) return false;
+export const getImageUrl = async (url?: string): Promise<string | false> => {
+  if (!url) {
+    return false;
+  }
+
+  const source = axios.CancelToken.source();
+  const timeout = setTimeout(() => {
+    source.cancel("Timeout reached");
+  }, 3000);
+
   try {
-    const response = await axios.head(url, { timeout: 3000 });
+    const response = await axios.head(url, {
+      timeout: 3000,
+      cancelToken: source.token,
+    });
+
     if (response.status === 200) {
       const contentType = response.headers["content-type"];
       if (contentType && contentType.startsWith("image/")) {
         return url;
       }
     }
+
     return false;
   } catch (error) {
-    console.error(error);
+    if (isCancel(error)) {
+      console.error("Request cancelled:", error.message);
+    }
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 };
 
-export const getImageUrlAndDownloadType = async (url?: string) => {
-  if (!url) return null;
+export const getImageUrlAndDownloadType = async (
+  url?: string
+): Promise<{
+  imageUrl: string | null;
+  downloadType: string | null;
+} | null> => {
+  if (!url) {
+    return null;
+  }
+
+  const source = axios.CancelToken.source();
+  const timeout = setTimeout(() => {
+    source.cancel("Timeout reached");
+  }, 3000);
 
   try {
-    const response = await axios.head(url, { timeout: 3000 });
+    const response = await axios.head(url, {
+      timeout: 3000,
+      cancelToken: source.token,
+    });
 
     if (response.status === 200) {
-      const contentType = response.headers['content-type'];
+      const contentType = response.headers["content-type"];
 
-      if (contentType && contentType.startsWith('image/')) {
+      if (contentType && contentType.startsWith("image/")) {
         return {
           imageUrl: url,
           downloadType: null,
@@ -308,8 +338,12 @@ export const getImageUrlAndDownloadType = async (url?: string) => {
 
     return null;
   } catch (error) {
-    console.error(error);
+    if (isCancel(error)) {
+      console.error("Request cancelled:", error.message);
+    }
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 };
 

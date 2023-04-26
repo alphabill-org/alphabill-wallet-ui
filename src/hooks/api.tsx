@@ -61,11 +61,11 @@ export function useGetAllNFTs(
 
 export function useGetNFTs(
   pubKey: string,
-  activeAsset: string
+  activeAsset: string | null
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTList`, pubKey, activeAsset],
-    async () => getUserTokens(pubKey, "nft", activeAsset),
+    async () => activeAsset && getUserTokens(pubKey, "nft", activeAsset),
     {
       enabled: true,
       keepPreviousData: true,

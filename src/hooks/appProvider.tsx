@@ -54,8 +54,13 @@ export const useApp = (): IAppContextShape => useContext(AppContext);
 export const AppProvider: FunctionComponent<{
   children: JSX.Element | null;
 }> = ({ children }) => {
-  const { userKeys, setActiveAccountId, activeAccountId, activeAsset } =
-    useAuth();
+  const {
+    userKeys,
+    setActiveAccountId,
+    activeAccountId,
+    activeAsset,
+    activeNFT,
+  } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
   const accountNamesObj = useMemo(
@@ -74,7 +79,10 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeAsset.typeId
   );
-  const { data: NFTList } = useGetNFTs(activeAccountId, activeAsset.typeId);
+  const { data: NFTList } = useGetNFTs(
+    activeAccountId,
+    activeNFT && activeNFT.typeId
+  );
   const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
   const billsList =
     activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
