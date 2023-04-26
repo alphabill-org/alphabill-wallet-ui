@@ -66,8 +66,9 @@ export default function AssetsList({
         const isFungibleKind =
           asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
         let icon = null;
+        const withImage = asset?.isImageUrl && isTypeListItem;
 
-        if (asset?.isImageUrl && isTypeListItem) {
+        if (withImage) {
           icon = (
             <LazyLoadImage
               alt={label}
@@ -92,7 +93,11 @@ export default function AssetsList({
               onClick={() => onItemClick && onItemClick()}
               className="assets-list__item-clicker"
             ></div>
-            <div className="assets-list__item-icon">
+            <div
+              className={classNames("assets-list__item-icon", {
+                "is-image": withImage,
+              })}
+            >
               {asset?.typeId === AlphaType ? <ABLogo /> : icon}
             </div>
             <div className="assets-list__item-title">{label}</div>

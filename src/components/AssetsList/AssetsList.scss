@@ -25,6 +25,7 @@
 
     &.no-hover {
       cursor: unset;
+
       &:hover {
         background-color: $color-secondary-op;
       }
@@ -62,13 +63,18 @@
       min-width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: #ffffff;
+      background: $color-white;
       color: $color-secondary-op;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       font-size: 18px;
+
+      &.is-image {
+        background-color: transparent;
+        border: 1px solid $color-white;
+      }
 
       svg {
         fill: #4e3eb6;
