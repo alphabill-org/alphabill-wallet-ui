@@ -89,12 +89,6 @@ export default function TransferFungible(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<
     IBill | IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
-  const fungibleSelectedAsset = account?.assets?.fungible
-    ?.filter((asset) => account?.activeNetwork === asset.network)
-    .find((asset) => asset.typeId === selectedAsset!.typeId || AlphaType) as
-    | IBill
-    | IFungibleAsset
-    | undefined;
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
@@ -358,6 +352,13 @@ export default function TransferFungible(): JSX.Element | null {
                       billData?.transactionAttributes?.targetValue ||
                       billData?.transactionAttributes?.value ||
                       "";
+                    const fungibleSelectedAsset = account?.assets?.fungible
+                      ?.filter(
+                        (asset) => account?.activeNetwork === asset.network
+                      )
+                      .find(
+                        (asset) => asset.typeId === values.assets.value?.typeId
+                      ) as IBill | IFungibleAsset | undefined;
 
                     balanceAfterSending.current = balanceAfterSending.current
                       ? BigInt(balanceAfterSending.current) - BigInt(amount)
