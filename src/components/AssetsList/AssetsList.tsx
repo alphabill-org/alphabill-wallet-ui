@@ -8,7 +8,6 @@ import {
   TransferFungibleView,
   TransferNFTView,
 } from "../../utils/constants";
-import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Proof } from "../../images/proof.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -16,6 +15,7 @@ import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
 import { IActiveAsset, IBill } from "../../types/Types";
+import AssetsListItemIcon from "./AssetListItemIcon";
 
 export interface IAssetsListProps {
   assetList: any;
@@ -60,26 +60,10 @@ export default function AssetsList({
         const label = isTypeListItem
           ? hexId
           : asset?.name || asset?.symbol || hexId;
-        const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isProofButton || isTransferButton;
         const isFungibleKind =
           asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
-        let icon = null;
-        const withImage = asset?.isImageUrl && isTypeListItem;
-
-        if (withImage) {
-          icon = (
-            <LazyLoadImage
-              alt={label}
-              height={32}
-              src={asset?.nftUri}
-              width={32}
-            />
-          );
-        } else {
-          icon = iconEmblem;
-        }
 
         return (
           <div
@@ -93,13 +77,7 @@ export default function AssetsList({
               onClick={() => onItemClick && onItemClick()}
               className="assets-list__item-clicker"
             ></div>
-            <div
-              className={classNames("assets-list__item-icon", {
-                "is-image": withImage,
-              })}
-            >
-              {asset?.typeId === AlphaType ? <ABLogo /> : icon}
-            </div>
+            <AssetsListItemIcon asset={asset} isTypeListItem={isTypeListItem} />
             <div className="assets-list__item-title">{label}</div>
             {amount && <div className="assets-list__item-amount">{amount}</div>}
             {isButtons && (

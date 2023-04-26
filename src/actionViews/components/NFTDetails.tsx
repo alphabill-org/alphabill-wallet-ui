@@ -14,6 +14,8 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
+import { useGetImageUrlAndDownloadType } from "../../hooks/api";
+import Spinner from "../../components/Spinner/Spinner";
 
 export interface INFTDetailsProps {
   onItemClick?: () => void;
@@ -24,6 +26,9 @@ export default function NFTDetails({
 }: INFTDetailsProps): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
+  const nftUri = activeAsset?.nftUri || "";
+  const { data, isLoading } = useGetImageUrlAndDownloadType(nftUri);
+
   const {
     setIsActionsViewVisible,
     setActionsView,
@@ -31,10 +36,18 @@ export default function NFTDetails({
     setPreviousView,
   } = useApp();
 
-  const handleClick = (asset: any) => {
+  const handleClick = () => {
     onItemClick && onItemClick();
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
+
+  if (isLoading) {
+    return (
+      <div className="m-auto">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className={"asset-details pad-view"}>
@@ -48,7 +61,7 @@ export default function NFTDetails({
               setActionsView(TransferNFTView);
               setIsActionsViewVisible(true);
               activeAsset && setSelectedTransferKey(activeAsset.id!);
-              handleClick(activeAsset);
+              handleClick();
               setPreviousView(NFTListView);
             }}
             type="button"
@@ -60,10 +73,10 @@ export default function NFTDetails({
       </div>
       <div
         className={classNames("asset-details__content", {
-          "is-empty": !activeAsset?.isImageUrl,
+          "is-empty": !Boolean(data?.imageUrl),
         })}
       >
-        {activeAsset?.isImageUrl ? (
+        {Boolean(data?.imageUrl) ? (
           <LazyLoadImage
             alt={base64ToHexPrefixed(activeAsset?.id)}
             height={32}
@@ -71,13 +84,11 @@ export default function NFTDetails({
             width={32}
           />
         ) : (
-          <div>
-            Unable to preview {activeAsset?.downloadableItemType} content.
-          </div>
+          <div>Unable to preview {data?.contentType} content.</div>
         )}
       </div>
       <div className="asset-details__actions">
-        {activeAsset?.downloadableItemType && (
+        {Boolean(data?.contentType) && (
           <Button
             type="button"
             variant="primary"
@@ -89,7 +100,7 @@ export default function NFTDetails({
             }}
           >
             <Download />
-            <div className="pad-8-l t-ellipsis">{activeAsset?.downloadableItemType}</div>
+            <div className="pad-8-l t-ellipsis">{data?.contentType}</div>
           </Button>
         )}
 

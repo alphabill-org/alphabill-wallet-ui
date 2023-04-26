@@ -209,18 +209,6 @@ export const getUserTokens = async (
         token.nftData = obj.nftData;
         token.nftUri = obj.nftUri;
         token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
-        token.isImageUrl = false;
-        token.downloadableItemType = null;
-        const imageUrl = await getImageUrl(obj?.nftUri);
-        const contentType = obj?.nftUri && await getDownloadType(obj?.nftUri);
-
-        if (contentType) {
-          token.downloadableItemType = contentType;
-        }
-
-        if (imageUrl) {
-          token.isImageUrl = true;
-        }
       }
 
       return token;
@@ -294,15 +282,33 @@ export const getImageUrl = async (url?: string) => {
   }
 };
 
-export const getDownloadType = async (url: string) => {
+export const getImageUrlAndDownloadType = async (url?: string) => {
+  if (!url) return null;
+
   try {
-    const response = await axios.head(url);
-    const contentType = response.headers["content-type"];
-    if (contentType && downloadableTypes.includes(contentType)) {
-      return contentType;
+    const response = await axios.head(url, { timeout: 3000 });
+
+    if (response.status === 200) {
+      const contentType = response.headers['content-type'];
+
+      if (contentType && contentType.startsWith('image/')) {
+        return {
+          imageUrl: url,
+          downloadType: null,
+        };
+      }
+
+      if (contentType && downloadableTypes.includes(contentType)) {
+        return {
+          imageUrl: null,
+          downloadType: contentType,
+        };
+      }
     }
+
     return null;
   } catch (error) {
+    console.error(error);
     return null;
   }
 };
