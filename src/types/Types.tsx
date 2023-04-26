@@ -19,8 +19,6 @@ export interface IFungibleAsset {
   UIAmount: string;
   typeId: string;
   isSendable: boolean;
-  value: string;
-  isDcBill?: boolean;
 }
 
 export interface INFTAsset {

@@ -78,17 +78,23 @@ export default function TransferFungible(): JSX.Element | null {
     ?.filter((asset) => account?.activeNetwork === asset.network)
     .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
 
-  const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
+  const defaultAsset: {
+    value: IBill | IFungibleAsset | undefined;
+    label: string;
+  } = {
     value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
     label: directlySelectedAsset?.id || fungibleActiveAsset.name || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
-    IFungibleAsset | IActiveAsset | undefined
+    IBill | IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
-  const fungibleSelectedAssets = account?.assets?.fungible
+  const fungibleSelectedAsset = account?.assets?.fungible
     ?.filter((asset) => account?.activeNetwork === asset.network)
-    .find((asset) => asset.typeId === selectedAsset!.typeId || AlphaType);
+    .find((asset) => asset.typeId === selectedAsset!.typeId || AlphaType) as
+    | IBill
+    | IFungibleAsset
+    | undefined;
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
@@ -208,9 +214,7 @@ export default function TransferFungible(): JSX.Element | null {
 
           const billsArr = selectedTransferKey
             ? [directlySelectedAsset]
-            : billsList?.filter(
-                (bill: IFungibleAsset) => bill.isDcBill !== true
-              );
+            : billsList?.filter((bill: IBill) => bill.isDcBill !== true);
 
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
@@ -358,8 +362,8 @@ export default function TransferFungible(): JSX.Element | null {
                     balanceAfterSending.current = balanceAfterSending.current
                       ? BigInt(balanceAfterSending.current) - BigInt(amount)
                       : BigInt(
-                          fungibleSelectedAssets?.amount ||
-                            fungibleSelectedAssets?.value ||
+                          (fungibleSelectedAsset as IFungibleAsset)?.amount ||
+                            (fungibleSelectedAsset as IBill)?.value ||
                             ""
                         ) - BigInt(amount);
                   })
