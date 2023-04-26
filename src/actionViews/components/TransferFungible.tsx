@@ -15,6 +15,7 @@ import {
   IProofTx,
   ITransfer,
   ITypeHierarchy,
+  IActiveAsset,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -70,24 +71,27 @@ export default function TransferFungible(): JSX.Element | null {
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
-  const selectedBill = billsList?.find(
+  const directlySelectedAsset = billsList?.find(
     (bill: IBill) => bill.id === selectedTransferKey
   );
-  const defaultAsset: { value: IFungibleAsset | undefined; label: string } = {
-    value: selectedBill
-      ? selectedBill
-      : account?.assets?.fungible
-          ?.filter((asset) => account?.activeNetwork === asset.network)
-          .find((asset) => asset.typeId === activeAsset.typeId || AlphaType),
-    label: selectedBill?.id || activeAsset.name || AlphaType,
+  const fungibleActiveAsset = account?.assets?.fungible
+    ?.filter((asset) => account?.activeNetwork === asset.network)
+    .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
+
+  const defaultAsset: {
+    value: IBill | IFungibleAsset | undefined;
+    label: string;
+  } = {
+    value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
+    label: directlySelectedAsset?.id || fungibleActiveAsset.name || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
-    IFungibleAsset | undefined
+    IBill | IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
   const decimals = selectedAsset?.decimals || 0;
-  const tokenLabel = getTokensLabel(activeAsset.typeId);
-  const selectedBillValue = selectedBill?.value || "";
+  const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
+  const selectedBillValue = directlySelectedAsset?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
@@ -113,7 +117,11 @@ export default function TransferFungible(): JSX.Element | null {
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
-      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+      invalidateAllLists(
+        activeAccountId,
+        fungibleActiveAsset.typeId,
+        queryClient
+      );
       getBlockHeight(selectedAsset?.typeId === AlphaType).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
@@ -168,10 +176,7 @@ export default function TransferFungible(): JSX.Element | null {
     <div className="w-100p">
       <Formik
         initialValues={{
-          assets: {
-            value: defaultAsset,
-            label: defaultAsset.label,
-          },
+          assets: defaultAsset,
           amount: "",
           address: "",
           password: "",
@@ -202,14 +207,12 @@ export default function TransferFungible(): JSX.Element | null {
           }
 
           const billsArr = selectedTransferKey
-            ? ([selectedBill] as IBill[])
-            : (billsList?.filter(
-                (bill: IBill) => bill.isDcBill !== true
-              ) as IBill[]);
+            ? [directlySelectedAsset]
+            : billsList?.filter((bill: IBill) => bill.isDcBill !== true);
 
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
-            billsArr
+            billsArr as IBill[]
           );
 
           const newBearer = createNewBearer(values.address);
@@ -349,10 +352,21 @@ export default function TransferFungible(): JSX.Element | null {
                       billData?.transactionAttributes?.targetValue ||
                       billData?.transactionAttributes?.value ||
                       "";
+                    const fungibleSelectedAsset = account?.assets?.fungible
+                      ?.filter(
+                        (asset) => account?.activeNetwork === asset.network
+                      )
+                      .find(
+                        (asset) => asset.typeId === values.assets.value?.typeId
+                      ) as IBill | IFungibleAsset | undefined;
 
                     balanceAfterSending.current = balanceAfterSending.current
                       ? BigInt(balanceAfterSending.current) - BigInt(amount)
-                      : BigInt(selectedAsset?.amount || "") - BigInt(amount);
+                      : BigInt(
+                          (fungibleSelectedAsset as IFungibleAsset)?.amount ||
+                            (fungibleSelectedAsset as IBill)?.value ||
+                            ""
+                        ) - BigInt(amount);
                   })
                   .finally(() => {
                     if (isLastTransfer) {
@@ -361,7 +375,7 @@ export default function TransferFungible(): JSX.Element | null {
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
-                      setSelectedAsset(defaultAsset?.value);
+                      setSelectedAsset(activeAsset);
                     }
                   });
             };
@@ -446,7 +460,8 @@ export default function TransferFungible(): JSX.Element | null {
         })}
       >
         {(formikProps) => {
-          const { handleSubmit, errors, touched, values } = formikProps;
+          const { handleSubmit, setFieldValue, errors, touched, values } =
+            formikProps;
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
@@ -465,7 +480,14 @@ export default function TransferFungible(): JSX.Element | null {
                           )}
                           . You can deselect it by clicking{" "}
                           <Button
-                            onClick={() => setSelectedTransferKey(null)}
+                            onClick={() => {
+                              setSelectedTransferKey(null);
+                              setSelectedAsset(activeAsset);
+                              setFieldValue("assets", {
+                                value: activeAsset,
+                                label: activeAsset?.name || activeAsset?.symbol,
+                              });
+                            }}
                             variant="link"
                             type="button"
                           >
@@ -480,7 +502,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedTransferKey(null);
                               invalidateAllLists(
                                 activeAccountId,
-                                activeAsset.typeId,
+                                fungibleActiveAsset.typeId,
                                 queryClient
                               );
                             }}
@@ -531,16 +553,13 @@ export default function TransferFungible(): JSX.Element | null {
                         value: asset,
                         label: asset.name,
                       }))}
-                    defaultValue={{
-                      value: defaultAsset,
-                      label: defaultAsset.label,
-                    }}
+                    defaultValue={defaultAsset}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={(_label, option: any) => {
                       setSelectedAsset(option);
                       invalidateAllLists(
                         activeAccountId,
-                        activeAsset.typeId,
+                        fungibleActiveAsset.typeId,
                         queryClient
                       );
                       setActiveAssetLocal(JSON.stringify(option));
@@ -598,6 +617,7 @@ export default function TransferFungible(): JSX.Element | null {
                     type="submit"
                     variant="primary"
                     working={isSending}
+                    disabled={isSending}
                   >
                     Transfer
                   </Button>

@@ -71,6 +71,7 @@ export default function Popovers({
             {accounts?.map((account) => {
               return (
                 <div
+                  key={account.idx}
                   className={classNames("select__option-wrap", {
                     selected: account?.pubKey === activeAccountId,
                   })}
