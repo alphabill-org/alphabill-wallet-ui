@@ -107,7 +107,6 @@ export interface IActiveAsset {
   value?: string;
   txHash?: string;
   kind?: number;
-  decimals?: number;
   isDcBill?: boolean;
   isImageUrl?: boolean;
   downloadableItemType?: string | null;
