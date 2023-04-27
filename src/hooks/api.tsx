@@ -14,6 +14,8 @@ import {
   fetchAllTypes,
   getBalance,
   getBillsList,
+  getImageUrl,
+  getImageUrlAndDownloadType,
   getProof,
   getTypeHierarchy,
   getUserTokens,
@@ -59,15 +61,52 @@ export function useGetAllNFTs(
 
 export function useGetNFTs(
   pubKey: string,
-  activeAsset: string
+  activeAsset: string | null
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTList`, pubKey, activeAsset],
-    async () => getUserTokens(pubKey, "nft", activeAsset),
+    async () => activeAsset && getUserTokens(pubKey, "nft", activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
       staleTime: Infinity,
+    }
+  );
+}
+
+export function useGetImageUrl(
+  url: string,
+  handleRequest: boolean
+): QueryObserverResult<
+  { error: string | null; imageUrl: string | null },
+  AxiosError
+> {
+  return useQuery(
+    [`imageUrl`, url],
+    async () => handleRequest && getImageUrl(url),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      retry: false,
+    }
+  );
+}
+
+export function useGetImageUrlAndDownloadType(url: string): QueryObserverResult<
+  {
+    imageUrl: string | null;
+    downloadType: string | null;
+    error?: string;
+  },
+  AxiosError
+> {
+  return useQuery(
+    [`imageUrlAndDownloadType`, url],
+    async () => getImageUrlAndDownloadType(url),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      retry: false,
     }
   );
 }

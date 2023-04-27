@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, isCancel } from "axios";
 
 import {
   IBillsList,
@@ -18,6 +18,7 @@ import {
   AlphaDecimals,
   AlphaType,
   downloadableTypes,
+  maxImageSize,
 } from "../utils/constants";
 import {
   addDecimal,
@@ -79,9 +80,7 @@ export const getBillsList = async (
         network: import.meta.env.VITE_NETWORK_NAME,
         decimalFactor: AlphaDecimalFactor,
         decimals: AlphaDecimals,
-        UIAmount: separateDigits(
-          addDecimal(bill.value || "0", AlphaDecimals)
-        ),
+        UIAmount: separateDigits(addDecimal(bill.value || "0", AlphaDecimals)),
         isSendable: true,
       })
     );
@@ -204,23 +203,11 @@ export const getUserTokens = async (
         token.value = obj.amount;
         token.UIAmount = separateDigits(
           addDecimal(obj.amount || "0", obj.decimals || 0)
-        )
+        );
       } else {
         token.nftData = obj.nftData;
         token.nftUri = obj.nftUri;
         token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
-        token.isImageUrl = false;
-        token.downloadableItemType = null;
-        const imageUrl = await getImageUrl(obj?.nftUri);
-        const contentType = obj?.nftUri && await getDownloadType(obj?.nftUri);
-
-        if (contentType) {
-          token.downloadableItemType = contentType;
-        }
-
-        if (imageUrl) {
-          token.isImageUrl = true;
-        }
       }
 
       return token;
@@ -277,33 +264,104 @@ export const makeTransaction = async (
   return response.data;
 };
 
-export const getImageUrl = async (url?: string) => {
-  if (!url) return false;
+export const getImageUrl = async (
+  url?: string
+): Promise<{ error: string | null; imageUrl: string | null }> => {
+  if (!url) {
+    return { error: "Missing image URL", imageUrl: null };
+  }
+
+  const source = axios.CancelToken.source();
+  const timeout = setTimeout(() => {
+    source.cancel("Timeout reached");
+  }, 3000);
+
   try {
-    const response = await axios.head(url, { timeout: 3000 });
+    const response = await axios.head(url, {
+      timeout: 3000,
+      cancelToken: source.token,
+    });
+
     if (response.status === 200) {
+      const contentLength = response.headers["content-length"];
+      if (contentLength && Number(contentLength) > maxImageSize) {
+        return { error: "Image size exceeds 5MB limit", imageUrl: null };
+      }
+
       const contentType = response.headers["content-type"];
       if (contentType && contentType.startsWith("image/")) {
-        return url;
+        return { imageUrl: url, error: null };
       }
     }
-    return false;
+
+    return { error: "Invalid image URL", imageUrl: null };
   } catch (error) {
-    console.error(error);
-    return false;
+    if (isCancel(error)) {
+      console.error("Request cancelled:", error.message);
+    }
+    return { error: "Failed to fetch image", imageUrl: null };
+  } finally {
+    clearTimeout(timeout);
   }
 };
 
-export const getDownloadType = async (url: string) => {
+export const getImageUrlAndDownloadType = async (
+  url?: string
+): Promise<{
+  imageUrl: string | null;
+  downloadType: string | null;
+  error?: string;
+} | null> => {
+  if (!url) {
+    return null;
+  }
+
+  const source = axios.CancelToken.source();
+  const timeout = setTimeout(() => {
+    source.cancel("Timeout reached");
+  }, 3000);
+
   try {
-    const response = await axios.head(url);
-    const contentType = response.headers["content-type"];
-    if (contentType && downloadableTypes.includes(contentType)) {
-      return contentType;
+    const response = await axios.head(url, {
+      timeout: 3000,
+      cancelToken: source.token,
+    });
+
+    if (response.status === 200) {
+      const contentType = response.headers["content-type"];
+      const contentLength = response.headers["content-length"];
+
+      if (contentType && contentType.startsWith("image/")) {
+        if (contentLength && Number(contentLength) > maxImageSize) {
+          return {
+            imageUrl: url,
+            downloadType: contentType,
+            error: "Image size exceeds 5MB",
+          };
+        }
+
+        return {
+          imageUrl: url,
+          downloadType: contentType,
+        };
+      }
+
+      if (contentType && downloadableTypes.includes(contentType)) {
+        return {
+          imageUrl: null,
+          downloadType: contentType,
+        };
+      }
     }
+
     return null;
   } catch (error) {
+    if (isCancel(error)) {
+      console.error("Request cancelled:", error.message);
+    }
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 };
 

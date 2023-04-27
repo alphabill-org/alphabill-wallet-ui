@@ -25,6 +25,8 @@ interface IUserContext {
   setActiveAccountId: (e: string) => void;
   activeAsset: IActiveAsset;
   setActiveAssetLocal: (e: string) => void;
+  activeNFT: IActiveAsset | null;
+  setActiveNFTLocal: (e: string) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -53,6 +55,8 @@ const AuthContext = createContext<IUserContext>({
   setActiveAccountId: () => {},
   activeAsset: { name: AlphaType, typeId: AlphaType },
   setActiveAssetLocal: () => {},
+  activeNFT: null,
+  setActiveNFTLocal: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
@@ -69,6 +73,17 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     "ab_active_asset",
     initialActiveAsset
   );
+
+  const [activeNFTLocal, setActiveNFTLocal] = useLocalStorage(
+    "ab_nft_asset",
+    initialActiveAsset
+  );
+
+  const activeNFT = activeNFTLocal
+    ? isString(activeNFTLocal)
+      ? JSON.parse(activeNFTLocal)
+      : activeNFTLocal
+    : [];
 
   const activeAsset = activeAssetLocal
     ? isString(activeAssetLocal)
@@ -116,6 +131,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setActiveAccountId,
     activeAsset,
     setActiveAssetLocal,
+    activeNFT,
+    setActiveNFTLocal,
   };
 
   return (

@@ -112,6 +112,7 @@ function Actions(): JSX.Element | null {
         ) : (
           <></>
         )}
+
         <div className="actions__footer"></div>
       </div>
     </div>
