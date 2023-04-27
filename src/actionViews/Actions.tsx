@@ -94,9 +94,7 @@ function Actions(): JSX.Element | null {
         ) : actionsView === FungibleListView ? (
           <BillsList />
         ) : actionsView === NFTListView ? (
-          <div
-            className={classNames({ "d-none": actionsView !== NFTListView })}
-          >
+          <>
             <Spacer mt={24} />
             <AssetsList
               isTypeListItem
@@ -108,13 +106,12 @@ function Actions(): JSX.Element | null {
               }}
               onSendClick={() => setPreviousView(NFTListView)}
             />
-          </div>
+          </>
         ) : actionsView === ProfileView && accounts ? (
           <AccountView />
         ) : (
           <></>
         )}
-
 
         <div className="actions__footer"></div>
       </div>
