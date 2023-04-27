@@ -58,7 +58,7 @@ export default function TransferNFTs(): JSX.Element | null {
   const queryClient = useQueryClient();
   const activeNFT = account?.assets.nft
     ?.filter((asset) => account?.activeNetwork === asset.network)
-    .find((asset) => asset.typeId === activeAsset.typeId);
+    .find((asset) => asset.id === activeAsset.id);
   const defaultAssetId = activeNFT?.id || account?.assets.nft[0]?.id;
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
     value: activeNFT || account?.assets.nft[0],

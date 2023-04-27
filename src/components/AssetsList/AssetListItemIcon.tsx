@@ -29,7 +29,6 @@ export default function AssetsListItemIcon({
     Boolean(imageResponse?.imageUrl) &&
     isTypeListItem;
   let icon;
-  console.log(imageResponse, withImage);
 
   if (withImage && isLoadingImage) {
     return (
