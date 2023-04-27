@@ -634,6 +634,7 @@ export default function TransferFungible(): JSX.Element | null {
             small
             onClick={() => {
               setPreviousView(null);
+              setActiveAssetLocal(JSON.stringify(fungibleActiveAsset));
               setActionsView(FungibleListView);
               setIsActionsViewVisible(true);
               invalidateAllLists(
