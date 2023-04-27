@@ -77,21 +77,26 @@ export function useGetNFTs(
 export function useGetImageUrl(
   url: string,
   handleRequest: boolean
-): QueryObserverResult<string | false, AxiosError> {
+): QueryObserverResult<
+  { error: string | null; imageUrl: string | null },
+  AxiosError
+> {
   return useQuery(
     [`imageUrl`, url],
     async () => handleRequest && getImageUrl(url),
     {
       enabled: true,
-      keepPreviousData: false,
+      keepPreviousData: true,
+      retry: false,
     }
   );
 }
 
 export function useGetImageUrlAndDownloadType(url: string): QueryObserverResult<
   {
-    imageUrl: string;
-    contentType: string;
+    imageUrl: string | null;
+    downloadType: string | null;
+    error?: string;
   },
   AxiosError
 > {
@@ -100,7 +105,8 @@ export function useGetImageUrlAndDownloadType(url: string): QueryObserverResult<
     async () => getImageUrlAndDownloadType(url),
     {
       enabled: true,
-      keepPreviousData: false,
+      keepPreviousData: true,
+      retry: false,
     }
   );
 }

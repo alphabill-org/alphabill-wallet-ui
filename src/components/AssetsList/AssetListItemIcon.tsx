@@ -18,14 +18,18 @@ export default function AssetsListItemIcon({
 }: IAssetsListItemIconProps): JSX.Element | null {
   const hexId = base64ToHexPrefixed(asset?.id);
   const nftUri = asset?.nftUri || "";
-  const { data: imageUrl, isLoading: isLoadingImage } = useGetImageUrl(
+  const { data: imageResponse, isLoading: isLoadingImage } = useGetImageUrl(
     nftUri,
     Boolean(isTypeListItem)
   );
   const label = isTypeListItem ? hexId : asset?.name || asset?.symbol || hexId;
   const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
-  const withImage = Boolean(imageUrl) && isTypeListItem;
+  const withImage =
+    !Boolean(imageResponse?.error) &&
+    Boolean(imageResponse?.imageUrl) &&
+    isTypeListItem;
   let icon;
+  console.log(imageResponse, withImage);
 
   if (withImage && isLoadingImage) {
     return (
@@ -35,12 +39,12 @@ export default function AssetsListItemIcon({
     );
   }
 
-  if (Boolean(imageUrl) && withImage) {
+  if (withImage) {
     icon = (
       <LazyLoadImage
         alt={label}
         height={32}
-        src={imageUrl as string}
+        src={imageResponse?.imageUrl as string}
         width={32}
       />
     );

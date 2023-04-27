@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import {
   AlphaType,

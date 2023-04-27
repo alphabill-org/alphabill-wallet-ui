@@ -18,6 +18,7 @@ import {
   AlphaDecimals,
   AlphaType,
   downloadableTypes,
+  maxImageSize,
 } from "../utils/constants";
 import {
   addDecimal,
@@ -263,9 +264,11 @@ export const makeTransaction = async (
   return response.data;
 };
 
-export const getImageUrl = async (url?: string): Promise<string | false> => {
+export const getImageUrl = async (
+  url?: string
+): Promise<{ error: string | null; imageUrl: string | null }> => {
   if (!url) {
-    return false;
+    return { error: "Missing image URL", imageUrl: null };
   }
 
   const source = axios.CancelToken.source();
@@ -280,18 +283,23 @@ export const getImageUrl = async (url?: string): Promise<string | false> => {
     });
 
     if (response.status === 200) {
+      const contentLength = response.headers["content-length"];
+      if (contentLength && Number(contentLength) > maxImageSize) {
+        return { error: "Image size exceeds 5MB limit", imageUrl: null };
+      }
+
       const contentType = response.headers["content-type"];
       if (contentType && contentType.startsWith("image/")) {
-        return url;
+        return { imageUrl: url, error: null };
       }
     }
 
-    return false;
+    return { error: "Invalid image URL", imageUrl: null };
   } catch (error) {
     if (isCancel(error)) {
       console.error("Request cancelled:", error.message);
     }
-    return false;
+    return { error: "Failed to fetch image", imageUrl: null };
   } finally {
     clearTimeout(timeout);
   }
@@ -302,6 +310,7 @@ export const getImageUrlAndDownloadType = async (
 ): Promise<{
   imageUrl: string | null;
   downloadType: string | null;
+  error?: string;
 } | null> => {
   if (!url) {
     return null;
@@ -320,11 +329,20 @@ export const getImageUrlAndDownloadType = async (
 
     if (response.status === 200) {
       const contentType = response.headers["content-type"];
+      const contentLength = response.headers["content-length"];
 
       if (contentType && contentType.startsWith("image/")) {
+        if (contentLength && Number(contentLength) > maxImageSize) {
+          return {
+            imageUrl: url,
+            downloadType: contentType,
+            error: "Image size exceeds 5MB",
+          };
+        }
+
         return {
           imageUrl: url,
-          downloadType: null,
+          downloadType: contentType,
         };
       }
 

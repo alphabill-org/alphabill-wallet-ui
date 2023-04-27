@@ -99,3 +99,5 @@ export const downloadableTypes = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
+
+export const maxImageSize = 5 * 1024 * 1024; // 5MB in bytes (average phone image ~3MB)

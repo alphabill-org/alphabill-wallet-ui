@@ -93,24 +93,29 @@ function Actions(): JSX.Element | null {
           <NFTDetails />
         ) : actionsView === FungibleListView ? (
           <BillsList />
+        ) : actionsView === NFTListView ? (
+          <div
+            className={classNames({ "d-none": actionsView !== NFTListView })}
+          >
+            <Spacer mt={24} />
+            <AssetsList
+              isTypeListItem
+              assetList={NFTList}
+              isTransferButton
+              onItemClick={() => {
+                setIsActionsViewVisible(true);
+                setActionsView(NFTDetailsView);
+              }}
+              onSendClick={() => setPreviousView(NFTListView)}
+            />
+          </div>
         ) : actionsView === ProfileView && accounts ? (
           <AccountView />
         ) : (
           <></>
         )}
-        <div className={classNames({ "d-none": actionsView !== NFTListView })}>
-          <Spacer mt={24} />
-          <AssetsList
-            isTypeListItem
-            assetList={NFTList}
-            isTransferButton
-            onItemClick={() => {
-              setIsActionsViewVisible(true);
-              setActionsView(NFTDetailsView);
-            }}
-            onSendClick={() => setPreviousView(NFTListView)}
-          />
-        </div>
+
+
         <div className="actions__footer"></div>
       </div>
     </div>

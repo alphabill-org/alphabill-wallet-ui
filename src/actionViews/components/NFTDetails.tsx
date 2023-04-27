@@ -28,6 +28,11 @@ export default function NFTDetails({
   const queryClient = useQueryClient();
   const nftUri = activeAsset?.nftUri || "";
   const { data, isLoading } = useGetImageUrlAndDownloadType(nftUri);
+  const isImage = Boolean(data?.imageUrl) && !Boolean(data?.error);
+  const isDownloadableImage =
+    Boolean(data?.downloadType) && Boolean(data?.imageUrl);
+  const isDownloadableImageWithError =
+    isDownloadableImage && Boolean(data?.error);
 
   const {
     setIsActionsViewVisible,
@@ -73,10 +78,10 @@ export default function NFTDetails({
       </div>
       <div
         className={classNames("asset-details__content", {
-          "is-empty": !Boolean(data?.imageUrl),
+          "is-empty": !isImage,
         })}
       >
-        {Boolean(data?.imageUrl) ? (
+        {isImage ? (
           <LazyLoadImage
             alt={base64ToHexPrefixed(activeAsset?.id)}
             height={32}
@@ -84,23 +89,28 @@ export default function NFTDetails({
             width={32}
           />
         ) : (
-          <div>Unable to preview {data?.contentType} content.</div>
+          <div>
+            <div>Unable to preview {data?.downloadType} content.</div>
+            {isDownloadableImageWithError && (
+              <div>{data?.error}. Download image to preview.</div>
+            )}
+          </div>
         )}
       </div>
       <div className="asset-details__actions">
-        {Boolean(data?.contentType) && (
+        {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
           <Button
             type="button"
             variant="primary"
             onClick={() => {
               downloadFile(
-                activeAsset.nftUri!,
+                data?.imageUrl!,
                 base64ToHexPrefixed(activeAsset?.id)
               );
             }}
           >
             <Download />
-            <div className="pad-8-l t-ellipsis">{data?.contentType}</div>
+            <div className="pad-8-l t-ellipsis">{data?.downloadType}</div>
           </Button>
         )}
 
