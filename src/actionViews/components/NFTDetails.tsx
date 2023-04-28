@@ -14,6 +14,8 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
+import { useGetImageUrlAndDownloadType } from "../../hooks/api";
+import Spinner from "../../components/Spinner/Spinner";
 
 export interface INFTDetailsProps {
   onItemClick?: () => void;
@@ -24,6 +26,14 @@ export default function NFTDetails({
 }: INFTDetailsProps): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
+  const nftUri = activeAsset?.nftUri || "";
+  const { data, isLoading } = useGetImageUrlAndDownloadType(nftUri);
+  const isImage = Boolean(data?.imageUrl) && !Boolean(data?.error);
+  const isDownloadableImage =
+    Boolean(data?.downloadType) && Boolean(data?.imageUrl);
+  const isDownloadableImageWithError =
+    isDownloadableImage && Boolean(data?.error);
+
   const {
     setIsActionsViewVisible,
     setActionsView,
@@ -31,10 +41,18 @@ export default function NFTDetails({
     setPreviousView,
   } = useApp();
 
-  const handleClick = (asset: any) => {
+  const handleClick = () => {
     onItemClick && onItemClick();
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
+
+  if (isLoading) {
+    return (
+      <div className="m-auto">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className={"asset-details pad-view"}>
@@ -48,7 +66,7 @@ export default function NFTDetails({
               setActionsView(TransferNFTView);
               setIsActionsViewVisible(true);
               activeAsset && setSelectedTransferKey(activeAsset.id!);
-              handleClick(activeAsset);
+              handleClick();
               setPreviousView(NFTListView);
             }}
             type="button"
@@ -60,10 +78,10 @@ export default function NFTDetails({
       </div>
       <div
         className={classNames("asset-details__content", {
-          "is-empty": !activeAsset?.isImageUrl,
+          "is-empty": !isImage,
         })}
       >
-        {activeAsset?.isImageUrl ? (
+        {isImage ? (
           <LazyLoadImage
             alt={base64ToHexPrefixed(activeAsset?.id)}
             height={32}
@@ -72,24 +90,27 @@ export default function NFTDetails({
           />
         ) : (
           <div>
-            Unable to preview {activeAsset?.downloadableItemType} content.
+            <div>Unable to preview {data?.downloadType} content.</div>
+            {isDownloadableImageWithError && (
+              <div>{data?.error}. Download image to preview.</div>
+            )}
           </div>
         )}
       </div>
       <div className="asset-details__actions">
-        {activeAsset?.downloadableItemType && (
+        {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
           <Button
             type="button"
             variant="primary"
             onClick={() => {
               downloadFile(
-                activeAsset.nftUri!,
+                data?.imageUrl!,
                 base64ToHexPrefixed(activeAsset?.id)
               );
             }}
           >
             <Download />
-            <div className="pad-8-l t-ellipsis">{activeAsset?.downloadableItemType}</div>
+            <div className="pad-8-l t-ellipsis">{data?.downloadType}</div>
           </Button>
         )}
 
