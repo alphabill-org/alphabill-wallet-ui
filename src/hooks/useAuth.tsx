@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isString } from "lodash";
 
@@ -27,6 +27,8 @@ interface IUserContext {
   setActiveAssetLocal: (e: string) => void;
   activeNFT: IActiveAsset | null;
   setActiveNFTLocal: (e: string) => void;
+  isConnectWalletRedirect: boolean;
+  setIsConnectWalletRedirect: (e: boolean) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -57,9 +59,13 @@ const AuthContext = createContext<IUserContext>({
   setActiveAssetLocal: () => {},
   activeNFT: null,
   setActiveNFTLocal: () => {},
+  isConnectWalletRedirect: false,
+  setIsConnectWalletRedirect: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
+  const [isConnectWalletRedirect, setIsConnectWalletRedirect] =
+    useState<boolean>(false);
   const [userKeys, setUserKeys] = useLocalStorage(
     "ab_wallet_pub_keys",
     keysData
@@ -94,12 +100,19 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const [vault, setVault] = useLocalStorage("ab_wallet_vault", vaultData);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    chrome?.storage?.local.get(["is_connect_redirect"], function (result) {
+      setIsConnectWalletRedirect(Boolean(result));
+    });
+  }, [isConnectWalletRedirect]);
+
   const login = async (
     activeAccountId: string,
     keys: string | null,
     vaultData?: string
   ) => {
     const initiateLogin = () => {
+      setIsUnloacked(ture);
       vaultData && setVault(vaultData);
       keys && setUserKeys(keys);
       setActiveAccountId(activeAccountId);
@@ -116,7 +129,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   };
 
   const logout = () => {
-    setUserKeys(null);
+    setIsUnloacked(false);
     navigate("/login", { replace: true });
   };
 
@@ -133,6 +146,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setActiveAssetLocal,
     activeNFT,
     setActiveNFTLocal,
+    isConnectWalletRedirect,
+    setIsConnectWalletRedirect,
   };
 
   return (

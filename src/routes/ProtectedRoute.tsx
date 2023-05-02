@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useApp } from "../hooks/appProvider";
+import { useAuth } from "../hooks/useAuth";
 
 export interface IProtectedRouteProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
   const vault = localStorage.getItem("ab_wallet_vault");
   const userKeys = localStorage.getItem("ab_wallet_pub_keys");
   const [isLocked, setIsLocked] = useState<"locked" | "unlocked">();
+  const { isConnectWalletRedirect } = useAuth();
 
   const isRedirect =
     !Boolean(userKeys) ||
@@ -34,6 +36,10 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
         localStorage.setItem("ab_wallet_pub_keys", "");
       });
   }, [isLocked]);
+
+  if (isConnectWalletRedirect === true) {
+    return <Navigate to="/connect" />;
+  }
 
   if (chrome?.storage && !isLocked) {
     return <></>;
