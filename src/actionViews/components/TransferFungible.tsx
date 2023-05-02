@@ -475,12 +475,14 @@ export default function TransferFungible(): JSX.Element | null {
                       {selectedTransferKey && (
                         <div className="t-medium-small">
                           You have selected a {tokenLabel} with a value of{" "}
-                          {separateDigits(
-                            addDecimal(
-                              selectedBillValue,
-                              selectedAsset?.decimals || 0
-                            )
-                          )}
+                          {selectedBillValue &&
+                            selectedAsset &&
+                            separateDigits(
+                              addDecimal(
+                                selectedBillValue || "0",
+                                selectedAsset?.decimals || 0
+                              )
+                            )}
                           . You can deselect it by clicking{" "}
                           <Button
                             onClick={() => {

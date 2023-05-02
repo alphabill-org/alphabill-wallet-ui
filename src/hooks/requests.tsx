@@ -80,7 +80,9 @@ export const getBillsList = async (
         network: import.meta.env.VITE_NETWORK_NAME,
         decimalFactor: AlphaDecimalFactor,
         decimals: AlphaDecimals,
-        UIAmount: separateDigits(addDecimal(bill.value || "0", AlphaDecimals)),
+        UIAmount:
+          bill?.value &&
+          separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
         isSendable: true,
       })
     );
@@ -201,9 +203,9 @@ export const getUserTokens = async (
       if (kind === "fungible") {
         token.decimals = obj.decimals;
         token.value = obj.amount;
-        token.UIAmount = separateDigits(
-          addDecimal(obj.amount || "0", obj.decimals || 0)
-        );
+        token.UIAmount =
+          obj?.amount &&
+          separateDigits(addDecimal(obj?.amount || "0", obj.decimals || 0));
       } else {
         token.nftData = obj.nftData;
         token.nftUri = obj.nftUri;
