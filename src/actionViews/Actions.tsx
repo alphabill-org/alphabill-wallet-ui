@@ -85,7 +85,7 @@ function Actions(): JSX.Element | null {
             />
           </>
         )}
-        {actionsView === TransferFungibleView ? (
+        {actionsView === TransferFungibleView && isActionsViewVisible ? (
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (
           <TransferNFTs />

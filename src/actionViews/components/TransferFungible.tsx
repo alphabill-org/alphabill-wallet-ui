@@ -74,9 +74,12 @@ export default function TransferFungible(): JSX.Element | null {
   const directlySelectedAsset = billsList?.find(
     (bill: IBill) => bill.id === selectedTransferKey
   );
-  const fungibleActiveAsset = account?.assets?.fungible
-    ?.filter((asset) => account?.activeNetwork === asset.network)
-    .find((asset) => asset.typeId === activeAsset.typeId || AlphaType)!;
+  const fungibleAssets = account?.assets?.fungible?.filter(
+    (asset) => account?.activeNetwork === asset.network
+  );
+  const fungibleActiveAsset =
+    fungibleAssets.find((asset) => asset.typeId === activeAsset.typeId) ||
+    fungibleAssets.find((asset) => asset.typeId === AlphaType)!;
 
   const defaultAsset: {
     value: IBill | IFungibleAsset | undefined;
