@@ -24,8 +24,15 @@ import {
   useGetNFTs,
 } from "./api";
 import { useAuth } from "./useAuth";
-import { AlphaType } from "../utils/constants";
-import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
+import {
+  AlphaType,
+  TransferFungibleView,
+  TransferNFTView,
+} from "../utils/constants";
+import {
+  getUpdatedFungibleAssets,
+  getUpdatedNFTAssets,
+} from "../utils/utils";
 
 interface IAppContextShape {
   balances: any;
@@ -43,6 +50,8 @@ interface IAppContextShape {
   setPreviousView: (e: string | null) => void;
   selectedTransferKey: string | null | undefined;
   setSelectedTransferKey: (e: string | null) => void;
+  selectedTransferAccountKey: string | null | undefined;
+  setSelectedTransferAccountKey: (e: string | null) => void;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -60,6 +69,7 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeAsset,
     activeNFT,
+    setActiveAssetLocal,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
@@ -68,6 +78,9 @@ export const AppProvider: FunctionComponent<{
     [accountNames]
   );
   const [selectedTransferKey, setSelectedTransferKey] = useState<
+    string | null | undefined
+  >();
+  const [selectedTransferAccountKey, setSelectedTransferAccountKey] = useState<
     string | null | undefined
   >();
   const [previousView, setPreviousView] = useState<string | null>(null);
@@ -116,6 +129,53 @@ export const AppProvider: FunctionComponent<{
         ) as INFTAsset[]) || [],
     };
 
+    chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
+      if (
+        keyRes?.ab_connected_key &&
+        activeAccountId !== keyRes?.ab_connected_key
+      ) {
+        setActiveAccountId(keyRes.ab_connected_key);
+      }
+
+      if (account?.pubKey === keyRes?.ab_connected_key) {
+        chrome?.storage?.local.get(
+          ["ab_connect_transfer_key_type_id"],
+          function (transferRes) {
+            const typeId = transferRes?.ab_connect_transfer_key_type_id;
+            if (typeId) {
+              const isNFT = assets.nft.find((nft) => nft.typeId === typeId);
+              const isFungible = assets.fungible.find(
+                (fungible) => fungible.typeId === typeId
+              );
+              const assetKey = isNFT ? "nft" : "fungible";
+              const activeAsset = assets?.[assetKey]?.find(
+                (asset) => asset.typeId === typeId
+              );
+
+              if (activeAsset && (isNFT || isFungible)) {
+                setSelectedTransferKey(activeAsset.id);
+                setActiveAssetLocal(JSON.stringify(activeAsset));
+                setActionsView(
+                  isFungible ? TransferFungibleView : TransferNFTView
+                );
+                setIsActionsViewVisible(true);
+                chrome?.storage?.local.get(
+                  ["ab_transfer_pub_key"],
+                  function (transferRes) {
+                    setSelectedTransferAccountKey(
+                      transferRes.ab_transfer_pub_key
+                    );
+                  }
+                );
+              } else {
+                chrome?.storage?.local.remove("ab_transfer_pub_key");
+              }
+            }
+          }
+        );
+      }
+    });
+
     if (
       (hasKeys &&
         !isEqual(
@@ -162,6 +222,8 @@ export const AppProvider: FunctionComponent<{
     tokenTypes,
     account?.assets,
     NFTsList,
+    setActiveAssetLocal,
+    account?.pubKey,
   ]);
 
   return (
@@ -180,6 +242,8 @@ export const AppProvider: FunctionComponent<{
         setActionsView,
         selectedTransferKey,
         setSelectedTransferKey,
+        selectedTransferAccountKey,
+        setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
       }}

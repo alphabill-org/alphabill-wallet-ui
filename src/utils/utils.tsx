@@ -15,6 +15,7 @@ import {
   ITypeHierarchy,
   IListTokensResponse,
   ITokensListTypes,
+  INFTAsset,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -601,9 +602,7 @@ export const getUpdatedFungibleAssets = (
     amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
     decimals: AlphaDecimals,
-    UIAmount: separateDigits(
-      addDecimal(ALPHABalance || "0", AlphaDecimals)
-    ),
+    UIAmount: separateDigits(addDecimal(ALPHABalance || "0", AlphaDecimals)),
     typeId: AlphaType,
     isSendable: true,
   };
@@ -643,4 +642,21 @@ export const downloadHexFile = (hexString: string, filename: string) => {
   downloadLink.click();
   document.body.removeChild(downloadLink);
   window.URL.revokeObjectURL(url);
+};
+
+export const sendTransferMessage = (selectedAsset: INFTAsset | IFungibleAsset) => {
+  chrome?.storage?.local.get(
+    ["ab_connect_transfer_key_type_id"],
+    function (transferRes) {
+      if (
+        selectedAsset?.typeId === transferRes.ab_connect_transfer_key_type_id
+      ) {
+        chrome?.runtime?.sendMessage({
+          externalMessage: {
+            ab_transferred_token_id: selectedAsset?.id,
+          },
+        });
+      }
+    }
+  );
 };

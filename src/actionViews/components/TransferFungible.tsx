@@ -40,6 +40,7 @@ import {
   createInvariantPredicateSignatures,
   separateDigits,
   getTokensLabel,
+  sendTransferMessage,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -67,6 +68,7 @@ export default function TransferFungible(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     setPreviousView,
+    selectedTransferAccountKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -178,7 +180,7 @@ export default function TransferFungible(): JSX.Element | null {
         initialValues={{
           assets: defaultAsset,
           amount: "",
-          address: "",
+          address: selectedTransferAccountKey || "",
           password: "",
         }}
         onSubmit={(values, { setErrors, resetForm }) => {
@@ -370,6 +372,7 @@ export default function TransferFungible(): JSX.Element | null {
                   })
                   .finally(() => {
                     if (isLastTransfer) {
+                      sendTransferMessage(selectedAsset as IFungibleAsset);
                       addPollingInterval();
                       setIsSending(false);
                       setSelectedTransferKey(null);
@@ -571,6 +574,7 @@ export default function TransferFungible(): JSX.Element | null {
                     label="Address"
                     type="address"
                     error={extractFormikError(errors, touched, ["address"])}
+                    value={selectedTransferAccountKey || ""}
                   />
                   <Spacer mb={8} />
                   <div className={selectedTransferKey ? "d-none" : ""}>

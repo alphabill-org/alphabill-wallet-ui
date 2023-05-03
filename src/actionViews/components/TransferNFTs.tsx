@@ -31,6 +31,7 @@ import {
   createNewBearer,
   invalidateAllLists,
   createInvariantPredicateSignatures,
+  sendTransferMessage,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -52,6 +53,7 @@ export default function TransferNFTs(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     setPreviousView,
+    selectedTransferAccountKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -114,7 +116,7 @@ export default function TransferNFTs(): JSX.Element | null {
             value: defaultAsset,
             label: defaultAsset.label,
           },
-          address: "",
+          address: selectedTransferAccountKey || "",
           password: "",
         }}
         onSubmit={(values, { setErrors, resetForm }) => {
@@ -199,6 +201,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
                     ).then(() => {
+                      sendTransferMessage(selectedAsset as INFTAsset);
                       transferredToken.current = selectedAsset || null;
                       addPollingInterval();
                       setIsSending(false);
@@ -351,6 +354,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     label="Address"
                     type="address"
                     error={extractFormikError(errors, touched, ["address"])}
+                    value={selectedTransferAccountKey || ""}
                   />
                   <Spacer mb={8} />
                   <Textfield

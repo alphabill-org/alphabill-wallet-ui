@@ -57,6 +57,10 @@ function Actions(): JSX.Element | null {
               setPreviousView(null);
               setSelectedTransferKey(null);
             }
+
+            chrome?.storage?.local.remove("ab_connect_transfer_key_type_id");
+            chrome?.storage?.local.remove("ab_transfer_pub_key");
+
           }}
           className="btn__back"
           variant="icon"

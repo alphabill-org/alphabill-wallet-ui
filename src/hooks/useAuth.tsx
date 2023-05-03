@@ -27,8 +27,8 @@ interface IUserContext {
   setActiveAssetLocal: (e: string) => void;
   activeNFT: IActiveAsset | null;
   setActiveNFTLocal: (e: string) => void;
-  isConnectWalletRedirect: boolean;
-  setIsConnectWalletRedirect: (e: boolean) => void;
+  isConnectWalletPopup: boolean;
+  setIsConnectWalletPopup: (e: boolean) => void;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -59,12 +59,12 @@ const AuthContext = createContext<IUserContext>({
   setActiveAssetLocal: () => {},
   activeNFT: null,
   setActiveNFTLocal: () => {},
-  isConnectWalletRedirect: false,
-  setIsConnectWalletRedirect: () => {},
+  isConnectWalletPopup: false,
+  setIsConnectWalletPopup: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
-  const [isConnectWalletRedirect, setIsConnectWalletRedirect] =
+  const [isConnectWalletPopup, setIsConnectWalletPopup] =
     useState<boolean>(false);
   const [userKeys, setUserKeys] = useLocalStorage(
     "ab_wallet_pub_keys",
@@ -101,10 +101,10 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const navigate = useNavigate();
 
   useEffect(() => {
-    chrome?.storage?.local.get(["is_connect_redirect"], function (result) {
-      setIsConnectWalletRedirect(Boolean(result));
+    chrome?.storage?.local.get(["ab_is_connect_popup"], function (result) {
+      setIsConnectWalletPopup(result?.ab_is_connect_popup);
     });
-  }, [isConnectWalletRedirect]);
+  }, [isConnectWalletPopup]);
 
   const login = async (
     activeAccountId: string,
@@ -112,7 +112,6 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     vaultData?: string
   ) => {
     const initiateLogin = () => {
-      setIsUnloacked(ture);
       vaultData && setVault(vaultData);
       keys && setUserKeys(keys);
       setActiveAccountId(activeAccountId);
@@ -129,7 +128,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   };
 
   const logout = () => {
-    setIsUnloacked(false);
+    setUserKeys(null);
     navigate("/login", { replace: true });
   };
 
@@ -146,8 +145,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setActiveAssetLocal,
     activeNFT,
     setActiveNFTLocal,
-    isConnectWalletRedirect,
-    setIsConnectWalletRedirect,
+    isConnectWalletPopup,
+    setIsConnectWalletPopup,
   };
 
   return (

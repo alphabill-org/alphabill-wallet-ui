@@ -7,7 +7,6 @@ import Home from "./routes/Home";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
 import { useEffect } from "react";
-import Connect from "./routes/Connect";
 
 function App() {
   useEffect(() => {
@@ -31,7 +30,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {<Route path="/connect" element={<Connect />} />}
           {<Route path="/login" element={<Login />} />}
           <Route path="/create-wallet" element={<CreateAccount />} />
           <Route path="/recover-wallet" element={<RecoverAccount />} />
