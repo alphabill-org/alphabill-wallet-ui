@@ -40,7 +40,6 @@ import {
   createInvariantPredicateSignatures,
   separateDigits,
   getTokensLabel,
-  sendTransferMessage,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -381,10 +380,6 @@ export default function TransferFungible(): JSX.Element | null {
                     };
 
                     if (isLastTransfer) {
-                      sendTransferMessage(
-                        selectedAsset as IFungibleAsset,
-                        handleTransferEnd
-                      );
                       handleTransferEnd();
                     }
                   });

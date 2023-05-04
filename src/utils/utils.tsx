@@ -644,29 +644,28 @@ export const downloadHexFile = (hexString: string, filename: string) => {
   window.URL.revokeObjectURL(url);
 };
 
-export const sendTransferMessage = (
+export const sendTransferMessage = async (
   selectedAsset: INFTAsset | IFungibleAsset,
+  txHash: string,
   handleTransferEnd: () => void
 ) => {
   chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
-    if (
-      selectedAsset?.typeId ===
-      transferRes?.ab_connect_transfer?.transfer_key_type_id
-    ) {
+    const transferTokenTypeId =
+      transferRes?.ab_connect_transfer?.transfer_key_type_id;
+
+    if (transferTokenTypeId && selectedAsset?.typeId === transferTokenTypeId) {
       chrome?.runtime
         ?.sendMessage({
           externalMessage: {
-            ab_transferred_token_id: selectedAsset?.id,
+            ab_transferred_token_tx_hash: txHash,
           },
         })
         .then(() =>
-          chrome?.storage?.local
-            .remove("ab_connect_transfer")
-            .then(() => {
-              console.log('handleTransferEnd');
-              window.close()
-              handleTransferEnd()
-            })
+          chrome?.storage?.local.remove("ab_connect_transfer").then(() => {
+            console.log("handleTransferEnd");
+            window.close();
+            handleTransferEnd();
+          })
         );
     }
   });

@@ -41,7 +41,10 @@ import {
   NFTListView,
 } from "../../utils/constants";
 
-import { NFTTransferOrderHash } from "../../utils/hashers";
+import {
+  NFTTransferOrderHash,
+  NFTTransferOrderTxHash,
+} from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -107,7 +110,6 @@ export default function TransferNFTs(): JSX.Element | null {
   }, [NFTsList]);
 
   if (!isActionsViewVisible) return <div></div>;
-  console.log(selectedTransferAccountKey, "selectedTransferAccountKey");
 
   return (
     <div className="w-100p">
@@ -201,7 +203,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     makeTransaction(
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
-                    ).then(() => {
+                    ).then(async () => {
                       const handleTransferEnd = () => {
                         transferredToken.current = selectedAsset || null;
                         addPollingInterval();
@@ -212,8 +214,11 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
-                      sendTransferMessage(
+                      dataWithProof?.transactions[0] && sendTransferMessage(
                         selectedAsset as INFTAsset,
+                        await NFTTransferOrderTxHash(
+                          dataWithProof?.transactions[0] as INFTTransferPayload
+                        ),
                         handleTransferEnd
                       );
                       handleTransferEnd();
@@ -342,7 +347,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         label: base64ToHexPrefixed(asset.id),
                       }))}
                     error={extractFormikError(errors, touched, ["assets"])}
-                    onChange={(_label, option: any) => {
+                    onChange={async (_label, option: any) => {
                       setSelectedAsset(option);
                       invalidateAllLists(
                         activeAccountId,
@@ -350,6 +355,10 @@ export default function TransferNFTs(): JSX.Element | null {
                         queryClient
                       );
                       setActiveAssetLocal(JSON.stringify(option));
+                      console.log(
+                        await NFTTransferOrderTxHash(txData as any),
+                        "rFD4KSUA3zDXUG/85TD6XxvJyOsz1cOyUzK6Uo7ZHZI="
+                      );
                     }}
                     defaultValue={{
                       value: defaultAsset,

@@ -25,11 +25,11 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
         });
     }
 
-    if (externalMessage?.ab_transferred_token_id) {
+    if (externalMessage?.ab_transferred_token_tx_hash) {
       this.abPort
         .postMessage({
           message: {
-            ab_transferred_token_id: externalMessage?.ab_transferred_token_id,
+            ab_transferred_token_tx_hash: externalMessage?.ab_transferred_token_tx_hash,
           },
         })
         ?.then(() => {
