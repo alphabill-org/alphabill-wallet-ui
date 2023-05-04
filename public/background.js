@@ -1,5 +1,6 @@
 this.isPopupOpen = undefined;
 this.abPort = undefined;
+this.senderTab = undefined;
 
 console.log(this.abPort, "top");
 // Set wallet popup state
@@ -7,7 +8,7 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
   if (Boolean(wallet?.handleOpenState)) {
     this.isPopupOpen = wallet.isPopupOpen;
   }
-  console.log(this.abPort, "this.abPort");
+
   const externalMessage = wallet?.externalMessage;
   if (Boolean(externalMessage)) {
     if (externalMessage?.ab_connection_is_confirmed) {
@@ -31,13 +32,15 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
             ab_transferred_token_id: externalMessage?.ab_transferred_token_id,
           },
         })
+        ?.then(() => {
+          chrome?.storage?.local.remove("ab_connect_transfer");
+        });
     }
   }
 });
 
 // Lock on sleep & shutdown
 chrome.windows.onRemoved.addListener(() => {
-  chrome?.storage?.local.set({ ab_is_wallet_locked: true });
   chrome?.storage?.local.set({ ab_is_connect_popup: false });
 });
 
@@ -53,15 +56,16 @@ chrome.idle.onStateChanged.addListener((state) => {
 });
 
 chrome.runtime.onConnectExternal.addListener(function (port) {
-  console.log("Connected to content website: " + port.sender.tab.url);
+  console.log("Connected to content website: " + port.sender.tab);
   // Listen for messages from the content website
   this.abPort = port;
+  this.senderTab = port.sender.tab;
 
   this.abPort.onMessage.addListener(function (msg) {
-    console.log("Received message from content website: " + msg.message);
+    console.log("Received message from content website: " + msg);
     // Send a message back to the content website
 
-    if (msg.ab_transfer_key_type_id) {
+    if (msg.ab_connect_transfer) {
       chrome.windows
         .create({
           url: chrome.runtime.getURL("index.html"),
@@ -70,9 +74,13 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
           height: 628,
         })
         .then(() => {
+          console.log(msg.ab_connect_transfer, "ab_connect_transfer");
           chrome?.storage?.local.set({
-            ab_connect_transfer_key_type_id: msg.ab_transfer_key_type_id,
-            ab_transfer_pub_key: msg.ab_transfer_pub_key,
+            ab_connect_transfer: {
+              transfer_key_type_id:
+                msg.ab_connect_transfer.transfer_key_type_id,
+              transfer_pub_key: msg.ab_connect_transfer.transfer_pub_key,
+            },
           });
         });
     }

@@ -371,14 +371,21 @@ export default function TransferFungible(): JSX.Element | null {
                         ) - BigInt(amount);
                   })
                   .finally(() => {
-                    if (isLastTransfer) {
-                      sendTransferMessage(selectedAsset as IFungibleAsset);
+                    const handleTransferEnd = () => {
                       addPollingInterval();
                       setIsSending(false);
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
                       setSelectedAsset(activeAsset);
+                    };
+
+                    if (isLastTransfer) {
+                      sendTransferMessage(
+                        selectedAsset as IFungibleAsset,
+                        handleTransferEnd
+                      );
+                      handleTransferEnd();
                     }
                   });
             };

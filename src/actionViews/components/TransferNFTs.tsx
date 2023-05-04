@@ -107,6 +107,7 @@ export default function TransferNFTs(): JSX.Element | null {
   }, [NFTsList]);
 
   if (!isActionsViewVisible) return <div></div>;
+  console.log(selectedTransferAccountKey, "selectedTransferAccountKey");
 
   return (
     <div className="w-100p">
@@ -201,14 +202,21 @@ export default function TransferNFTs(): JSX.Element | null {
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
                     ).then(() => {
-                      sendTransferMessage(selectedAsset as INFTAsset);
-                      transferredToken.current = selectedAsset || null;
-                      addPollingInterval();
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
-                      setPreviousView(null);
+                      const handleTransferEnd = () => {
+                        transferredToken.current = selectedAsset || null;
+                        addPollingInterval();
+                        setIsSending(false);
+                        setSelectedTransferKey(null);
+                        setIsActionsViewVisible(false);
+                        resetForm();
+                        setPreviousView(null);
+                      };
+
+                      sendTransferMessage(
+                        selectedAsset as INFTAsset,
+                        handleTransferEnd
+                      );
+                      handleTransferEnd();
                     });
                 })
                 .catch(() => {

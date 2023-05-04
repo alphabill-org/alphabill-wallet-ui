@@ -29,10 +29,7 @@ import {
   TransferFungibleView,
   TransferNFTView,
 } from "../utils/constants";
-import {
-  getUpdatedFungibleAssets,
-  getUpdatedNFTAssets,
-} from "../utils/utils";
+import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
 
 interface IAppContextShape {
   balances: any;
@@ -130,18 +127,20 @@ export const AppProvider: FunctionComponent<{
     };
 
     chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
-      if (
-        keyRes?.ab_connected_key &&
-        activeAccountId !== keyRes?.ab_connected_key
-      ) {
-        setActiveAccountId(keyRes.ab_connected_key);
-      }
-
       if (account?.pubKey === keyRes?.ab_connected_key) {
         chrome?.storage?.local.get(
-          ["ab_connect_transfer_key_type_id"],
+          ["ab_connect_transfer"],
           function (transferRes) {
-            const typeId = transferRes?.ab_connect_transfer_key_type_id;
+            const typeId =
+              transferRes?.ab_connect_transfer?.transfer_key_type_id;
+            if (
+              keyRes?.ab_connected_key &&
+              activeAccountId !== keyRes?.ab_connected_key &&
+              typeId
+            ) {
+              setActiveAccountId(keyRes.ab_connected_key);
+            }
+
             if (typeId) {
               const isNFT = assets.nft.find((nft) => nft.typeId === typeId);
               const isFungible = assets.fungible.find(
@@ -151,24 +150,20 @@ export const AppProvider: FunctionComponent<{
               const activeAsset = assets?.[assetKey]?.find(
                 (asset) => asset.typeId === typeId
               );
+              console.log(keyRes, transferRes, typeId);
 
               if (activeAsset && (isNFT || isFungible)) {
+                console.log(isNFT, transferRes, "transferRes.transfer_pub_key");
+
+                setSelectedTransferAccountKey(
+                  transferRes.ab_connect_transfer?.transfer_pub_key
+                );
                 setSelectedTransferKey(activeAsset.id);
                 setActiveAssetLocal(JSON.stringify(activeAsset));
                 setActionsView(
                   isFungible ? TransferFungibleView : TransferNFTView
                 );
                 setIsActionsViewVisible(true);
-                chrome?.storage?.local.get(
-                  ["ab_transfer_pub_key"],
-                  function (transferRes) {
-                    setSelectedTransferAccountKey(
-                      transferRes.ab_transfer_pub_key
-                    );
-                  }
-                );
-              } else {
-                chrome?.storage?.local.remove("ab_transfer_pub_key");
               }
             }
           }
