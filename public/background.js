@@ -1,8 +1,6 @@
 this.isPopupOpen = undefined;
 this.abPort = undefined;
-this.senderTab = undefined;
 
-console.log(this.abPort, "top");
 // Set wallet popup state
 chrome?.runtime?.onMessage.addListener((wallet) => {
   if (Boolean(wallet?.handleOpenState)) {
@@ -29,7 +27,8 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
       this.abPort
         .postMessage({
           message: {
-            ab_transferred_token_tx_hash: externalMessage?.ab_transferred_token_tx_hash,
+            ab_transferred_token_tx_hash:
+              externalMessage?.ab_transferred_token_tx_hash,
           },
         })
         ?.then(() => {
@@ -56,13 +55,10 @@ chrome.idle.onStateChanged.addListener((state) => {
 });
 
 chrome.runtime.onConnectExternal.addListener(function (port) {
-  console.log("Connected to content website: " + port.sender.tab);
   // Listen for messages from the content website
   this.abPort = port;
-  this.senderTab = port.sender.tab;
 
   this.abPort.onMessage.addListener(function (msg) {
-    console.log("Received message from content website: " + msg);
     // Send a message back to the content website
 
     if (msg.ab_connect_transfer) {
@@ -74,7 +70,6 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
           height: 628,
         })
         .then(() => {
-          console.log(msg.ab_connect_transfer, "ab_connect_transfer");
           chrome?.storage?.local.set({
             ab_connect_transfer: {
               transfer_key_type_id:

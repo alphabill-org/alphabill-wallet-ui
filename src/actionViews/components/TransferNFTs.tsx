@@ -355,10 +355,6 @@ export default function TransferNFTs(): JSX.Element | null {
                         queryClient
                       );
                       setActiveAssetLocal(JSON.stringify(option));
-                      console.log(
-                        await NFTTransferOrderTxHash(txData as any),
-                        "rFD4KSUA3zDXUG/85TD6XxvJyOsz1cOyUzK6Uo7ZHZI="
-                      );
                     }}
                     defaultValue={{
                       value: defaultAsset,

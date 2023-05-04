@@ -24,12 +24,9 @@ import {
   useGetNFTs,
 } from "./api";
 import { useAuth } from "./useAuth";
-import {
-  AlphaType,
-  TransferFungibleView,
-  TransferNFTView,
-} from "../utils/constants";
+import { AlphaType, TransferNFTView } from "../utils/constants";
 import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
+import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
   balances: any;
@@ -77,6 +74,7 @@ export const AppProvider: FunctionComponent<{
   const [selectedTransferKey, setSelectedTransferKey] = useState<
     string | null | undefined
   >();
+  const [error, setError] = useState<string | null>(null);
   const [selectedTransferAccountKey, setSelectedTransferAccountKey] = useState<
     string | null | undefined
   >();
@@ -84,7 +82,8 @@ export const AppProvider: FunctionComponent<{
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: fungibleTokensList } = useGetAllUserTokens(activeAccountId);
-  const { data: NFTsList } = useGetAllNFTs(activeAccountId);
+  const { data: NFTsList, isLoading: isLoadingNFTs } =
+    useGetAllNFTs(activeAccountId);
   const { data: fungibleTokenList } = useGetUserTokens(
     activeAccountId,
     activeAsset.typeId
@@ -127,48 +126,37 @@ export const AppProvider: FunctionComponent<{
     };
 
     chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
-      if (account?.pubKey === keyRes?.ab_connected_key) {
-        chrome?.storage?.local.get(
-          ["ab_connect_transfer"],
-          function (transferRes) {
-            const typeId =
-              transferRes?.ab_connect_transfer?.transfer_key_type_id;
+      chrome?.storage?.local.get(
+        ["ab_connect_transfer"],
+        function (transferRes) {
+          const typeId = transferRes?.ab_connect_transfer?.transfer_key_type_id;
+
+          if (typeId) {
             if (
               keyRes?.ab_connected_key &&
-              activeAccountId !== keyRes?.ab_connected_key &&
-              typeId
+              activeAccountId !== keyRes?.ab_connected_key
             ) {
               setActiveAccountId(keyRes.ab_connected_key);
             }
+            const isNFT = assets.nft.find((nft) => nft.typeId === typeId);
 
-            if (typeId) {
-              const isNFT = assets.nft.find((nft) => nft.typeId === typeId);
-              const isFungible = assets.fungible.find(
-                (fungible) => fungible.typeId === typeId
+            if (isNFT) {
+              setSelectedTransferAccountKey(
+                transferRes.ab_connect_transfer?.transfer_pub_key
               );
-              const assetKey = isNFT ? "nft" : "fungible";
-              const activeAsset = assets?.[assetKey]?.find(
-                (asset) => asset.typeId === typeId
-              );
-              console.log(keyRes, transferRes, typeId);
-
-              if (activeAsset && (isNFT || isFungible)) {
-                console.log(isNFT, transferRes, "transferRes.transfer_pub_key");
-
-                setSelectedTransferAccountKey(
-                  transferRes.ab_connect_transfer?.transfer_pub_key
-                );
-                setSelectedTransferKey(activeAsset.id);
-                setActiveAssetLocal(JSON.stringify(activeAsset));
-                setActionsView(
-                  isFungible ? TransferFungibleView : TransferNFTView
-                );
-                setIsActionsViewVisible(true);
-              }
+              setSelectedTransferKey(activeAsset.id);
+              setActiveAssetLocal(JSON.stringify(activeAsset));
+              setActionsView(TransferNFTView);
+              setIsActionsViewVisible(true);
+            } else if (
+              activeAccountId === keyRes?.ab_connected_key &&
+              !isLoadingNFTs
+            ) {
+              setError("No token with given type ID");
             }
           }
-        );
-      }
+        }
+      );
     });
 
     if (
@@ -244,6 +232,18 @@ export const AppProvider: FunctionComponent<{
       }}
     >
       {children}
+      <Popup
+        isPopupVisible={Boolean(error)}
+        setIsPopupVisible={(v) => {
+          setError(null);
+          chrome?.storage?.local.remove("ab_connect_transfer");
+        }}
+        title="Error"
+      >
+        <div className="pad-24-t w-100p">
+          <h2 className="c-error m-auto-r">{error}</h2>
+        </div>
+      </Popup>
     </AppContext.Provider>
   );
 };

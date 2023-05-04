@@ -662,7 +662,6 @@ export const sendTransferMessage = async (
         })
         .then(() =>
           chrome?.storage?.local.remove("ab_connect_transfer").then(() => {
-            console.log("handleTransferEnd");
             window.close();
             handleTransferEnd();
           })
