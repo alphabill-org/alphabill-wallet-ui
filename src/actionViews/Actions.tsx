@@ -21,6 +21,7 @@ import {
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
 import { IActionVies } from "../types/Types";
+import { removeConnectTransferData } from "../utils/utils";
 
 function Actions(): JSX.Element | null {
   const {
@@ -58,7 +59,7 @@ function Actions(): JSX.Element | null {
               setSelectedTransferKey(null);
             }
 
-            chrome?.storage?.local.remove("ab_connect_transfer");
+            removeConnectTransferData();
           }}
           className="btn__back"
           variant="icon"
@@ -83,6 +84,7 @@ function Actions(): JSX.Element | null {
                 );
                 setSelectedTransferKey(null);
                 setPreviousView(null);
+                removeConnectTransferData();
               }}
             />
           </>

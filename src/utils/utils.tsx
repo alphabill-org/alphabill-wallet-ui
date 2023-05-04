@@ -669,3 +669,6 @@ export const sendTransferMessage = async (
     }
   });
 };
+
+export const removeConnectTransferData = () =>
+  chrome?.storage?.local.remove("ab_connect_transfer");

@@ -32,6 +32,7 @@ import {
   invalidateAllLists,
   createInvariantPredicateSignatures,
   sendTransferMessage,
+  removeConnectTransferData,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -214,13 +215,15 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
-                      dataWithProof?.transactions[0] && sendTransferMessage(
-                        selectedAsset as INFTAsset,
-                        await NFTTransferOrderTxHash(
-                          dataWithProof?.transactions[0] as INFTTransferPayload
-                        ),
-                        handleTransferEnd
-                      );
+                      dataWithProof?.transactions[0] &&
+                        sendTransferMessage(
+                          selectedAsset as INFTAsset,
+                          await NFTTransferOrderTxHash(
+                            dataWithProof
+                              ?.transactions[0] as INFTTransferPayload
+                          ),
+                          handleTransferEnd
+                        );
                       handleTransferEnd();
                     });
                 })
@@ -279,7 +282,10 @@ export default function TransferNFTs(): JSX.Element | null {
                           You have selected a specific NFT. You can deselect it
                           by clicking{" "}
                           <Button
-                            onClick={() => setSelectedTransferKey(null)}
+                            onClick={() => {
+                              setSelectedTransferKey(null);
+                              removeConnectTransferData();
+                            }}
                             variant="link"
                             type="button"
                           >
@@ -288,6 +294,7 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
+                              removeConnectTransferData();
                               setPreviousView(null);
                               setActionsView(NFTListView);
                               setIsActionsViewVisible(true);

@@ -25,7 +25,7 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { AlphaType, TransferNFTView } from "../utils/constants";
-import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
+import { getUpdatedFungibleAssets, getUpdatedNFTAssets, removeConnectTransferData } from "../utils/utils";
 import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
@@ -207,6 +207,7 @@ export const AppProvider: FunctionComponent<{
     NFTsList,
     setActiveAssetLocal,
     account?.pubKey,
+    isLoadingNFTs
   ]);
 
   return (
@@ -236,7 +237,7 @@ export const AppProvider: FunctionComponent<{
         isPopupVisible={Boolean(error)}
         setIsPopupVisible={(v) => {
           setError(null);
-          chrome?.storage?.local.remove("ab_connect_transfer");
+          removeConnectTransferData();
         }}
         title="Error"
       >

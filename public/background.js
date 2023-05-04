@@ -1,6 +1,11 @@
 this.isPopupOpen = undefined;
 this.abPort = undefined;
-
+const wallet = {
+  url: chrome.runtime.getURL("index.html"),
+  type: "popup",
+  width: 375,
+  height: 628,
+};
 // Set wallet popup state
 chrome?.runtime?.onMessage.addListener((wallet) => {
   if (Boolean(wallet?.handleOpenState)) {
@@ -62,22 +67,14 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
     // Send a message back to the content website
 
     if (msg.ab_connect_transfer) {
-      chrome.windows
-        .create({
-          url: chrome.runtime.getURL("index.html"),
-          type: "popup",
-          width: 375,
-          height: 628,
-        })
-        .then(() => {
-          chrome?.storage?.local.set({
-            ab_connect_transfer: {
-              transfer_key_type_id:
-                msg.ab_connect_transfer.transfer_key_type_id,
-              transfer_pub_key: msg.ab_connect_transfer.transfer_pub_key,
-            },
-          });
+      chrome.windows.create(wallet).then(() => {
+        chrome?.storage?.local.set({
+          ab_connect_transfer: {
+            transfer_key_type_id: msg.ab_connect_transfer.transfer_key_type_id,
+            transfer_pub_key: msg.ab_connect_transfer.transfer_pub_key,
+          },
         });
+      });
     }
 
     this.abPort.postMessage({ message: "Hello from the extension!" });
@@ -91,16 +88,9 @@ chrome.runtime.onMessageExternal.addListener(function (
 ) {
   if (message.connectWallet) {
     chrome?.storage?.local.set({ ab_is_connect_popup: true }, function () {
-      chrome.windows
-        .create({
-          url: chrome.runtime.getURL("index.html"),
-          type: "popup",
-          width: 375,
-          height: 628,
-        })
-        .then(() => {
-          sendResponse("Hello from the extension wallet opened!");
-        });
+      chrome.windows.create(wallet).then(() => {
+        sendResponse("Hello from the extension wallet opened!");
+      });
     });
   }
 });
