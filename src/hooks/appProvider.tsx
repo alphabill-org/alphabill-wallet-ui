@@ -129,7 +129,7 @@ export const AppProvider: FunctionComponent<{
       chrome?.storage?.local.get(
         ["ab_connect_transfer"],
         function (transferRes) {
-          const typeId = transferRes?.ab_connect_transfer?.transfer_key_type_id;
+          const typeId = transferRes?.ab_connect_transfer?.token_type_id;
 
           if (typeId) {
             if (
@@ -142,12 +142,12 @@ export const AppProvider: FunctionComponent<{
 
             if (isNFT) {
               setSelectedTransferAccountKey(
-                transferRes.ab_connect_transfer?.transfer_pub_key
+                transferRes.ab_connect_transfer?.receiver_pub_key
               );
-              setSelectedTransferKey(activeAsset.id);
               setActiveAssetLocal(JSON.stringify(activeAsset));
               setActionsView(TransferNFTView);
               setIsActionsViewVisible(true);
+              setSelectedTransferKey(isNFT.id);
             } else if (
               activeAccountId === keyRes?.ab_connected_key &&
               !isLoadingNFTs

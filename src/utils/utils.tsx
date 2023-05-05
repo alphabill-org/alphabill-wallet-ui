@@ -651,13 +651,14 @@ export const sendTransferMessage = async (
 ) => {
   chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
     const transferTokenTypeId =
-      transferRes?.ab_connect_transfer?.transfer_key_type_id;
+      transferRes?.ab_connect_transfer?.token_type_id;
 
     if (transferTokenTypeId && selectedAsset?.typeId === transferTokenTypeId) {
       chrome?.runtime
         ?.sendMessage({
-          externalMessage: {
+          walletMessage: {
             ab_transferred_token_tx_hash: txHash,
+            ab_transferred_token_id: selectedAsset.id,
           },
         })
         .then(() =>

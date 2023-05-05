@@ -1,6 +1,6 @@
 this.isPopupOpen = undefined;
 this.abPort = undefined;
-const wallet = {
+const walletCreate = {
   url: chrome.runtime.getURL("index.html"),
   type: "popup",
   width: 375,
@@ -12,15 +12,15 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
     this.isPopupOpen = wallet.isPopupOpen;
   }
 
-  const externalMessage = wallet?.externalMessage;
-  if (Boolean(externalMessage)) {
-    if (externalMessage?.ab_connection_is_confirmed) {
+  const walletMessage = wallet?.walletMessage;
+  if (Boolean(walletMessage)) {
+    if (walletMessage?.ab_connection_is_confirmed) {
       this.abPort
         .postMessage({
-          message: {
-            ab_pub_key: externalMessage?.ab_pub_key,
+          ab_port_message: {
+            ab_pub_key: walletMessage?.ab_pub_key,
             ab_connection_is_confirmed:
-              externalMessage?.ab_connection_is_confirmed,
+              walletMessage?.ab_connection_is_confirmed,
           },
         })
         ?.then(() => {
@@ -28,12 +28,14 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
         });
     }
 
-    if (externalMessage?.ab_transferred_token_tx_hash) {
+    if (walletMessage?.ab_transferred_token_tx_hash) {
       this.abPort
         .postMessage({
-          message: {
-            ab_transferred_token_tx_hash:
-              externalMessage?.ab_transferred_token_tx_hash,
+          ab_port_message: {
+            ab_transferred_token: {
+              tx_hash: walletMessage?.ab_transferred_token_tx_hash,
+              id: walletMessage?.ab_transferred_token_id,
+            },
           },
         })
         ?.then(() => {
@@ -62,22 +64,30 @@ chrome.idle.onStateChanged.addListener((state) => {
 chrome.runtime.onConnectExternal.addListener(function (port) {
   // Listen for messages from the content website
   this.abPort = port;
-
   this.abPort.onMessage.addListener(function (msg) {
     // Send a message back to the content website
+    const portTransferData = msg.ab_port_message.ab_connect_transfer;
 
-    if (msg.ab_connect_transfer) {
-      chrome.windows.create(wallet).then(() => {
+    if (portTransferData) {
+      chrome.windows.create(walletCreate).then(() => {
         chrome?.storage?.local.set({
           ab_connect_transfer: {
-            transfer_key_type_id: msg.ab_connect_transfer.transfer_key_type_id,
-            transfer_pub_key: msg.ab_connect_transfer.transfer_pub_key,
+            token_type_id: portTransferData.token_type_id,
+            receiver_pub_key: portTransferData.receiver_pub_key,
           },
         });
+      }, function(window) {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError);
+        } else if (window === undefined) {
+          console.error("Window could not be created");
+        } else {
+          console.log("Window created: " + window.id);
+        }
       });
     }
 
-    this.abPort.postMessage({ message: "Hello from the extension!" });
+    this.abPort.postMessage({ ab_port_message: "Hello from the extension!" });
   });
 });
 
@@ -88,7 +98,7 @@ chrome.runtime.onMessageExternal.addListener(function (
 ) {
   if (message.connectWallet) {
     chrome?.storage?.local.set({ ab_is_connect_popup: true }, function () {
-      chrome.windows.create(wallet).then(() => {
+      chrome.windows.create(walletCreate).then(() => {
         sendResponse("Hello from the extension wallet opened!");
       });
     });

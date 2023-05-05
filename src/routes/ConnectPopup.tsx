@@ -32,7 +32,7 @@ function ConnectPopup(): JSX.Element {
             // Send a message from the content script to the background script
             chrome?.runtime
               ?.sendMessage({
-                externalMessage: {
+                walletMessage: {
                   ab_connection_is_confirmed: true,
                   ab_pub_key: values?.keys.value,
                 },
