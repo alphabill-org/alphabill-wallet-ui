@@ -1,5 +1,6 @@
-this.isPopupOpen = undefined;
-this.abPort = undefined;
+const bgScope = this;
+bgScope.isPopupOpen = undefined;
+bgScope.abPort = undefined;
 const walletCreate = {
   url: chrome.runtime.getURL("index.html"),
   type: "popup",
@@ -9,13 +10,13 @@ const walletCreate = {
 // Set wallet popup state
 chrome?.runtime?.onMessage.addListener((wallet) => {
   if (Boolean(wallet?.handleOpenState)) {
-    this.isPopupOpen = wallet.isPopupOpen;
+    bgScope.isPopupOpen = wallet.isPopupOpen;
   }
 
   const walletMessage = wallet?.walletMessage;
   if (Boolean(walletMessage)) {
     if (walletMessage?.ab_connection_is_confirmed) {
-      this.abPort
+      bgScope.abPort
         .postMessage({
           ab_port_message: {
             ab_pub_key: walletMessage?.ab_pub_key,
@@ -29,7 +30,7 @@ chrome?.runtime?.onMessage.addListener((wallet) => {
     }
 
     if (walletMessage?.ab_transferred_token_tx_hash) {
-      this.abPort
+      bgScope.abPort
         .postMessage({
           ab_port_message: {
             ab_transferred_token: {
@@ -56,15 +57,15 @@ chrome.idle.setDetectionInterval(300);
 // Lock wallet unless active
 chrome.idle.onStateChanged.addListener((state) => {
   if (state !== "active") {
-    this.isPopupOpen === true && chrome.runtime.sendMessage({ isLocked: true });
+    bgScope.isPopupOpen === true && chrome.runtime.sendMessage({ isLocked: true });
     chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" });
   }
 });
 
 chrome.runtime.onConnectExternal.addListener(function (port) {
   // Listen for messages from the content website
-  this.abPort = port;
-  this.abPort.onMessage.addListener(function (msg) {
+  bgScope.abPort = port;
+  bgScope.abPort.onMessage.addListener(function (msg) {
     // Send a message back to the content website
     const portTransferData = msg.ab_port_message.ab_connect_transfer;
 
@@ -87,7 +88,7 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
       });
     }
 
-    this.abPort.postMessage({ ab_port_message: "Hello from the extension!" });
+    bgScope.abPort.postMessage({ ab_port_message: "Hello from the extension!" });
   });
 });
 
