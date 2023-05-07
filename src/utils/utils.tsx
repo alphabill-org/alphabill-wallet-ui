@@ -655,7 +655,7 @@ export const sendTransferMessage = async (
     if (transferTokenTypeId && selectedAsset?.typeId === transferTokenTypeId) {
       chrome?.runtime
         ?.sendMessage({
-          ab_wallet_extension_msg: {
+          ab_wallet_extension_actions: {
             ab_transferred_token_tx_hash: txHash,
             ab_transferred_token_id: selectedAsset.id,
           },

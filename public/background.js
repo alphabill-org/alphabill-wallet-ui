@@ -1,5 +1,5 @@
 const bgScope = this;
-bgScope.isPopupOpen = undefined;
+bgScope.is_popup_open = undefined;
 bgScope.abPort = undefined;
 const walletUrl = chrome.runtime.getURL("index.html");
 const walletCreateOptions = {
@@ -11,11 +11,12 @@ const walletCreateOptions = {
 
 // Set wallet popup state
 chrome?.runtime?.onMessage.addListener((message) => {
-  if (Boolean(message?.handleOpenState)) {
-    bgScope.isPopupOpen = message.isPopupOpen;
+  const abExtensionState = message?.ab_extension_state;
+  if (Boolean(abExtensionState.is_popup_open)) {
+    bgScope.is_popup_open = abExtensionState.is_popup_open;
   }
 
-  const abWalletMessage = message?.ab_wallet_extension_msg;
+  const abWalletMessage = message?.ab_wallet_extension_actions;
   if (Boolean(abWalletMessage)) {
     if (abWalletMessage?.ab_connection_is_confirmed) {
       bgScope.abPort
@@ -59,7 +60,7 @@ chrome.idle.setDetectionInterval(300);
 // Lock wallet unless active
 chrome.idle.onStateChanged.addListener((state) => {
   if (state !== "active") {
-    bgScope.isPopupOpen === true &&
+    bgScope.is_popup_open === true &&
       chrome.runtime.sendMessage({ isLocked: true });
     chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" });
   }
@@ -114,7 +115,10 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
             for (var i = 0; i < windows.length; i++) {
               var win = windows[i];
 
-              if (win.type === "popup" && win.tabs[0].url.includes(walletUrl.replace("index.html", ""))) {
+              if (
+                win.type === "popup" &&
+                win.tabs[0].url.includes(walletUrl.replace("index.html", ""))
+              ) {
                 // Extension window is open and has the walletUrl, close it
                 chrome.windows.remove(win.id, function () {
                   handleConnectTransfer();
@@ -130,19 +134,20 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
   });
 });
 
-chrome.runtime.onMessageExternal.addListener(function (
-  message
-) {
+chrome.runtime.onMessageExternal.addListener(function (message) {
   if (message.connectWallet) {
     const createWallet = () => {
       chrome?.storage?.local.set({ ab_is_connect_popup: true }, function () {
         chrome.windows.create(walletCreate);
       });
-    }
+    };
     chrome.windows.getAll({ populate: true }, function (windows) {
       for (var i = 0; i < windows.length; i++) {
         var win = windows[i];
-        if (win.type === "popup" && win.tabs[0].url.includes(walletUrl.replace("index.html", ""))) {
+        if (
+          win.type === "popup" &&
+          win.tabs[0].url.includes(walletUrl.replace("index.html", ""))
+        ) {
           // Extension window is open and has the walletUrl, close it
           chrome.windows.remove(win.id, function () {
             createWallet();
