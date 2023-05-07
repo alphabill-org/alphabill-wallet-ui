@@ -153,6 +153,7 @@ export const AppProvider: FunctionComponent<{
               !isLoadingNFTs
             ) {
               setError("No token with given type ID");
+              chrome?.storage?.local.remove("ab_connect_transfer");
             }
           }
         }

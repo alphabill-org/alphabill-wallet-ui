@@ -650,23 +650,28 @@ export const sendTransferMessage = async (
   handleTransferEnd: () => void
 ) => {
   chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
-    const transferTokenTypeId =
-      transferRes?.ab_connect_transfer?.token_type_id;
+    const transferTokenTypeId = transferRes?.ab_connect_transfer?.token_type_id;
 
     if (transferTokenTypeId && selectedAsset?.typeId === transferTokenTypeId) {
       chrome?.runtime
         ?.sendMessage({
-          walletMessage: {
+          ab_wallet_extension_msg: {
             ab_transferred_token_tx_hash: txHash,
             ab_transferred_token_id: selectedAsset.id,
           },
         })
-        .then(() =>
+        .then(() => {
           chrome?.storage?.local.remove("ab_connect_transfer").then(() => {
             window.close();
             handleTransferEnd();
-          })
-        );
+          });
+          chrome?.storage?.local.set({
+            ab_last_connect_transfer: {
+              ab_transferred_token_tx_hash: txHash,
+              ab_transferred_token_id: selectedAsset.id,
+            },
+          });
+        });
     }
   });
 };
