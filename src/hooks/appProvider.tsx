@@ -136,13 +136,13 @@ export const AppProvider: FunctionComponent<{
               keyRes?.ab_connected_key &&
               activeAccountId !== keyRes?.ab_connected_key
             ) {
-              setActiveAccountId(keyRes.ab_connected_key);
+              setActiveAccountId(keyRes?.ab_connected_key);
             }
-            const isNFT = assets.nft.find((nft) => nft.typeId === typeId);
+            const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
 
             if (isNFT) {
               setSelectedTransferAccountKey(
-                transferRes.ab_connect_transfer?.receiver_pub_key
+                transferRes?.ab_connect_transfer?.receiver_pub_key
               );
               setActiveAssetLocal(JSON.stringify(activeAsset));
               setActionsView(TransferNFTView);
@@ -168,7 +168,7 @@ export const AppProvider: FunctionComponent<{
         )) ||
       (hasKeys &&
         !isEqual(
-          sortBy(assets.nft, ["id"]),
+          sortBy(assets?.nft, ["id"]),
           sortBy(account?.assets?.nft, ["id"])
         )) ||
       keysArr?.length !== accounts.length
