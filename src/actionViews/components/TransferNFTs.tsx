@@ -31,6 +31,8 @@ import {
   createNewBearer,
   invalidateAllLists,
   createInvariantPredicateSignatures,
+  sendTransferMessage,
+  removeConnectTransferData,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -40,7 +42,10 @@ import {
   NFTListView,
 } from "../../utils/constants";
 
-import { NFTTransferOrderHash } from "../../utils/hashers";
+import {
+  NFTTransferOrderHash,
+  NFTTransferOrderTxHash,
+} from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -52,6 +57,7 @@ export default function TransferNFTs(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     setPreviousView,
+    selectedTransferAccountKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -114,7 +120,7 @@ export default function TransferNFTs(): JSX.Element | null {
             value: defaultAsset,
             label: defaultAsset.label,
           },
-          address: "",
+          address: selectedTransferAccountKey || "",
           password: "",
         }}
         onSubmit={(values, { setErrors, resetForm }) => {
@@ -198,14 +204,27 @@ export default function TransferNFTs(): JSX.Element | null {
                     makeTransaction(
                       dataWithProof,
                       selectedAsset?.typeId === AlphaType ? "" : values.address
-                    ).then(() => {
-                      transferredToken.current = selectedAsset || null;
-                      addPollingInterval();
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
-                      setPreviousView(null);
+                    ).then(async () => {
+                      const handleTransferEnd = () => {
+                        transferredToken.current = selectedAsset || null;
+                        addPollingInterval();
+                        setIsSending(false);
+                        setSelectedTransferKey(null);
+                        setIsActionsViewVisible(false);
+                        resetForm();
+                        setPreviousView(null);
+                      };
+
+                      dataWithProof?.transactions[0] &&
+                        sendTransferMessage(
+                          selectedAsset as INFTAsset,
+                          await NFTTransferOrderTxHash(
+                            dataWithProof
+                              ?.transactions[0] as INFTTransferPayload
+                          ),
+                          handleTransferEnd
+                        );
+                      handleTransferEnd();
                     });
                 })
                 .catch(() => {
@@ -263,7 +282,10 @@ export default function TransferNFTs(): JSX.Element | null {
                           You have selected a specific NFT. You can deselect it
                           by clicking{" "}
                           <Button
-                            onClick={() => setSelectedTransferKey(null)}
+                            onClick={() => {
+                              setSelectedTransferKey(null);
+                              removeConnectTransferData();
+                            }}
                             variant="link"
                             type="button"
                           >
@@ -272,6 +294,7 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
+                              removeConnectTransferData();
                               setPreviousView(null);
                               setActionsView(NFTListView);
                               setIsActionsViewVisible(true);
@@ -331,7 +354,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         label: base64ToHexPrefixed(asset.id),
                       }))}
                     error={extractFormikError(errors, touched, ["assets"])}
-                    onChange={(_label, option: any) => {
+                    onChange={async (_label, option: any) => {
                       setSelectedAsset(option);
                       invalidateAllLists(
                         activeAccountId,
@@ -351,6 +374,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     label="Address"
                     type="address"
                     error={extractFormikError(errors, touched, ["address"])}
+                    value={selectedTransferAccountKey || ""}
                   />
                   <Spacer mb={8} />
                   <Textfield

@@ -24,8 +24,9 @@ import {
   useGetNFTs,
 } from "./api";
 import { useAuth } from "./useAuth";
-import { AlphaType } from "../utils/constants";
-import { getUpdatedFungibleAssets, getUpdatedNFTAssets } from "../utils/utils";
+import { AlphaType, TransferNFTView } from "../utils/constants";
+import { getUpdatedFungibleAssets, getUpdatedNFTAssets, removeConnectTransferData } from "../utils/utils";
+import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
   balances: any;
@@ -43,6 +44,8 @@ interface IAppContextShape {
   setPreviousView: (e: string | null) => void;
   selectedTransferKey: string | null | undefined;
   setSelectedTransferKey: (e: string | null) => void;
+  selectedTransferAccountKey: string | null | undefined;
+  setSelectedTransferAccountKey: (e: string | null) => void;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -60,6 +63,7 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeAsset,
     activeNFT,
+    setActiveAssetLocal,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
@@ -70,11 +74,16 @@ export const AppProvider: FunctionComponent<{
   const [selectedTransferKey, setSelectedTransferKey] = useState<
     string | null | undefined
   >();
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTransferAccountKey, setSelectedTransferAccountKey] = useState<
+    string | null | undefined
+  >();
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: fungibleTokensList } = useGetAllUserTokens(activeAccountId);
-  const { data: NFTsList } = useGetAllNFTs(activeAccountId);
+  const { data: NFTsList, isLoading: isLoadingNFTs } =
+    useGetAllNFTs(activeAccountId);
   const { data: fungibleTokenList } = useGetUserTokens(
     activeAccountId,
     activeAsset.typeId
@@ -116,6 +125,41 @@ export const AppProvider: FunctionComponent<{
         ) as INFTAsset[]) || [],
     };
 
+    chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
+      chrome?.storage?.local.get(
+        ["ab_connect_transfer"],
+        function (transferRes) {
+          const typeId = transferRes?.ab_connect_transfer?.token_type_id;
+
+          if (typeId) {
+            if (
+              keyRes?.ab_connected_key &&
+              activeAccountId !== keyRes?.ab_connected_key
+            ) {
+              setActiveAccountId(keyRes?.ab_connected_key);
+            }
+            const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
+
+            if (isNFT) {
+              setSelectedTransferAccountKey(
+                transferRes?.ab_connect_transfer?.receiver_pub_key
+              );
+              setActiveAssetLocal(JSON.stringify(activeAsset));
+              setActionsView(TransferNFTView);
+              setIsActionsViewVisible(true);
+              setSelectedTransferKey(isNFT.id);
+            } else if (
+              activeAccountId === keyRes?.ab_connected_key &&
+              !isLoadingNFTs
+            ) {
+              setError("No token with given type ID");
+              chrome?.storage?.local.remove("ab_connect_transfer");
+            }
+          }
+        }
+      );
+    });
+
     if (
       (hasKeys &&
         !isEqual(
@@ -124,7 +168,7 @@ export const AppProvider: FunctionComponent<{
         )) ||
       (hasKeys &&
         !isEqual(
-          sortBy(assets.nft, ["id"]),
+          sortBy(assets?.nft, ["id"]),
           sortBy(account?.assets?.nft, ["id"])
         )) ||
       keysArr?.length !== accounts.length
@@ -162,6 +206,9 @@ export const AppProvider: FunctionComponent<{
     tokenTypes,
     account?.assets,
     NFTsList,
+    setActiveAssetLocal,
+    account?.pubKey,
+    isLoadingNFTs
   ]);
 
   return (
@@ -180,11 +227,25 @@ export const AppProvider: FunctionComponent<{
         setActionsView,
         selectedTransferKey,
         setSelectedTransferKey,
+        selectedTransferAccountKey,
+        setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
       }}
     >
       {children}
+      <Popup
+        isPopupVisible={Boolean(error)}
+        setIsPopupVisible={(v) => {
+          setError(null);
+          removeConnectTransferData();
+        }}
+        title="Error"
+      >
+        <div className="pad-24-t w-100p">
+          <h2 className="c-error m-auto-r">{error}</h2>
+        </div>
+      </Popup>
     </AppContext.Provider>
   );
 };

@@ -2,25 +2,38 @@
   "short_name": "Alphabill Wallet",
   "name": "Alphabill Wallet",
   "description": "Alphabill Wallet",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "manifest_version": 3,
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html?popup=true",
+    "default_title": "Open Alphabill Wallet"
   },
   "icons": {
     "16": "logo192.png",
     "48": "logo192.png",
     "128": "logo192.png"
   },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhGlmtRs3Bq/lB0skO9jbxjIwgizFtkt5rI/20iTpvofbon11QeuPQMGBu6uE4PQQxaKpHX9lg2jtgn3IrPxg4wlDy122WfXtYUTKiq1ozGawd1XCAl9AWQ0ax+5UjGBkftYlkckKmkmO+IYUBFSWq1uEmIFQaRxTjLBZGVcBl1KSp07sDQInafdHwscUs51hf9ZBChriiPD0MZsw6k6V5AbInqRzlH+orohSStumcsa3w4LsGjWI/U0Ng7RA5409tLydxbm1nx7hkXb2orpcpSkLgUgL06QQK1l/JXNN5HnSNPAZwqzsiMtoYNXbWGnrOj//xGQOm/qIJo3A5HjJPQIDAQAB",
   "background": {
     "service_worker": "background.js"
   },
   "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
     "storage",
     "idle",
-    "nativeMessaging"
+    "windows"
   ],
+  "externally_connectable": {
+    "matches": [
+      "https://alphab.voog.com/*",
+      "https://alphabill.org/*"
+    ]
+  },
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "https://alphab.voog.com/*",
+    "https://alphabill.org/*"
   ]
 }

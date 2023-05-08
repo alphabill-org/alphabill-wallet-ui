@@ -67,6 +67,7 @@ export default function TransferFungible(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     setPreviousView,
+    selectedTransferAccountKey,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -181,7 +182,7 @@ export default function TransferFungible(): JSX.Element | null {
         initialValues={{
           assets: defaultAsset,
           amount: "",
-          address: "",
+          address: selectedTransferAccountKey || "",
           password: "",
         }}
         onSubmit={(values, { setErrors, resetForm }) => {
@@ -372,13 +373,17 @@ export default function TransferFungible(): JSX.Element | null {
                         ) - BigInt(amount);
                   })
                   .finally(() => {
-                    if (isLastTransfer) {
+                    const handleTransferEnd = () => {
                       addPollingInterval();
                       setIsSending(false);
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
                       resetForm();
                       setSelectedAsset(activeAsset);
+                    };
+
+                    if (isLastTransfer) {
+                      handleTransferEnd();
                     }
                   });
             };
@@ -576,6 +581,7 @@ export default function TransferFungible(): JSX.Element | null {
                     label="Address"
                     type="address"
                     error={extractFormikError(errors, touched, ["address"])}
+                    value={selectedTransferAccountKey || ""}
                   />
                   <Spacer mb={8} />
                   <div className={selectedTransferKey ? "d-none" : ""}>

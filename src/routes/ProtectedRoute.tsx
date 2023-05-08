@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useApp } from "../hooks/appProvider";
+import ConnectPopup from "./ConnectPopup";
 
 export interface IProtectedRouteProps {
   children: React.ReactNode;
@@ -41,7 +42,7 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
 
   chrome?.runtime?.onMessage.addListener((request) => {
     if (request.isLocked === true) {
-      chrome.storage.local
+      chrome?.storage?.local
         .set({ ab_is_wallet_locked: "locked" })
         .then(() => window.close());
     }
@@ -51,7 +52,12 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
     return <Navigate to="/login" />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <ConnectPopup />
+      {children}
+    </>
+  );
 }
 
 export { ProtectedRoute };
