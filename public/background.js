@@ -79,6 +79,10 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
   bgScope.abPort.onMessage.addListener(function (msg) {
     // Send a message back to the content website
     console.log(msg, "portmsg");
+    const removeConnection = msg?.ab_port_message?.remove_connection;
+    if (removeConnection) {
+      chrome?.storage?.local.remove(["ab_connected_key"]);
+    }
 
     const portTransferData = msg?.ab_port_message?.ab_connect_transfer;
     const portTransferConfirmed =

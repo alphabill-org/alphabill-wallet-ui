@@ -649,10 +649,10 @@ export const sendTransferMessage = async (
   txHash: string,
   handleTransferEnd: () => void
 ) => {
-  chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
-    const transferTokenTypeId = transferRes?.ab_connect_transfer?.token_type_id;
+  chrome?.storage?.local.get(["ab_connected_key"], function (res) {
+    const connectedKey = res?.ab_connected_key;
 
-    if (transferTokenTypeId && selectedAsset?.typeId === transferTokenTypeId) {
+    if (Boolean(connectedKey)) {
       chrome?.runtime
         ?.sendMessage({
           ab_wallet_extension_actions: {
