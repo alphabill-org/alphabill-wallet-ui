@@ -36,8 +36,6 @@ chrome?.runtime?.onMessage.addListener((message) => {
       Boolean(abWalletMessage?.ab_transferred_token_tx_hash) &&
       Boolean(abWalletMessage?.ab_transferred_token_id)
     ) {
-      console.log("transfer info send from wallet");
-
       bgScope.abPort
         ?.postMessage({
           ab_port_message: {
@@ -100,22 +98,26 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
               result?.ab_last_connect_transfer?.ab_transferred_token_tx_hash;
             const lastId =
               result?.ab_last_connect_transfer?.ab_transferred_token_id;
-            bgScope.abPort.postMessage({
-              ab_port_message: {
-                ab_transferred_token: {
-                  tx_hash: lastTxHash,
-                  id: lastId,
-                },
-              },
-            });
-            chrome.windows.create(walletCreateOptions)?.then(() => {
-              chrome?.storage?.local.set({
-                ab_connect_transfer: {
-                  token_type_id: portTransferData?.token_type_id,
-                  receiver_pub_key: portTransferData?.receiver_pub_key,
+
+            if (lastId && lastTxHash) {
+              bgScope.abPort.postMessage({
+                ab_port_message: {
+                  ab_transferred_token: {
+                    tx_hash: lastTxHash,
+                    id: lastId,
+                  },
                 },
               });
-            });
+            } else {
+              chrome.windows.create(walletCreateOptions)?.then(() => {
+                chrome?.storage?.local.set({
+                  ab_connect_transfer: {
+                    token_type_id: portTransferData?.token_type_id,
+                    receiver_pub_key: portTransferData?.receiver_pub_key,
+                  },
+                });
+              });
+            }
           };
 
           chrome.windows.getAll({ populate: true }, function (windows) {
