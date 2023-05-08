@@ -1,6 +1,6 @@
 {
   "name": "alphabill-wallet",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "dependencies": {
     "@noble/secp256k1": "^1.7.0",
@@ -43,7 +43,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test-watch": "vitest",
-    "zip-build": "rm -f build-v0.1.5.zip && npm run build && zip -r build-v0.1.5.zip build"
+    "zip-build": "rm -f build-v0.1.6.zip && npm run build && zip -r build-v0.1.6.zip build"
   },
   "eslintConfig": {
     "extends": [

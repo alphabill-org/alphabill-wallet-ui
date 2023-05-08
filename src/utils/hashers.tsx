@@ -181,6 +181,30 @@ export const NFTTransferOrderHash = async (
   );
 };
 
+export const NFTTransferOrderTxHash = async (
+  tx: INFTTransferPayload,
+) => {
+  const signatures =
+    tx.transactionAttributes?.invariantPredicateSignatures!.map((s) =>
+      Buffer.from(s, "base64")
+    );
+
+  return Buffer.from(
+    await secp.utils.sha256(
+      secp.utils.concatBytes(
+        Buffer.from(tx.systemId, "base64"),
+        Buffer.from(tx.unitId, "base64"),
+        Buffer.from(tx.ownerProof, "base64"),
+        new Uint64BE(tx.timeout).toBuffer(),
+        Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
+        Buffer.from(tx.transactionAttributes.backlink!, "base64"),
+        Buffer.concat(signatures),
+        Buffer.from(tx.transactionAttributes?.nftType!, "base64")
+      )
+    )
+  ).toString("base64");
+};
+
 export const splitOrderHash = async (tx: IProofTx, isProof?: boolean) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(

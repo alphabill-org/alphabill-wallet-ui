@@ -10,9 +10,10 @@ import { useEffect } from "react";
 
 function App() {
   useEffect(() => {
-    chrome?.runtime?.sendMessage({ isPopupOpen: true });
+    chrome?.runtime?.sendMessage({ ab_extension_state: { is_popup_open: true } });
+
     return () => {
-      chrome?.runtime?.sendMessage({ isPopupOpen: false });
+      chrome?.runtime?.sendMessage({ ab_extension_state: { is_popup_open: false } });
     };
   }, []);
 

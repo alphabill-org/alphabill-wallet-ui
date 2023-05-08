@@ -15,6 +15,7 @@ import {
   ITypeHierarchy,
   IListTokensResponse,
   ITokensListTypes,
+  INFTAsset,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -601,9 +602,7 @@ export const getUpdatedFungibleAssets = (
     amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
     decimals: AlphaDecimals,
-    UIAmount: separateDigits(
-      addDecimal(ALPHABalance || "0", AlphaDecimals)
-    ),
+    UIAmount: separateDigits(addDecimal(ALPHABalance || "0", AlphaDecimals)),
     typeId: AlphaType,
     isSendable: true,
   };
@@ -644,3 +643,38 @@ export const downloadHexFile = (hexString: string, filename: string) => {
   document.body.removeChild(downloadLink);
   window.URL.revokeObjectURL(url);
 };
+
+export const sendTransferMessage = async (
+  selectedAsset: INFTAsset | IFungibleAsset,
+  txHash: string,
+  handleTransferEnd: () => void
+) => {
+  chrome?.storage?.local.get(["ab_connected_key"], function (res) {
+    const connectedKey = res?.ab_connected_key;
+
+    if (Boolean(connectedKey)) {
+      chrome?.runtime
+        ?.sendMessage({
+          ab_wallet_extension_actions: {
+            ab_transferred_token_tx_hash: txHash,
+            ab_transferred_token_id: selectedAsset.id,
+          },
+        })
+        .then(() => {
+          chrome?.storage?.local.remove("ab_connect_transfer").then(() => {
+            window.close();
+            handleTransferEnd();
+          });
+          chrome?.storage?.local.set({
+            ab_last_connect_transfer: {
+              ab_transferred_token_tx_hash: txHash,
+              ab_transferred_token_id: selectedAsset.id,
+            },
+          });
+        });
+    }
+  });
+};
+
+export const removeConnectTransferData = () =>
+  chrome?.storage?.local.remove("ab_connect_transfer");
