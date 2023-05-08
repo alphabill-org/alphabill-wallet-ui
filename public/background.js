@@ -10,6 +10,27 @@ const walletCreateOptions = {
   height: 628,
 };
 
+const handleWindowCreation = (onCreate) => {
+  chrome.windows.getAll({ populate: true }, function (windows) {
+    for (var i = 0; i < windows.length; i++) {
+      var win = windows[i];
+
+      if (
+        win.type === "popup" &&
+        win.tabs[0]?.url.includes(walletUrl.replace("index.html", ""))
+      ) {
+        // Extension window is open and has the walletUrl, close it
+        chrome.windows.remove(win.id, function () {
+          onCreate();
+        });
+        return; // Exit the loop, since we've found the extension window
+      }
+    }
+    // Extension window is not open, create new window
+    onCreate();
+  });
+};
+
 // Set wallet popup state
 chrome?.runtime?.onMessage.addListener((message) => {
   const abExtensionState = message?.ab_extension_state;
@@ -123,25 +144,7 @@ chrome.runtime.onConnectExternal.addListener(function (port) {
               });
             }
           };
-
-          chrome.windows.getAll({ populate: true }, function (windows) {
-            for (var i = 0; i < windows.length; i++) {
-              var win = windows[i];
-
-              if (
-                win.type === "popup" &&
-                win.tabs[0]?.url.includes(walletUrl.replace("index.html", ""))
-              ) {
-                // Extension window is open and has the walletUrl, close it
-                chrome.windows.remove(win.id, function () {
-                  handleConnectTransfer();
-                });
-                return; // Exit the loop, since we've found the extension window
-              }
-            }
-            // Extension window is not open, create new window
-            handleConnectTransfer();
-          });
+          handleWindowCreation(handleConnectTransfer);
         });
     }
   });
@@ -159,23 +162,6 @@ chrome.runtime.onMessageExternal.addListener(function (
   };
   if (message?.connectWallet) {
     sendResponse({ ab_connect_port: true });
-
-    chrome.windows.getAll({ populate: true }, function (windows) {
-      for (var i = 0; i < windows.length; i++) {
-        var win = windows[i];
-        if (
-          win.type === "popup" &&
-          win.tabs[0]?.url.includes(walletUrl.replace("index.html", ""))
-        ) {
-          // Extension window is open and has the walletUrl, close it
-          chrome.windows.remove(win.id, function () {
-            createWallet();
-          });
-          return; // Exit the loop, since we've found the extension window
-        }
-      }
-      // Extension window is not open, create new window
-      createWallet();
-    });
+    handleWindowCreation(createWallet);
   }
 });
