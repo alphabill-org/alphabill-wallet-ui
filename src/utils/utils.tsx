@@ -661,16 +661,18 @@ export const sendTransferMessage = async (
           },
         })
         .then(() => {
-          chrome?.storage?.local.remove("ab_connect_transfer").then(() => {
-            window.close();
-            handleTransferEnd();
-          });
-          chrome?.storage?.local.set({
-            ab_last_connect_transfer: {
-              ab_transferred_token_tx_hash: txHash,
-              ab_transferred_token_id: selectedAsset.id,
-            },
-          });
+          chrome?.storage?.local.remove("ab_connect_transfer");
+          chrome?.storage?.local
+            .set({
+              ab_last_connect_transfer: {
+                ab_transferred_token_tx_hash: txHash,
+                ab_transferred_token_id: selectedAsset.id,
+              },
+            })
+            .then(() => {
+              window.close();
+              handleTransferEnd();
+            });
         });
     }
   });

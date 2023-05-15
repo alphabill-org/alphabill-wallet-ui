@@ -215,16 +215,33 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
-                      dataWithProof?.transactions[0] &&
-                        sendTransferMessage(
-                          selectedAsset as INFTAsset,
-                          await NFTTransferOrderTxHash(
-                            dataWithProof
-                              ?.transactions[0] as INFTTransferPayload
-                          ),
-                          handleTransferEnd
+                      if (
+                        Boolean(chrome?.storage) &&
+                        dataWithProof?.transactions[0]
+                      ) {
+                        chrome?.storage?.local.get(
+                          ["ab_connect_transfer"],
+                          async function (transferRes) {
+                            const typeId =
+                              transferRes?.ab_connect_transfer?.token_type_id;
+
+                            if (selectedAsset?.typeId === typeId) {
+                              sendTransferMessage(
+                                selectedAsset as INFTAsset,
+                                await NFTTransferOrderTxHash(
+                                  dataWithProof
+                                    ?.transactions[0] as INFTTransferPayload
+                                ),
+                                handleTransferEnd
+                              );
+                            } else {
+                              handleTransferEnd();
+                            }
+                          }
                         );
-                      handleTransferEnd();
+                      } else {
+                        handleTransferEnd();
+                      }
                     });
                 })
                 .catch(() => {
