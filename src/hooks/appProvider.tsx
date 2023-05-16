@@ -161,6 +161,7 @@ export const AppProvider: FunctionComponent<{
               !isLoadingTokenTypes
             ) {
               setError("No token with given type ID");
+              removeConnectTransferData();
             }
           }
         }
@@ -247,7 +248,6 @@ export const AppProvider: FunctionComponent<{
         isPopupVisible={Boolean(error)}
         setIsPopupVisible={(v) => {
           setError(null);
-          removeConnectTransferData();
         }}
         title="Error"
       >
