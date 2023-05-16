@@ -653,8 +653,6 @@ export const sendTransferMessage = async (
     const connectedKey = res?.ab_connected_key;
 
     if (Boolean(connectedKey)) {
-      console.log(selectedAsset, 'sent to site');
-
       chrome?.runtime
         ?.sendMessage({
           ab_wallet_extension_actions: {
@@ -672,7 +670,7 @@ export const sendTransferMessage = async (
               },
             })
             .then(() => {
-              //window.close();
+              window.close();
               handleTransferEnd();
             });
         });

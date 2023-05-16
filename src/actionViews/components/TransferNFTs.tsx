@@ -213,7 +213,6 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
-                      console.log(transferredToken.current, dataWithProof, "transferred");
                       if (
                         Boolean(chrome?.storage) &&
                         dataWithProof?.transactions[0]
