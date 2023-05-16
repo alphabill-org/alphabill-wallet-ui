@@ -84,7 +84,7 @@ export default function TransferNFTs(): JSX.Element | null {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+      getBlockHeight(transferredToken.current?.typeId === AlphaType).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
             initialBlockHeight.current = blockHeight;
@@ -200,13 +200,16 @@ export default function TransferNFTs(): JSX.Element | null {
                     ],
                   } as any;
 
+                  transferredToken.current = selectedAsset || null;
+
                   proof.isSignatureValid &&
                     makeTransaction(
                       dataWithProof,
-                      selectedAsset?.typeId === AlphaType ? "" : values.address
+                      transferredToken.current?.typeId === AlphaType
+                        ? ""
+                        : values.address
                     ).then(async () => {
                       const handleTransferEnd = () => {
-                        transferredToken.current = selectedAsset || null;
                         addPollingInterval();
                         setIsSending(false);
                         setSelectedTransferKey(null);
@@ -225,9 +228,9 @@ export default function TransferNFTs(): JSX.Element | null {
                             const typeId =
                               transferRes?.ab_connect_transfer?.token_type_id;
 
-                            if (selectedAsset?.typeId === typeId) {
+                            if (Boolean(typeId)) {
                               sendTransferMessage(
-                                selectedAsset as INFTAsset,
+                                transferredToken.current as INFTAsset,
                                 await NFTTransferOrderTxHash(
                                   dataWithProof
                                     ?.transactions[0] as INFTTransferPayload
