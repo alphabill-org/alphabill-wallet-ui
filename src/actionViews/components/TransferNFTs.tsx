@@ -78,13 +78,13 @@ export default function TransferNFTs(): JSX.Element | null {
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
-  const transferredToken = useRef<INFTAsset | null>(null);
+  const transferredToken = useRef<IListTokensResponse | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(transferredToken.current?.typeId === AlphaType).then(
+      getBlockHeight(false).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
             initialBlockHeight.current = blockHeight;
@@ -152,7 +152,7 @@ export default function TransferNFTs(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+          getBlockHeight(false).then(
             async (blockHeight) => {
               await getTypeHierarchy(selectedNFTs.typeId || "")
                 .then(async (hierarchy: ITypeHierarchy[]) => {
@@ -200,15 +200,10 @@ export default function TransferNFTs(): JSX.Element | null {
                     ],
                   } as any;
 
-                  transferredToken.current = selectedAsset || null;
+                  transferredToken.current = selectedNFTs;
 
                   proof.isSignatureValid &&
-                    makeTransaction(
-                      dataWithProof,
-                      transferredToken.current?.typeId === AlphaType
-                        ? ""
-                        : values.address
-                    ).then(async () => {
+                    makeTransaction(dataWithProof, "").then(async () => {
                       const handleTransferEnd = () => {
                         addPollingInterval();
                         setIsSending(false);
@@ -218,6 +213,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
+                      console.log(transferredToken.current, dataWithProof, "transferred");
                       if (
                         Boolean(chrome?.storage) &&
                         dataWithProof?.transactions[0]
