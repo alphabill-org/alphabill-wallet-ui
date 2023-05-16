@@ -73,18 +73,18 @@ export default function TransferNFTs(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
   );
-  const selectedNFT = NFTsList?.find(
+  const selectedTransferNFT = NFTsList?.find(
     (token: IListTokensResponse) => token.id === selectedTransferKey
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialBlockHeight = useRef<bigint | null | undefined>(null);
-  const transferredToken = useRef<INFTAsset | null>(null);
+  const transferredToken = useRef<IListTokensResponse | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
     initialBlockHeight.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+      getBlockHeight(false).then(
         (blockHeight) => {
           if (!initialBlockHeight?.current) {
             initialBlockHeight.current = blockHeight;
@@ -136,13 +136,13 @@ export default function TransferNFTs(): JSX.Element | null {
             });
           }
 
-          const selectedNFTs = selectedTransferKey
-            ? (selectedNFT as IListTokensResponse)
+          const selectedNFT = selectedTransferKey
+            ? (selectedTransferNFT as IListTokensResponse)
             : NFTsList?.find(
                 (token: IListTokensResponse) => selectedAsset?.id === token.id
               );
 
-          if (!selectedNFTs) {
+          if (!selectedNFT) {
             return setErrors({
               password: error || "NFT is required",
             });
@@ -152,18 +152,18 @@ export default function TransferNFTs(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(selectedAsset?.typeId === AlphaType).then(
+          getBlockHeight(false).then(
             async (blockHeight) => {
-              await getTypeHierarchy(selectedNFTs.typeId || "")
+              await getTypeHierarchy(selectedNFT.typeId || "")
                 .then(async (hierarchy: ITypeHierarchy[]) => {
                   const tokenData: INFTTransferPayload = {
                     systemId: TokensSystemId,
-                    unitId: selectedNFTs.id,
+                    unitId: selectedNFT.id,
                     transactionAttributes: {
                       "@type": NFTTokensTransferType,
                       newBearer: newBearer,
-                      nftType: selectedNFTs.typeId,
-                      backlink: selectedNFTs.txHash,
+                      nftType: selectedNFT.typeId,
+                      backlink: selectedNFT.txHash,
                     },
                     timeout: (blockHeight + timeoutBlocks).toString(),
                     ownerProof: "",
@@ -200,13 +200,11 @@ export default function TransferNFTs(): JSX.Element | null {
                     ],
                   } as any;
 
+                  transferredToken.current = selectedNFT;
+
                   proof.isSignatureValid &&
-                    makeTransaction(
-                      dataWithProof,
-                      selectedAsset?.typeId === AlphaType ? "" : values.address
-                    ).then(async () => {
+                    makeTransaction(dataWithProof, values.address).then(async () => {
                       const handleTransferEnd = () => {
-                        transferredToken.current = selectedAsset || null;
                         addPollingInterval();
                         setIsSending(false);
                         setSelectedTransferKey(null);
@@ -215,16 +213,33 @@ export default function TransferNFTs(): JSX.Element | null {
                         setPreviousView(null);
                       };
 
-                      dataWithProof?.transactions[0] &&
-                        sendTransferMessage(
-                          selectedAsset as INFTAsset,
-                          await NFTTransferOrderTxHash(
-                            dataWithProof
-                              ?.transactions[0] as INFTTransferPayload
-                          ),
-                          handleTransferEnd
+                      if (
+                        Boolean(chrome?.storage) &&
+                        dataWithProof?.transactions[0]
+                      ) {
+                        chrome?.storage?.local.get(
+                          ["ab_connect_transfer"],
+                          async function (transferRes) {
+                            const typeId =
+                              transferRes?.ab_connect_transfer?.token_type_id;
+
+                            if (Boolean(typeId)) {
+                              sendTransferMessage(
+                                transferredToken.current as INFTAsset,
+                                await NFTTransferOrderTxHash(
+                                  dataWithProof
+                                    ?.transactions[0] as INFTTransferPayload
+                                ),
+                                handleTransferEnd
+                              );
+                            } else {
+                              handleTransferEnd();
+                            }
+                          }
                         );
-                      handleTransferEnd();
+                      } else {
+                        handleTransferEnd();
+                      }
                     });
                 })
                 .catch(() => {
@@ -232,7 +247,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   setErrors({
                     password:
                       "Fetching token hierarchy for " +
-                      selectedNFTs.typeId +
+                      selectedNFT.typeId +
                       "failed",
                   });
                 });

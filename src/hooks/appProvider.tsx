@@ -25,7 +25,11 @@ import {
 } from "./api";
 import { useAuth } from "./useAuth";
 import { AlphaType, TransferNFTView } from "../utils/constants";
-import { getUpdatedFungibleAssets, getUpdatedNFTAssets, removeConnectTransferData } from "../utils/utils";
+import {
+  getUpdatedFungibleAssets,
+  getUpdatedNFTAssets,
+  removeConnectTransferData,
+} from "../utils/utils";
 import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
@@ -81,7 +85,8 @@ export const AppProvider: FunctionComponent<{
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
-  const { data: fungibleTokensList } = useGetAllUserTokens(activeAccountId);
+  const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
+    useGetAllUserTokens(activeAccountId);
   const { data: NFTsList, isLoading: isLoadingNFTs } =
     useGetAllNFTs(activeAccountId);
   const { data: fungibleTokenList } = useGetUserTokens(
@@ -92,7 +97,8 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeNFT && activeNFT.typeId
   );
-  const { data: tokenTypes } = useGetAllTokenTypes(activeAccountId);
+  const { data: tokenTypes, isLoading: isLoadingTokenTypes } =
+    useGetAllTokenTypes(activeAccountId);
   const billsList =
     activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
   const [accounts, setAccounts] = useState<IAccount[] | []>([]);
@@ -150,10 +156,12 @@ export const AppProvider: FunctionComponent<{
               setSelectedTransferKey(isNFT.id);
             } else if (
               activeAccountId === keyRes?.ab_connected_key &&
-              !isLoadingNFTs
+              !isLoadingNFTs &&
+              !isLoadingFungibleTokens &&
+              !isLoadingTokenTypes
             ) {
               setError("No token with given type ID");
-              chrome?.storage?.local.remove("ab_connect_transfer");
+              removeConnectTransferData();
             }
           }
         }
@@ -208,7 +216,9 @@ export const AppProvider: FunctionComponent<{
     NFTsList,
     setActiveAssetLocal,
     account?.pubKey,
-    isLoadingNFTs
+    isLoadingNFTs,
+    isLoadingTokenTypes,
+    isLoadingFungibleTokens
   ]);
 
   return (
@@ -238,7 +248,6 @@ export const AppProvider: FunctionComponent<{
         isPopupVisible={Boolean(error)}
         setIsPopupVisible={(v) => {
           setError(null);
-          removeConnectTransferData();
         }}
         title="Error"
       >
