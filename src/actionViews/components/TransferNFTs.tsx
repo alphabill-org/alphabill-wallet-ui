@@ -73,7 +73,7 @@ export default function TransferNFTs(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
   );
-  const selectedNFT = NFTsList?.find(
+  const selectedTransferNFT = NFTsList?.find(
     (token: IListTokensResponse) => token.id === selectedTransferKey
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -136,13 +136,13 @@ export default function TransferNFTs(): JSX.Element | null {
             });
           }
 
-          const selectedNFTs = selectedTransferKey
-            ? (selectedNFT as IListTokensResponse)
+          const selectedNFT = selectedTransferKey
+            ? (selectedTransferNFT as IListTokensResponse)
             : NFTsList?.find(
                 (token: IListTokensResponse) => selectedAsset?.id === token.id
               );
 
-          if (!selectedNFTs) {
+          if (!selectedNFT) {
             return setErrors({
               password: error || "NFT is required",
             });
@@ -154,16 +154,16 @@ export default function TransferNFTs(): JSX.Element | null {
 
           getBlockHeight(false).then(
             async (blockHeight) => {
-              await getTypeHierarchy(selectedNFTs.typeId || "")
+              await getTypeHierarchy(selectedNFT.typeId || "")
                 .then(async (hierarchy: ITypeHierarchy[]) => {
                   const tokenData: INFTTransferPayload = {
                     systemId: TokensSystemId,
-                    unitId: selectedNFTs.id,
+                    unitId: selectedNFT.id,
                     transactionAttributes: {
                       "@type": NFTTokensTransferType,
                       newBearer: newBearer,
-                      nftType: selectedNFTs.typeId,
-                      backlink: selectedNFTs.txHash,
+                      nftType: selectedNFT.typeId,
+                      backlink: selectedNFT.txHash,
                     },
                     timeout: (blockHeight + timeoutBlocks).toString(),
                     ownerProof: "",
@@ -200,7 +200,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     ],
                   } as any;
 
-                  transferredToken.current = selectedNFTs;
+                  transferredToken.current = selectedNFT;
 
                   proof.isSignatureValid &&
                     makeTransaction(dataWithProof, values.address).then(async () => {
@@ -247,7 +247,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   setErrors({
                     password:
                       "Fetching token hierarchy for " +
-                      selectedNFTs.typeId +
+                      selectedNFT.typeId +
                       "failed",
                   });
                 });
