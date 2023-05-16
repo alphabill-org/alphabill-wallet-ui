@@ -203,7 +203,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   transferredToken.current = selectedNFTs;
 
                   proof.isSignatureValid &&
-                    makeTransaction(dataWithProof, "").then(async () => {
+                    makeTransaction(dataWithProof, values.address).then(async () => {
                       const handleTransferEnd = () => {
                         addPollingInterval();
                         setIsSending(false);
