@@ -89,7 +89,8 @@ export default function Popovers({
                         )
                       );
                       setIsActionsViewVisible(false);
-                      renamePopupAccountIndex === null && setIsKeySelectOpen(false);
+                      renamePopupAccountIndex === null &&
+                        setIsKeySelectOpen(false);
                       invalidateAllLists(
                         account?.pubKey,
                         activeAsset.typeId,
@@ -148,7 +149,11 @@ export default function Popovers({
                                 function (value) {
                                   if (value) {
                                     return !Boolean(
-                                      accounts?.find((a) => a.name === value)
+                                      accounts?.find(
+                                        (a) =>
+                                          a.name === value &&
+                                          a.idx !== account?.idx
+                                      )
                                     );
                                   } else {
                                     return true;
