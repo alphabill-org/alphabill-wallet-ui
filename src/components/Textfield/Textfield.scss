@@ -2,6 +2,24 @@
   display: flex;
   flex-direction: column;
 
+  &--password {
+    .textfield__input {
+      padding-right: 40px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 8px;
+      top: 0;
+      bottom: 0;
+      opacity: .8;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
   &:last-child {
     border-bottom: none;
   }
@@ -64,6 +82,11 @@
 
   .center & {
     text-align: center;
+  }
+
+  &--wrap {
+    display: flex;
+    position: relative;
   }
 }
 
