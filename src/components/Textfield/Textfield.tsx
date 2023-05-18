@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
-
+import React, { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { useField, useFormikContext } from "formik";
+
+import Button from "../Button/Button";
+import { ReactComponent as Show } from "../../images/show-ico.svg";
 
 export interface ITextfieldProps {
   id: string;
@@ -45,11 +47,13 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     removeApostrophes,
     focusInput,
     selectInput,
+    type,
     ...inputProps
   } = props;
   const { setFieldValue, handleBlur } = useFormikContext();
   const [field] = useField(props as any);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (field.value !== props.value && props.value) {
@@ -57,10 +61,9 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
     }
   }, [field.value, props.value, setFieldValue, field.name]);
 
-
   useEffect(() => {
     if (focusInput) {
-        inputRef.current?.focus();
+      inputRef.current?.focus();
     }
 
     if (selectInput) {
@@ -74,6 +77,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
       "textfield--hidden-password": hiddenPassword,
       "textfield--error": error,
       "textfield--transparent": transparent,
+      "textfield--password": type === "password",
     },
     props.className
   );
@@ -115,31 +119,50 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
         {props.label && (
           <label className="textfield__label">{props.label}</label>
         )}
-        <input
-          {...inputProps}
-          ref={inputRef}
-          autoComplete="off"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          value={
-            field.value
-              ? props.type === "number"
-                ? Math.max(0, field.value)
-                : field.value
-              : props.value || ""
-          }
-          className="textfield__input"
-          onKeyDown={
-            props.type === "number"
-              ? (evt) =>
-                  ["e", "E", "+", "-", ",", "."].includes(evt.key) &&
-                  evt.preventDefault()
-              : undefined
-          }
-          min={props.type === "number" ? 0 : undefined}
-          maxLength={props?.maxLength}
-          step={props.type === "number" ? props.step : undefined}
-        />
+        <div className="textfield__input--wrap">
+          <input
+            {...inputProps}
+            type={
+              type === "password"
+                ? showPassword
+                  ? "text"
+                  : "password"
+                : type || "text"
+            }
+            ref={inputRef}
+            autoComplete="off"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={
+              field.value
+                ? props.type === "number"
+                  ? Math.max(0, field.value)
+                  : field.value
+                : props.value || ""
+            }
+            className="textfield__input"
+            onKeyDown={
+              props.type === "number"
+                ? (evt) =>
+                    ["e", "E", "+", "-", ",", "."].includes(evt.key) &&
+                    evt.preventDefault()
+                : undefined
+            }
+            min={props.type === "number" ? 0 : undefined}
+            maxLength={props?.maxLength}
+            step={props.type === "number" ? props.step : undefined}
+          />
+          {type === "password" && (
+            <Button
+              onClick={() => setShowPassword(!showPassword)}
+              type="button"
+              variant="icon"
+              className="toggle-password"
+            >
+              <Show height="20" width="20" />
+            </Button>
+          )}
+        </div>
         {props.desc && <span className="t-small pad-4-l">{props.desc}</span>}
       </div>
       {error && error.length > 0 && (
