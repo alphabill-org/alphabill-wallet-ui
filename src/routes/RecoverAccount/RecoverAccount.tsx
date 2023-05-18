@@ -122,10 +122,10 @@ function RecoverAccount(): JSX.Element | null {
                       id="mnemonicRecovery"
                       name="mnemonicRecovery"
                       label="Secret Recovery Phrase"
-                      type="mnemonicRecovery"
                       error={extractFormikError(errors, touched, [
                         "mnemonicRecovery",
                       ])}
+                      type="password"
                       focusInput
                     />
                     <Spacer mb={8} />
