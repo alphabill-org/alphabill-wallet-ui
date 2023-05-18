@@ -50,7 +50,7 @@
     display: flex;
     z-index: 100;
     overflow: auto;
-    transition: all $main-transition-duration;
+    transition: opacity $main-transition-duration;
     pointer-events: none;
     opacity: 0;
     padding: 16px;
