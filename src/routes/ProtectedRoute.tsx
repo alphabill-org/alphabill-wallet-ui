@@ -40,7 +40,7 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
     return <></>;
   }
 
-  chrome?.runtime?.onMessage.addListener((request) => {
+  chrome?.runtime?.onMessage?.addListener((request) => {
     if (request.isLocked === true) {
       chrome?.storage?.local
         .set({ ab_is_wallet_locked: "locked" })

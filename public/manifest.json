@@ -18,22 +18,16 @@
     "service_worker": "background.js"
   },
   "permissions": [
-    "activeTab",
-    "scripting",
-    "tabs",
     "storage",
     "idle",
     "windows"
   ],
   "externally_connectable": {
     "matches": [
-      "https://alphab.voog.com/*",
-      "https://alphabill.org/*"
+      "<all_urls>"
     ]
   },
   "host_permissions": [
-    "<all_urls>",
-    "https://alphab.voog.com/*",
-    "https://alphabill.org/*"
+    "<all_urls>"
   ]
 }
