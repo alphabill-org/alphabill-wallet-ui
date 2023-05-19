@@ -237,18 +237,13 @@ export const getProof = async (
   return response.data;
 };
 
-export const getBlockHeight = async (isAlpha: boolean): Promise<bigint> => {
+export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
+  const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
   const response = await axios.get<IBlockStats | IRoundNumber>(
-    isAlpha
-      ? `${MONEY_BACKEND_URL}/block-height`
-      : `${TOKENS_BACKEND_URL}/round-number`
+    backendUrl + "/round-number"
   );
 
-  if (isAlpha) {
-    return BigInt((response.data as IBlockStats).blockHeight);
-  } else {
-    return BigInt((response.data as IRoundNumber).roundNumber);
-  }
+  return BigInt((response.data as IRoundNumber).roundNumber);
 };
 
 export const makeTransaction = async (

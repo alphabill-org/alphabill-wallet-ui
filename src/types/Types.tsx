@@ -153,7 +153,7 @@ export interface IRoundNumber {
 }
 
 export interface IBlockStats {
-  blockHeight: string;
+  roundNumber: string;
 }
 
 export interface INetwork {
