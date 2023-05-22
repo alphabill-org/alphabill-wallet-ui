@@ -5,7 +5,7 @@ import { ReactComponent as Close } from "../../images/close.svg";
 import { useDocumentClick } from "../../utils/utils";
 
 export interface IPopupProps {
-  setIsPopupVisible: (e: boolean) => void;
+  setIsPopupVisible?: (e: boolean) => void;
   isPopupVisible: boolean;
   title: string;
   children: React.ReactNode;
@@ -21,7 +21,7 @@ function Popup({
   const isVisibleRef = useRef<boolean>(isPopupVisible);
 
   useDocumentClick(() => {
-    isVisibleRef.current && setIsPopupVisible(false);
+    isVisibleRef.current && setIsPopupVisible && setIsPopupVisible(false);
   }, popupRef);
 
   useEffect(() => {
@@ -37,7 +37,9 @@ function Popup({
       <div className="popup" ref={popupRef}>
         <div className="popup__header">
           <p>{title}</p>
-          <Close onClick={() => setIsPopupVisible(false)} />
+          {setIsPopupVisible && (
+            <Close onClick={() => setIsPopupVisible(false)} />
+          )}
         </div>
         {children}
       </div>
