@@ -2,7 +2,6 @@ import axios, { AxiosResponse, isCancel } from "axios";
 
 import {
   IBillsList,
-  IBlockStats,
   ITransfer,
   IProofsProps,
   ISwapTransferProps,
@@ -239,7 +238,7 @@ export const getProof = async (
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
   const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const response = await axios.get<IBlockStats | IRoundNumber>(
+  const response = await axios.get<IRoundNumber>(
     backendUrl + "/round-number"
   );
 

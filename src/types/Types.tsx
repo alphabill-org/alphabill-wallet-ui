@@ -152,10 +152,6 @@ export interface IRoundNumber {
   roundNumber: string;
 }
 
-export interface IBlockStats {
-  roundNumber: string;
-}
-
 export interface INetwork {
   id: string;
   isTestNetwork: boolean;
