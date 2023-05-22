@@ -18,7 +18,7 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  getBlockHeight,
+  getRoundNumber,
   getTypeHierarchy,
   makeTransaction,
 } from "../../hooks/requests";
@@ -77,22 +77,22 @@ export default function TransferNFTs(): JSX.Element | null {
     (token: IListTokensResponse) => token.id === selectedTransferKey
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<bigint | null | undefined>(null);
+  const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const transferredToken = useRef<IListTokensResponse | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
   const addPollingInterval = () => {
-    initialBlockHeight.current = null;
+    initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getBlockHeight(false).then(
-        (blockHeight) => {
-          if (!initialBlockHeight?.current) {
-            initialBlockHeight.current = blockHeight;
+      getRoundNumber(false).then(
+        (roundNumber) => {
+          if (!initialRoundNumber?.current) {
+            initialRoundNumber.current = roundNumber;
           }
 
           if (
-            BigInt(initialBlockHeight?.current) + timeoutBlocks <
-            blockHeight
+            BigInt(initialRoundNumber?.current) + timeoutBlocks <
+            roundNumber
           ) {
             pollingInterval.current && clearInterval(pollingInterval.current);
           }
@@ -152,8 +152,8 @@ export default function TransferNFTs(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(false).then(
-            async (blockHeight) => {
+          getRoundNumber(false).then(
+            async (roundNumber) => {
               await getTypeHierarchy(selectedNFT.typeId || "")
                 .then(async (hierarchy: ITypeHierarchy[]) => {
                   const tokenData: INFTTransferPayload = {
@@ -165,7 +165,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       nftType: selectedNFT.typeId,
                       backlink: selectedNFT.txHash,
                     },
-                    timeout: (blockHeight + timeoutBlocks).toString(),
+                    timeout: (roundNumber + timeoutBlocks).toString(),
                     ownerProof: "",
                   };
                   const msgHash = await NFTTransferOrderHash(tokenData);
@@ -195,7 +195,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     transactions: [
                       Object.assign(tokenData, {
                         ownerProof: proof.ownerProof,
-                        timeout: (blockHeight + timeoutBlocks).toString(),
+                        timeout: (roundNumber + timeoutBlocks).toString(),
                       }),
                     ],
                   } as any;

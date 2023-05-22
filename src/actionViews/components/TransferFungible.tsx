@@ -20,7 +20,7 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  getBlockHeight,
+  getRoundNumber,
   getTypeHierarchy,
   makeTransaction,
 } from "../../hooks/requests";
@@ -97,7 +97,7 @@ export default function TransferFungible(): JSX.Element | null {
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<bigint | null | undefined>(null);
+  const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
 
@@ -119,22 +119,22 @@ export default function TransferFungible(): JSX.Element | null {
   );
 
   const addPollingInterval = () => {
-    initialBlockHeight.current = null;
+    initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(
         activeAccountId,
         fungibleActiveAsset.typeId,
         queryClient
       );
-      getBlockHeight(selectedAsset?.typeId === AlphaType).then(
-        (blockHeight) => {
-          if (!initialBlockHeight?.current) {
-            initialBlockHeight.current = blockHeight;
+      getRoundNumber(selectedAsset?.typeId === AlphaType).then(
+        (roundNumber) => {
+          if (!initialRoundNumber?.current) {
+            initialRoundNumber.current = roundNumber;
           }
 
           if (
-            BigInt(initialBlockHeight?.current) + timeoutBlocks <
-            blockHeight
+            BigInt(initialRoundNumber?.current) + timeoutBlocks <
+            roundNumber
           ) {
             pollingInterval.current && clearInterval(pollingInterval.current);
           }
@@ -239,8 +239,8 @@ export default function TransferFungible(): JSX.Element | null {
 
           setIsSending(true);
 
-          getBlockHeight(selectedAsset?.typeId === AlphaType).then(
-            async (blockHeight) => {
+          getRoundNumber(selectedAsset?.typeId === AlphaType).then(
+            async (roundNumber) => {
               let transferType = TokensTransferType;
               let splitType = TokensSplitType;
               let systemId = TokensSystemId;
@@ -267,7 +267,7 @@ export default function TransferFungible(): JSX.Element | null {
                     [transferField]: bill.value,
                     backlink: bill.txHash,
                   },
-                  timeout: (blockHeight + timeoutBlocks).toString(),
+                  timeout: (roundNumber + timeoutBlocks).toString(),
                   ownerProof: "",
                 };
 
@@ -282,7 +282,7 @@ export default function TransferFungible(): JSX.Element | null {
 
                 handleValidation(
                   await transferOrderHash(transferData),
-                  blockHeight,
+                  roundNumber,
                   transferData as ITransfer,
                   isLastTransaction,
                   bill.typeId
@@ -302,7 +302,7 @@ export default function TransferFungible(): JSX.Element | null {
                     ).toString(),
                     backlink: billToSplit.txHash,
                   },
-                  timeout: (blockHeight + timeoutBlocks).toString(),
+                  timeout: (roundNumber + timeoutBlocks).toString(),
                   ownerProof: "",
                 };
 
@@ -312,7 +312,7 @@ export default function TransferFungible(): JSX.Element | null {
 
                 handleValidation(
                   await splitOrderHash(splitData),
-                  blockHeight,
+                  roundNumber,
                   splitData as ITransfer,
                   true,
                   billToSplit.typeId
@@ -323,7 +323,7 @@ export default function TransferFungible(): JSX.Element | null {
 
           const handleValidation = async (
             msgHash: Uint8Array,
-            blockHeight: bigint,
+            roundNumber: bigint,
             billData: ITransfer,
             isLastTransfer: boolean,
             billTypeId?: string
@@ -337,7 +337,7 @@ export default function TransferFungible(): JSX.Element | null {
             const finishTransaction = (billData: ITransfer) => {
               let dataWithProof = Object.assign(billData, {
                 ownerProof: proof.ownerProof,
-                timeout: (blockHeight + timeoutBlocks).toString(),
+                timeout: (roundNumber + timeoutBlocks).toString(),
               });
 
               if (selectedAsset?.typeId !== AlphaType) {

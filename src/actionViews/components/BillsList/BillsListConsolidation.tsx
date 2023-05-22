@@ -28,7 +28,7 @@ import {
   ITxProof,
 } from "../../../types/Types";
 import {
-  getBlockHeight,
+  getRoundNumber,
   getProof,
   makeTransaction,
 } from "../../../hooks/requests";
@@ -73,8 +73,8 @@ export const handleSwapRequest = async (
 
         if (!nonce.length) return;
         const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-        getBlockHeight(activeAsset?.typeId === AlphaType).then(
-          async (blockHeight) => {
+        getRoundNumber(activeAsset?.typeId === AlphaType).then(
+          async (roundNumber) => {
             const transferData: ISwapProps = {
               systemId: AlphaSystemId,
               unitId: Buffer.from(nonceHash).toString("base64"),
@@ -91,7 +91,7 @@ export const handleSwapRequest = async (
                   .toString(),
                 "@type": AlphaSwapType,
               },
-              timeout: (blockHeight + swapTimeout).toString(),
+              timeout: (roundNumber + swapTimeout).toString(),
               ownerProof: "",
             };
 
@@ -164,7 +164,7 @@ export const handleDC = async (
 
     const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
 
-    getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) =>
+    getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) =>
       sortedListByID?.map(async (bill: IBill, idx) => {
         const transferData: ITransfer = {
           systemId: AlphaSystemId,
@@ -176,7 +176,7 @@ export const handleDC = async (
             targetBearer: getNewBearer(account),
             targetValue: bill.value,
           },
-          timeout: (blockHeight + timeoutBlocks).toString(),
+          timeout: (roundNumber + timeoutBlocks).toString(),
           ownerProof: "",
         };
 

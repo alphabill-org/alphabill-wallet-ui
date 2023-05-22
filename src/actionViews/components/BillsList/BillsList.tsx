@@ -14,7 +14,7 @@ import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import { getBlockHeight, getProof } from "../../../hooks/requests";
+import { getRoundNumber, getProof } from "../../../hooks/requests";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Verify } from "../../../utils/validators";
 import BillsListPopups from "./BillsListPopups";
@@ -77,7 +77,7 @@ function BillsList(): JSX.Element | null {
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const initialBlockHeight = useRef<bigint | null>(null);
+  const initialRoundNumber = useRef<bigint | null>(null);
 
   // Bills list functions
   const handleProof = (bill: IBill) => {
@@ -108,16 +108,16 @@ function BillsList(): JSX.Element | null {
   };
 
   const addInterval = () => {
-    initialBlockHeight.current = null;
+    initialRoundNumber.current = null;
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getBlockHeight(activeAsset?.typeId === AlphaType).then((blockHeight) => {
-        if (!initialBlockHeight || !initialBlockHeight?.current) {
-          initialBlockHeight.current = blockHeight;
+      getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) => {
+        if (!initialRoundNumber || !initialRoundNumber?.current) {
+          initialRoundNumber.current = roundNumber;
         }
 
-        if (initialBlockHeight.current + swapTimeout < blockHeight) {
+        if (initialRoundNumber.current + swapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
