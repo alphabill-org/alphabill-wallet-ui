@@ -12,7 +12,7 @@
   display: flex;
   z-index: 100;
   overflow: auto;
-  transition: all $main-transition-duration;
+  transition: opacity $main-transition-duration;
   transform: translateY(100%);
   user-select: none;
   align-items: flex-end;

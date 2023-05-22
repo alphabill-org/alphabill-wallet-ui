@@ -372,27 +372,32 @@ export const getAssetSum = (asset: IFungibleAsset[]) =>
     return acc + BigInt(obj.amount);
   }, 0n);
 
-export const useDocumentClick = (
-  callback: (event: MouseEvent) => void,
-  ref: React.MutableRefObject<HTMLElement | null>
-) => {
-  const handler = useCallback(
-    (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        callback(event);
-      }
-    },
-    [callback, ref]
-  );
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handler);
-
-    return () => {
-      document.removeEventListener("mousedown", handler);
+  export const useDocumentClick = (
+    callback: (event: MouseEvent) => void,
+    ref: React.MutableRefObject<HTMLElement | null>
+  ) => {
+    const isScrollbar = (element: any) => {
+      // Check if the element has a scrollbar by comparing its scrollHeight with clientHeight
+      return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
     };
-  }, [ref, handler]);
-};
+
+    const handler = useCallback(
+      (event: MouseEvent) => {
+        if (ref.current && !ref.current.contains(event.target as Node) && !isScrollbar(event.target)) {
+          callback(event);
+        }
+      },
+      [callback, ref]
+    );
+
+    useEffect(() => {
+      window.addEventListener("mousedown", handler);
+
+      return () => {
+        window.removeEventListener("mousedown", handler);
+      };
+    }, [handler]);
+  };
 
 export const addDecimal = (str: string, pos: number) => {
   if (pos <= 0 || !str) {

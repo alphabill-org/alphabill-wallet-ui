@@ -32,7 +32,7 @@ const handleWindowCreation = (onCreate) => {
 };
 
 // Set wallet popup state
-chrome?.runtime?.onMessage.addListener((message) => {
+chrome?.runtime?.onMessage?.addListener((message) => {
   const abExtensionState = message?.ab_extension_state;
   if (Boolean(abExtensionState?.is_popup_open)) {
     bgScope.isPopupOpen = abExtensionState?.is_popup_open;
