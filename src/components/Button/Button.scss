@@ -182,5 +182,8 @@
     font-weight: 600;
     box-shadow: 0 0 10px 0 #0000007a;
     border-radius: 4px;
+    white-space: break-spaces;
+    word-break: break-all;
+    max-width: 365px;
   }
 }
