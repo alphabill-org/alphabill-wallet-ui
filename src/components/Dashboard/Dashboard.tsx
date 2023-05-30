@@ -22,6 +22,11 @@ import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
 import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
 import Popovers from "./Popovers";
+import {
+  tooltipHideDelay,
+  tooltipOffset,
+  tooltipShowDelay,
+} from "../../test/constants";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -82,6 +87,10 @@ function Dashboard(): JSX.Element | null {
         <Tooltip
           anchorId={"account-id-" + account?.pubKey}
           content={account?.pubKey}
+          offset={tooltipOffset}
+          clickable
+          delayHide={tooltipHideDelay}
+          delayShow={tooltipShowDelay}
         />
         <div
           className="dashboard__account-id"

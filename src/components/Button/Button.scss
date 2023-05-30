@@ -184,6 +184,7 @@
     border-radius: 4px;
     white-space: break-spaces;
     word-break: break-all;
-    max-width: 365px;
+    max-width: 335px;
+    z-index: $z-index-tooltip;
   }
 }
