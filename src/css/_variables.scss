@@ -33,4 +33,7 @@ $text-color-base: $color-black !default;
 $navbar-height: 68px;
 
 // Transition times
-$main-transition-duration: .2s
+$main-transition-duration: .2s;
+
+// z-indexes
+$z-index-tooltip: 100;

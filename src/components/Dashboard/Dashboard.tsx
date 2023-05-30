@@ -1,7 +1,8 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
+import { Tooltip } from "react-tooltip";
 
 import { IFungibleAsset } from "../../types/Types";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
@@ -21,6 +22,11 @@ import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
 import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
 import Popovers from "./Popovers";
+import {
+  tooltipHideDelay,
+  tooltipOffset,
+  tooltipShowDelay,
+} from "../../test/constants";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -40,8 +46,14 @@ function Dashboard(): JSX.Element | null {
 
   const [isFungibleActive, setIsFungibleActive] = useState<boolean>(true);
   const [isKeySelectOpen, setIsKeySelectOpen] = useState(false);
+  const keyNameRef = useRef<HTMLSpanElement>(null);
+  const [keyNameWidth, setKeyNameWidth] = useState(0);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    keyNameRef.current && setKeyNameWidth(keyNameRef.current.offsetWidth);
+  }, [account?.name, activeAccountId]);
 
   if (!accounts) {
     return (
@@ -71,14 +83,46 @@ function Dashboard(): JSX.Element | null {
       </div>
       <Spacer mb={32} />
 
-      <div className="dashboard__account">
+      <div className="dashboard__account" id={"account-id-" + account?.pubKey}>
+        <Tooltip
+          anchorId={"account-id-" + account?.pubKey}
+          content={account?.pubKey}
+          offset={tooltipOffset}
+          clickable
+          delayHide={tooltipHideDelay}
+          delayShow={tooltipShowDelay}
+        />
         <div
           className="dashboard__account-id"
           onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
         >
-          <span className="dashboard__account-name">{account?.name}</span>
-          <span className="dashboard__account-id-item">
-            {account?.name && "-"} {account?.pubKey}
+          <span className="dashboard__account-name" ref={keyNameRef}>
+            {account?.name}
+          </span>
+          <span className="dashboard__account-id-hover"></span>
+          <span
+            className="dashboard__account-id-item"
+            style={{
+              maxWidth: 212 - keyNameWidth,
+              display: keyNameWidth > 102 ? "block" : "flex",
+            }}
+          >
+            {account?.name && "- "}
+            {keyNameWidth > 102 ? (
+              account?.pubKey
+            ) : (
+              <>
+                <span className="t-ellipsis" style={{ minWidth: 64 }}>
+                  {account?.pubKey}
+                </span>
+                <span>
+                  {account?.pubKey.substr(
+                    account?.pubKey.length - 6,
+                    account?.pubKey.length
+                  )}
+                </span>
+              </>
+            )}
           </span>
           <Arrow />
         </div>
