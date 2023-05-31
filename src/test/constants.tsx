@@ -340,3 +340,7 @@ export const testBills = [
     isDcBill: false,
   },
 ];
+
+export const tooltipOffset = -4;
+export const tooltipShowDelay = 600;
+export const tooltipHideDelay = 100;

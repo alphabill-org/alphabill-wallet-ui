@@ -9,18 +9,6 @@ export interface IAccount {
   idx?: number | string;
 }
 
-export interface IFungibleAsset {
-  id: string;
-  name: string;
-  amount: string;
-  network: string;
-  decimalFactor: number;
-  decimals: number;
-  UIAmount: string;
-  typeId: string;
-  isSendable: boolean;
-}
-
 export interface INFTAsset {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
@@ -33,6 +21,18 @@ export interface INFTAsset {
   network: string;
   amountOfSameType?: string;
   isSendable?: boolean;
+}
+
+export interface IFungibleAsset {
+  id: string;
+  name: string;
+  amount: string;
+  network: string;
+  decimalFactor: number;
+  decimals: number;
+  UIAmount: string;
+  typeId: string;
+  isSendable: boolean;
 }
 
 export interface INFTTransferPayload {
@@ -80,18 +80,6 @@ export interface IListTokensResponse {
   nftDataUpdatePredicate?: string; // nft only
   network: string;
   name?: string; // nft only
-}
-
-export interface IFungibleAsset {
-  id: string;
-  name: string;
-  amount: string;
-  network: string;
-  decimalFactor: number;
-  decimals: number;
-  UIAmount: string;
-  typeId: string;
-  isSendable: boolean;
 }
 
 export interface IActiveAsset {
