@@ -366,7 +366,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       })
                       .map((asset: INFTAsset) => ({
                         value: asset,
-                        label: base64ToHexPrefixed(asset.id),
+                        label: asset?.name || base64ToHexPrefixed(asset.id),
                       }))}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={async (_label, option: any) => {

@@ -578,7 +578,8 @@ const getUpdatesUTPFungibleTokens = (
     userTokens?.map((obj: IListTokensResponse) => ({
       id: obj.id,
       typeId: obj.typeId,
-      name: obj.symbol,
+      symbol: obj.symbol,
+      name: obj.name,
       network: obj.network,
       amount: obj.amount?.toString(),
       decimalFactor: Number("1e" + obj.decimals),
@@ -615,7 +616,7 @@ export const getUpdatedFungibleAssets = (
 
   const alphaAsset = {
     id: AlphaType,
-    name: AlphaType,
+    symbol: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
     amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
@@ -699,7 +700,7 @@ export const sendTransferMessage = async (
 export const removeConnectTransferData = () =>
   chrome?.storage?.local.remove("ab_connect_transfer");
 
-export const base64imageComponent: React.FC<{
+export const Base64imageComponent: React.FC<{
   base64Data: string;
   alt: string;
 }> = ({ base64Data, alt }) => {

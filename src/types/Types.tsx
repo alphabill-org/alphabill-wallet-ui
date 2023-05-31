@@ -21,11 +21,12 @@ export interface INFTAsset {
   network: string;
   amountOfSameType?: string;
   isSendable?: boolean;
+  name?: string;
 }
 
 export interface IFungibleAsset {
   id: string;
-  name: string;
+  name?: string;
   amount: string;
   network: string;
   decimalFactor: number;
@@ -33,6 +34,7 @@ export interface IFungibleAsset {
   UIAmount: string;
   typeId: string;
   isSendable: boolean;
+  symbol: string;
 }
 
 export interface INFTTransferPayload {
@@ -83,7 +85,6 @@ export interface IListTokensResponse {
 }
 
 export interface IActiveAsset {
-  name: string;
   typeId: string;
   id?: string;
   amount?: string;
@@ -91,7 +92,7 @@ export interface IActiveAsset {
   decimalFactor?: number;
   decimals?: number;
   UIAmount?: string;
-  isSendable?: boolean;
+  name?: string
   symbol?: string;
   value?: string;
   txHash?: string;
