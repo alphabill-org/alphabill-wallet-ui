@@ -60,6 +60,8 @@ export interface ITokensListTypes {
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
   nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
+  icon: string;
+  name: string;
 }
 
 export interface IListTokensResponse {
@@ -77,6 +79,7 @@ export interface IListTokensResponse {
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
   network: string;
+  name?: string; // nft only
 }
 
 export interface IFungibleAsset {
@@ -118,6 +121,7 @@ export interface INonFungibleAsset {
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
+  name: string;
 }
 
 export interface ITypeHierarchy {

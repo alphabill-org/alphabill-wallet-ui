@@ -372,32 +372,39 @@ export const getAssetSum = (asset: IFungibleAsset[]) =>
     return acc + BigInt(obj.amount);
   }, 0n);
 
-  export const useDocumentClick = (
-    callback: (event: MouseEvent) => void,
-    ref: React.MutableRefObject<HTMLElement | null>
-  ) => {
-    const isScrollbar = (element: any) => {
-      // Check if the element has a scrollbar by comparing its scrollHeight with clientHeight
-      return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
-    };
-
-    const handler = useCallback(
-      (event: MouseEvent) => {
-        if (ref.current && !ref.current.contains(event.target as Node) && !isScrollbar(event.target)) {
-          callback(event);
-        }
-      },
-      [callback, ref]
+export const useDocumentClick = (
+  callback: (event: MouseEvent) => void,
+  ref: React.MutableRefObject<HTMLElement | null>
+) => {
+  const isScrollbar = (element: any) => {
+    // Check if the element has a scrollbar by comparing its scrollHeight with clientHeight
+    return (
+      element.scrollHeight > element.clientHeight ||
+      element.scrollWidth > element.clientWidth
     );
-
-    useEffect(() => {
-      window.addEventListener("mousedown", handler);
-
-      return () => {
-        window.removeEventListener("mousedown", handler);
-      };
-    }, [handler]);
   };
+
+  const handler = useCallback(
+    (event: MouseEvent) => {
+      if (
+        ref.current &&
+        !ref.current.contains(event.target as Node) &&
+        !isScrollbar(event.target)
+      ) {
+        callback(event);
+      }
+    },
+    [callback, ref]
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousedown", handler);
+
+    return () => {
+      window.removeEventListener("mousedown", handler);
+    };
+  }, [handler]);
+};
 
 export const addDecimal = (str: string, pos: number) => {
   if (pos <= 0 || !str) {
@@ -519,6 +526,9 @@ export const getUpdatedNFTAssets = (
             ?.invariantPredicate!,
           activeAccountId
         ),
+        iconImage: tokenTypes?.find(
+          (type: ITokensListTypes) => type.id === nft.typeId
+        )?.icon,
         amountOfSameType:
           NFTsList.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -578,6 +588,9 @@ const getUpdatesUTPFungibleTokens = (
           ?.invariantPredicate!,
         activeAccountId
       ),
+      iconImage: tokenTypes?.find(
+        (type: ITokensListTypes) => type.id === obj.typeId
+      )?.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
@@ -685,3 +698,18 @@ export const sendTransferMessage = async (
 
 export const removeConnectTransferData = () =>
   chrome?.storage?.local.remove("ab_connect_transfer");
+
+export const base64imageComponent: React.FC<{
+  base64Data: string;
+  alt: string;
+}> = ({ base64Data, alt }) => {
+  const imageUrl = isImage(base64Data) ? `${base64Data}` : null;
+
+  return imageUrl ? <img src={imageUrl} alt={alt} /> : null;
+};
+
+const isImage = (data: string): boolean => {
+  const img = new Image();
+  img.src = `${data}`;
+  return img.complete && img.naturalWidth !== 0;
+};
