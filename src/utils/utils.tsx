@@ -579,7 +579,6 @@ const getUpdatesUTPFungibleTokens = (
       id: obj.id,
       typeId: obj.typeId,
       symbol: obj.symbol,
-      name: obj.name,
       network: obj.network,
       amount: obj.amount?.toString(),
       decimalFactor: Number("1e" + obj.decimals),
@@ -701,16 +700,16 @@ export const removeConnectTransferData = () =>
   chrome?.storage?.local.remove("ab_connect_transfer");
 
 export const Base64imageComponent: React.FC<{
-  base64Data: string;
+  base64Data: { data: string; type: string };
   alt: string;
 }> = ({ base64Data, alt }) => {
-  const imageUrl = isImage(base64Data) ? `${base64Data}` : null;
+  const imageUrl = isImage(base64Data.data) ? `${base64Data.data}` : null;
 
-  return imageUrl ? <img src={imageUrl} alt={alt} /> : null;
+  return imageUrl ? <img src={`data:image;base64,${imageUrl}`} alt={alt} /> : null;
 };
 
 const isImage = (data: string): boolean => {
   const img = new Image();
-  img.src = `${data}`;
+  img.src = `data:image;base64,${data}`;
   return img.complete && img.naturalWidth !== 0;
 };

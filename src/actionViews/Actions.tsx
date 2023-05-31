@@ -68,7 +68,7 @@ function Actions(): JSX.Element | null {
         </Button>
         <div className="actions__title">
           {actionsView === NFTListView || actionsView === FungibleListView
-            ? activeAsset?.name || activeAsset?.symbol
+            ? activeAsset?.symbol
             : actionsView.replace("view", "")}
         </div>
       </div>

@@ -21,7 +21,7 @@ export interface INFTAsset {
   network: string;
   amountOfSameType?: string;
   isSendable?: boolean;
-  name?: string;
+  nftName?: string;
 }
 
 export interface IFungibleAsset {
@@ -62,7 +62,7 @@ export interface ITokensListTypes {
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
   nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
-  icon: string;
+  icon: { data: string; type: string };
   name: string;
 }
 
@@ -81,7 +81,7 @@ export interface IListTokensResponse {
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
   network: string;
-  name?: string; // nft only
+  nftName?: string; // nft only
 }
 
 export interface IActiveAsset {
@@ -92,7 +92,7 @@ export interface IActiveAsset {
   decimalFactor?: number;
   decimals?: number;
   UIAmount?: string;
-  name?: string
+  name?: string;
   symbol?: string;
   value?: string;
   txHash?: string;

@@ -6,6 +6,8 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { Base64imageComponent, base64ToHexPrefixed } from "../../utils/utils";
 import { useGetImageUrl } from "../../hooks/api";
 import Spinner from "../Spinner/Spinner";
+import { ITokensListTypes } from "../../types/Types";
+import { useApp } from "../../hooks/appProvider";
 
 export interface IAssetsListItemIconProps {
   asset: any;
@@ -17,21 +19,25 @@ export default function AssetsListItemIcon({
   isTypeListItem,
 }: IAssetsListItemIconProps): JSX.Element | null {
   const hexId = base64ToHexPrefixed(asset?.id);
+  const { tokenTypes } = useApp();
   const nftUri = asset?.nftUri || "";
   const { data: imageResponse, isLoading: isLoadingImage } = useGetImageUrl(
     nftUri,
     Boolean(isTypeListItem)
   );
-  const label = isTypeListItem ? hexId : asset?.name || asset?.symbol || hexId;
-  const iconEmblem = (asset?.name || asset?.symbol || hexId)[0];
+  const label = isTypeListItem ? hexId : asset?.nftName || asset?.symbol || hexId;
+  const iconEmblem = (asset?.nftName || asset?.symbol || hexId)[0];
   const withImage =
     !Boolean(imageResponse?.error) &&
     Boolean(imageResponse?.imageUrl) &&
     isTypeListItem;
   let icon;
+  const tokenTyeIcon = tokenTypes?.find(
+    (type: ITokensListTypes) => type.id === asset.typeId
+  )?.icon;
 
-  if (asset.iconImage) {
-    return <Base64imageComponent base64Data={asset.iconImage} alt={asset.id} />;
+  if (tokenTyeIcon) {
+    return <Base64imageComponent base64Data={tokenTyeIcon} alt={asset.id} />;
   } else {
     if (withImage && isLoadingImage) {
       return (

@@ -495,7 +495,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedAsset(activeAsset);
                               setFieldValue("assets", {
                                 value: activeAsset,
-                                label: activeAsset?.name || activeAsset?.symbol,
+                                label: activeAsset?.symbol,
                               });
                             }}
                             variant="link"

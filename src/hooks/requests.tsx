@@ -197,6 +197,7 @@ export const getUserTokens = async (
         txHash: obj.txHash,
         symbol: obj.symbol,
         network: import.meta.env.VITE_NETWORK_NAME,
+        nftName: obj.nftName
       };
 
       if (kind === "fungible") {
