@@ -26,7 +26,6 @@ export interface INFTAsset {
 
 export interface IFungibleAsset {
   id: string;
-  name?: string;
   amount: string;
   network: string;
   decimalFactor: number;
@@ -92,7 +91,7 @@ export interface IActiveAsset {
   decimalFactor?: number;
   decimals?: number;
   UIAmount?: string;
-  name?: string;
+  isSendable?: boolean;
   symbol?: string;
   value?: string;
   txHash?: string;
@@ -100,6 +99,7 @@ export interface IActiveAsset {
   isDcBill?: boolean;
   nftUri?: string;
   nftData?: string;
+  nftName?: string;
 }
 
 export interface INonFungibleAsset {
