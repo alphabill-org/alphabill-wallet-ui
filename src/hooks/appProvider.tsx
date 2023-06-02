@@ -13,6 +13,7 @@ import {
   IActionVies,
   IListTokensResponse,
   INFTAsset,
+  ITokensListTypes,
 } from "../types/Types";
 import {
   useGetAllTokenTypes,
@@ -50,6 +51,7 @@ interface IAppContextShape {
   setSelectedTransferKey: (e: string | null) => void;
   selectedTransferAccountKey: string | null | undefined;
   setSelectedTransferAccountKey: (e: string | null) => void;
+  tokenTypes: ITokensListTypes[] | undefined;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -241,6 +243,7 @@ export const AppProvider: FunctionComponent<{
         setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
+        tokenTypes,
       }}
     >
       {children}
