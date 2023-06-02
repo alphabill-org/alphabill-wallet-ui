@@ -69,8 +69,8 @@ export default function AssetsList({
     "..." +
     hexId.substr(hexId.length - hexVisibleLength, hexId.length);
   const label = isTypeListItem
-    ? hexIdEllipsis
-    : asset?.name || asset?.symbol || hexIdEllipsis;
+    ? asset?.nftName || hexIdEllipsis
+    : asset?.symbol || hexIdEllipsis;
   const isButtons = isProofButton || isTransferButton;
   const isFungibleKind =
     asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
