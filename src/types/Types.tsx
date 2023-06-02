@@ -100,6 +100,7 @@ export interface IActiveAsset {
   nftUri?: string;
   nftData?: string;
   nftName?: string;
+  name?: string;
 }
 
 export interface INonFungibleAsset {
