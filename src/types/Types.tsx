@@ -1,3 +1,5 @@
+import { string } from "yup/lib/locale";
+
 export interface IAccount {
   pubKey: string;
   name: string;
@@ -36,16 +38,22 @@ export interface INFTAsset {
 }
 
 export interface INFTTransferPayload {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    nftType: string;
-    backlink: string;
-    newBearer?: string;
-    invariantPredicateSignatures?: string[];
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      nftType: string;
+      backlink: string;
+      newBearer?: string;
+      invariantPredicateSignatures?: string[];
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
   };
-  timeout: string;
   ownerProof: string;
 }
 
@@ -163,22 +171,28 @@ export interface ISwap {
 }
 
 export interface ITransfer {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    type?: string;
-    backlink?: string;
-    newBearer?: string;
-    remainingValue?: string;
-    targetBearer?: string;
-    amount?: string;
-    nonce?: string;
-    value?: string;
-    targetValue?: string;
-    invariantPredicateSignatures?: string[];
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      type?: string;
+      backlink?: string;
+      newBearer?: string;
+      remainingValue?: string;
+      targetBearer?: string;
+      amount?: string;
+      nonce?: string;
+      value?: string;
+      targetValue?: string;
+      invariantPredicateSignatures?: string[];
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
   };
-  timeout: string;
   ownerProof: string;
 }
 
@@ -204,18 +218,24 @@ export interface ITransferProps {
 }
 
 export interface ISwapProps {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    billIdentifiers: string[]; // All the bills that are used in a swap
-    dcTransfers: IProofTx[];
-    ownerCondition: string;
-    proofs: IProof[];
-    targetValue: string;
-    invariantPredicateSignatures?: string[];
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      billIdentifiers: string[]; // All the bills that are used in a swap
+      dcTransfers: IProofTx[];
+      ownerCondition: string;
+      proofs: IProof[];
+      targetValue: string;
+      invariantPredicateSignatures?: string[];
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
   };
-  timeout: string;
   ownerProof: string;
 }
 
@@ -238,25 +258,31 @@ export interface ITxProof {
 }
 
 export interface IProofTx {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    nonce?: string;
-    targetBearer?: string;
-    backlink: string;
-    amount?: string;
-    ownerCondition?: string;
-    billIdentifiers?: string[];
-    remainingValue?: string;
-    proofs?: IProof[];
-    dcTransfers?: IProofTx[];
-    targetValue?: string;
-    newBearer?: string;
-    invariantPredicateSignatures?: string[];
-    type?: string;
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      nonce?: string;
+      targetBearer?: string;
+      backlink: string;
+      amount?: string;
+      ownerCondition?: string;
+      billIdentifiers?: string[];
+      remainingValue?: string;
+      proofs?: IProof[];
+      dcTransfers?: IProofTx[];
+      targetValue?: string;
+      newBearer?: string;
+      invariantPredicateSignatures?: string[];
+      type?: string;
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
   };
-  timeout: string;
   ownerProof: string;
 }
 
@@ -322,32 +348,86 @@ export interface IChainItems {
 }
 
 export interface ISwapTransferProps {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    billIdentifiers: string[];
-    dcTransfers: IProofTx[];
-    ownerCondition: string;
-    proofs: IProof[];
-    targetValue: string;
-    invariantPredicateSignatures?: string[];
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      billIdentifiers: string[];
+      dcTransfers: IProofTx[];
+      ownerCondition: string;
+      proofs: IProof[];
+      targetValue: string;
+      invariantPredicateSignatures?: string[];
+    };
   };
-  timeout: string;
+  clientMetadata: {
+    timeout: string;
+    maxTransactionFee: string;
+    feeCreditRecordID: Uint8Array;
+  };
+  ownerProof?: string;
+}
+
+export interface IAddFeeTransaction  {
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      feeCreditOwnerCondition: string; // target fee credit record owner condition (optional)
+      feeCreditTransfer: string; // bill transfer record of type "transfer fee credit"
+      feeCreditTransferProof: string; // transaction proof of "transfer fee credit" transaction
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
+  };
+  ownerProof: string;
+}
+
+export interface IFeeTransaction {
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      amount: string; // amount to transfer
+      targetSystemIdentifier: string; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
+      targetRecordID: string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
+      earliestAdditionTime: string; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+      latestAdditionTime: string; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+      nonce: string; // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+      backlink: string; // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
+  };
   ownerProof: string;
 }
 
 export interface IDCTransferProps {
-  systemId: string;
-  unitId: string;
-  transactionAttributes: {
-    "@type": string;
-    backlink: string;
-    nonce: string;
-    targetBearer: string;
-    targetValue: string;
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      backlink: string;
+      nonce: string;
+      targetBearer: string;
+      targetValue: string;
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
   };
-  timeout: string;
   ownerProof: string;
 }
 
@@ -359,8 +439,11 @@ export interface IBalance {
 export type IActionVies =
   | "Transfer fungible view"
   | "Transfer NFT view"
+  | "Add Fee Credit view"
   | "Fungible list view"
   | "NFT list view"
   | "Profile view"
   | "NFT details view"
   | "";
+
+export type INavbarViews = "fungible" | "nonFungible" | "fees";

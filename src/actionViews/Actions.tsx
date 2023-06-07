@@ -16,12 +16,14 @@ import {
   NFTDetailsView,
   NFTListView,
   ProfileView,
+  TransferFeeCreditView,
   TransferFungibleView,
   TransferNFTView,
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
-import { IActionVies } from "../types/Types";
+import { IActionVies, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
+import TransferFee from "./components/TransferFeeCredit";
 
 function Actions(): JSX.Element | null {
   const {
@@ -77,10 +79,16 @@ function Actions(): JSX.Element | null {
           <>
             <Spacer mt={8} />
             <Navbar
-              isFungibleActive={actionsView === TransferFungibleView}
-              onChange={(isFungibleView: boolean) => {
+              activeBar={
+                actionsView === TransferFungibleView
+                  ? "fungible"
+                  : "nonFungible"
+              }
+              onChange={(isFungibleView: INavbarViews) => {
                 setActionsView(
-                  isFungibleView ? TransferFungibleView : TransferNFTView
+                  isFungibleView === "fungible"
+                    ? TransferFungibleView
+                    : TransferNFTView
                 );
                 setSelectedTransferKey(null);
                 setPreviousView(null);
@@ -93,6 +101,8 @@ function Actions(): JSX.Element | null {
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (
           <TransferNFTs />
+        ) : actionsView === TransferFeeCreditView ? (
+          <TransferFee />
         ) : actionsView === NFTDetailsView ? (
           <NFTDetails />
         ) : actionsView === FungibleListView ? (

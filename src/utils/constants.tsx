@@ -20,23 +20,23 @@ export const DCTransfersLimit = 100;
 export const AlphaDecimals = 8;
 export const AlphaDecimalFactor = Number("1e" + AlphaDecimals);
 
-export const moneyTypeURLPrefix = "type.googleapis.com/rpc.";
-export const tokensTypeURLPrefix = "type.googleapis.com/alphabill.tokens.v1.";
+export const AlphaSplitType = "split";
+export const AlphaTransferType = "trans";
+export const AlphaSwapType = "swapDC";
+export const AlphaDcType = "transDC";
 
-export const AlphaSplitType = moneyTypeURLPrefix + "SplitOrder";
-export const AlphaTransferType = moneyTypeURLPrefix + "TransferOrder";
-export const AlphaSwapType = moneyTypeURLPrefix + "SwapOrder";
-export const AlphaDcType = moneyTypeURLPrefix + "TransferDCOrder";
+export const TokensSplitType = "splitFToken";
+export const TokensTransferType = "transFToken";
+export const NFTTokensTransferType = "transNToken";
 
-export const TokensSplitType =
-  tokensTypeURLPrefix + "SplitFungibleTokenAttributes";
-export const TokensTransferType =
-  tokensTypeURLPrefix + "TransferFungibleTokenAttributes";
-export const NFTTokensTransferType =
-  tokensTypeURLPrefix + "TransferNonFungibleTokenAttributes";
+export const FeeCreditAddType = "addFC";
+export const FeeCreditTransferType = "transFC";
+export const FeeCreditCloseType = "closeFC";
+export const FeeCreditReclaimType = "reclFC";
 
 export const AlphaSystemId = "AAAAAA==";
 export const TokensSystemId = "AAAAAg==";
+export const FeeSystemId = "AAAAAw==";
 
 export const AlphaType = "ALPHA";
 export const NonFungibleTokenKind = 4;
@@ -47,6 +47,7 @@ export const FungibleListView = "Fungible list view";
 export const ProfileView = "Profile view";
 export const TransferFungibleView = "Transfer fungible view";
 export const TransferNFTView = "Transfer NFT view";
+export const TransferFeeCreditView = "Add Fee Credit view";
 export const NFTDetailsView = "NFT details view";
 
 export const downloadableTypes = [

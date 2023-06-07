@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
 
-import { IFungibleAsset } from "../../types/Types";
+import { IFungibleAsset, INavbarViews } from "../../types/Types";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
 import { ReactComponent as Sync } from "../../images/sync-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
@@ -21,6 +21,7 @@ import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
 import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
 import Popovers from "./Popovers";
+import FeeCredit from "./FeeCredit";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -38,7 +39,7 @@ function Dashboard(): JSX.Element | null {
         : "small"
       : "";
 
-  const [isFungibleActive, setIsFungibleActive] = useState<boolean>(true);
+  const [navbarView, setNavarView] = useState<INavbarViews>("fungible");
   const [isKeySelectOpen, setIsKeySelectOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -132,11 +133,18 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={32} />
       <div className="dashboard__footer">
         <Navbar
-          isFungibleActive={isFungibleActive}
-          onChange={(v: boolean) => setIsFungibleActive(v)}
+          isFees
+          activeBar={navbarView}
+          onChange={(v: INavbarViews) => setNavarView(v)}
         />
         <div className="dashboard__info">
-          {isFungibleActive === true ? <FungibleAssetsCol /> : <NFTAssetsCol />}
+          {navbarView === "fungible" ? (
+            <FungibleAssetsCol />
+          ) : navbarView === "nonFungible" ? (
+            <NFTAssetsCol />
+          ) : (
+            <FeeCredit />
+          )}
         </div>
       </div>
       <Popovers

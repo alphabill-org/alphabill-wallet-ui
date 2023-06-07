@@ -54,7 +54,11 @@ import {
   TransferFungibleView,
 } from "../../utils/constants";
 
-import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
+import {
+  privateKeyHash,
+  splitOrderHash,
+  transferOrderHash,
+} from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -259,20 +263,28 @@ export default function TransferFungible(): JSX.Element | null {
 
               billsToTransfer?.map(async (bill, idx) => {
                 const transferData: IProofTx = {
-                  systemId: systemId,
-                  unitId: bill.id,
-                  transactionAttributes: {
-                    "@type": transferType,
-                    newBearer: newBearer,
-                    [transferField]: bill.value,
-                    backlink: bill.txHash,
+                  payload: {
+                    systemId: systemId,
+                    type: transferType,
+                    unitId: bill.id,
+                    transactionAttributes: {
+                      newBearer: newBearer,
+                      [transferField]: bill.value,
+                      backlink: bill.txHash,
+                    },
+                    clientMetadata: {
+                      timeout: (roundNumber + timeoutBlocks).toString(),
+                      maxTransactionFee: "1",
+                      feeCreditRecordID: await privateKeyHash(
+                        hashingPrivateKey
+                      ),
+                    },
                   },
-                  timeout: (roundNumber + timeoutBlocks).toString(),
                   ownerProof: "",
                 };
 
                 if (selectedAsset?.typeId !== AlphaType) {
-                  transferData.transactionAttributes.type = bill.typeId;
+                  transferData.payload.transactionAttributes.type = bill.typeId;
                 }
 
                 const isLastTransaction =
@@ -291,23 +303,32 @@ export default function TransferFungible(): JSX.Element | null {
 
               if (billToSplit && splitBillAmount) {
                 const splitData: IProofTx = {
-                  systemId: systemId,
-                  unitId: billToSplit.id,
-                  transactionAttributes: {
-                    "@type": splitType,
-                    [amountField]: splitBillAmount.toString(),
-                    [bearerField]: newBearer,
-                    remainingValue: (
-                      BigInt(billToSplit.value) - splitBillAmount
-                    ).toString(),
-                    backlink: billToSplit.txHash,
+                  payload: {
+                    systemId: systemId,
+                    type: splitType,
+                    unitId: billToSplit.id,
+                    transactionAttributes: {
+                      [amountField]: splitBillAmount.toString(),
+                      [bearerField]: newBearer,
+                      remainingValue: (
+                        BigInt(billToSplit.value) - splitBillAmount
+                      ).toString(),
+                      backlink: billToSplit.txHash,
+                    },
+                    clientMetadata: {
+                      timeout: (roundNumber + timeoutBlocks).toString(),
+                      maxTransactionFee: "1",
+                      feeCreditRecordID: await privateKeyHash(
+                        hashingPrivateKey
+                      ),
+                    },
                   },
-                  timeout: (roundNumber + timeoutBlocks).toString(),
                   ownerProof: "",
                 };
 
                 if (selectedAsset?.typeId !== AlphaType) {
-                  splitData.transactionAttributes.type = billToSplit.typeId;
+                  splitData.payload.transactionAttributes.type =
+                    billToSplit.typeId;
                 }
 
                 handleValidation(
@@ -351,10 +372,11 @@ export default function TransferFungible(): JSX.Element | null {
                 )
                   .then(() => {
                     setPreviousView(null);
+                    const attributes = billData?.payload.transactionAttributes;
                     const amount: string =
-                      billData?.transactionAttributes?.amount ||
-                      billData?.transactionAttributes?.targetValue ||
-                      billData?.transactionAttributes?.value ||
+                      attributes?.amount ||
+                      attributes?.targetValue ||
+                      attributes?.value ||
                       "";
                     const fungibleSelectedAsset = account?.assets?.fungible
                       ?.filter(
@@ -404,7 +426,7 @@ export default function TransferFungible(): JSX.Element | null {
                       password: error.message,
                     });
                   }
-                  billData.transactionAttributes.invariantPredicateSignatures =
+                  billData.payload.transactionAttributes.invariantPredicateSignatures =
                     signatures;
                   finishTransaction(billData);
                 })

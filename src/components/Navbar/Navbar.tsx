@@ -1,18 +1,24 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
 import { useAuth } from "../../hooks/useAuth";
+import { INavbarViews } from "../../types/Types";
 import { invalidateAllLists } from "../../utils/utils";
 
 export interface INavbarProps {
-  onChange: (v: boolean) => void;
-  isFungibleActive: boolean;
+  onChange: (v: INavbarViews) => void;
+  activeBar: INavbarViews;
+  isFees?: boolean;
 }
 
-export default function Navbar({ onChange, isFungibleActive }: INavbarProps): JSX.Element | null {
+export default function Navbar({
+  onChange,
+  activeBar,
+  isFees,
+}: INavbarProps): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
 
-  const handleChange = (v: boolean) => {
+  const handleChange = (v: INavbarViews) => {
     onChange(v);
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
@@ -21,10 +27,10 @@ export default function Navbar({ onChange, isFungibleActive }: INavbarProps): JS
     <div className="navbar">
       <div
         onClick={() => {
-          handleChange(true);
+          handleChange("fungible");
         }}
         className={classNames("navbar-item", {
-          active: isFungibleActive,
+          active: activeBar === "fungible",
         })}
       >
         Fungible
@@ -32,14 +38,26 @@ export default function Navbar({ onChange, isFungibleActive }: INavbarProps): JS
 
       <div
         onClick={() => {
-          handleChange(false);
+          handleChange("nonFungible");
         }}
         className={classNames("navbar-item", {
-          active: !isFungibleActive,
+          active: activeBar === "nonFungible",
         })}
       >
         Non Fungible
       </div>
+      {isFees && (
+        <div
+          onClick={() => {
+            handleChange("fees");
+          }}
+          className={classNames("navbar-item", {
+            active: activeBar === "fees",
+          })}
+        >
+          Fee Credit
+        </div>
+      )}
     </div>
   );
 }

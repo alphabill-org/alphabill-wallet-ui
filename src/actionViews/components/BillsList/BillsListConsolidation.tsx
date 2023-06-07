@@ -23,7 +23,6 @@ import {
   IProof,
   IProofTx,
   ISwapProps,
-  ISwapTransferProps,
   ITransfer,
   ITxProof,
 } from "../../../types/Types";
@@ -33,7 +32,7 @@ import {
   makeTransaction,
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
-import { dcOrderHash, swapOrderHash } from "../../../utils/hashers";
+import { dcOrderHash, privateKeyHash, swapOrderHash } from "../../../utils/hashers";
 
 export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
@@ -76,22 +75,32 @@ export const handleSwapRequest = async (
         getRoundNumber(activeAsset?.typeId === AlphaType).then(
           async (roundNumber) => {
             const transferData: ISwapProps = {
-              systemId: AlphaSystemId,
-              unitId: Buffer.from(nonceHash).toString("base64"),
-              transactionAttributes: {
-                billIdentifiers: sortIDBySize(billIdentifiers),
-                dcTransfers: dcTransfers,
-                ownerCondition: getNewBearer(account),
-                proofs: proofs,
-                targetValue: dcTransfers
-                  ?.reduce((acc, obj: IProofTx) => {
-                    return acc + BigInt(obj.transactionAttributes.targetValue!);
-                  }, 0n)
+              payload: {
+                systemId: AlphaSystemId,
+                type: AlphaSwapType,
+                unitId: Buffer.from(nonceHash).toString("base64"),
+                transactionAttributes: {
+                  billIdentifiers: sortIDBySize(billIdentifiers),
+                  dcTransfers: dcTransfers,
+                  ownerCondition: getNewBearer(account),
+                  proofs: proofs,
+                  targetValue: dcTransfers
+                    ?.reduce((acc, obj: IProofTx) => {
+                      return (
+                        acc +
+                        BigInt(obj.payload.transactionAttributes.targetValue!)
+                      );
+                    }, 0n)
 
-                  .toString(),
-                "@type": AlphaSwapType,
+                    .toString(),
+                },
+                clientMetadata: {
+                  timeout: (roundNumber + swapTimeout).toString(),
+                  maxTransactionFee: "1",
+                  feeCreditRecordID:
+                    await privateKeyHash(hashingPrivateKey),
+                },
               },
-              timeout: (roundNumber + swapTimeout).toString(),
               ownerProof: "",
             };
 
@@ -102,7 +111,7 @@ export const handleSwapRequest = async (
               hashingPublicKey
             );
 
-            const dataWithProof: ISwapTransferProps = await Object.assign(
+            const dataWithProof: ISwapProps = await Object.assign(
               transferData,
               {
                 ownerProof: proof.ownerProof,
@@ -167,16 +176,23 @@ export const handleDC = async (
     getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) =>
       sortedListByID?.map(async (bill: IBill, idx) => {
         const transferData: ITransfer = {
-          systemId: AlphaSystemId,
-          unitId: bill.id,
-          transactionAttributes: {
-            "@type": AlphaDcType,
-            backlink: bill.txHash,
-            nonce: Buffer.from(nonceHash).toString("base64"),
-            targetBearer: getNewBearer(account),
-            targetValue: bill.value,
+          payload: {
+            systemId: AlphaSystemId,
+            type: AlphaDcType,
+            unitId: bill.id,
+            transactionAttributes: {
+              backlink: bill.txHash,
+              nonce: Buffer.from(nonceHash).toString("base64"),
+              targetBearer: getNewBearer(account),
+              targetValue: bill.value,
+            },
+            clientMetadata: {
+              timeout: (roundNumber + timeoutBlocks).toString(),
+              maxTransactionFee: "1",
+              feeCreditRecordID:
+                await privateKeyHash(hashingPrivateKey),
+            },
           },
-          timeout: (roundNumber + timeoutBlocks).toString(),
           ownerProof: "",
         };
 

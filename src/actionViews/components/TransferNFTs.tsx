@@ -45,6 +45,7 @@ import {
 import {
   NFTTransferOrderHash,
   NFTTransferOrderTxHash,
+  privateKeyHash,
 } from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
@@ -84,20 +85,15 @@ export default function TransferNFTs(): JSX.Element | null {
     initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getRoundNumber(false).then(
-        (roundNumber) => {
-          if (!initialRoundNumber?.current) {
-            initialRoundNumber.current = roundNumber;
-          }
-
-          if (
-            BigInt(initialRoundNumber?.current) + timeoutBlocks <
-            roundNumber
-          ) {
-            pollingInterval.current && clearInterval(pollingInterval.current);
-          }
+      getRoundNumber(false).then((roundNumber) => {
+        if (!initialRoundNumber?.current) {
+          initialRoundNumber.current = roundNumber;
         }
-      );
+
+        if (BigInt(initialRoundNumber?.current) + timeoutBlocks < roundNumber) {
+          pollingInterval.current && clearInterval(pollingInterval.current);
+        }
+      });
     }, 500);
   };
 
@@ -152,58 +148,65 @@ export default function TransferNFTs(): JSX.Element | null {
 
           setIsSending(true);
 
-          getRoundNumber(false).then(
-            async (roundNumber) => {
-              await getTypeHierarchy(selectedNFT.typeId || "")
-                .then(async (hierarchy: ITypeHierarchy[]) => {
-                  const tokenData: INFTTransferPayload = {
+          getRoundNumber(false).then(async (roundNumber) => {
+            await getTypeHierarchy(selectedNFT.typeId || "")
+              .then(async (hierarchy: ITypeHierarchy[]) => {
+                const tokenData: INFTTransferPayload = {
+                  payload: {
                     systemId: TokensSystemId,
+                    type: NFTTokensTransferType,
                     unitId: selectedNFT.id,
                     transactionAttributes: {
-                      "@type": NFTTokensTransferType,
                       newBearer: newBearer,
                       nftType: selectedNFT.typeId,
                       backlink: selectedNFT.txHash,
                     },
-                    timeout: (roundNumber + timeoutBlocks).toString(),
-                    ownerProof: "",
-                  };
-                  const msgHash = await NFTTransferOrderHash(tokenData);
-                  const proof = await createOwnerProof(
-                    msgHash,
-                    hashingPrivateKey,
-                    hashingPublicKey
+                    clientMetadata: {
+                      timeout: (roundNumber + timeoutBlocks).toString(),
+                      maxTransactionFee: "1",
+                      feeCreditRecordID:
+                        await privateKeyHash(hashingPrivateKey),
+                    },
+                  },
+                  ownerProof: "",
+                };
+                const msgHash = await NFTTransferOrderHash(tokenData);
+                const proof = await createOwnerProof(
+                  msgHash,
+                  hashingPrivateKey,
+                  hashingPublicKey
+                );
+                let signatures;
+                try {
+                  signatures = createInvariantPredicateSignatures(
+                    hierarchy,
+                    proof.ownerProof,
+                    activeAccountId
                   );
-                  let signatures;
-                  try {
-                    signatures = createInvariantPredicateSignatures(
-                      hierarchy,
-                      proof.ownerProof,
-                      activeAccountId
-                    );
-                  } catch (error) {
-                    setIsSending(false);
-                    return setErrors({
-                      password: error.message,
-                    });
-                  }
+                } catch (error) {
+                  setIsSending(false);
+                  return setErrors({
+                    password: error.message,
+                  });
+                }
 
-                  tokenData.transactionAttributes.invariantPredicateSignatures =
-                    signatures;
+                tokenData.payload.transactionAttributes.invariantPredicateSignatures =
+                  signatures;
 
-                  const dataWithProof = {
-                    transactions: [
-                      Object.assign(tokenData, {
-                        ownerProof: proof.ownerProof,
-                        timeout: (roundNumber + timeoutBlocks).toString(),
-                      }),
-                    ],
-                  } as any;
+                const dataWithProof = {
+                  transactions: [
+                    Object.assign(tokenData, {
+                      ownerProof: proof.ownerProof,
+                      timeout: (roundNumber + timeoutBlocks).toString(),
+                    }),
+                  ],
+                } as any;
 
-                  transferredToken.current = selectedNFT;
+                transferredToken.current = selectedNFT;
 
-                  proof.isSignatureValid &&
-                    makeTransaction(dataWithProof, values.address).then(async () => {
+                proof.isSignatureValid &&
+                  makeTransaction(dataWithProof, values.address).then(
+                    async () => {
                       const handleTransferEnd = () => {
                         addPollingInterval();
                         setIsSending(false);
@@ -240,19 +243,19 @@ export default function TransferNFTs(): JSX.Element | null {
                       } else {
                         handleTransferEnd();
                       }
-                    });
-                })
-                .catch(() => {
-                  setIsSending(false);
-                  setErrors({
-                    password:
-                      "Fetching token hierarchy for " +
-                      selectedNFT.typeId +
-                      "failed",
-                  });
+                    }
+                  );
+              })
+              .catch(() => {
+                setIsSending(false);
+                setErrors({
+                  password:
+                    "Fetching token hierarchy for " +
+                    selectedNFT.typeId +
+                    "failed",
                 });
-            }
-          );
+              });
+          });
         }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),

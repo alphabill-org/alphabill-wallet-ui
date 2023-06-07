@@ -93,11 +93,11 @@ export const sortBillsByID = (bills: IBill[]) =>
 
 export const sortTxProofsByID = (transfers: ITxProof[]) =>
   transfers.sort((a: ITxProof, b: ITxProof) =>
-    BigInt(base64ToHexPrefixed(a.tx.unitId)) <
-    BigInt(base64ToHexPrefixed(b.tx.unitId))
+    BigInt(base64ToHexPrefixed(a.tx.payload.unitId)) <
+    BigInt(base64ToHexPrefixed(b.tx.payload.unitId))
       ? -1
-      : BigInt(base64ToHexPrefixed(a.tx.unitId)) >
-        BigInt(base64ToHexPrefixed(b.tx.unitId))
+      : BigInt(base64ToHexPrefixed(a.tx.payload.unitId)) >
+        BigInt(base64ToHexPrefixed(b.tx.payload.unitId))
       ? 1
       : 0
   );
@@ -372,32 +372,39 @@ export const getAssetSum = (asset: IFungibleAsset[]) =>
     return acc + BigInt(obj.amount);
   }, 0n);
 
-  export const useDocumentClick = (
-    callback: (event: MouseEvent) => void,
-    ref: React.MutableRefObject<HTMLElement | null>
-  ) => {
-    const isScrollbar = (element: any) => {
-      // Check if the element has a scrollbar by comparing its scrollHeight with clientHeight
-      return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
-    };
-
-    const handler = useCallback(
-      (event: MouseEvent) => {
-        if (ref.current && !ref.current.contains(event.target as Node) && !isScrollbar(event.target)) {
-          callback(event);
-        }
-      },
-      [callback, ref]
+export const useDocumentClick = (
+  callback: (event: MouseEvent) => void,
+  ref: React.MutableRefObject<HTMLElement | null>
+) => {
+  const isScrollbar = (element: any) => {
+    // Check if the element has a scrollbar by comparing its scrollHeight with clientHeight
+    return (
+      element.scrollHeight > element.clientHeight ||
+      element.scrollWidth > element.clientWidth
     );
-
-    useEffect(() => {
-      window.addEventListener("mousedown", handler);
-
-      return () => {
-        window.removeEventListener("mousedown", handler);
-      };
-    }, [handler]);
   };
+
+  const handler = useCallback(
+    (event: MouseEvent) => {
+      if (
+        ref.current &&
+        !ref.current.contains(event.target as Node) &&
+        !isScrollbar(event.target)
+      ) {
+        callback(event);
+      }
+    },
+    [callback, ref]
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousedown", handler);
+
+    return () => {
+      window.removeEventListener("mousedown", handler);
+    };
+  }, [handler]);
+};
 
 export const addDecimal = (str: string, pos: number) => {
   if (pos <= 0 || !str) {

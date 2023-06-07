@@ -11,6 +11,7 @@ import {
   IRoundNumber,
   INFTTransferPayload,
   IBalance,
+  IFeeTransaction,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -238,24 +239,27 @@ export const getProof = async (
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
   const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const response = await axios.get<IRoundNumber>(
-    backendUrl + "/round-number"
-  );
+  const response = await axios.get<IRoundNumber>(backendUrl + "/round-number");
 
   return BigInt((response.data as IRoundNumber).roundNumber);
 };
 
 export const makeTransaction = async (
-  data: ITransfer | INFTTransferPayload,
+  data: ITransfer | ISwapTransferProps | INFTTransferPayload | IFeeTransaction,
   pubKey?: string
-): Promise<{ data: ITransfer }> => {
+): Promise<{
+  data: ITransfer | ISwapTransferProps | INFTTransferPayload | IFeeTransaction;
+}> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
-  const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    `${url}/transactions${pubKey ? "/" + pubKey : ""}`,
-    {
-      ...data,
-    }
-  );
+  const response = await axios.post<{
+    data:
+      | ITransfer
+      | ISwapTransferProps
+      | INFTTransferPayload
+      | IFeeTransaction;
+  }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, {
+    ...data,
+  });
 
   return response.data;
 };
@@ -359,6 +363,16 @@ export const getImageUrlAndDownloadType = async (
   } finally {
     clearTimeout(timeout);
   }
+};
+
+export const getFeeCreditBills = async (
+  isAlpha: boolean,
+  id: string
+): Promise<bigint> => {
+  const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
+  const response = await axios.get<any>(backendUrl + `/${id}`);
+
+  return response.data;
 };
 
 export const downloadFile = async (url: string, filename: string) => {

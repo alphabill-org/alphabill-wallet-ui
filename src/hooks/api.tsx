@@ -14,6 +14,7 @@ import {
   fetchAllTypes,
   getBalance,
   getBillsList,
+  getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
   getProof,
@@ -88,6 +89,21 @@ export function useGetImageUrl(
       enabled: true,
       keepPreviousData: true,
       retry: false,
+    }
+  );
+}
+
+export function useGetFeeCreditBills(
+  isAlpha: boolean,
+  id: string
+): QueryObserverResult<any[], AxiosError> {
+  return useQuery(
+    [`NFTList`, isAlpha, id],
+    async () => getFeeCreditBills(isAlpha, id),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
     }
   );
 }
