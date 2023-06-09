@@ -1,38 +1,19 @@
 import classNames from "classnames";
-import { useQueryClient } from "react-query";
 
 import {
   AlphaType,
-  FungibleTokenKind,
   TransferFeeCreditView,
-  TransferFungibleView,
-  TransferNFTView,
 } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IActiveAsset, IBill, IFungibleAsset } from "../../types/Types";
+import { IFungibleAsset } from "../../types/Types";
 import Spacer from "../Spacer/Spacer";
 
-export interface IFeeCreditProps {
-  isTypeListItem?: boolean;
-  onItemClick?: () => void;
-  onSendClick?: (e: IActiveAsset) => void;
-  setIsProofVisible?: (e: IBill) => void;
-  isProofButton?: boolean;
-  isTransferButton?: boolean;
-  isHoverDisabled?: boolean;
-}
-
-export default function FeeCredit({
-  isTypeListItem,
-  onItemClick,
-}: IFeeCreditProps): JSX.Element | null {
+export default function FeeCredit(): JSX.Element | null {
   const { activeAsset } = useAuth();
-  const queryClient = useQueryClient();
   const {
     account,
     setIsActionsViewVisible,

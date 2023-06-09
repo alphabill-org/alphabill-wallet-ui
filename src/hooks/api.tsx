@@ -4,10 +4,10 @@ import {
   IBillsList,
   IListTokensResponse,
   IProofsProps,
-  ISwapTransferProps,
-  ITransfer,
+  ITransactionPayload,
   ITypeHierarchy,
   ITokensListTypes,
+  IFeeCreditBills,
 } from "../types/Types";
 
 import {
@@ -94,18 +94,13 @@ export function useGetImageUrl(
 }
 
 export function useGetFeeCreditBills(
-  isAlpha: boolean,
   id: string
-): QueryObserverResult<any[], AxiosError> {
-  return useQuery(
-    [`NFTList`, isAlpha, id],
-    async () => getFeeCreditBills(isAlpha, id),
-    {
-      enabled: true,
-      keepPreviousData: true,
-      staleTime: Infinity,
-    }
-  );
+): QueryObserverResult<IFeeCreditBills, AxiosError> {
+  return useQuery([`NFTList`, id], async () => getFeeCreditBills(id), {
+    enabled: true,
+    keepPreviousData: true,
+    staleTime: Infinity,
+  });
 }
 
 export function useGetImageUrlAndDownloadType(url: string): QueryObserverResult<
@@ -192,7 +187,7 @@ export function useGetProof(
 
 export function useMakeTransaction(
   data: any
-): QueryObserverResult<ITransfer | ISwapTransferProps, AxiosError> {
+): QueryObserverResult<ITransactionPayload, AxiosError> {
   return useQuery([`transaction`], async () => makeTransaction(data), {
     enabled: true,
     keepPreviousData: true,

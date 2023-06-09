@@ -5,7 +5,7 @@ import {
   IChainItems,
   IInputRecord,
   IProofProps,
-  IProofTx,
+  ITransactionPayload,
   ISwapProps,
   IUnicityCertificate,
   IUnicitySeal,
@@ -31,7 +31,7 @@ export const Verify = async (
   hashingPublicKey: Uint8Array
 ) => {
   const txProof = proof.txProof;
-  const tx: IProofTx = txProof?.tx;
+  const tx: ITransactionPayload = txProof?.tx;
 
   if (!tx || isEmpty(tx)) {
     return "Proof transaction is missing";

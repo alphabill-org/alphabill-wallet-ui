@@ -170,91 +170,45 @@ export interface ISwap {
   top: string;
 }
 
-export interface ITransfer {
+export interface ITransactionAttributes {
+  type?: Uint8Array;
+  backlink?: Uint8Array;
+  newBearer?: Buffer | Uint8Array;
+  remainingValue?: BigInt | bigint;
+  targetBearer?: Uint8Array;
+  amount?: BigInt | bigint;
+  nonce?: Uint8Array;
+  value?: BigInt | bigint;
+  targetValue?: BigInt | bigint;
+  invariantPredicateSignatures?: Uint8Array;
+  targetSystemIdentifier?: Uint8Array; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
+  targetRecordID?: Uint8Array; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
+  earliestAdditionTime?: BigInt | bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+  latestAdditionTime?: BigInt | bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+  ownerCondition?: Uint8Array;
+  billIdentifiers?: string[];
+  proofs?: IProof[];
+  dcTransfers?: ITransactionPayload[];
+  nftType?: Uint8Array;
+}
+
+export interface ITransactionRequestPayload {
+  transactions: ITransactionPayload[]
+}
+
+export interface ITransactionPayload {
   payload: {
-    systemId: string;
-    unitId: string;
+    systemId: Uint8Array;
+    unitId: Uint8Array;
     type: string;
-    transactionAttributes: {
-      type?: string;
-      backlink?: string;
-      newBearer?: string;
-      remainingValue?: string;
-      targetBearer?: string;
-      amount?: string;
-      nonce?: string;
-      value?: string;
-      targetValue?: string;
-      invariantPredicateSignatures?: string[];
-    };
+    transactionAttributes: Buffer | ITransactionAttributes;
     clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
+      timeout: BigInt | bigint;
+      maxTransactionFee: BigInt | bigint;
       feeCreditRecordID: Uint8Array;
     };
   };
-  ownerProof: string;
-}
-
-export interface IActivity {
-  id: string;
-  name: string;
-  amount: string;
-  swap?: ISwap;
-  time: string;
-  address: string;
-  type: "Buy" | "Transfer" | "Swap" | "Receive";
-  network: string;
-  fromID?: string;
-  fromAmount?: string;
-  fromAddress?: string;
-}
-
-export interface ITransferProps {
-  setAccounts: (e: IAccount[]) => void;
-  account?: IAccount;
-  accounts?: IAccount[];
-  setIsActionsViewVisible: (e: boolean) => void;
-}
-
-export interface ISwapProps {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    transactionAttributes: {
-      billIdentifiers: string[]; // All the bills that are used in a swap
-      dcTransfers: IProofTx[];
-      ownerCondition: string;
-      proofs: IProof[];
-      targetValue: string;
-      invariantPredicateSignatures?: string[];
-    };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
-    };
-  };
-  ownerProof: string;
-}
-
-export interface IProofsProps {
-  bills: IProofProps[];
-}
-
-export interface IProofProps {
-  id: string;
-  value: string;
-  txHash: string;
-  isDcBill?: boolean;
-  txProof: ITxProof;
-}
-
-export interface ITxProof {
-  blockNumber: string;
-  tx: IProofTx;
-  proof: IProof;
+  ownerProof?: Uint8Array;
 }
 
 export interface IProofTx {
@@ -284,6 +238,67 @@ export interface IProofTx {
     };
   };
   ownerProof: string;
+}
+
+export interface IActivity {
+  id: string;
+  name: string;
+  amount: string;
+  swap?: ISwap;
+  time: string;
+  address: string;
+  type: "Buy" | "Transfer" | "Swap" | "Receive";
+  network: string;
+  fromID?: string;
+  fromAmount?: string;
+  fromAddress?: string;
+}
+
+export interface ITransactionPayloadProps {
+  setAccounts: (e: IAccount[]) => void;
+  account?: IAccount;
+  accounts?: IAccount[];
+  setIsActionsViewVisible: (e: boolean) => void;
+}
+
+export interface ISwapProps {
+  payload: {
+    systemId: string;
+    unitId: string;
+    type: string;
+    transactionAttributes: {
+      billIdentifiers: string[]; // All the bills that are used in a swap
+      dcTransfers: ITransactionPayload[];
+      ownerCondition: string;
+      proofs: IProof[];
+      targetValue: string;
+      invariantPredicateSignatures?: string[];
+    };
+    clientMetadata: {
+      timeout: string;
+      maxTransactionFee: string;
+      feeCreditRecordID: Uint8Array;
+    };
+  };
+  ownerProof: string;
+}
+
+export interface IProofsProps {
+  bills: IProofProps[];
+}
+
+export interface IProofProps {
+  id: string;
+  value: string;
+  txHash: string;
+  isDcBill?: boolean;
+  txProof: ITxProof;
+}
+
+export interface ITxProof {
+  blockNumber: string;
+  tx: ITransactionPayload;
+  proof: IProof;
 }
 
 export interface IProof {
@@ -346,71 +361,10 @@ export interface IChainItems {
   val: string;
   hash: string;
 }
-
-export interface ISwapTransferProps {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    transactionAttributes: {
-      billIdentifiers: string[];
-      dcTransfers: IProofTx[];
-      ownerCondition: string;
-      proofs: IProof[];
-      targetValue: string;
-      invariantPredicateSignatures?: string[];
-    };
-  };
-  clientMetadata: {
-    timeout: string;
-    maxTransactionFee: string;
-    feeCreditRecordID: Uint8Array;
-  };
-  ownerProof?: string;
+export interface IFeeCreditBills {
+  alpha: any;
+  tokens: any;
 }
-
-export interface IAddFeeTransaction  {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    transactionAttributes: {
-      feeCreditOwnerCondition: string; // target fee credit record owner condition (optional)
-      feeCreditTransfer: string; // bill transfer record of type "transfer fee credit"
-      feeCreditTransferProof: string; // transaction proof of "transfer fee credit" transaction
-    };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
-    };
-  };
-  ownerProof: string;
-}
-
-export interface IFeeTransaction {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    transactionAttributes: {
-      amount: string; // amount to transfer
-      targetSystemIdentifier: string; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-      targetRecordID: string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
-      earliestAdditionTime: string; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-      latestAdditionTime: string; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-      nonce: string; // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
-      backlink: string; // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
-    };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
-    };
-  };
-  ownerProof: string;
-}
-
 export interface IDCTransferProps {
   payload: {
     systemId: string;

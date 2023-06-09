@@ -2,16 +2,14 @@ import axios, { AxiosResponse, isCancel } from "axios";
 
 import {
   IBillsList,
-  ITransfer,
+  ITransactionPayload,
   IProofsProps,
-  ISwapTransferProps,
   IBill,
   IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,
-  INFTTransferPayload,
   IBalance,
-  IFeeTransaction,
+  IFeeCreditBills,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -245,20 +243,16 @@ export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
 };
 
 export const makeTransaction = async (
-  data: ITransfer | ISwapTransferProps | INFTTransferPayload | IFeeTransaction,
+  data: Buffer[],
   pubKey?: string
 ): Promise<{
-  data: ITransfer | ISwapTransferProps | INFTTransferPayload | IFeeTransaction;
+  data: ITransactionPayload;
 }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
   const response = await axios.post<{
-    data:
-      | ITransfer
-      | ISwapTransferProps
-      | INFTTransferPayload
-      | IFeeTransaction;
+    data: ITransactionPayload;
   }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, {
-    ...data,
+    ...{ transactions: data },
   });
 
   return response.data;
@@ -365,14 +359,19 @@ export const getImageUrlAndDownloadType = async (
   }
 };
 
-export const getFeeCreditBills = async (
-  isAlpha: boolean,
-  id: string
-): Promise<bigint> => {
-  const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const response = await axios.get<any>(backendUrl + `/${id}`);
+export const getFeeCreditBills = async (id: string): Promise<any> => {
+  const moneyResponse = await axios.get<any>(`${MONEY_BACKEND_URL}/${id}`);
+  const moneyData = moneyResponse.data;
 
-  return response.data;
+  const tokensResponse = await axios.get<any>(`${TOKENS_BACKEND_URL}/${id}`);
+  const tokensData = tokensResponse.data;
+
+  const data: IFeeCreditBills = {
+    alpha: moneyData,
+    tokens: tokensData,
+  };
+
+  return data;
 };
 
 export const downloadFile = async (url: string, filename: string) => {

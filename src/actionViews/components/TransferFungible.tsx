@@ -3,6 +3,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
+import { encode } from "cbor-x";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -12,10 +13,10 @@ import Select from "../../components/Select/Select";
 import {
   IFungibleAsset,
   IBill,
-  IProofTx,
-  ITransfer,
+  ITransactionPayload,
   ITypeHierarchy,
   IActiveAsset,
+  ITransactionAttributes,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -52,10 +53,11 @@ import {
   AlphaType,
   FungibleListView,
   TransferFungibleView,
+  maxTransactionFee,
 } from "../../utils/constants";
 
 import {
-  privateKeyHash,
+  publicKeyHash,
   splitOrderHash,
   transferOrderHash,
 } from "../../utils/hashers";
@@ -202,12 +204,12 @@ export default function TransferFungible(): JSX.Element | null {
             });
           }
 
-          let convertedAmount;
+          let convertedAmount: bigint;
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
               selectedAsset?.decimals || 0
-            );
+            ) as bigint;
           } catch (error) {
             return setErrors({
               password: error.message,
@@ -262,30 +264,26 @@ export default function TransferFungible(): JSX.Element | null {
               }
 
               billsToTransfer?.map(async (bill, idx) => {
-                const transferData: IProofTx = {
+                const transferData: ITransactionPayload = {
                   payload: {
                     systemId: systemId,
                     type: transferType,
-                    unitId: bill.id,
+                    unitId: Buffer.from(bill.id, "base64"),
                     transactionAttributes: {
                       newBearer: newBearer,
-                      [transferField]: bill.value,
-                      backlink: bill.txHash,
-                    },
+                      [transferField]: BigInt(bill.value),
+                      backlink: Buffer.from(bill.txHash, "base64"),
+                      type:
+                        selectedAsset?.typeId !== AlphaType &&
+                        Buffer.from(bill.typeId!, "base64"),
+                    } as ITransactionAttributes,
                     clientMetadata: {
-                      timeout: (roundNumber + timeoutBlocks).toString(),
-                      maxTransactionFee: "1",
-                      feeCreditRecordID: await privateKeyHash(
-                        hashingPrivateKey
-                      ),
+                      timeout: roundNumber + timeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: await publicKeyHash(hashingPublicKey),
                     },
                   },
-                  ownerProof: "",
                 };
-
-                if (selectedAsset?.typeId !== AlphaType) {
-                  transferData.payload.transactionAttributes.type = bill.typeId;
-                }
 
                 const isLastTransaction =
                   Number(billsToTransfer?.length) === idx + 1 &&
@@ -295,46 +293,40 @@ export default function TransferFungible(): JSX.Element | null {
                 handleValidation(
                   await transferOrderHash(transferData),
                   roundNumber,
-                  transferData as ITransfer,
+                  transferData as ITransactionPayload,
                   isLastTransaction,
                   bill.typeId
                 );
               });
 
               if (billToSplit && splitBillAmount) {
-                const splitData: IProofTx = {
+                const splitData: ITransactionPayload = {
                   payload: {
                     systemId: systemId,
                     type: splitType,
-                    unitId: billToSplit.id,
+                    unitId: Buffer.from(billToSplit.id, "base64"),
                     transactionAttributes: {
-                      [amountField]: splitBillAmount.toString(),
+                      [amountField]: splitBillAmount,
                       [bearerField]: newBearer,
-                      remainingValue: (
-                        BigInt(billToSplit.value) - splitBillAmount
-                      ).toString(),
-                      backlink: billToSplit.txHash,
-                    },
+                      remainingValue:
+                        BigInt(billToSplit.value) - splitBillAmount,
+                      backlink: Buffer.from(billToSplit.txHash, "base64"),
+                      type:
+                        selectedAsset?.typeId !== AlphaType &&
+                        Buffer.from(billToSplit.typeId!, "base64"),
+                    } as ITransactionAttributes,
                     clientMetadata: {
-                      timeout: (roundNumber + timeoutBlocks).toString(),
-                      maxTransactionFee: "1",
-                      feeCreditRecordID: await privateKeyHash(
-                        hashingPrivateKey
-                      ),
+                      timeout: roundNumber + timeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: await publicKeyHash(hashingPublicKey),
                     },
                   },
-                  ownerProof: "",
                 };
-
-                if (selectedAsset?.typeId !== AlphaType) {
-                  splitData.payload.transactionAttributes.type =
-                    billToSplit.typeId;
-                }
 
                 handleValidation(
                   await splitOrderHash(splitData),
                   roundNumber,
-                  splitData as ITransfer,
+                  splitData as ITransactionPayload,
                   true,
                   billToSplit.typeId
                 );
@@ -345,7 +337,7 @@ export default function TransferFungible(): JSX.Element | null {
           const handleValidation = async (
             msgHash: Uint8Array,
             roundNumber: bigint,
-            billData: ITransfer,
+            billData: ITransactionPayload,
             isLastTransfer: boolean,
             billTypeId?: string
           ) => {
@@ -355,29 +347,32 @@ export default function TransferFungible(): JSX.Element | null {
               hashingPublicKey
             );
 
-            const finishTransaction = (billData: ITransfer) => {
+            const finishTransaction = (billData: ITransactionPayload) => {
               let dataWithProof = Object.assign(billData, {
                 ownerProof: proof.ownerProof,
                 timeout: (roundNumber + timeoutBlocks).toString(),
               });
 
               if (selectedAsset?.typeId !== AlphaType) {
-                dataWithProof = { transactions: [dataWithProof] } as any;
+                dataWithProof = dataWithProof;
               }
-
+              dataWithProof.payload.transactionAttributes = encode(
+                dataWithProof.payload.transactionAttributes
+              );
               proof.isSignatureValid &&
                 makeTransaction(
-                  dataWithProof,
+                  [encode(dataWithProof)],
                   selectedAsset?.typeId === AlphaType ? "" : values.address
                 )
                   .then(() => {
                     setPreviousView(null);
-                    const attributes = billData?.payload.transactionAttributes;
-                    const amount: string =
-                      attributes?.amount ||
-                      attributes?.targetValue ||
-                      attributes?.value ||
-                      "";
+                    const attributes = billData?.payload
+                      .transactionAttributes as ITransactionAttributes;
+                    const amount =
+                      (attributes?.amount as bigint) ||
+                      (attributes?.targetValue as bigint) ||
+                      (attributes?.value as bigint) ||
+                      0n;
                     const fungibleSelectedAsset = account?.assets?.fungible
                       ?.filter(
                         (asset) => account?.activeNetwork === asset.network
@@ -387,12 +382,12 @@ export default function TransferFungible(): JSX.Element | null {
                       ) as IBill | IFungibleAsset | undefined;
 
                     balanceAfterSending.current = balanceAfterSending.current
-                      ? BigInt(balanceAfterSending.current) - BigInt(amount)
+                      ? BigInt(balanceAfterSending.current) - amount
                       : BigInt(
                           (fungibleSelectedAsset as IFungibleAsset)?.amount ||
                             (fungibleSelectedAsset as IBill)?.value ||
                             ""
-                        ) - BigInt(amount);
+                        ) - amount;
                   })
                   .finally(() => {
                     const handleTransferEnd = () => {
@@ -426,8 +421,10 @@ export default function TransferFungible(): JSX.Element | null {
                       password: error.message,
                     });
                   }
-                  billData.payload.transactionAttributes.invariantPredicateSignatures =
-                    signatures;
+                  (
+                    billData.payload
+                      .transactionAttributes as ITransactionAttributes
+                  ).invariantPredicateSignatures = signatures;
                   finishTransaction(billData);
                 })
                 .catch(() => {

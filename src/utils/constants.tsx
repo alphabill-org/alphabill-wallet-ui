@@ -19,6 +19,7 @@ export const swapTimeout = 40n;
 export const DCTransfersLimit = 100;
 export const AlphaDecimals = 8;
 export const AlphaDecimalFactor = Number("1e" + AlphaDecimals);
+export const maxTransactionFee = 1n;
 
 export const AlphaSplitType = "split";
 export const AlphaTransferType = "trans";
@@ -34,9 +35,9 @@ export const FeeCreditTransferType = "transFC";
 export const FeeCreditCloseType = "closeFC";
 export const FeeCreditReclaimType = "reclFC";
 
-export const AlphaSystemId = "AAAAAA==";
-export const TokensSystemId = "AAAAAg==";
-export const FeeSystemId = "AAAAAw==";
+export const AlphaSystemId = Buffer.from("AAAAAA==");
+export const TokensSystemId = Buffer.from("AAAAAg==");
+export const FeeSystemId = Buffer.from("AAAAAw==");
 
 export const AlphaType = "ALPHA";
 export const NonFungibleTokenKind = 4;

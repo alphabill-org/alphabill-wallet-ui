@@ -117,7 +117,7 @@ function BillsList(): JSX.Element | null {
           initialRoundNumber.current = roundNumber;
         }
 
-        if (initialRoundNumber.current + swapTimeout < roundNumber) {
+        if ((initialRoundNumber?.current + swapTimeout) < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);

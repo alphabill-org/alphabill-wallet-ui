@@ -3,40 +3,28 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
+import { encode } from "cbor-x";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
-import {
-  IBill,
-  ITransfer,
-  ITypeHierarchy,
-  IFeeTransaction,
-} from "../../types/Types";
+import { IBill, ITransactionPayload } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  getProof,
-  getRoundNumber,
-  getTypeHierarchy,
-  makeTransaction,
-} from "../../hooks/requests";
+import { getRoundNumber, makeTransaction } from "../../hooks/requests";
 
 import {
   extractFormikError,
   getKeys,
   createOwnerProof,
-  createNewBearer,
   findClosestBigger,
   getOptimalBills,
   getBillsSum,
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  createInvariantPredicateSignatures,
-  base64ToHexPrefixed,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -47,9 +35,14 @@ import {
   FeeSystemId,
   AlphaSystemId,
   TokensSystemId,
+  maxTransactionFee,
 } from "../../utils/constants";
 
-import { privateKeyHash, splitOrderHash, transferOrderHash } from "../../utils/hashers";
+import {
+  publicKeyHash,
+  splitOrderHash,
+  transferOrderHash,
+} from "../../utils/hashers";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -61,7 +54,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     selectedTransferKey,
     setSelectedTransferKey,
     setPreviousView,
-    selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
@@ -70,7 +63,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     value: string;
     label: string;
   } = {
-    value: "ALPHA",
+    value: AlphaType,
     label: "ALPHA fee credit",
   };
 
@@ -97,7 +90,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(AlphaDecimals || 0));
-  }, [defaultAsset, getAvailableAmount, isActionsViewVisible]);
+  }, [getAvailableAmount, isActionsViewVisible]);
 
   const addPollingInterval = () => {
     initialRoundNumber.current = null;
@@ -152,7 +145,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           assets: defaultAsset,
           password: "",
         }}
-        onSubmit={(values, { setErrors, resetForm }) => {
+        onSubmit={async (values, { setErrors, resetForm }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -165,13 +158,13 @@ export default function TransferFeeCredit(): JSX.Element | null {
             });
           }
 
-          let convertedAmount;
+          let convertedAmount: bigint;
 
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
               AlphaDecimals
-            );
+            ) as bigint;
           } catch (error) {
             return setErrors({
               password: error.message,
@@ -205,96 +198,81 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           setIsSending(true);
 
+          const pubKeyHash = await publicKeyHash(hashingPublicKey);
+          const isAlpha = values.assets.value === AlphaType;
+          const creditBill = feeCreditBills?.[isAlpha ? "alpha" : "tokens"];
+          const isTargetBillCreated = creditBill.id === pubKeyHash;
+          const backlink = isTargetBillCreated ? creditBill.backlink : null;
+
           getRoundNumber(defaultAsset?.value === AlphaType).then(
             async (roundNumber) => {
               billsToTransfer?.map(async (bill, idx) => {
-                getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
-                  const transferData: IFeeTransaction = {
-                    payload: {
-                      systemId: FeeSystemId,
-                      unitId: bill.id,
-                      type: FeeCreditTransferType,
-                      transactionAttributes: {
-                        amount: values.amount, // amount to transfer
-                        targetSystemIdentifier:
-                          values.assets.value === "ALPHA"
-                            ? AlphaSystemId
-                            : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                        targetRecordID:
-                          Buffer.from(hashingPublicKey).toString("base64"), // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
-                        earliestAdditionTime: roundNumber.toString(), // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                        latestAdditionTime: (
-                          roundNumber + timeoutBlocks
-                        ).toString(), // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                        nonce: "string;", // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
-                        backlink: bill.txHash, // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
-                      },
-                      clientMetadata: {
-                        timeout: (roundNumber + timeoutBlocks).toString(),
-                        maxTransactionFee: "1",
-                        feeCreditRecordID:
-                          await privateKeyHash(hashingPrivateKey),
-                      },
+                const transferData: ITransactionPayload = {
+                  payload: {
+                    systemId: FeeSystemId,
+                    unitId: Buffer.from(bill.id, "base64"),
+                    type: FeeCreditTransferType,
+                    transactionAttributes: {
+                      amount: BigInt(values.amount), // amount to transfer
+                      targetSystemIdentifier: isAlpha
+                        ? AlphaSystemId
+                        : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
+                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (public key hash)
+                      earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      nonce: Buffer.from(backlink, "base64"), // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+                      backlink: Buffer.from(bill.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
                     },
-                    ownerProof: "",
-                  };
+                    clientMetadata: {
+                      timeout: roundNumber + timeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: pubKeyHash,
+                    },
+                  },
+                };
 
-                  const isLastTransaction =
-                    Number(billsToTransfer?.length) === idx + 1 &&
-                    !billToSplit &&
-                    !splitBillAmount;
+                const isLastTransaction =
+                  Number(billsToTransfer?.length) === idx + 1 &&
+                  !billToSplit &&
+                  !splitBillAmount;
 
-                  handleValidation(
-                    await transferOrderHash(transferData),
-                    roundNumber,
-                    transferData as any,
-                    isLastTransaction,
-                    bill.typeId
-                  );
-                });
+                handleValidation(
+                  await transferOrderHash(transferData),
+                  transferData as any,
+                  isLastTransaction
+                );
               });
 
               if (billToSplit && splitBillAmount) {
-                getProof(base64ToHexPrefixed(billToSplit.id)).then(
-                  async (data) => {
-                    const splitData: IFeeTransaction = {
-                      payload: {
-                        systemId: FeeSystemId,
-                        unitId: billToSplit.id,
-                        type: FeeCreditTransferType,
-                        transactionAttributes: {
-                          amount: values.amount, // amount to transfer
-                          targetSystemIdentifier:
-                          values.assets.value === "ALPHA"
-                            ? AlphaSystemId
-                            : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                          targetRecordID:
-                            Buffer.from(hashingPublicKey).toString("base64"), // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
-                          earliestAdditionTime: roundNumber.toString(), // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                          latestAdditionTime: (
-                            roundNumber + timeoutBlocks
-                          ).toString(), // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                          nonce: "string;", // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
-                          backlink: billToSplit.txHash, // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
-                        },
-                        clientMetadata: {
-                          timeout: (roundNumber + timeoutBlocks).toString(),
-                          maxTransactionFee: "1",
-                          feeCreditRecordID:
-                            Buffer.from(hashingPublicKey).toString("base64"),
-                        },
-                      },
-                      ownerProof: "",
-                    };
+                const splitData: ITransactionPayload = {
+                  payload: {
+                    systemId: FeeSystemId,
+                    unitId: Buffer.from(billToSplit.id, "base64"),
+                    type: FeeCreditTransferType,
+                    transactionAttributes: {
+                      amount: BigInt(values.amount), // amount to transfer
+                      targetSystemIdentifier:
+                        values.assets.value === AlphaType
+                          ? AlphaSystemId
+                          : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
+                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
+                      earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      nonce: Buffer.from(backlink, "base64"), // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+                      backlink: Buffer.from(billToSplit.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
+                    },
+                    clientMetadata: {
+                      timeout: roundNumber + timeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: pubKeyHash,
+                    },
+                  },
+                };
 
-                    handleValidation(
-                      await splitOrderHash(splitData),
-                      roundNumber,
-                      splitData as ITransfer,
-                      true,
-                      billToSplit.typeId
-                    );
-                  }
+                handleValidation(
+                  await splitOrderHash(splitData),
+                  splitData,
+                  true
                 );
               }
             }
@@ -302,10 +280,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           const handleValidation = async (
             msgHash: Uint8Array,
-            roundNumber: bigint,
-            billData: ITransfer,
-            isLastTransfer: boolean,
-            billTypeId?: string
+            billData: ITransactionPayload,
+            isLastTransfer: boolean
           ) => {
             const proof = await createOwnerProof(
               msgHash,
@@ -313,18 +289,15 @@ export default function TransferFeeCredit(): JSX.Element | null {
               hashingPublicKey
             );
 
-            const finishTransaction = (billData: ITransfer) => {
-              let dataWithProof = Object.assign(billData, {
-                ownerProof: proof.ownerProof,
-                timeout: (roundNumber + timeoutBlocks).toString(),
-              });
+            const finishTransaction = (billData: ITransactionPayload) => {
+              let dataWithProof = billData;
 
-              if (defaultAsset?.value !== AlphaType) {
-                dataWithProof = { transactions: [dataWithProof] } as any;
-              }
-
+              dataWithProof.payload.transactionAttributes = encode(
+                dataWithProof.payload.transactionAttributes
+              );
+              dataWithProof.ownerProof = proof.ownerProof;
               proof.isSignatureValid &&
-                makeTransaction(dataWithProof)
+                makeTransaction([encode(dataWithProof)])
                   .then(() => {
                     setPreviousView(null);
                   })
@@ -343,34 +316,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   });
             };
 
-            if (defaultAsset?.value !== AlphaType) {
-              await getTypeHierarchy(billTypeId || "")
-                .then(async (hierarchy: ITypeHierarchy[]) => {
-                  let signatures;
-                  try {
-                    signatures = createInvariantPredicateSignatures(
-                      hierarchy,
-                      proof.ownerProof,
-                      activeAccountId
-                    );
-                  } catch (error) {
-                    setIsSending(false);
-                    return setErrors({
-                      password: error.message,
-                    });
-                  }
-                  finishTransaction(billData);
-                })
-                .catch(() => {
-                  setIsSending(false);
-                  setErrors({
-                    password:
-                      "Fetching token hierarchy for " + billTypeId + "failed",
-                  });
-                });
-            } else {
-              finishTransaction(billData);
-            }
+            finishTransaction(billData);
           };
         }}
         validationSchema={Yup.object().shape({
@@ -421,8 +367,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
         })}
       >
         {(formikProps) => {
-          const { handleSubmit, setFieldValue, errors, touched, values } =
-            formikProps;
+          const { handleSubmit, errors, touched } = formikProps;
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
@@ -433,7 +378,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     name="assets"
                     options={[
                       {
-                        value: "ALPHA",
+                        value: AlphaType,
                         label: "ALPHA fee credit",
                       },
                       {

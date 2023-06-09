@@ -92,15 +92,15 @@ export const sortBillsByID = (bills: IBill[]) =>
   );
 
 export const sortTxProofsByID = (transfers: ITxProof[]) =>
-  transfers.sort((a: ITxProof, b: ITxProof) =>
-    BigInt(base64ToHexPrefixed(a.tx.payload.unitId)) <
-    BigInt(base64ToHexPrefixed(b.tx.payload.unitId))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a.tx.payload.unitId)) >
-        BigInt(base64ToHexPrefixed(b.tx.payload.unitId))
-      ? 1
-      : 0
-  );
+  transfers.sort((a: ITxProof, b: ITxProof) => {
+    if (a.tx.payload.unitId < b.tx.payload.unitId) {
+      return -1;
+    } else if (a.tx.payload.unitId > b.tx.payload.unitId) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
 
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
@@ -131,7 +131,7 @@ export const getNewBearer = (account: IAccount) => {
       opCheckSig +
       sigScheme,
     "hex"
-  ).toString("base64");
+  );
 };
 
 export const checkPassword = (password: string | undefined) => {
@@ -241,7 +241,7 @@ export const createNewBearer = (address: string) => {
       opCheckSig +
       sigScheme,
     "hex"
-  ).toString("base64");
+  );
 };
 
 export const createOwnerProof = async (
@@ -269,7 +269,7 @@ export const createOwnerProof = async (
         sigScheme +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
-    ).toString("base64"),
+    ),
   };
 };
 
@@ -427,7 +427,7 @@ export const countDecimalLength = (str: string) => {
 export const convertToWholeNumberBigInt = (
   val: string | number,
   decimals: number
-): bigint => {
+): BigInt => {
   let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
 
@@ -495,19 +495,21 @@ export const isTokenSendable = (invariantPredicate: string, key: string) => {
 
 export const createInvariantPredicateSignatures = (
   hierarchy: ITypeHierarchy[],
-  ownerProof: string,
+  ownerProof: Uint8Array,
   key: string
 ) => {
-  return hierarchy?.map((parent: ITypeHierarchy) => {
-    const predicate = parent.invariantPredicate;
+  return Buffer.concat(
+    hierarchy?.map((parent: ITypeHierarchy) => {
+      const predicate = parent.invariantPredicate;
 
-    if (predicate === hexToBase64(pushBoolTrue)) {
-      return hexToBase64(startByte);
-    } else if (checkOwnerPredicate(key, predicate)) {
-      return ownerProof;
-    }
-    throw new Error("Token can not be transferred");
-  });
+      if (predicate === hexToBase64(pushBoolTrue)) {
+        return Buffer.from(startByte, "hex");
+      } else if (checkOwnerPredicate(key, predicate)) {
+        return ownerProof;
+      }
+      throw new Error("Token can not be transferred");
+    })
+  );
 };
 
 export const getTokensLabel = (typeId: string) =>

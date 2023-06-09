@@ -6,9 +6,10 @@ import {
   IInputRecord,
   INFTTransferPayload,
   IProof,
-  IProofTx,
+  ITransactionPayload,
   ISwapProps,
-  ITransfer,
+  ITransactionAttributes,
+  IProofTx,
 } from "../types/Types";
 import {
   AlphaDcType,
@@ -17,26 +18,26 @@ import {
   TokensTransferType,
 } from "./constants";
 
-export const baseBufferProof = (tx: IProofTx | ISwapProps) =>
+export const baseBufferProof = (tx: ITransactionPayload) =>
   secp.utils.concatBytes(
-    Buffer.from(tx.payload.systemId, "base64"),
-    Buffer.from(tx.payload.unitId, "base64"),
-    Buffer.from(tx.ownerProof, "base64"),
+    tx.payload.systemId,
+    tx.payload.unitId,
+    tx.ownerProof!
   );
 
-export const baseBuffer = (tx: IProofTx | ISwapProps) =>
+export const baseBuffer = (tx: ITransactionPayload) =>
   secp.utils.concatBytes(
-    Buffer.from(tx.payload.systemId, "base64"),
-    Buffer.from(tx.payload.unitId, "base64"),
-    Buffer.from(tx.ownerProof, "base64"),
+    tx.payload.systemId,
+    tx.payload.unitId,
+    tx.ownerProof!
   );
 
 export const dcTransfersBuffer = (
-  dcTransfers: IProofTx[],
+  dcTransfers: ITransactionPayload[],
   isProof?: boolean
 ) => {
   return Buffer.concat(
-    dcTransfers!.map((tx: IProofTx) => {
+    dcTransfers!.map((tx: ITransactionPayload) => {
       const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
       return Buffer.concat([transferBaseBuffer, dcAttributesBuffer(tx)]);
     })
@@ -93,71 +94,78 @@ export const swapProofsBuffer = (proofs: IProof[]) =>
 export const identifiersBuffer = (billIdentifiers: string[]) =>
   Buffer.concat(billIdentifiers.map((i) => Buffer.from(i, "base64")));
 
-export const transferAttributesBuffer = (tx: ITransfer) => {
+export const transferAttributesBuffer = (tx: ITransactionPayload) => {
   const transferField =
-    tx.payload.type === AlphaTransferType
+    Buffer.from(tx.payload.type).toString("base64") === AlphaTransferType
       ? "targetValue"
       : "value";
-
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
   let bytes = secp.utils.concatBytes(
-    Buffer.from(tx.payload.transactionAttributes.newBearer as string, "base64"),
-    new Uint64BE(tx.payload.transactionAttributes[transferField]!).toBuffer(),
-    Buffer.from(tx.payload.transactionAttributes.backlink!, "base64")
+    attributes.newBearer!,
+    new Uint64BE(attributes[transferField]?.toString()!).toBuffer(),
+    attributes.backlink!
   );
 
-  if (tx.payload.type === TokensTransferType) {
-    bytes = secp.utils.concatBytes(
-      bytes,
-      Buffer.from(tx.payload.transactionAttributes?.type!, "base64")
-    );
+  if (Buffer.from(tx.payload.type).toString("base64") === TokensTransferType) {
+    bytes = secp.utils.concatBytes(bytes, attributes?.type!);
   }
   return bytes;
 };
 
 export const splitAttributesBuffer = (tx: any) => {
   let bytes;
-
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
   if (tx.payload.type === AlphaSplitType) {
     bytes = secp.utils.concatBytes(
-      new Uint64BE(tx.payload.transactionAttributes.amount).toBuffer(),
-      Buffer.from(tx.payload.transactionAttributes.targetBearer as string, "base64"),
-      new Uint64BE(tx.payload.transactionAttributes.remainingValue).toBuffer(),
-      Buffer.from(tx.payload.transactionAttributes.backlink!, "base64")
+      new Uint64BE(attributes.amount!.toString()).toBuffer(),
+
+      attributes.targetBearer!,
+      new Uint64BE(attributes.remainingValue!.toString()).toBuffer(),
+      attributes.backlink!
     );
   } else {
     bytes = secp.utils.concatBytes(
-      Buffer.from(tx.payload.transactionAttributes.newBearer as string, "base64"),
-      new Uint64BE(tx.payload.transactionAttributes.targetValue).toBuffer(),
-      new Uint64BE(tx.payload.transactionAttributes.remainingValue).toBuffer(),
-      Buffer.from(tx.payload.transactionAttributes.backlink!, "base64"),
-      Buffer.from(tx.payload.transactionAttributes.type, "base64")
+      attributes.newBearer!,
+      new Uint64BE(attributes.targetValue!.toString()).toBuffer(),
+      new Uint64BE(attributes.remainingValue!.toString()).toBuffer(),
+      attributes.backlink!,
+      attributes.type!
     );
   }
 
   return bytes;
 };
 
-export const dcAttributesBuffer = (tx: IProofTx | ITransfer) =>
-  secp.utils.concatBytes(
-    Buffer.from(tx.payload.transactionAttributes.nonce!, "base64"),
-    Buffer.from(tx.payload.transactionAttributes.targetBearer as string, "base64"),
-    new Uint64BE(tx.payload.transactionAttributes.targetValue!).toBuffer(),
-    Buffer.from(tx.payload.transactionAttributes.backlink!, "base64")
+export const dcAttributesBuffer = (
+  tx: ITransactionPayload | ITransactionPayload
+) => {
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
+  return secp.utils.concatBytes(
+    attributes.nonce!,
+    attributes.targetBearer!,
+    new Uint64BE(attributes.targetValue!.toString()).toBuffer(),
+    attributes.backlink!
   );
+};
 
 export const swapAttributesBuffer = (
-  tx: IProofTx | ISwapProps,
+  tx: ITransactionPayload | ISwapProps,
   isProof?: boolean
-) =>
-  secp.utils.concatBytes(
-    Buffer.from(tx.payload.transactionAttributes.ownerCondition!, "base64"),
-    identifiersBuffer(tx.payload.transactionAttributes.billIdentifiers!),
-    dcTransfersBuffer(tx.payload.transactionAttributes.dcTransfers!, isProof),
-    swapProofsBuffer(tx.payload.transactionAttributes?.proofs!),
-    new Uint64BE(tx.payload.transactionAttributes.targetValue!).toBuffer()
+) => {
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
+  return secp.utils.concatBytes(
+    attributes.ownerCondition!,
+    identifiersBuffer(attributes.billIdentifiers!),
+    dcTransfersBuffer(attributes.dcTransfers!, isProof),
+    swapProofsBuffer(attributes?.proofs!),
+    new Uint64BE(attributes.targetValue!.toString()).toBuffer()
   );
+};
 
-export const transferOrderHash = async (tx: IProofTx, isProof?: boolean) => {
+export const transferOrderHash = async (
+  tx: ITransactionPayload,
+  isProof?: boolean
+) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(
     secp.utils.concatBytes(transferBaseBuffer, transferAttributesBuffer(tx))
@@ -165,51 +173,54 @@ export const transferOrderHash = async (tx: IProofTx, isProof?: boolean) => {
 };
 
 export const NFTTransferOrderHash = async (
-  tx: INFTTransferPayload,
+  tx: ITransactionPayload,
   isProof?: boolean
 ) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
   return await secp.utils.sha256(
     secp.utils.concatBytes(
       transferBaseBuffer,
-      Buffer.from(tx.payload.transactionAttributes.newBearer as string, "base64"),
-      Buffer.from(tx.payload.transactionAttributes.backlink!, "base64"),
-      Buffer.from(tx.payload.transactionAttributes?.nftType!, "base64")
+
+      attributes.newBearer!,
+      attributes.backlink!,
+      attributes?.nftType!
     )
   );
 };
 
-export const NFTTransferOrderTxHash = async (
-  tx: INFTTransferPayload,
-) => {
-  const signatures =
-    tx.payload.transactionAttributes?.invariantPredicateSignatures!.map((s) =>
-      Buffer.from(s, "base64")
-    );
+export const NFTTransferOrderTxHash = async (tx: ITransactionPayload) => {
+  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
 
   return Buffer.from(
     await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.payload.systemId, "base64"),
-        Buffer.from(tx.payload.unitId, "base64"),
-        Buffer.from(tx.ownerProof, "base64"),
-        Buffer.from(tx.payload.transactionAttributes.newBearer as string, "base64"),
-        Buffer.from(tx.payload.transactionAttributes.backlink!, "base64"),
-        Buffer.concat(signatures),
-        Buffer.from(tx.payload.transactionAttributes?.nftType!, "base64")
+        tx.payload.systemId,
+        tx.payload.unitId,
+        tx.ownerProof!,
+        attributes.newBearer!,
+        attributes.backlink!,
+        attributes.invariantPredicateSignatures!,
+        attributes?.nftType!
       )
     )
   ).toString("base64");
 };
 
-export const splitOrderHash = async (tx: IProofTx, isProof?: boolean) => {
+export const splitOrderHash = async (
+  tx: ITransactionPayload,
+  isProof?: boolean
+) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
   return await secp.utils.sha256(
     secp.utils.concatBytes(transferBaseBuffer, splitAttributesBuffer(tx))
   );
 };
 
-export const swapOrderHash = async (tx: ISwapProps, isProof?: boolean) => {
+export const swapOrderHash = async (
+  tx: ITransactionPayload,
+  isProof?: boolean
+) => {
   const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
 
   return await secp.utils.sha256(
@@ -221,17 +232,18 @@ export const swapOrderHash = async (tx: ISwapProps, isProof?: boolean) => {
 };
 
 export const dcOrderHash = async (
-  tx: ITransfer,
+  tx: ITransactionPayload,
   bill: IBill,
   nonceHash: Uint8Array
 ) => {
-  if (tx.payload.type === AlphaDcType) {
+  if (Buffer.from(tx.payload.type).toString("base64") === AlphaDcType) {
     return await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.payload.systemId, "base64"),
-        Buffer.from(tx.payload.unitId, "base64"),
-        Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
-        Buffer.from(tx.payload.transactionAttributes.targetBearer as string, "base64"),
+        tx.payload.systemId,
+        tx.payload.unitId,
+        nonceHash,
+        (tx.payload.transactionAttributes as ITransactionAttributes)
+          .targetBearer!,
         new Uint64BE(bill.value).toBuffer(),
         Buffer.from(bill.txHash, "base64")
       )
@@ -239,9 +251,9 @@ export const dcOrderHash = async (
   } else {
     return await secp.utils.sha256(
       secp.utils.concatBytes(
-        Buffer.from(tx.payload.systemId, "base64"),
-        Buffer.from(tx.payload.unitId, "base64"),
-        Buffer.from(Buffer.from(nonceHash).toString("base64"), "base64"),
+        tx.payload.systemId,
+        tx.payload.unitId,
+        Buffer.from(nonceHash),
         new Uint64BE(bill.value).toBuffer(),
         Buffer.from(bill.txHash, "base64")
       )
@@ -249,6 +261,6 @@ export const dcOrderHash = async (
   }
 };
 
-export const privateKeyHash = async (key: Uint8Array) => {
+export const publicKeyHash = async (key: Uint8Array) => {
   return await secp.utils.sha256(key);
 };
