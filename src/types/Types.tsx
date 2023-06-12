@@ -177,7 +177,7 @@ export interface ITransactionAttributes {
   remainingValue?: BigInt | bigint;
   targetBearer?: Uint8Array;
   amount?: BigInt | bigint;
-  nonce?: Uint8Array;
+  nonce?: Uint8Array | null;
   value?: BigInt | bigint;
   targetValue?: BigInt | bigint;
   invariantPredicateSignatures?: Uint8Array;
@@ -193,7 +193,7 @@ export interface ITransactionAttributes {
 }
 
 export interface ITransactionRequestPayload {
-  transactions: ITransactionPayload[]
+  transactions: ITransactionPayload[];
 }
 
 export interface ITransactionPayload {

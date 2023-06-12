@@ -1,4 +1,5 @@
 import axios, { AxiosResponse, isCancel } from "axios";
+import { encode } from "cbor-x";
 
 import {
   IBillsList,
@@ -243,7 +244,7 @@ export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
 };
 
 export const makeTransaction = async (
-  data: Buffer[],
+  data: ITransactionPayload[],
   pubKey?: string
 ): Promise<{
   data: ITransactionPayload;
@@ -252,7 +253,7 @@ export const makeTransaction = async (
   const response = await axios.post<{
     data: ITransactionPayload;
   }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, {
-    ...{ transactions: data },
+    ...encode({ transactions: data }),
   });
 
   return response.data;
@@ -359,11 +360,22 @@ export const getImageUrlAndDownloadType = async (
   }
 };
 
-export const getFeeCreditBills = async (id: string): Promise<any> => {
-  const moneyResponse = await axios.get<any>(`${MONEY_BACKEND_URL}/${id}`);
-  const moneyData = moneyResponse.data;
+export const getFeeCreditBills = async (
+  id: string
+): Promise<IFeeCreditBills> => {
+  const moneyPromise = axios.get<any>(
+    `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`
+  );
+  const tokensPromise = axios.get<any>(
+    `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`
+  );
 
-  const tokensResponse = await axios.get<any>(`${TOKENS_BACKEND_URL}/${id}`);
+  const [moneyResponse, tokensResponse] = await Promise.all([
+    moneyPromise,
+    tokensPromise,
+  ]);
+
+  const moneyData = moneyResponse.data;
   const tokensData = tokensResponse.data;
 
   const data: IFeeCreditBills = {

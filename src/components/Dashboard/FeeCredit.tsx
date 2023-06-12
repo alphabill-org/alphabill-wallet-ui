@@ -1,19 +1,19 @@
 import classNames from "classnames";
+import { useEffect, useState } from "react";
 
-import {
-  AlphaType,
-  TransferFeeCreditView,
-} from "../../utils/constants";
+import { AlphaType, TransferFeeCreditView } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IFungibleAsset } from "../../types/Types";
+import { IFeeCreditBills, IFungibleAsset } from "../../types/Types";
 import Spacer from "../Spacer/Spacer";
+import { publicKeyHash } from "../../utils/hashers";
+import { getFeeCreditBills } from "../../hooks/requests";
 
 export default function FeeCredit(): JSX.Element | null {
-  const { activeAsset } = useAuth();
+  const { activeAsset, activeAccountId } = useAuth();
   const {
     account,
     setIsActionsViewVisible,
@@ -21,6 +21,21 @@ export default function FeeCredit(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
   } = useApp();
+
+  const [feeCreditData, setFeeCreditData] = useState<IFeeCreditBills | null>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const publicKey = await publicKeyHash(
+        Buffer.from(activeAccountId, "hex"),
+        true
+      );
+      const result = await getFeeCreditBills(publicKey as string);
+      setFeeCreditData(result);
+    };
+
+    fetchData();
+  }, [activeAccountId]);
 
   const alphaBalance = Number(
     account?.assets?.fungible?.find(
@@ -39,45 +54,47 @@ export default function FeeCredit(): JSX.Element | null {
         "no-hover": true,
       })}
     >
-      {alphaBalance > 0
-        ? feeCredits?.map((asset: any) => {
+      {alphaBalance > 0 && feeCreditData ? (
+        <>
+          {Object.entries(feeCreditData).map(([key, value]: any) => {
             return (
               <div
-                key={asset.id}
+                key={value.id}
                 className={classNames("assets-list__item", {
                   "no-hover": true,
                 })}
               >
                 <div className="assets-list__item-clicker"></div>
                 <div className={classNames("assets-list__item-icon")}>
-                  {asset?.name === AlphaType ? <ABLogo /> : "UT"}
+                  {key === AlphaType ? <ABLogo /> : "UT"}
                 </div>
-                <div className="assets-list__item-title">{asset.name}</div>
-                {asset.balance && (
-                  <div className="assets-list__item-amount">
-                    {asset.balance}
-                  </div>
+                <div className="assets-list__item-title">{value.name}</div>
+                {value.balance && (
+                  <div className="assets-list__item-amount">{value.amount}</div>
                 )}
               </div>
             );
-          })
-        : "Need ALPHA"}
+          })}{" "}
+          <Button
+            onClick={() => {
+              setActionsView(TransferFeeCreditView);
+              setIsActionsViewVisible(true);
+              activeAsset && setSelectedTransferKey(activeAsset.id!);
+              setPreviousView(TransferFeeCreditView);
+            }}
+            type="button"
+            variant="primary"
+          >
+            Add fee credit{" "}
+            <span className="pad-8-l ">
+              <Send height="14" width="14" />
+            </span>
+          </Button>
+        </>
+      ) : (
+        "Insufficient ALPHA funds to add fee credits"
+      )}
       <Spacer mt={8} />
-      <Button
-        onClick={() => {
-          setActionsView(TransferFeeCreditView);
-          setIsActionsViewVisible(true);
-          activeAsset && setSelectedTransferKey(activeAsset.id!);
-          setPreviousView(TransferFeeCreditView);
-        }}
-        type="button"
-        variant="primary"
-      >
-        Add fee credit{" "}
-        <span className="pad-8-l ">
-          <Send height="14" width="14" />
-        </span>
-      </Button>
     </div>
   );
 }

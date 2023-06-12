@@ -33,9 +33,7 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
-  dcOrderHash,
   publicKeyHash,
-  swapOrderHash,
 } from "../../../utils/hashers";
 
 export const handleSwapRequest = async (
@@ -98,14 +96,15 @@ export const handleSwapRequest = async (
                 clientMetadata: {
                   timeout: roundNumber + swapTimeout,
                   maxTransactionFee: maxTransactionFee,
-                  feeCreditRecordID: await publicKeyHash(hashingPublicKey),
+                  feeCreditRecordID: (await publicKeyHash(
+                    hashingPublicKey
+                  )) as Uint8Array,
                 },
               },
             };
 
-            const msgHash = await swapOrderHash(transferData);
             const proof = await createOwnerProof(
-              msgHash,
+              encode(transferData.payload.transactionAttributes),
               hashingPrivateKey,
               hashingPublicKey
             );
@@ -121,7 +120,7 @@ export const handleSwapRequest = async (
               dataWithProof.payload.transactionAttributes
             );
 
-            proof.isSignatureValid && makeTransaction([encode(dataWithProof)]);
+            proof.isSignatureValid && makeTransaction([dataWithProof]);
           }
         );
       }
@@ -192,14 +191,15 @@ export const handleDC = async (
             clientMetadata: {
               timeout: roundNumber + timeoutBlocks,
               maxTransactionFee: maxTransactionFee,
-              feeCreditRecordID: await publicKeyHash(hashingPublicKey),
+              feeCreditRecordID: (await publicKeyHash(
+                hashingPublicKey
+              )) as Uint8Array,
             },
           },
         };
 
-        const msgHash = await dcOrderHash(transferData, bill, nonceHash);
         const proof = await createOwnerProof(
-          msgHash,
+          encode(transferData.payload.transactionAttributes),
           hashingPrivateKey,
           hashingPublicKey
         );
@@ -213,7 +213,7 @@ export const handleDC = async (
           dataWithProof.payload.transactionAttributes
         );
         makeTransaction(
-          [encode(dataWithProof)],
+          [dataWithProof],
           activeAsset?.typeId === AlphaType ? "" : account.pubKey
         )
           .then(() => handleTransactionEnd())

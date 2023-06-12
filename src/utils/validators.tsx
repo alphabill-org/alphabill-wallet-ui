@@ -1,22 +1,186 @@
 import * as secp from "@noble/secp256k1";
+import { Uint64BE } from "int64-buffer";
 import { isEmpty } from "lodash";
 import {
   IBill,
   IChainItems,
   IInputRecord,
-  IProofProps,
-  ITransactionPayload,
-  ISwapProps,
   IUnicityCertificate,
   IUnicitySeal,
   IUnicityTreeCertificate,
 } from "../types/Types";
 import {
-  inputRecordBuffer,
-  splitOrderHash,
-  swapOrderHash,
-  transferOrderHash,
-} from "./hashers";
+  AlphaSplitType,
+  AlphaTransferType,
+  TokensTransferType,
+} from "./constants";
+
+const baseBufferProof = (tx: any) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.systemId, "base64"),
+    Buffer.from(tx.unitId, "base64"),
+    Buffer.from(tx.ownerProof, "base64"),
+    new Uint64BE(tx.timeout).toBuffer()
+  );
+
+const baseBuffer = (tx: any) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.systemId, "base64"),
+    Buffer.from(tx.unitId, "base64"),
+    Buffer.from(tx.ownerProof, "base64"),
+    new Uint64BE(tx.timeout).toBuffer()
+  );
+
+const dcTransfersBuffer = (
+  dcTransfers: any[],
+  isProof?: boolean
+) => {
+  return Buffer.concat(
+    dcTransfers!.map((tx: any) => {
+      const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+      return Buffer.concat([transferBaseBuffer, dcAttributesBuffer(tx)]);
+    })
+  );
+};
+
+const inputRecordBuffer = (inputRecord: IInputRecord) =>
+  secp.utils.concatBytes(
+    Buffer.from(inputRecord.previousHash, "base64"),
+    Buffer.from(inputRecord.hash, "base64"),
+    Buffer.from(inputRecord.blockHash, "base64"),
+    Buffer.from(inputRecord.summaryValue, "base64")
+  );
+
+const swapProofsBuffer = (proofs: any[]) =>
+  Buffer.concat(
+    proofs?.map((p: any) => {
+      const chainItems = p.blockTreeHashChain.items.map((i: any) =>
+        Buffer.concat([
+          Buffer.from(i.val, "base64"),
+          Buffer.from(i.hash, "base64"),
+        ])
+      );
+      const treeHashes =
+        p.unicityCertificate.unicityTreeCertificate.siblingHashes.map((i: any) =>
+          Buffer.from(i, "base64")
+        );
+
+      return Buffer.concat([
+        Buffer.alloc(4),
+        Buffer.from(p.blockHeaderHash, "base64"),
+        Buffer.from(p.transactionsHash, "base64"),
+        Buffer.from(p.hashValue, "base64"),
+        Buffer.concat(chainItems),
+        inputRecordBuffer(p.unicityCertificate.inputRecord),
+        Buffer.from(
+          p.unicityCertificate.unicityTreeCertificate.systemIdentifier,
+          "base64"
+        ),
+        Buffer.from(
+          p.unicityCertificate.unicityTreeCertificate.systemDescriptionHash,
+          "base64"
+        ),
+        Buffer.concat(treeHashes),
+        new Uint64BE(
+          p.unicityCertificate.unicitySeal.rootChainRoundNumber
+        ).toBuffer(),
+        Buffer.from(p.unicityCertificate.unicitySeal.previousHash, "base64"),
+        Buffer.from(p.unicityCertificate.unicitySeal.hash, "base64"),
+      ]);
+    })
+  );
+
+const identifiersBuffer = (billIdentifiers: string[]) =>
+  Buffer.concat(billIdentifiers.map((i) => Buffer.from(i, "base64")));
+
+const transferAttributesBuffer = (tx: any) => {
+  const transferField =
+    tx.transactionAttributes["@type"] === AlphaTransferType
+      ? "targetValue"
+      : "value";
+
+  let bytes = secp.utils.concatBytes(
+    Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
+    new Uint64BE(tx.transactionAttributes[transferField]!).toBuffer(),
+    Buffer.from(tx.transactionAttributes.backlink!, "base64")
+  );
+
+  if (tx.transactionAttributes["@type"] === TokensTransferType) {
+    bytes = secp.utils.concatBytes(
+      bytes,
+      Buffer.from(tx.transactionAttributes?.type!, "base64")
+    );
+  }
+  return bytes;
+};
+
+const splitAttributesBuffer = (tx: any) => {
+  let bytes;
+
+  if (tx.transactionAttributes["@type"] === AlphaSplitType) {
+    bytes = secp.utils.concatBytes(
+      new Uint64BE(tx.transactionAttributes.amount).toBuffer(),
+      Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
+      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
+      Buffer.from(tx.transactionAttributes.backlink!, "base64")
+    );
+  } else {
+    bytes = secp.utils.concatBytes(
+      Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
+      new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
+      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
+      Buffer.from(tx.transactionAttributes.backlink!, "base64"),
+      Buffer.from(tx.transactionAttributes.type, "base64")
+    );
+  }
+
+  return bytes;
+};
+
+const dcAttributesBuffer = (tx: any | any) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.transactionAttributes.nonce!, "base64"),
+    Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
+    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer(),
+    Buffer.from(tx.transactionAttributes.backlink!, "base64")
+  );
+
+const swapAttributesBuffer = (
+  tx: any | any,
+  isProof?: boolean
+) =>
+  secp.utils.concatBytes(
+    Buffer.from(tx.transactionAttributes.ownerCondition!, "base64"),
+    identifiersBuffer(tx.transactionAttributes.billIdentifiers!),
+    dcTransfersBuffer(tx.transactionAttributes.dcTransfers!, isProof),
+    swapProofsBuffer(tx.transactionAttributes?.proofs!),
+    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer()
+  );
+
+const transferOrderHash = async (tx: any, isProof?: boolean) => {
+  const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+  return await secp.utils.sha256(
+    secp.utils.concatBytes(transferBaseBuffer, transferAttributesBuffer(tx))
+  );
+};
+
+const splitOrderHash = async (tx: any, isProof?: boolean) => {
+  const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+  return await secp.utils.sha256(
+    secp.utils.concatBytes(transferBaseBuffer, splitAttributesBuffer(tx))
+  );
+};
+
+export const swapOrderHash = async (tx: any, isProof?: boolean) => {
+  const transferBaseBuffer = isProof ? baseBufferProof(tx) : baseBuffer(tx);
+
+  return await secp.utils.sha256(
+    secp.utils.concatBytes(
+      transferBaseBuffer,
+      swapAttributesBuffer(tx, isProof)
+    )
+  );
+};
 
 // Fixed constants
 const signingPublicKey = "AswruvQ9RghmioVBQu43Mk//acFrHdJ1raMbvbZBvdKl";
@@ -25,13 +189,13 @@ const systemDescriptionHash = "1xLJvNPorwq+KXmXUY4IhQwyVJJO1ROXgYNxcrBt25U=";
 
 // Verify verifies the proof against given transaction, returns error if verification failed, or nil if verification succeeded.
 export const Verify = async (
-  proof: IProofProps,
+  proof: any,
   bill: IBill,
   hashingPrivateKey: Uint8Array,
   hashingPublicKey: Uint8Array
 ) => {
   const txProof = proof.txProof;
-  const tx: ITransactionPayload = txProof?.tx;
+  const tx: any = txProof?.tx;
 
   if (!tx || isEmpty(tx)) {
     return "Proof transaction is missing";
@@ -99,7 +263,7 @@ export const Verify = async (
   } else if (
     tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SwapOrder"
   ) {
-    primHash = await swapOrderHash(tx as ISwapProps, true);
+    primHash = await swapOrderHash(tx as any, true);
   }
 
   if (!primHash) return "Primary hash is missing";
@@ -123,7 +287,7 @@ export const Verify = async (
 };
 
 const verifyChainHead = (
-  proof: IProofProps,
+  proof: any,
   billID: string,
   unitHash: Uint8Array
 ) => {
@@ -140,7 +304,7 @@ const verifyChainHead = (
 };
 
 const verifyUC = async (
-  proof: IProofProps,
+  proof: any,
   billID: string,
   signingPublicKey: string
 ) => {

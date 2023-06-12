@@ -10,10 +10,14 @@ import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
-import { IBill, ITransactionPayload } from "../../types/Types";
+import { IBill, IFeeCreditBills, ITransactionPayload } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import { getRoundNumber, makeTransaction } from "../../hooks/requests";
+import {
+  getFeeCreditBills,
+  getRoundNumber,
+  makeTransaction,
+} from "../../hooks/requests";
 
 import {
   extractFormikError,
@@ -38,11 +42,7 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import {
-  publicKeyHash,
-  splitOrderHash,
-  transferOrderHash,
-} from "../../utils/hashers";
+import { publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -54,7 +54,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
     selectedTransferKey,
     setSelectedTransferKey,
     setPreviousView,
-    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
@@ -71,6 +70,20 @@ export default function TransferFeeCredit(): JSX.Element | null {
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [feeCreditData, setFeeCreditData] = useState<IFeeCreditBills | null>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const publicKey = await publicKeyHash(
+        Buffer.from(activeAccountId, "hex"),
+        true
+      );
+      const result = await getFeeCreditBills(publicKey as string);
+      setFeeCreditData(result);
+    };
+
+    fetchData();
+  }, [activeAccountId]);
 
   const getAvailableAmount = useCallback(
     (decimals: number) => {
@@ -198,11 +211,19 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           setIsSending(true);
 
-          const pubKeyHash = await publicKeyHash(hashingPublicKey);
+          const pubKeyHash = (await publicKeyHash(
+            hashingPublicKey
+          )) as Uint8Array;
+          const pubKeyHashHex = (await publicKeyHash(
+            hashingPublicKey,
+            true
+          )) as string;
           const isAlpha = values.assets.value === AlphaType;
-          const creditBill = feeCreditBills?.[isAlpha ? "alpha" : "tokens"];
-          const isTargetBillCreated = creditBill.id === pubKeyHash;
-          const backlink = isTargetBillCreated ? creditBill.backlink : null;
+          const creditBill = feeCreditData?.[isAlpha ? "alpha" : "tokens"];
+          const isTargetBillCreated = creditBill?.id === pubKeyHashHex;
+          const backlink = isTargetBillCreated
+            ? Buffer.from(creditBill?.backlink, "base64")
+            : null;
 
           getRoundNumber(defaultAsset?.value === AlphaType).then(
             async (roundNumber) => {
@@ -220,7 +241,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      nonce: Buffer.from(backlink, "base64"), // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+                      nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
                       backlink: Buffer.from(bill.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
                     },
                     clientMetadata: {
@@ -237,7 +258,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   !splitBillAmount;
 
                 handleValidation(
-                  await transferOrderHash(transferData),
                   transferData as any,
                   isLastTransaction
                 );
@@ -258,7 +278,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      nonce: Buffer.from(backlink, "base64"), // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+                      nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
                       backlink: Buffer.from(billToSplit.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
                     },
                     clientMetadata: {
@@ -270,7 +290,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 };
 
                 handleValidation(
-                  await splitOrderHash(splitData),
                   splitData,
                   true
                 );
@@ -279,12 +298,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
           );
 
           const handleValidation = async (
-            msgHash: Uint8Array,
             billData: ITransactionPayload,
             isLastTransfer: boolean
           ) => {
             const proof = await createOwnerProof(
-              msgHash,
+              encode(billData.payload.transactionAttributes),
               hashingPrivateKey,
               hashingPublicKey
             );
@@ -297,7 +315,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
               );
               dataWithProof.ownerProof = proof.ownerProof;
               proof.isSignatureValid &&
-                makeTransaction([encode(dataWithProof)])
+                makeTransaction([dataWithProof])
                   .then(() => {
                     setPreviousView(null);
                   })
@@ -321,30 +339,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
         }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
-          address: Yup.string()
-            .required("Address is required")
-            .test(
-              "account-id-same",
-              `Receiver's account is your account`,
-              function (value) {
-                if (value) {
-                  return account?.pubKey !== value;
-                } else {
-                  return true;
-                }
-              }
-            )
-            .test(
-              "account-id-correct",
-              `Address in not in valid format`,
-              function (value) {
-                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
-            ),
           password: Yup.string().required("Password is required"),
           amount: Yup.string()
             .required("Amount is required")
@@ -420,7 +414,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     working={isSending}
                     disabled={isSending}
                   >
-                    Transfer
+                    Transfer credit
                   </Button>
                 </FormFooter>
               </Form>

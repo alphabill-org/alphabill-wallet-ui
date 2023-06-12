@@ -23,7 +23,6 @@ import {
   useGetUserTokens,
   useGetAllNFTs,
   useGetNFTs,
-  useGetFeeCreditBills,
 } from "./api";
 import { useAuth } from "./useAuth";
 import { AlphaType, TransferNFTView } from "../utils/constants";
@@ -87,7 +86,6 @@ export const AppProvider: FunctionComponent<{
   >();
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
-  const { data: feeCreditBills } = useGetFeeCreditBills(activeAccountId);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
     useGetAllUserTokens(activeAccountId);
@@ -210,7 +208,6 @@ export const AppProvider: FunctionComponent<{
     accounts,
     keysArr,
     accountNamesObj,
-    feeCreditBills,
     balances,
     activeAccountId,
     setActiveAccountId,
@@ -246,7 +243,6 @@ export const AppProvider: FunctionComponent<{
         setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
-        feeCreditBills
       }}
     >
       {children}

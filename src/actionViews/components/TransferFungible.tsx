@@ -58,8 +58,6 @@ import {
 
 import {
   publicKeyHash,
-  splitOrderHash,
-  transferOrderHash,
 } from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
@@ -280,7 +278,9 @@ export default function TransferFungible(): JSX.Element | null {
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: await publicKeyHash(hashingPublicKey),
+                      feeCreditRecordID: (await publicKeyHash(
+                        hashingPublicKey
+                      )) as Uint8Array,
                     },
                   },
                 };
@@ -291,7 +291,6 @@ export default function TransferFungible(): JSX.Element | null {
                   !splitBillAmount;
 
                 handleValidation(
-                  await transferOrderHash(transferData),
                   roundNumber,
                   transferData as ITransactionPayload,
                   isLastTransaction,
@@ -318,13 +317,14 @@ export default function TransferFungible(): JSX.Element | null {
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: await publicKeyHash(hashingPublicKey),
+                      feeCreditRecordID: (await publicKeyHash(
+                        hashingPublicKey
+                      )) as Uint8Array,
                     },
                   },
                 };
 
                 handleValidation(
-                  await splitOrderHash(splitData),
                   roundNumber,
                   splitData as ITransactionPayload,
                   true,
@@ -335,14 +335,13 @@ export default function TransferFungible(): JSX.Element | null {
           );
 
           const handleValidation = async (
-            msgHash: Uint8Array,
             roundNumber: bigint,
             billData: ITransactionPayload,
             isLastTransfer: boolean,
             billTypeId?: string
           ) => {
             const proof = await createOwnerProof(
-              msgHash,
+              encode(billData.payload.transactionAttributes),
               hashingPrivateKey,
               hashingPublicKey
             );
@@ -361,7 +360,7 @@ export default function TransferFungible(): JSX.Element | null {
               );
               proof.isSignatureValid &&
                 makeTransaction(
-                  [encode(dataWithProof)],
+                  [dataWithProof],
                   selectedAsset?.typeId === AlphaType ? "" : values.address
                 )
                   .then(() => {

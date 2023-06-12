@@ -14,7 +14,6 @@ import {
   ITypeHierarchy,
   INFTAsset,
   IListTokensResponse,
-  INFTTransferPayload,
   ITransactionPayload,
   ITransactionAttributes,
 } from "../../types/Types";
@@ -47,7 +46,6 @@ import {
 } from "../../utils/constants";
 
 import {
-  NFTTransferOrderHash,
   NFTTransferOrderTxHash,
   publicKeyHash,
 } from "../../utils/hashers";
@@ -168,13 +166,14 @@ export default function TransferNFTs(): JSX.Element | null {
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: await publicKeyHash(hashingPublicKey),
+                      feeCreditRecordID: (await publicKeyHash(
+                        hashingPublicKey
+                      )) as Uint8Array,
                     },
                   },
                 };
-                const msgHash = await NFTTransferOrderHash(tokenData);
                 const proof = await createOwnerProof(
-                  msgHash,
+                  encode(tokenData.payload.transactionAttributes),
                   hashingPrivateKey,
                   hashingPublicKey
                 );
@@ -207,7 +206,7 @@ export default function TransferNFTs(): JSX.Element | null {
                 );
 
                 proof.isSignatureValid &&
-                  makeTransaction([encode(dataWithProof)], values.address).then(
+                  makeTransaction([dataWithProof], values.address).then(
                     async () => {
                       const handleTransferEnd = () => {
                         addPollingInterval();

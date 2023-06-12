@@ -255,7 +255,6 @@ export const createOwnerProof = async (
   });
 
   const isValid = secp.verify(signature[0], msgHash, pubKey);
-
   return {
     isSignatureValid: isValid,
     ownerProof: Buffer.from(
