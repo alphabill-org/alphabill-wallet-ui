@@ -35,9 +35,9 @@ export const FeeCreditTransferType = "transFC";
 export const FeeCreditCloseType = "closeFC";
 export const FeeCreditReclaimType = "reclFC";
 
-export const AlphaSystemId = Buffer.from("AAAAAA==");
-export const TokensSystemId = Buffer.from("AAAAAg==");
-export const FeeSystemId = Buffer.from("AAAAAw==");
+export const AlphaSystemId = Buffer.from("AAAAAA==", "base64");
+export const TokensSystemId = Buffer.from("AAAAAg==", "base64");
+export const FeeSystemId = Buffer.from("AAAAAw==", "base64");
 
 export const AlphaType = "ALPHA";
 export const NonFungibleTokenKind = 4;

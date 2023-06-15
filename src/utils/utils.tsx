@@ -6,6 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
+import { encode } from "cbor-x";
 
 import {
   IAccount,
@@ -16,6 +17,7 @@ import {
   IListTokensResponse,
   ITokensListTypes,
   INFTAsset,
+  ITransactionPayloadObj,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -245,16 +247,19 @@ export const createNewBearer = (address: string) => {
 };
 
 export const createOwnerProof = async (
-  msgHash: Uint8Array,
+  payload: ITransactionPayloadObj,
   hashingPrivateKey: Uint8Array,
   pubKey: Uint8Array
 ) => {
-  const signature = await secp.sign(msgHash, hashingPrivateKey, {
+  payload.attributes = Object.values(payload.attributes);
+  payload.clientMetadata = Object.values(payload.clientMetadata);
+  const payloadBuffer = encode(Object.values(payload));
+  const signature = await secp.sign(payloadBuffer, hashingPrivateKey, {
     der: false,
     recovered: true,
   });
 
-  const isValid = secp.verify(signature[0], msgHash, pubKey);
+  const isValid = secp.verify(signature[0], payloadBuffer, pubKey);
   return {
     isSignatureValid: isValid,
     ownerProof: Buffer.from(

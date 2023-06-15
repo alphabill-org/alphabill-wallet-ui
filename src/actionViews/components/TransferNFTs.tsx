@@ -46,6 +46,7 @@ import {
 } from "../../utils/constants";
 
 import {
+  createRequestData,
   NFTTransferOrderTxHash,
   publicKeyHash,
 } from "../../utils/hashers";
@@ -158,7 +159,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     systemId: TokensSystemId,
                     type: NFTTokensTransferType,
                     unitId: Buffer.from(selectedNFT.id, "base64"),
-                    transactionAttributes: {
+                    attributes: {
                       newBearer: newBearer,
                       nftType: Buffer.from(selectedNFT.typeId, "base64"),
                       backlink: Buffer.from(selectedNFT.txHash, "base64"),
@@ -172,8 +173,10 @@ export default function TransferNFTs(): JSX.Element | null {
                     },
                   },
                 };
+                const tokenDataObj = tokenData;
+
                 const proof = await createOwnerProof(
-                  encode(tokenData.payload.transactionAttributes),
+                  tokenData.payload,
                   hashingPrivateKey,
                   hashingPublicKey
                 );
@@ -192,54 +195,47 @@ export default function TransferNFTs(): JSX.Element | null {
                 }
 
                 (
-                  tokenData.payload
-                    .transactionAttributes as ITransactionAttributes
+                  tokenData.payload.attributes as ITransactionAttributes
                 ).invariantPredicateSignatures = signatures;
 
-                const dataWithProof = Object.assign(tokenData, {
-                  ownerProof: proof.ownerProof,
-                  timeout: (roundNumber + timeoutBlocks).toString(),
-                });
                 transferredToken.current = selectedNFT;
-                dataWithProof.payload.transactionAttributes = encode(
-                  dataWithProof.payload.transactionAttributes
-                );
 
                 proof.isSignatureValid &&
-                  makeTransaction([dataWithProof], values.address).then(
-                    async () => {
-                      const handleTransferEnd = () => {
-                        addPollingInterval();
-                        setIsSending(false);
-                        setSelectedTransferKey(null);
-                        setIsActionsViewVisible(false);
-                        resetForm();
-                        setPreviousView(null);
-                      };
+                  makeTransaction(
+                    createRequestData(tokenData, proof.ownerProof),
+                    values.address
+                  ).then(async () => {
+                    const handleTransferEnd = () => {
+                      addPollingInterval();
+                      setIsSending(false);
+                      setSelectedTransferKey(null);
+                      setIsActionsViewVisible(false);
+                      resetForm();
+                      setPreviousView(null);
+                    };
 
-                      if (Boolean(chrome?.storage) && dataWithProof) {
-                        chrome?.storage?.local.get(
-                          ["ab_connect_transfer"],
-                          async function (transferRes) {
-                            const typeId =
-                              transferRes?.ab_connect_transfer?.token_type_id;
+                    if (Boolean(chrome?.storage) && tokenDataObj) {
+                      chrome?.storage?.local.get(
+                        ["ab_connect_transfer"],
+                        async function (transferRes) {
+                          const typeId =
+                            transferRes?.ab_connect_transfer?.token_type_id;
 
-                            if (Boolean(typeId)) {
-                              sendTransferMessage(
-                                transferredToken.current as INFTAsset,
-                                await NFTTransferOrderTxHash(dataWithProof),
-                                handleTransferEnd
-                              );
-                            } else {
-                              handleTransferEnd();
-                            }
+                          if (Boolean(typeId)) {
+                            sendTransferMessage(
+                              transferredToken.current as INFTAsset,
+                              await NFTTransferOrderTxHash(tokenDataObj),
+                              handleTransferEnd
+                            );
+                          } else {
+                            handleTransferEnd();
                           }
-                        );
-                      } else {
-                        handleTransferEnd();
-                      }
+                        }
+                      );
+                    } else {
+                      handleTransferEnd();
                     }
-                  );
+                  });
               })
               .catch(() => {
                 setIsSending(false);

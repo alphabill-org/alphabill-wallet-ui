@@ -95,20 +95,20 @@ const identifiersBuffer = (billIdentifiers: string[]) =>
 
 const transferAttributesBuffer = (tx: any) => {
   const transferField =
-    tx.transactionAttributes["@type"] === AlphaTransferType
+    tx.attributes["@type"] === AlphaTransferType
       ? "targetValue"
       : "value";
 
   let bytes = secp.utils.concatBytes(
-    Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
-    new Uint64BE(tx.transactionAttributes[transferField]!).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink!, "base64")
+    Buffer.from(tx.attributes.newBearer as string, "base64"),
+    new Uint64BE(tx.attributes[transferField]!).toBuffer(),
+    Buffer.from(tx.attributes.backlink!, "base64")
   );
 
-  if (tx.transactionAttributes["@type"] === TokensTransferType) {
+  if (tx.attributes["@type"] === TokensTransferType) {
     bytes = secp.utils.concatBytes(
       bytes,
-      Buffer.from(tx.transactionAttributes?.type!, "base64")
+      Buffer.from(tx.attributes?.type!, "base64")
     );
   }
   return bytes;
@@ -117,20 +117,20 @@ const transferAttributesBuffer = (tx: any) => {
 const splitAttributesBuffer = (tx: any) => {
   let bytes;
 
-  if (tx.transactionAttributes["@type"] === AlphaSplitType) {
+  if (tx.attributes["@type"] === AlphaSplitType) {
     bytes = secp.utils.concatBytes(
-      new Uint64BE(tx.transactionAttributes.amount).toBuffer(),
-      Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
-      Buffer.from(tx.transactionAttributes.backlink!, "base64")
+      new Uint64BE(tx.attributes.amount).toBuffer(),
+      Buffer.from(tx.attributes.targetBearer as string, "base64"),
+      new Uint64BE(tx.attributes.remainingValue).toBuffer(),
+      Buffer.from(tx.attributes.backlink!, "base64")
     );
   } else {
     bytes = secp.utils.concatBytes(
-      Buffer.from(tx.transactionAttributes.newBearer as string, "base64"),
-      new Uint64BE(tx.transactionAttributes.targetValue).toBuffer(),
-      new Uint64BE(tx.transactionAttributes.remainingValue).toBuffer(),
-      Buffer.from(tx.transactionAttributes.backlink!, "base64"),
-      Buffer.from(tx.transactionAttributes.type, "base64")
+      Buffer.from(tx.attributes.newBearer as string, "base64"),
+      new Uint64BE(tx.attributes.targetValue).toBuffer(),
+      new Uint64BE(tx.attributes.remainingValue).toBuffer(),
+      Buffer.from(tx.attributes.backlink!, "base64"),
+      Buffer.from(tx.attributes.type, "base64")
     );
   }
 
@@ -139,10 +139,10 @@ const splitAttributesBuffer = (tx: any) => {
 
 const dcAttributesBuffer = (tx: any | any) =>
   secp.utils.concatBytes(
-    Buffer.from(tx.transactionAttributes.nonce!, "base64"),
-    Buffer.from(tx.transactionAttributes.targetBearer as string, "base64"),
-    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer(),
-    Buffer.from(tx.transactionAttributes.backlink!, "base64")
+    Buffer.from(tx.attributes.nonce!, "base64"),
+    Buffer.from(tx.attributes.targetBearer as string, "base64"),
+    new Uint64BE(tx.attributes.targetValue!).toBuffer(),
+    Buffer.from(tx.attributes.backlink!, "base64")
   );
 
 const swapAttributesBuffer = (
@@ -150,11 +150,11 @@ const swapAttributesBuffer = (
   isProof?: boolean
 ) =>
   secp.utils.concatBytes(
-    Buffer.from(tx.transactionAttributes.ownerCondition!, "base64"),
-    identifiersBuffer(tx.transactionAttributes.billIdentifiers!),
-    dcTransfersBuffer(tx.transactionAttributes.dcTransfers!, isProof),
-    swapProofsBuffer(tx.transactionAttributes?.proofs!),
-    new Uint64BE(tx.transactionAttributes.targetValue!).toBuffer()
+    Buffer.from(tx.attributes.ownerCondition!, "base64"),
+    identifiersBuffer(tx.attributes.billIdentifiers!),
+    dcTransfersBuffer(tx.attributes.dcTransfers!, isProof),
+    swapProofsBuffer(tx.attributes?.proofs!),
+    new Uint64BE(tx.attributes.targetValue!).toBuffer()
   );
 
 const transferOrderHash = async (tx: any, isProof?: boolean) => {
@@ -252,16 +252,16 @@ export const Verify = async (
   let primHash;
 
   if (
-    tx.transactionAttributes["@type"] ===
+    tx.attributes["@type"] ===
     "type.googleapis.com/rpc.TransferOrder"
   ) {
     primHash = await transferOrderHash(tx, true);
   } else if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
+    tx.attributes["@type"] === "type.googleapis.com/rpc.SplitOrder"
   ) {
     primHash = await splitOrderHash(tx, true);
   } else if (
-    tx.transactionAttributes["@type"] === "type.googleapis.com/rpc.SwapOrder"
+    tx.attributes["@type"] === "type.googleapis.com/rpc.SwapOrder"
   ) {
     primHash = await swapOrderHash(tx as any, true);
   }

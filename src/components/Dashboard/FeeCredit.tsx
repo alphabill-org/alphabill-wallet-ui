@@ -54,9 +54,9 @@ export default function FeeCredit(): JSX.Element | null {
         "no-hover": true,
       })}
     >
-      {alphaBalance > 0 && feeCreditData ? (
+      {alphaBalance > 0  ? (
         <>
-          {Object.entries(feeCreditData).map(([key, value]: any) => {
+          {feeCreditData && Object.entries(feeCreditData).map(([key, value]: any) => {
             return (
               <div
                 key={value.id}

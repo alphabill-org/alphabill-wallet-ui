@@ -36,13 +36,12 @@ import {
   TransferFeeCreditView,
   AlphaDecimals,
   FeeCreditTransferType,
-  FeeSystemId,
   AlphaSystemId,
   TokensSystemId,
   maxTransactionFee,
 } from "../../utils/constants";
 
-import { publicKeyHash } from "../../utils/hashers";
+import { createRequestData, publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -84,6 +83,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
     fetchData();
   }, [activeAccountId]);
+  console.log(AlphaSystemId);
 
   const getAvailableAmount = useCallback(
     (decimals: number) => {
@@ -230,10 +230,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
               billsToTransfer?.map(async (bill, idx) => {
                 const transferData: ITransactionPayload = {
                   payload: {
-                    systemId: FeeSystemId,
-                    unitId: Buffer.from(bill.id, "base64"),
+                    systemId: AlphaSystemId,
                     type: FeeCreditTransferType,
-                    transactionAttributes: {
+                    unitId: Buffer.from(bill.id, "base64"),
+                    attributes: {
                       amount: BigInt(values.amount), // amount to transfer
                       targetSystemIdentifier: isAlpha
                         ? AlphaSystemId
@@ -257,19 +257,16 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   !billToSplit &&
                   !splitBillAmount;
 
-                handleValidation(
-                  transferData as any,
-                  isLastTransaction
-                );
+                handleValidation(transferData as any, isLastTransaction);
               });
 
               if (billToSplit && splitBillAmount) {
                 const splitData: ITransactionPayload = {
                   payload: {
-                    systemId: FeeSystemId,
-                    unitId: Buffer.from(billToSplit.id, "base64"),
+                    systemId: AlphaSystemId,
                     type: FeeCreditTransferType,
-                    transactionAttributes: {
+                    unitId: Buffer.from(billToSplit.id, "base64"),
+                    attributes: {
                       amount: BigInt(values.amount), // amount to transfer
                       targetSystemIdentifier:
                         values.assets.value === AlphaType
@@ -289,10 +286,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   },
                 };
 
-                handleValidation(
-                  splitData,
-                  true
-                );
+                handleValidation(splitData, true);
               }
             }
           );
@@ -302,20 +296,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
             isLastTransfer: boolean
           ) => {
             const proof = await createOwnerProof(
-              encode(billData.payload.transactionAttributes),
+              billData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
 
             const finishTransaction = (billData: ITransactionPayload) => {
-              let dataWithProof = billData;
-
-              dataWithProof.payload.transactionAttributes = encode(
-                dataWithProof.payload.transactionAttributes
-              );
-              dataWithProof.ownerProof = proof.ownerProof;
               proof.isSignatureValid &&
-                makeTransaction([dataWithProof])
+                makeTransaction(createRequestData(billData, proof.ownerProof))
                   .then(() => {
                     setPreviousView(null);
                   })

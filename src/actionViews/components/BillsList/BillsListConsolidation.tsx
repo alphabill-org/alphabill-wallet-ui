@@ -1,5 +1,4 @@
 import * as secp from "@noble/secp256k1";
-import { encode } from "cbor-x";
 
 import {
   base64ToHexPrefixed,
@@ -33,6 +32,7 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
+  createRequestData,
   publicKeyHash,
 } from "../../../utils/hashers";
 
@@ -81,16 +81,13 @@ export const handleSwapRequest = async (
                 systemId: AlphaSystemId,
                 type: AlphaSwapType,
                 unitId: Buffer.from(nonceHash),
-                transactionAttributes: {
+                attributes: {
                   billIdentifiers: sortIDBySize(billIdentifiers),
                   dcTransfers: dcTransfers,
                   ownerCondition: getNewBearer(account),
                   proofs: proofs,
                   targetValue: dcTransfers?.reduce((acc, obj: any) => {
-                    return (
-                      acc +
-                      BigInt(obj.payload.transactionAttributes.targetValue!)
-                    );
+                    return acc + BigInt(obj.payload.attributes.targetValue!);
                   }, 0n),
                 },
                 clientMetadata: {
@@ -104,23 +101,12 @@ export const handleSwapRequest = async (
             };
 
             const proof = await createOwnerProof(
-              encode(transferData.payload.transactionAttributes),
+              transferData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
 
-            let dataWithProof: ITransactionPayload = await Object.assign(
-              transferData,
-              {
-                ownerProof: proof.ownerProof,
-              }
-            );
-
-            dataWithProof.payload.transactionAttributes = encode(
-              dataWithProof.payload.transactionAttributes
-            );
-
-            proof.isSignatureValid && makeTransaction([dataWithProof]);
+            proof.isSignatureValid && makeTransaction(createRequestData(transferData, proof.ownerProof));
           }
         );
       }
@@ -182,7 +168,7 @@ export const handleDC = async (
             systemId: AlphaSystemId,
             type: AlphaDcType,
             unitId: Buffer.from(bill.id, "base64"),
-            transactionAttributes: {
+            attributes: {
               backlink: Buffer.from(bill.txHash, "base64"),
               nonce: nonceHash,
               targetBearer: getNewBearer(account),
@@ -199,21 +185,15 @@ export const handleDC = async (
         };
 
         const proof = await createOwnerProof(
-          encode(transferData.payload.transactionAttributes),
+          transferData.payload,
           hashingPrivateKey,
           hashingPublicKey
         );
 
         if (proof.isSignatureValid !== true) return;
 
-        let dataWithProof = Object.assign(transferData, {
-          ownerProof: proof.ownerProof,
-        });
-        dataWithProof.payload.transactionAttributes = encode(
-          dataWithProof.payload.transactionAttributes
-        );
         makeTransaction(
-          [dataWithProof],
+          createRequestData(transferData, proof.ownerProof),
           activeAsset?.typeId === AlphaType ? "" : account.pubKey
         )
           .then(() => handleTransactionEnd())

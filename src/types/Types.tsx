@@ -42,7 +42,7 @@ export interface INFTTransferPayload {
     systemId: string;
     unitId: string;
     type: string;
-    transactionAttributes: {
+    attributes: {
       nftType: string;
       backlink: string;
       newBearer?: string;
@@ -51,7 +51,7 @@ export interface INFTTransferPayload {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
+      feeCreditRecordID?: Uint8Array;
     };
   };
   ownerProof: string;
@@ -201,14 +201,30 @@ export interface ITransactionPayload {
     systemId: Uint8Array;
     unitId: Uint8Array;
     type: string;
-    transactionAttributes: Buffer | ITransactionAttributes;
-    clientMetadata: {
-      timeout: BigInt | bigint;
-      maxTransactionFee: BigInt | bigint;
-      feeCreditRecordID: Uint8Array;
-    };
+    attributes: any[] | ITransactionAttributes;
+    clientMetadata:
+      | any[]
+      | {
+          timeout: BigInt | bigint;
+          maxTransactionFee: BigInt | bigint;
+          feeCreditRecordID?: Uint8Array;
+        };
   };
   ownerProof?: Uint8Array;
+}
+
+export interface ITransactionPayloadObj {
+  systemId: Uint8Array;
+  unitId: Uint8Array;
+  type: string;
+  attributes: any[] | ITransactionAttributes;
+  clientMetadata:
+    | any[]
+    | {
+        timeout: BigInt | bigint;
+        maxTransactionFee: BigInt | bigint;
+        feeCreditRecordID?: Uint8Array;
+      };
 }
 
 export interface IProofTx {
@@ -216,7 +232,7 @@ export interface IProofTx {
     systemId: string;
     unitId: string;
     type: string;
-    transactionAttributes: {
+    attributes: {
       nonce?: string;
       targetBearer?: string;
       backlink: string;
@@ -231,11 +247,13 @@ export interface IProofTx {
       invariantPredicateSignatures?: string[];
       type?: string;
     };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
-    };
+    clientMetadata:
+      | any[]
+      | {
+          timeout: string;
+          maxTransactionFee: string;
+          feeCreditRecordID?: Uint8Array;
+        };
   };
   ownerProof: string;
 }
@@ -266,7 +284,7 @@ export interface ISwapProps {
     systemId: string;
     unitId: string;
     type: string;
-    transactionAttributes: {
+    attributes: {
       billIdentifiers: string[]; // All the bills that are used in a swap
       dcTransfers: ITransactionPayload[];
       ownerCondition: string;
@@ -277,7 +295,7 @@ export interface ISwapProps {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
+      feeCreditRecordID?: Uint8Array;
     };
   };
   ownerProof: string;
@@ -370,7 +388,7 @@ export interface IDCTransferProps {
     systemId: string;
     unitId: string;
     type: string;
-    transactionAttributes: {
+    attributes: {
       backlink: string;
       nonce: string;
       targetBearer: string;
@@ -379,7 +397,7 @@ export interface IDCTransferProps {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID: Uint8Array;
+      feeCreditRecordID?: Uint8Array;
     };
   };
   ownerProof: string;

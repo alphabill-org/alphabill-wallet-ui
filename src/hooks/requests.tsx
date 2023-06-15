@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, isCancel } from "axios";
-import { encode } from "cbor-x";
+import { encode, decode } from "cbor-x";
+import { Encoder } from 'cbor-x'
 
 import {
   IBillsList,
@@ -244,16 +245,20 @@ export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
 };
 
 export const makeTransaction = async (
-  data: ITransactionPayload[],
+  data: any,
   pubKey?: string
 ): Promise<{
   data: ITransactionPayload;
 }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
+  console.log(data, encode(data).toString('hex'));
+
   const response = await axios.post<{
     data: ITransactionPayload;
-  }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, {
-    ...encode({ transactions: data }),
+  }>(`${url}/transactions${pubKey ? '/' + pubKey : ''}`, encode(data), {
+    headers: {
+      'Content-Type': 'application/cbor',
+    },
   });
 
   return response.data;

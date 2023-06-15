@@ -4,10 +4,11 @@ import { Uint64BE } from "int64-buffer";
 import {
   ITransactionPayload,
   ITransactionAttributes,
+  ITransactionPayloadObj,
 } from "../types/Types";
 
 export const NFTTransferOrderTxHash = async (tx: ITransactionPayload) => {
-  const attributes = tx.payload.transactionAttributes as ITransactionAttributes;
+  const attributes = tx.payload.attributes as ITransactionAttributes;
 
   return Buffer.from(
     await secp.utils.sha256(
@@ -35,4 +36,21 @@ export const publicKeyHash = async (key: Uint8Array, asHexString?: boolean) => {
   }
 
   return hash as Uint8Array;
+};
+
+export const createRequestData = (
+  data: ITransactionPayload,
+  proof: Uint8Array,
+  feeProof?: Uint8Array
+): any => {
+  let dataWithProof = data;
+  dataWithProof.payload.attributes = Object.values(
+    dataWithProof.payload.attributes
+  );
+  dataWithProof.payload.clientMetadata = Object.values(
+    dataWithProof.payload.clientMetadata
+  );
+  const payloadValues = Object.values(dataWithProof.payload);
+
+  return [payloadValues as any, proof, feeProof || null];
 };
