@@ -41,7 +41,7 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import { createRequestData, publicKeyHash } from "../../utils/hashers";
+import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -83,7 +83,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
     fetchData();
   }, [activeAccountId]);
-  console.log(AlphaSystemId);
 
   const getAvailableAmount = useCallback(
     (decimals: number) => {
@@ -303,7 +302,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
             const finishTransaction = (billData: ITransactionPayload) => {
               proof.isSignatureValid &&
-                makeTransaction(createRequestData(billData, proof.ownerProof))
+                makeTransaction(prepTransactionRequestData(billData, proof.ownerProof))
                   .then(() => {
                     setPreviousView(null);
                   })

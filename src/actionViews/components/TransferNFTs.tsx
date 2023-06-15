@@ -46,7 +46,7 @@ import {
 } from "../../utils/constants";
 
 import {
-  createRequestData,
+  prepTransactionRequestData,
   NFTTransferOrderTxHash,
   publicKeyHash,
 } from "../../utils/hashers";
@@ -202,7 +202,7 @@ export default function TransferNFTs(): JSX.Element | null {
 
                 proof.isSignatureValid &&
                   makeTransaction(
-                    createRequestData(tokenData, proof.ownerProof),
+                    prepTransactionRequestData(tokenData, proof.ownerProof),
                     values.address
                   ).then(async () => {
                     const handleTransferEnd = () => {

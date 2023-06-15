@@ -38,7 +38,7 @@ export const publicKeyHash = async (key: Uint8Array, asHexString?: boolean) => {
   return hash as Uint8Array;
 };
 
-export const createRequestData = (
+export const prepTransactionRequestData = (
   data: ITransactionPayload,
   proof: Uint8Array,
   feeProof?: Uint8Array

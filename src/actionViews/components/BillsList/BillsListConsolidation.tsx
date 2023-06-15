@@ -32,7 +32,7 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
-  createRequestData,
+  prepTransactionRequestData,
   publicKeyHash,
 } from "../../../utils/hashers";
 
@@ -106,7 +106,7 @@ export const handleSwapRequest = async (
               hashingPublicKey
             );
 
-            proof.isSignatureValid && makeTransaction(createRequestData(transferData, proof.ownerProof));
+            proof.isSignatureValid && makeTransaction(prepTransactionRequestData(transferData, proof.ownerProof));
           }
         );
       }
@@ -193,7 +193,7 @@ export const handleDC = async (
         if (proof.isSignatureValid !== true) return;
 
         makeTransaction(
-          createRequestData(transferData, proof.ownerProof),
+          prepTransactionRequestData(transferData, proof.ownerProof),
           activeAsset?.typeId === AlphaType ? "" : account.pubKey
         )
           .then(() => handleTransactionEnd())

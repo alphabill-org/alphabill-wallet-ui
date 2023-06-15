@@ -56,7 +56,7 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import { createRequestData, publicKeyHash } from "../../utils/hashers";
+import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -344,7 +344,7 @@ export default function TransferFungible(): JSX.Element | null {
             const finishTransaction = (billData: ITransactionPayload) => {
               proof.isSignatureValid &&
                 makeTransaction(
-                  createRequestData(billData, proof.ownerProof),
+                  prepTransactionRequestData(billData, proof.ownerProof),
                   selectedAsset?.typeId === AlphaType ? "" : values.address
                 )
                   .then(() => {
