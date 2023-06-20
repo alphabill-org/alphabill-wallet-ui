@@ -3,10 +3,10 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq, isNumber, sortBy } from "lodash";
+import { uniq, isNumber, sortBy, values } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
-import { encode } from "cbor-x";
+import { encodeCanonical } from "cbor";
 
 import {
   IAccount,
@@ -253,13 +253,14 @@ export const createOwnerProof = async (
 ) => {
   payload.attributes = Object.values(payload.attributes);
   payload.clientMetadata = Object.values(payload.clientMetadata);
-  const payloadBuffer = encode(Object.values(payload));
-  const signature = await secp.sign(payloadBuffer, hashingPrivateKey, {
+  const payloadHash = await secp.utils.sha256(encodeCanonical(Object.values(payload)));
+
+  const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,
     recovered: true,
   });
 
-  const isValid = secp.verify(signature[0], payloadBuffer, pubKey);
+  const isValid = secp.verify(signature[0], payloadHash, pubKey);
   return {
     isSignatureValid: isValid,
     ownerProof: Buffer.from(

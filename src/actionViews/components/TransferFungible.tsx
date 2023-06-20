@@ -3,7 +3,6 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
-import { encode } from "cbor-x";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";

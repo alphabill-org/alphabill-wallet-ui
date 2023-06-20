@@ -1,10 +1,10 @@
 import * as secp from "@noble/secp256k1";
+import { encodeCanonical } from "cbor";
 import { Uint64BE } from "int64-buffer";
 
 import {
   ITransactionPayload,
   ITransactionAttributes,
-  ITransactionPayloadObj,
 } from "../types/Types";
 
 export const NFTTransferOrderTxHash = async (tx: ITransactionPayload) => {
@@ -25,6 +25,12 @@ export const NFTTransferOrderTxHash = async (tx: ITransactionPayload) => {
   ).toString("base64");
 };
 
+export const transferOrderTxHash = async (tx: Uint8Array[]) => {
+  return Buffer.from(
+    await secp.utils.sha256(encodeCanonical(tx))
+  ).toString("base64");
+};
+
 export const publicKeyHash = async (key: Uint8Array, asHexString?: boolean) => {
   const hash = await secp.utils.sha256(key);
 
@@ -40,9 +46,9 @@ export const publicKeyHash = async (key: Uint8Array, asHexString?: boolean) => {
 
 export const prepTransactionRequestData = (
   data: ITransactionPayload,
-  proof: Uint8Array,
-  feeProof?: Uint8Array
-): any => {
+  proof?: Uint8Array | null,
+  feeProof?: Uint8Array | null
+): Uint8Array[] => {
   let dataWithProof = data;
   dataWithProof.payload.attributes = Object.values(
     dataWithProof.payload.attributes

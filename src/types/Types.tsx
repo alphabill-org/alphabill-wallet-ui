@@ -51,7 +51,7 @@ export interface INFTTransferPayload {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array;
+      feeCreditRecordID?: Uint8Array | null;
     };
   };
   ownerProof: string;
@@ -182,7 +182,7 @@ export interface ITransactionAttributes {
   targetValue?: BigInt | bigint;
   invariantPredicateSignatures?: Uint8Array;
   targetSystemIdentifier?: Uint8Array; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-  targetRecordID?: Uint8Array; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
+  targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
   earliestAdditionTime?: BigInt | bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   latestAdditionTime?: BigInt | bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   ownerCondition?: Uint8Array;
@@ -190,6 +190,9 @@ export interface ITransactionAttributes {
   proofs?: IProof[];
   dcTransfers?: ITransactionPayload[];
   nftType?: Uint8Array;
+  feeCreditOwnerCondition?: Uint8Array | null;
+  feeCreditTransfer?: Uint8Array | null;
+  feeCreditTransferProof?: Uint8Array | null;
 }
 
 export interface ITransactionRequestPayload {
@@ -199,15 +202,15 @@ export interface ITransactionRequestPayload {
 export interface ITransactionPayload {
   payload: {
     systemId: Uint8Array;
-    unitId: Uint8Array;
     type: string;
+    unitId: Uint8Array;
     attributes: any[] | ITransactionAttributes;
     clientMetadata:
       | any[]
       | {
           timeout: BigInt | bigint;
           maxTransactionFee: BigInt | bigint;
-          feeCreditRecordID?: Uint8Array;
+          feeCreditRecordID?: Uint8Array | null;
         };
   };
   ownerProof?: Uint8Array;
@@ -223,7 +226,7 @@ export interface ITransactionPayloadObj {
     | {
         timeout: BigInt | bigint;
         maxTransactionFee: BigInt | bigint;
-        feeCreditRecordID?: Uint8Array;
+        feeCreditRecordID?: Uint8Array | null;
       };
 }
 
@@ -252,7 +255,7 @@ export interface IProofTx {
       | {
           timeout: string;
           maxTransactionFee: string;
-          feeCreditRecordID?: Uint8Array;
+          feeCreditRecordID?: Uint8Array | null;
         };
   };
   ownerProof: string;
@@ -295,7 +298,7 @@ export interface ISwapProps {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array;
+      feeCreditRecordID?: Uint8Array | null;
     };
   };
   ownerProof: string;
@@ -308,9 +311,11 @@ export interface IProofsProps {
 export interface IProofProps {
   id: string;
   value: string;
-  txHash: string;
+  txHash?: string;
+  tx_hash?: string;
   isDcBill?: boolean;
-  txProof: ITxProof;
+  txProof?: ITxProof;
+  tx_proof?: ITxProof;
 }
 
 export interface ITxProof {
@@ -397,7 +402,7 @@ export interface IDCTransferProps {
     clientMetadata: {
       timeout: string;
       maxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array;
+      feeCreditRecordID?: Uint8Array | null;
     };
   };
   ownerProof: string;

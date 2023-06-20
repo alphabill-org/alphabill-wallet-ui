@@ -1,6 +1,5 @@
 import axios, { AxiosResponse, isCancel } from "axios";
-import { encode, decode } from "cbor-x";
-import { Encoder } from 'cbor-x'
+import { encodeCanonical } from "cbor";
 
 import {
   IBillsList,
@@ -251,12 +250,11 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
-
   const response = await axios.post<{
     data: ITransactionPayload;
-  }>(`${url}/transactions${pubKey ? '/' + pubKey : ''}`, encode(data), {
+  }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, encodeCanonical(data), {
     headers: {
-      'Content-Type': 'application/cbor',
+      "Content-Type": "application/cbor",
     },
   });
 
