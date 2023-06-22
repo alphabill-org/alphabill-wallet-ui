@@ -5,6 +5,7 @@ import { isString } from "lodash";
 import { useLocalStorage } from "./useLocalStorage";
 import { IActiveAsset } from "../types/Types";
 import { AlphaType } from "../utils/constants";
+import { publicKeyHash } from "../utils/hashers";
 
 interface IUseLocalStorageProps {
   children: React.ReactNode;
@@ -29,6 +30,7 @@ interface IUserContext {
   setActiveNFTLocal: (e: string) => void;
   isConnectWalletPopup: boolean;
   setIsConnectWalletPopup: (e: boolean) => void;
+  pubKeyHash: string;
 }
 
 const keysData = localStorage.getItem("ab_wallet_pub_keys") || null;
@@ -61,11 +63,13 @@ const AuthContext = createContext<IUserContext>({
   setActiveNFTLocal: () => {},
   isConnectWalletPopup: false,
   setIsConnectWalletPopup: () => {},
+  pubKeyHash: "",
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const [isConnectWalletPopup, setIsConnectWalletPopup] =
     useState<boolean>(false);
+  const [pubKeyHash, setPubKeyHash] = useState<string>("");
   const [userKeys, setUserKeys] = useLocalStorage(
     "ab_wallet_pub_keys",
     keysData
@@ -105,6 +109,15 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
       setIsConnectWalletPopup(result?.ab_is_connect_popup);
     });
   }, [isConnectWalletPopup]);
+
+  useEffect(() => {
+    const getPubKeyHash = async () => {
+      const publicKey = await publicKeyHash(activeAccountId, true);
+      setPubKeyHash(publicKey as string);
+    };
+
+    getPubKeyHash();
+  }, [activeAccountId]);
 
   const login = async (
     activeAccountId: string,
@@ -147,6 +160,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setActiveNFTLocal,
     isConnectWalletPopup,
     setIsConnectWalletPopup,
+    pubKeyHash,
   };
 
   return (

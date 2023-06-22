@@ -1,16 +1,19 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 
-import { AlphaType, TransferFeeCreditView } from "../../utils/constants";
+import {
+  AlphaDecimals,
+  AlphaType,
+  TransferFeeCreditView,
+} from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IFeeCreditBills, IFungibleAsset } from "../../types/Types";
+import { IFungibleAsset } from "../../types/Types";
 import Spacer from "../Spacer/Spacer";
-import { publicKeyHash } from "../../utils/hashers";
-import { getFeeCreditBills } from "../../hooks/requests";
+import { separateDigits, addDecimal } from "../../utils/utils";
 
 export default function FeeCredit(): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
@@ -20,22 +23,8 @@ export default function FeeCredit(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     setPreviousView,
+    feeCreditBills,
   } = useApp();
-
-  const [feeCreditData, setFeeCreditData] = useState<IFeeCreditBills | null>();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const publicKey = await publicKeyHash(
-        Buffer.from(activeAccountId, "hex"),
-        true
-      );
-      const result = await getFeeCreditBills(publicKey as string);
-      setFeeCreditData(result);
-    };
-
-    fetchData();
-  }, [activeAccountId]);
 
   const alphaBalance = Number(
     account?.assets?.fungible?.find(
@@ -54,27 +43,33 @@ export default function FeeCredit(): JSX.Element | null {
         "no-hover": true,
       })}
     >
-      {alphaBalance > 0  ? (
+      {alphaBalance > 0 ? (
         <>
-          {feeCreditData && Object.entries(feeCreditData).map(([key, value]: any) => {
-            return (
-              <div
-                key={value.id}
-                className={classNames("assets-list__item", {
-                  "no-hover": true,
-                })}
-              >
-                <div className="assets-list__item-clicker"></div>
-                <div className={classNames("assets-list__item-icon")}>
-                  {key === AlphaType ? <ABLogo /> : "UT"}
+          {feeCreditBills &&
+            Object.entries(feeCreditBills).map(([key, value]: any, idx) => {
+              return (
+                <div
+                  key={idx}
+                  className={classNames("assets-list__item", {
+                    "no-hover": true,
+                  })}
+                >
+                  <div className="assets-list__item-clicker"></div>
+                  <div className={classNames("assets-list__item-icon")}>
+                    {<ABLogo />}
+                  </div>
+                  <div className="assets-list__item-title">
+                    {key === "alpha" ? "ALPHA" : "Tokens"} credits
+                  </div>
+                  <div className="assets-list__item-amount">
+                    {separateDigits(
+                      addDecimal(value?.value || "0", AlphaDecimals)
+                    )}{" "}
+                  </div>
                 </div>
-                <div className="assets-list__item-title">{value.name}</div>
-                {value.balance && (
-                  <div className="assets-list__item-amount">{value.amount}</div>
-                )}
-              </div>
-            );
-          })}{" "}
+              );
+            })}
+          <Spacer mb={12    } />
           <Button
             onClick={() => {
               setActionsView(TransferFeeCreditView);
@@ -94,7 +89,6 @@ export default function FeeCredit(): JSX.Element | null {
       ) : (
         "Insufficient ALPHA funds to add fee credits"
       )}
-      <Spacer mt={8} />
     </div>
   );
 }

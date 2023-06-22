@@ -69,6 +69,7 @@ export default function TransferFungible(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -193,6 +194,16 @@ export default function TransferFungible(): JSX.Element | null {
             vault
           );
 
+          if (
+            feeCreditBills?.[
+              selectedAsset?.typeId === AlphaType ? "alpha" : "tokens"
+            ].value < 1
+          ) {
+            return setErrors({
+              password: error || "Please add fee credit!",
+            });
+          }
+
           if (error || !hashingPrivateKey || !hashingPublicKey) {
             return setErrors({
               password: error || "Hashing keys are missing!",
@@ -258,6 +269,10 @@ export default function TransferFungible(): JSX.Element | null {
                 transferField = "targetValue";
               }
 
+              const targetRecord = (await publicKeyHash(
+                activeAccountId
+              )) as Uint8Array;
+
               billsToTransfer?.map(async (bill, idx) => {
                 const transferData: ITransactionPayload = {
                   payload: {
@@ -265,19 +280,13 @@ export default function TransferFungible(): JSX.Element | null {
                     type: transferType,
                     unitId: Buffer.from(bill.id, "base64"),
                     attributes: {
-                      newBearer: newBearer,
                       [transferField]: BigInt(bill.value),
                       backlink: Buffer.from(bill.txHash, "base64"),
-                      type:
-                        selectedAsset?.typeId !== AlphaType &&
-                        Buffer.from(bill.typeId!, "base64"),
                     } as ITransactionAttributes,
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: (await publicKeyHash(
-                        hashingPublicKey
-                      )) as Uint8Array,
+                      feeCreditRecordID: targetRecord,
                     },
                   },
                 };
@@ -306,16 +315,11 @@ export default function TransferFungible(): JSX.Element | null {
                       remainingValue:
                         BigInt(billToSplit.value) - splitBillAmount,
                       backlink: Buffer.from(billToSplit.txHash, "base64"),
-                      type:
-                        selectedAsset?.typeId !== AlphaType &&
-                        Buffer.from(billToSplit.typeId!, "base64"),
                     } as ITransactionAttributes,
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: (await publicKeyHash(
-                        hashingPublicKey
-                      )) as Uint8Array,
+                      feeCreditRecordID: targetRecord,
                     },
                   },
                 };
@@ -334,6 +338,8 @@ export default function TransferFungible(): JSX.Element | null {
             isLastTransfer: boolean,
             billTypeId?: string
           ) => {
+            console.log(billData.payload);
+
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,

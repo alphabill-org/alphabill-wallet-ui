@@ -365,20 +365,29 @@ export const getImageUrlAndDownloadType = async (
 export const getFeeCreditBills = async (
   id: string
 ): Promise<IFeeCreditBills> => {
-  const moneyPromise = axios.get<any>(
+  let moneyDataPromise = axios.get<any>(
     `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`
   );
-  const tokensPromise = axios.get<any>(
+  let tokensDataPromise = axios.get<any>(
     `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`
   );
 
-  const [moneyResponse, tokensResponse] = await Promise.all([
-    moneyPromise,
-    tokensPromise,
-  ]);
+  let moneyData = null;
+  let tokensData = null;
 
-  const moneyData = moneyResponse.data;
-  const tokensData = tokensResponse.data;
+  try {
+    const moneyResponse = await moneyDataPromise;
+    moneyData = moneyResponse.data;
+  } catch (moneyError) {
+    console.error('An error occurred while fetching money fee credit bills:', moneyError);
+  }
+
+  try {
+    const tokensResponse = await tokensDataPromise;
+    tokensData = tokensResponse.data;
+  } catch (tokensError) {
+    console.error('An error occurred while fetching tokens fee credit bills:', tokensError);
+  }
 
   const data: IFeeCreditBills = {
     alpha: moneyData,
@@ -387,6 +396,7 @@ export const getFeeCreditBills = async (
 
   return data;
 };
+
 
 export const downloadFile = async (url: string, filename: string) => {
   const response = await axios({

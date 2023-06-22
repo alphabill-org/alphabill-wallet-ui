@@ -23,6 +23,7 @@ import {
   useGetUserTokens,
   useGetAllNFTs,
   useGetNFTs,
+  useGetFeeCreditBills,
 } from "./api";
 import { useAuth } from "./useAuth";
 import { AlphaType, TransferNFTView } from "../utils/constants";
@@ -32,6 +33,7 @@ import {
   removeConnectTransferData,
 } from "../utils/utils";
 import Popup from "../components/Popup/Popup";
+import { getFeeCreditBills } from "./requests";
 
 interface IAppContextShape {
   balances: any;
@@ -70,6 +72,7 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     activeNFT,
     setActiveAssetLocal,
+    pubKeyHash
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
@@ -87,6 +90,7 @@ export const AppProvider: FunctionComponent<{
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
+  const { data: feeCreditBills } = useGetFeeCreditBills(pubKeyHash);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
     useGetAllUserTokens(activeAccountId);
   const { data: NFTsList, isLoading: isLoadingNFTs } =
@@ -243,6 +247,7 @@ export const AppProvider: FunctionComponent<{
         setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
+        feeCreditBills
       }}
     >
       {children}

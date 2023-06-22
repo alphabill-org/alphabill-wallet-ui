@@ -16,6 +16,7 @@ export const pushBoolFalse = startByte + pushBool + boolFalse;
 
 export const timeoutBlocks = 10n;
 export const swapTimeout = 40n;
+export const feeTimeoutBlocks = 20n;
 export const DCTransfersLimit = 100;
 export const AlphaDecimals = 8;
 export const AlphaDecimalFactor = Number("1e" + AlphaDecimals);

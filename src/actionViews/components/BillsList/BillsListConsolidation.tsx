@@ -94,7 +94,7 @@ export const handleSwapRequest = async (
                   timeout: roundNumber + swapTimeout,
                   maxTransactionFee: maxTransactionFee,
                   feeCreditRecordID: (await publicKeyHash(
-                    hashingPublicKey
+                    activeAccountId
                   )) as Uint8Array,
                 },
               },
@@ -178,7 +178,7 @@ export const handleDC = async (
               timeout: roundNumber + timeoutBlocks,
               maxTransactionFee: maxTransactionFee,
               feeCreditRecordID: (await publicKeyHash(
-                hashingPublicKey
+                activeAccountId
               )) as Uint8Array,
             },
           },

@@ -84,6 +84,8 @@ export const base64ToHexPrefixed = (key: string = "") =>
 export const base64ToHex = (key: string = "") =>
   Buffer.from(key, "base64").toString("hex");
 
+export const base64ToBuffer = (key: string = "") => Buffer.from(key, "base64");
+
 export const sortBillsByID = (bills: IBill[]) =>
   uniq(bills).sort((a: IBill, b: IBill) =>
     BigInt(base64ToHexPrefixed(a.id)) < BigInt(base64ToHexPrefixed(b.id))
@@ -253,7 +255,9 @@ export const createOwnerProof = async (
 ) => {
   payload.attributes = Object.values(payload.attributes);
   payload.clientMetadata = Object.values(payload.clientMetadata);
-  const payloadHash = await secp.utils.sha256(encodeCanonical(Object.values(payload)));
+  const payloadHash = await secp.utils.sha256(
+    encodeCanonical(Object.values(payload))
+  );
 
   const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,

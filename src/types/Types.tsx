@@ -191,8 +191,8 @@ export interface ITransactionAttributes {
   dcTransfers?: ITransactionPayload[];
   nftType?: Uint8Array;
   feeCreditOwnerCondition?: Uint8Array | null;
-  feeCreditTransfer?: Uint8Array | null;
-  feeCreditTransferProof?: Uint8Array | null;
+  feeCreditTransfer?: Uint8Array | any;
+  feeCreditTransferProof?: ItxProof | any[];
 }
 
 export interface ITransactionRequestPayload {
@@ -214,6 +214,7 @@ export interface ITransactionPayload {
         };
   };
   ownerProof?: Uint8Array;
+  feeProof?: string | null;
 }
 
 export interface ITransactionPayloadObj {
@@ -411,6 +412,62 @@ export interface IDCTransferProps {
 export interface IBalance {
   balance: number;
   pubKey: string;
+}
+
+export interface ItxRecord {
+  TransactionOrder: {
+    Payload: {
+      SystemID: string;
+      Type: string;
+      UnitID: string;
+      Attributes: string | Buffer[] | ITransactionAttributes;
+      ClientMetadata:
+        | string | Buffer[]
+        | {
+            Timeout: number;
+            MaxTransactionFee: number;
+            FeeCreditRecordID: string | null;
+          };
+    };
+    OwnerProof: string;
+    FeeProof: string | null;
+  };
+  ServerMetadata: {
+    ActualFee: 1;
+    TargetUnits: null;
+  };
+}
+
+export interface ItxProof {
+  BlockHeaderHash: string;
+  Chain: [];
+  UnicityCertificate: {
+    input_record: ItxProofInputRecord;
+    unicity_tree_certificate: ItxProofUnicityTreeCert;
+    unicity_seal: ItxProofUnicitySeal;
+  };
+}
+export interface ItxProofInputRecord {
+  previous_hash: string;
+  hash: string;
+  block_hash: string;
+  summary_value: string;
+  round_number: number;
+  sum_of_earned_fees: number;
+}
+
+export interface ItxProofUnicityTreeCert {
+  system_identifier: string;
+  sibling_hashes: string[];
+  system_description_hash: string;
+}
+export interface ItxProofUnicitySeal {
+  root_chain_round_number: number;
+  timestamp: number;
+  hash: string;
+  signatures: {
+    test: string;
+  };
 }
 
 export type IActionVies =

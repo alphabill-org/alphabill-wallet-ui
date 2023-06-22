@@ -167,7 +167,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       timeout: roundNumber + timeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
                       feeCreditRecordID: (await publicKeyHash(
-                        hashingPublicKey
+                        activeAccountId
                       )) as Uint8Array,
                     },
                   },

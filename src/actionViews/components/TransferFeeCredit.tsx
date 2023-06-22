@@ -3,6 +3,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
+import { decode } from "cbor";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
@@ -29,18 +30,22 @@ import {
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
+  base64ToHexPrefixed,
+  getNewBearer,
 } from "../../utils/utils";
 import {
-  timeoutBlocks,
+  feeTimeoutBlocks,
   AlphaType,
   AlphaDecimals,
   FeeCreditTransferType,
   AlphaSystemId,
   TokensSystemId,
   maxTransactionFee,
+  FeeCreditAddType,
 } from "../../utils/constants";
 
 import {
+  bufferizeObject,
   prepTransactionRequestData,
   publicKeyHash,
   transferOrderTxHash,
@@ -67,27 +72,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
     label: "ALPHA fee credit",
   };
 
-
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
-  const feeBillProof = useRef<any>(null);
-  const lastBillId = useRef<string | null>(null);
-  const lastTxHash = useRef<string | null>(null);
+  const billProof = useRef<any>(null);
+  const isFeeAdded = useRef<boolean | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
-  const [feeCreditData, setFeeCreditData] = useState<IFeeCreditBills | null>();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const publicKey = await publicKeyHash(
-        Buffer.from(activeAccountId, "hex"),
-        true
-      );
-      const result = await getFeeCreditBills(publicKey as string);
-      setFeeCreditData(result);
-    };
-
-    fetchData();
-  }, [activeAccountId]);
 
   const getAvailableAmount = useCallback(
     (decimals: number) => {
@@ -120,6 +109,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           password: "",
         }}
         onSubmit={async (values, { setErrors, resetForm }) => {
+          isFeeAdded.current = null;
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -172,18 +162,13 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           setIsSending(true);
 
-          const pubKeyHash = (await publicKeyHash(
-            hashingPublicKey
-          )) as Uint8Array;
-          const pubKeyHashHex = (await publicKeyHash(
-            hashingPublicKey,
-            true
-          )) as string;
+          const pubKeyHash = await publicKeyHash(activeAccountId);
+          const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
+          const creditBills = await getFeeCreditBills(pubKeyHashHex as string);
           const isAlpha = values.assets.value === AlphaType;
-          const creditBill = feeCreditData?.[isAlpha ? "alpha" : "tokens"];
-          const isTargetBillCreated = creditBill?.id === pubKeyHashHex;
-          const backlink = isTargetBillCreated
-            ? Buffer.from(creditBill?.backlink, "base64")
+          const creditBill = creditBills?.[isAlpha ? "alpha" : "tokens"];
+          const backlink = creditBill
+            ? Buffer.from(creditBill?.tx_hash, "base64")
             : null;
 
           getRoundNumber(defaultAsset?.value === AlphaType).then(
@@ -201,12 +186,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                         : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
                       targetRecordID: Buffer.from(pubKeyHash), // unit id of the corresponding “add fee credit” transaction (public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
                       backlink: Buffer.from(bill.txHash, "base64"), // hash of this unit's previous transacton (selle billi txHash, mille ma saadan tehingusse)
                     },
                     clientMetadata: {
-                      timeout: roundNumber + timeoutBlocks,
+                      timeout: roundNumber + feeTimeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
                       feeCreditRecordID: null,
                     },
@@ -235,18 +220,17 @@ export default function TransferFeeCredit(): JSX.Element | null {
                           : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
                       targetRecordID: Buffer.from(pubKeyHash), // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      latestAdditionTime: roundNumber + timeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      nonce: null, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
+                      latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+                      nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
                       backlink: Buffer.from(billToSplit.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
                     },
                     clientMetadata: {
-                      timeout: roundNumber + timeoutBlocks,
+                      timeout: roundNumber + feeTimeoutBlocks,
                       maxTransactionFee: maxTransactionFee,
                       feeCreditRecordID: null,
                     },
                   },
                 };
-
                 handleValidation(splitData, true);
               }
             }
@@ -272,13 +256,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   })
                   .finally(() => {
                     const handleTransferEnd = async () => {
-                      lastBillId.current = "0x" + Buffer.from(
-                        billData.payload.unitId
-                      ).toString("hex");
-                      lastTxHash.current = await transferOrderTxHash(
-                        prepTransactionRequestData(billData, proof.ownerProof)
+                      addPollingInterval(
+                        "0x" +
+                          Buffer.from(billData.payload.unitId).toString("hex"),
+                        await transferOrderTxHash(
+                          prepTransactionRequestData(billData, proof.ownerProof)
+                        )
                       );
-                      addPollingInterval();
+
                       setIsSending(false);
                       setSelectedTransferKey(null);
                       setIsActionsViewVisible(false);
@@ -294,19 +279,25 @@ export default function TransferFeeCredit(): JSX.Element | null {
             finishTransaction(billData);
           };
 
-          const addPollingInterval = () => {
+          const addPollingInterval = (id: string, hash: string) => {
             initialRoundNumber.current = null;
             pollingInterval.current = setInterval(() => {
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
-              lastBillId.current &&
-                getProof(lastBillId.current).then(async (data) => {
-                  if (data?.bills[0].tx_hash === lastTxHash.current)
-                    feeBillProof.current = data?.bills[0];
-                });
+              getProof(id).then(async (data) => {
+                const hashMatch = data?.bills[0].tx_hash === hash;
+                if (hashMatch) {
+                  billProof.current = data?.bills[0];
+                }
+              });
 
-              if (lastBillId && feeBillProof.current?.id === lastBillId) {
-                addFeeCredit();
+              if (base64ToHexPrefixed(billProof.current?.id) === id) {
+                if (isFeeAdded.current !== true) {
+                  addFeeCredit();
+                }
+                pollingInterval.current &&
+                  clearInterval(pollingInterval.current);
               }
+
               getRoundNumber(defaultAsset?.value === AlphaType).then(
                 (roundNumber) => {
                   if (!initialRoundNumber?.current) {
@@ -314,7 +305,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   }
 
                   if (
-                    BigInt(initialRoundNumber?.current) + timeoutBlocks <
+                    BigInt(initialRoundNumber?.current) + feeTimeoutBlocks <
                     roundNumber
                   ) {
                     pollingInterval.current &&
@@ -326,40 +317,41 @@ export default function TransferFeeCredit(): JSX.Element | null {
           };
 
           const addFeeCredit = () => {
-            if (lastBillId.current) {
-              getRoundNumber(defaultAsset?.value === AlphaType).then(
-                async (roundNumber) => {
-                  const transferData: ITransactionPayload = {
-                    payload: {
-                      systemId: AlphaSystemId,
-                      type: FeeCreditTransferType,
-                      unitId: Buffer.from(lastBillId.current as string, "hex"),
-                      attributes: {
-                        feeCreditOwnerCondition: null, // target fee credit record owner condition (optional)
-                        feeCreditTransfer: Buffer.from(
-                          feeBillProof.current.txRecord,
-                          "base64"
-                        ), // bill transfer record of type "transfer fee credit" (based on created bill GET /proof)
-                        feeCreditTransferProof: Buffer.from(
-                          feeBillProof.current.txProof,
-                          "base64"
-                        ), // transaction proof of "transfer fee credit" transaction (based on created bill GET /proof)
-                      },
-                      clientMetadata: {
-                        timeout: roundNumber + timeoutBlocks,
-                        maxTransactionFee: maxTransactionFee,
-                        feeCreditRecordID: Buffer.from(pubKeyHash),
-                      },
+            getRoundNumber(defaultAsset?.value === AlphaType).then(
+              async (roundNumber) => {
+                let proofFee = billProof.current.tx_proof.txProof;
+                const seal = proofFee.UnicityCertificate.unicity_seal;
+                proofFee.UnicityCertificate.unicity_seal = {
+                  root_chain_round_number: seal.root_chain_round_number,
+                  timestamp: seal.timestamp,
+                  previousHash: seal.PreviousHash || null,
+                  hash: seal.hash,
+                  signatures: seal.signatures,
+                };
+                const transferData: ITransactionPayload = {
+                  payload: {
+                    systemId: AlphaSystemId,
+                    type: FeeCreditAddType,
+                    unitId: Buffer.from(pubKeyHash),
+                    attributes: {
+                      feeCreditOwnerCondition: getNewBearer(account),
+                      feeCreditTransfer: bufferizeObject(
+                        billProof.current.tx_proof.txRecord
+                      ), // bill transfer record of type "transfer fee credit" (based on created bill GET /proof)
+                      feeCreditTransferProof: bufferizeObject(proofFee), // transaction proof of "transfer fee credit" transaction (based on created bill GET /proof)
                     },
-                  };
+                    clientMetadata: {
+                      timeout: roundNumber + feeTimeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: null,
+                    },
+                  },
+                };
 
-                  handleValidation(transferData as any, true).then(() => {
-                    lastBillId.current = null;
-                    lastTxHash.current = null;
-                  });
-                }
-              );
-            }
+                isFeeAdded.current = true;
+                handleValidation(transferData as any, true);
+              }
+            );
           };
         }}
         validationSchema={Yup.object().shape({
