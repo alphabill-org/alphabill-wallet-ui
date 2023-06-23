@@ -3,14 +3,13 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
-import { decode } from "cbor";
 
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
-import { IBill, IFeeCreditBills, ITransactionPayload } from "../../types/Types";
+import { IBill, ITransactionPayload } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -50,6 +49,7 @@ import {
   publicKeyHash,
   transferOrderTxHash,
 } from "../../utils/hashers";
+import { truncate } from "lodash";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -184,7 +184,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       targetSystemIdentifier: isAlpha
                         ? AlphaSystemId
                         : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                      targetRecordID: Buffer.from(pubKeyHash), // unit id of the corresponding “add fee credit” transaction (public key hash)
+                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
@@ -218,7 +218,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                         values.assets.value === AlphaType
                           ? AlphaSystemId
                           : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                      targetRecordID: Buffer.from(pubKeyHash), // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
+                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
                       earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
                       nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
@@ -281,8 +281,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           const addPollingInterval = (id: string, hash: string) => {
             initialRoundNumber.current = null;
-            pollingInterval.current = setInterval(() => {
+            pollingInterval.current = setInterval(async () => {
+              const pubKeyHash = await publicKeyHash(activeAccountId, true);
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
+              queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
               getProof(id).then(async (data) => {
                 const hashMatch = data?.bills[0].tx_hash === hash;
                 if (hashMatch) {
@@ -330,9 +332,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 };
                 const transferData: ITransactionPayload = {
                   payload: {
-                    systemId: AlphaSystemId,
+                    systemId:
+                      values.assets.value === AlphaType
+                        ? AlphaSystemId
+                        : TokensSystemId,
                     type: FeeCreditAddType,
-                    unitId: Buffer.from(pubKeyHash),
+                    unitId: pubKeyHash as Uint8Array,
                     attributes: {
                       feeCreditOwnerCondition: getNewBearer(account),
                       feeCreditTransfer: bufferizeObject(

@@ -50,13 +50,10 @@ export const transferOrderTxHash = async (tx: Uint8Array[]) => {
 export const publicKeyHash = async (key: string, asHexString?: boolean) => {
   const checkedKey = key.startsWith("0x") ? key.substring(2) : key;
   const keyHash = Buffer.from(checkedKey, "hex");
-  const hash = await secp.utils.sha256(keyHash);
+  const hash = Buffer.from(await secp.utils.sha256(keyHash));
 
   if (asHexString) {
-    const hexString = Array.from(hash)
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
-    return ("0x" + hexString) as string;
+    return ("0x" + hash.toString("hex")) as string;
   }
 
   return hash as Uint8Array;

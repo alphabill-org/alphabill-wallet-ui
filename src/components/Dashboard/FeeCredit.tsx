@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { useEffect, useState } from "react";
 
 import {
   AlphaDecimals,
@@ -43,52 +42,51 @@ export default function FeeCredit(): JSX.Element | null {
         "no-hover": true,
       })}
     >
-      {alphaBalance > 0 ? (
-        <>
-          {feeCreditBills &&
-            Object.entries(feeCreditBills).map(([key, value]: any, idx) => {
-              return (
-                <div
-                  key={idx}
-                  className={classNames("assets-list__item", {
-                    "no-hover": true,
-                  })}
-                >
-                  <div className="assets-list__item-clicker"></div>
-                  <div className={classNames("assets-list__item-icon")}>
-                    {<ABLogo />}
-                  </div>
-                  <div className="assets-list__item-title">
-                    {key === "alpha" ? "ALPHA" : "Tokens"} credits
-                  </div>
-                  <div className="assets-list__item-amount">
-                    {separateDigits(
-                      addDecimal(value?.value || "0", AlphaDecimals)
-                    )}{" "}
-                  </div>
+      <>
+        {feeCreditBills &&
+          Object.entries(feeCreditBills).map(([key, value]: any, idx) => {
+            return (
+              <div
+                key={idx}
+                className={classNames("assets-list__item", {
+                  "no-hover": true,
+                })}
+              >
+                <div className="assets-list__item-clicker"></div>
+                <div className={classNames("assets-list__item-icon")}>
+                  {<ABLogo />}
                 </div>
-              );
-            })}
-          <Spacer mb={12    } />
-          <Button
-            onClick={() => {
-              setActionsView(TransferFeeCreditView);
-              setIsActionsViewVisible(true);
-              activeAsset && setSelectedTransferKey(activeAsset.id!);
-              setPreviousView(TransferFeeCreditView);
-            }}
-            type="button"
-            variant="primary"
-          >
-            Add fee credit{" "}
-            <span className="pad-8-l ">
-              <Send height="14" width="14" />
-            </span>
-          </Button>
-        </>
-      ) : (
-        "Insufficient ALPHA funds to add fee credits"
-      )}
+                <div className="assets-list__item-title">
+                  {key === "alpha" ? "ALPHA" : "Tokens"} credits
+                </div>
+                <div className="assets-list__item-amount">
+                  {separateDigits(
+                    addDecimal(value?.value || "0", AlphaDecimals)
+                  )}{" "}
+                </div>
+              </div>
+            );
+          })}
+        <Spacer mb={12} />
+        <Button
+          onClick={() => {
+            setActionsView(TransferFeeCreditView);
+            setIsActionsViewVisible(true);
+            activeAsset && setSelectedTransferKey(activeAsset.id!);
+            setPreviousView(TransferFeeCreditView);
+          }}
+          disabled={!Boolean(alphaBalance > 0)}
+          type="button"
+          variant="primary"
+        >
+          {alphaBalance > 0
+            ? "Add fee credit"
+            : "Insufficient funds to add fee credits"}
+          <span className="pad-8-l ">
+            <Send height="14" width="14" />
+          </span>
+        </Button>
+      </>
     </div>
   );
 }

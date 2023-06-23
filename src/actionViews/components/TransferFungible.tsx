@@ -194,16 +194,6 @@ export default function TransferFungible(): JSX.Element | null {
             vault
           );
 
-          if (
-            feeCreditBills?.[
-              selectedAsset?.typeId === AlphaType ? "alpha" : "tokens"
-            ].value < 1
-          ) {
-            return setErrors({
-              password: error || "Please add fee credit!",
-            });
-          }
-
           if (error || !hashingPrivateKey || !hashingPublicKey) {
             return setErrors({
               password: error || "Hashing keys are missing!",
@@ -280,6 +270,7 @@ export default function TransferFungible(): JSX.Element | null {
                     type: transferType,
                     unitId: Buffer.from(bill.id, "base64"),
                     attributes: {
+                      newBearer: newBearer,
                       [transferField]: BigInt(bill.value),
                       backlink: Buffer.from(bill.txHash, "base64"),
                     } as ITransactionAttributes,
@@ -334,12 +325,25 @@ export default function TransferFungible(): JSX.Element | null {
           );
 
           const handleValidation = async (
-            billData: ITransactionPayload,
+            billData: any,
             isLastTransfer: boolean,
             billTypeId?: string
           ) => {
-            console.log(billData.payload);
+            if (billTypeId && billTypeId !== AlphaType) {
+              const attr = billData.payload.attributes;
+              billData.payload.attributes = {
+                newBearer: attr.newBearer,
+                targetValue: attr.targetValue || attr.value,
+                nonce: null,
+                backlink: attr.backlink,
+                typeID: Buffer.from(billTypeId, "base64"),
+              };
 
+              if (billData.payload.type === TokensSplitType) {
+                billData.payload.attributes.remainingValue =
+                  attr.remainingValue;
+              }
+            }
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,
@@ -347,6 +351,8 @@ export default function TransferFungible(): JSX.Element | null {
             );
 
             const finishTransaction = (billData: ITransactionPayload) => {
+              console.log("billData", billData);
+
               proof.isSignatureValid &&
                 makeTransaction(
                   prepTransactionRequestData(billData, proof.ownerProof),

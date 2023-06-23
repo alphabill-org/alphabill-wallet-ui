@@ -250,6 +250,8 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
+  console.log(Buffer.from(encodeCanonical(data)).toString('hex'));
+
   const response = await axios.post<{
     data: ITransactionPayload;
   }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, encodeCanonical(data), {

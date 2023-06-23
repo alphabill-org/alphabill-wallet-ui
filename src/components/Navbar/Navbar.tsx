@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useQueryClient } from "react-query";
 import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";
+import { publicKeyHash } from "../../utils/hashers";
 import { invalidateAllLists } from "../../utils/utils";
 
 export interface INavbarProps {
@@ -15,12 +16,13 @@ export default function Navbar({
   activeBar,
   isFees,
 }: INavbarProps): JSX.Element | null {
-  const { activeAsset, activeAccountId } = useAuth();
+  const { activeAsset, activeAccountId, pubKeyHash } = useAuth();
   const queryClient = useQueryClient();
 
   const handleChange = (v: INavbarViews) => {
     onChange(v);
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+    queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
   };
 
   return (

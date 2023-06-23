@@ -96,7 +96,7 @@ export function useGetImageUrl(
 export function useGetFeeCreditBills(
   id: string
 ): QueryObserverResult<IFeeCreditBills, AxiosError> {
-  return useQuery<IFeeCreditBills, AxiosError>(['FeeBillsList', id], () => getFeeCreditBills(id), {
+  return useQuery<IFeeCreditBills, AxiosError>(['feeBillsList', id], () => getFeeCreditBills(id), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,

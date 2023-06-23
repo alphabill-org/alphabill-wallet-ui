@@ -193,6 +193,7 @@ export interface ITransactionAttributes {
   feeCreditOwnerCondition?: Uint8Array | null;
   feeCreditTransfer?: Uint8Array | any;
   feeCreditTransferProof?: ItxProof | any[];
+  typeID?: Uint8Array;
 }
 
 export interface ITransactionRequestPayload {
