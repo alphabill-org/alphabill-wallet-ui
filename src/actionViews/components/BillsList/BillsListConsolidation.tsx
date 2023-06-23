@@ -106,7 +106,12 @@ export const handleSwapRequest = async (
               hashingPublicKey
             );
 
-            proof.isSignatureValid && makeTransaction(prepTransactionRequestData(transferData, proof.ownerProof));
+            proof.isSignatureValid &&
+              makeTransaction(
+                prepTransactionRequestData(transferData, proof.ownerProof),
+                activeAccountId,
+                true
+              );
           }
         );
       }
@@ -194,7 +199,8 @@ export const handleDC = async (
 
         makeTransaction(
           prepTransactionRequestData(transferData, proof.ownerProof),
-          activeAsset?.typeId === AlphaType ? "" : account.pubKey
+          activeAccountId,
+          true
         )
           .then(() => handleTransactionEnd())
           .catch(() => handleTransactionEnd());

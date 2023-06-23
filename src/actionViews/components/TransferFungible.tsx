@@ -20,6 +20,7 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
+  getFeeCreditBills,
   getRoundNumber,
   getTypeHierarchy,
   makeTransaction,
@@ -55,7 +56,11 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
+import {
+  bufferizeObject,
+  prepTransactionRequestData,
+  publicKeyHash,
+} from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -69,7 +74,6 @@ export default function TransferFungible(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
-    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -350,13 +354,25 @@ export default function TransferFungible(): JSX.Element | null {
               hashingPublicKey
             );
 
-            const finishTransaction = (billData: ITransactionPayload) => {
-              console.log("billData", billData);
+            const finishTransaction = async (billData: ITransactionPayload) => {
+              const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
+              const creditBills = await getFeeCreditBills(
+                pubKeyHashHex as string
+              );
+              const creditBill = creditBills?.tokens;
+              const backlink = creditBill
+                ? Buffer.from(creditBill?.tx_hash, "base64")
+                : null;
 
               proof.isSignatureValid &&
                 makeTransaction(
-                  prepTransactionRequestData(billData, proof.ownerProof),
-                  selectedAsset?.typeId === AlphaType ? "" : values.address
+                  prepTransactionRequestData(
+                    billData,
+                    proof.ownerProof,
+                    Buffer.from(creditBill.tx_hash)
+                  ),
+                  values.address,
+                  selectedAsset?.typeId === AlphaType
                 )
                   .then(() => {
                     setPreviousView(null);

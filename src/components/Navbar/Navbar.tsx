@@ -1,7 +1,9 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
+import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";
+import { AlphaType } from "../../utils/constants";
 import { publicKeyHash } from "../../utils/hashers";
 import { invalidateAllLists } from "../../utils/utils";
 
@@ -16,7 +18,9 @@ export default function Navbar({
   activeBar,
   isFees,
 }: INavbarProps): JSX.Element | null {
-  const { activeAsset, activeAccountId, pubKeyHash } = useAuth();
+  const { activeAsset, activeAccountId, pubKeyHash, setActiveAssetLocal } =
+    useAuth();
+  const { account } = useApp();
   const queryClient = useQueryClient();
 
   const handleChange = (v: INavbarViews) => {
@@ -51,6 +55,10 @@ export default function Navbar({
       {isFees && (
         <div
           onClick={() => {
+            const alphaAsset = account?.assets?.fungible
+              ?.filter((asset) => account?.activeNetwork === asset.network)
+              .find((asset) => asset.typeId === AlphaType)!;
+            setActiveAssetLocal(JSON.stringify(alphaAsset));
             handleChange("fees");
           }}
           className={classNames("navbar-item", {

@@ -184,13 +184,3 @@ export function useGetProof(
     staleTime: Infinity,
   });
 }
-
-export function useMakeTransaction(
-  data: any
-): QueryObserverResult<ITransactionPayload, AxiosError> {
-  return useQuery([`transaction`], async () => makeTransaction(data), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}

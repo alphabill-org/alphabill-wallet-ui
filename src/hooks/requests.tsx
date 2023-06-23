@@ -245,16 +245,18 @@ export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
 
 export const makeTransaction = async (
   data: any,
-  pubKey?: string
+  pubKey: string,
+  isAlpha?: boolean
 ): Promise<{
   data: ITransactionPayload;
 }> => {
-  const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
+  const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
   console.log(Buffer.from(encodeCanonical(data)).toString('hex'));
 
+  const body = encodeCanonical(Object.values({ transactions: [data] }));
   const response = await axios.post<{
     data: ITransactionPayload;
-  }>(`${url}/transactions${pubKey ? "/" + pubKey : ""}`, encodeCanonical(data), {
+  }>(`${url}/transactions/${pubKey}`, body, {
     headers: {
       "Content-Type": "application/cbor",
     },
@@ -381,14 +383,20 @@ export const getFeeCreditBills = async (
     const moneyResponse = await moneyDataPromise;
     moneyData = moneyResponse.data;
   } catch (moneyError) {
-    console.error('An error occurred while fetching money fee credit bills:', moneyError);
+    console.error(
+      "An error occurred while fetching money fee credit bills:",
+      moneyError
+    );
   }
 
   try {
     const tokensResponse = await tokensDataPromise;
     tokensData = tokensResponse.data;
   } catch (tokensError) {
-    console.error('An error occurred while fetching tokens fee credit bills:', tokensError);
+    console.error(
+      "An error occurred while fetching tokens fee credit bills:",
+      tokensError
+    );
   }
 
   const data: IFeeCreditBills = {
@@ -398,7 +406,6 @@ export const getFeeCreditBills = async (
 
   return data;
 };
-
 
 export const downloadFile = async (url: string, filename: string) => {
   const response = await axios({

@@ -202,7 +202,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   Number(billsToTransfer?.length) === idx + 1 &&
                   !billToSplit &&
                   !splitBillAmount;
-
                 handleValidation(transferData as any, isLastTransaction);
               });
 
@@ -238,18 +237,20 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           const handleValidation = async (
             billData: ITransactionPayload,
-            isLastTransfer: boolean
+            isLastTransfer: boolean,
+            isTokensRequest?: boolean
           ) => {
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
-
             const finishTransaction = (billData: ITransactionPayload) => {
               proof.isSignatureValid &&
                 makeTransaction(
-                  prepTransactionRequestData(billData, proof.ownerProof)
+                  prepTransactionRequestData(billData, proof.ownerProof),
+                  activeAccountId,
+                  !isTokensRequest
                 )
                   .then(() => {
                     setPreviousView(null);
@@ -332,10 +333,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 };
                 const transferData: ITransactionPayload = {
                   payload: {
-                    systemId:
-                      values.assets.value === AlphaType
-                        ? AlphaSystemId
-                        : TokensSystemId,
+                    systemId: Boolean(values.assets.value === AlphaType)
+                      ? AlphaSystemId
+                      : TokensSystemId,
                     type: FeeCreditAddType,
                     unitId: pubKeyHash as Uint8Array,
                     attributes: {
@@ -354,7 +354,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 };
 
                 isFeeAdded.current = true;
-                handleValidation(transferData as any, true);
+                handleValidation(
+                  transferData as any,
+                  true,
+                  !Boolean(values.assets.value === AlphaType)
+                );
               }
             );
           };
