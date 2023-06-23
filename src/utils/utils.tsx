@@ -507,18 +507,16 @@ export const createInvariantPredicateSignatures = (
   ownerProof: Uint8Array,
   key: string
 ) => {
-  return Buffer.concat(
-    hierarchy?.map((parent: ITypeHierarchy) => {
-      const predicate = parent.invariantPredicate;
+  return hierarchy?.map((parent: ITypeHierarchy) => {
+    const predicate = parent.invariantPredicate;
 
-      if (predicate === hexToBase64(pushBoolTrue)) {
-        return Buffer.from(startByte, "hex");
-      } else if (checkOwnerPredicate(key, predicate)) {
-        return ownerProof;
-      }
-      throw new Error("Token can not be transferred");
-    })
-  );
+    if (predicate === hexToBase64(pushBoolTrue)) {
+      return Buffer.from(startByte, "hex");
+    } else if (checkOwnerPredicate(key, predicate)) {
+      return ownerProof;
+    }
+    throw new Error("Token can not be transferred");
+  });
 };
 
 export const getTokensLabel = (typeId: string) =>

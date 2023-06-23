@@ -20,7 +20,6 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  getFeeCreditBills,
   getRoundNumber,
   getTypeHierarchy,
   makeTransaction,
@@ -56,11 +55,7 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import {
-  bufferizeObject,
-  prepTransactionRequestData,
-  publicKeyHash,
-} from "../../utils/hashers";
+import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -318,6 +313,7 @@ export default function TransferFungible(): JSX.Element | null {
                     },
                   },
                 };
+                console.log(splitData, "splitData");
 
                 handleValidation(
                   splitData as ITransactionPayload,
@@ -355,21 +351,18 @@ export default function TransferFungible(): JSX.Element | null {
             );
 
             const finishTransaction = async (billData: ITransactionPayload) => {
-              const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
-              const creditBills = await getFeeCreditBills(
-                pubKeyHashHex as string
+              const feeProof = await createOwnerProof(
+                billData.payload,
+                hashingPrivateKey,
+                hashingPublicKey
               );
-              const creditBill = creditBills?.tokens;
-              const backlink = creditBill
-                ? Buffer.from(creditBill?.tx_hash, "base64")
-                : null;
 
               proof.isSignatureValid &&
                 makeTransaction(
                   prepTransactionRequestData(
                     billData,
                     proof.ownerProof,
-                    Buffer.from(creditBill.tx_hash)
+                    feeProof.ownerProof
                   ),
                   values.address,
                   selectedAsset?.typeId === AlphaType
@@ -431,9 +424,8 @@ export default function TransferFungible(): JSX.Element | null {
                       password: error.message,
                     });
                   }
-                  (
-                    billData.payload.attributes as ITransactionAttributes
-                  ).invariantPredicateSignatures = signatures;
+
+                  billData.payload.attributes.push(signatures);
                   finishTransaction(billData);
                 })
                 .catch(() => {

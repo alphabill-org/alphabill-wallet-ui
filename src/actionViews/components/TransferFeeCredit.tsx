@@ -49,7 +49,6 @@ import {
   publicKeyHash,
   transferOrderTxHash,
 } from "../../utils/hashers";
-import { truncate } from "lodash";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {

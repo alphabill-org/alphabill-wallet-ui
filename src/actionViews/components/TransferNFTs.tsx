@@ -198,10 +198,18 @@ export default function TransferNFTs(): JSX.Element | null {
                 ).invariantPredicateSignatures = signatures;
 
                 transferredToken.current = selectedNFT;
-
+                const feeProof = await createOwnerProof(
+                  tokenData.payload,
+                  hashingPrivateKey,
+                  hashingPublicKey
+                );
                 proof.isSignatureValid &&
                   makeTransaction(
-                    prepTransactionRequestData(tokenData, proof.ownerProof),
+                    prepTransactionRequestData(
+                      tokenData,
+                      proof.ownerProof,
+                      feeProof.ownerProof
+                    ),
                     values.address
                   ).then(async () => {
                     const handleTransferEnd = () => {
