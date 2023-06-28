@@ -44,11 +44,7 @@ import {
   maxTransactionFee,
 } from "../../utils/constants";
 
-import {
-  prepTransactionRequestData,
-  NFTTransferOrderTxHash,
-  publicKeyHash,
-} from "../../utils/hashers";
+import { prepTransactionRequestData, publicKeyHash, transferOrderTxHash } from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -231,7 +227,13 @@ export default function TransferNFTs(): JSX.Element | null {
                           if (Boolean(typeId)) {
                             sendTransferMessage(
                               transferredToken.current as INFTAsset,
-                              await NFTTransferOrderTxHash(tokenDataObj),
+                              await transferOrderTxHash(
+                                prepTransactionRequestData(
+                                  tokenData,
+                                  proof.ownerProof,
+                                  feeProof.ownerProof
+                                )
+                              ),
                               handleTransferEnd
                             );
                           } else {

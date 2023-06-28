@@ -11,6 +11,7 @@ import {
   IRoundNumber,
   IBalance,
   IFeeCreditBills,
+  Iv2ProofBills,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -224,12 +225,12 @@ export const getUserTokens = async (
 
 export const getProof = async (
   billID: string
-): Promise<IProofsProps | undefined> => {
+): Promise<Iv2ProofBills | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
 
-  const response = await axios.get<IProofsProps>(
+  const response = await axios.get<Iv2ProofBills>(
     `${MONEY_BACKEND_URL}/proof?bill_id=${billID}`
   );
 
@@ -251,7 +252,7 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  console.log(Buffer.from(encodeCanonical(data)).toString('hex'));
+  console.log(Buffer.from(encodeCanonical(Object.values({ transactions: [data] }))).toString('hex'));
 
   const body = encodeCanonical(Object.values({ transactions: [data] }));
   const response = await axios.post<{

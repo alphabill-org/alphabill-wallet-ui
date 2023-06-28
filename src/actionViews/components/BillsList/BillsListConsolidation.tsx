@@ -1,4 +1,5 @@
 import * as secp from "@noble/secp256k1";
+import { decode } from "cbor";
 
 import {
   base64ToHexPrefixed,
@@ -21,9 +22,10 @@ import {
   IAccount,
   IActiveAsset,
   IBill,
-  IProof,
   ITransactionPayload,
-  ITxProof,
+  Iv2TxOrder,
+  Iv2TxProof,
+  Iv2Tx_Proof,
 } from "../../../types/Types";
 import {
   getRoundNumber,
@@ -32,6 +34,7 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
+  bufferizeObject,
   prepTransactionRequestData,
   publicKeyHash,
 } from "../../../utils/hashers";
@@ -45,35 +48,34 @@ export const handleSwapRequest = async (
   lastNonceIDs: { [key: string]: string[] },
   activeAsset: IActiveAsset
 ) => {
-  let nonce: Buffer[] = [];
-  let txProofs: ITxProof[] = [];
-  let billIdentifiers: string[] = [];
+  let txProofs: Iv2Tx_Proof[] = [];
+  let billIdentifiers: Buffer[] = [];
 
   sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
-    nonce.push(Buffer.from(id, "base64"));
-    billIdentifiers.push(id);
+    const idBuffer = Buffer.from(id, "base64");
+    billIdentifiers.push(idBuffer);
   });
 
-  DCBills?.map((bill: IBill, idx: number) =>
+  DCBills?.map((bill: IBill) =>
     getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
-      const txProof = data?.bills[0].txProof;
+      const txProof = data?.bills[0]?.tx_proof! as Iv2Tx_Proof;
 
       txProof && txProofs.push(txProof);
       if (txProofs?.length === DCBills.length) {
-        let dcTransfers: ITransactionPayload[] = [];
-        let proofs: IProof[] = [];
+        let dcTransfers: Iv2TxOrder[] = [];
+        let proofs: Iv2TxProof[] = [];
 
         sortTxProofsByID(txProofs).forEach((txProof) => {
-          const tx = txProof.tx;
-          const proof = txProof.proof;
+          const tx = txProof.txRecord.TransactionOrder;
+          const proof = txProof.txProof;
           dcTransfers.push(tx);
           proofs.push(proof);
         });
 
         if (!hashingPublicKey || !hashingPrivateKey) return;
 
-        if (!nonce.length) return;
-        const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+        if (!billIdentifiers.length) return;
+        const nonceHash = await secp.utils.sha256(Buffer.concat(billIdentifiers));
         getRoundNumber(activeAsset?.typeId === AlphaType).then(
           async (roundNumber) => {
             const transferData: ITransactionPayload = {
@@ -82,12 +84,21 @@ export const handleSwapRequest = async (
                 type: AlphaSwapType,
                 unitId: Buffer.from(nonceHash),
                 attributes: {
-                  billIdentifiers: sortIDBySize(billIdentifiers),
-                  dcTransfers: dcTransfers,
                   ownerCondition: getNewBearer(account),
-                  proofs: proofs,
+                  billIdentifiers: billIdentifiers,
+                  dcTransfers: dcTransfers.map((dcTransfer) =>
+                    bufferizeObject(dcTransfer)
+                  ),
+                  proofs: proofs.map((proof) => bufferizeObject(proof)),
                   targetValue: dcTransfers?.reduce((acc, obj: any) => {
-                    return acc + BigInt(obj.payload.attributes.targetValue!);
+                    return (
+                      acc +
+                      BigInt(
+                        decode(
+                          Buffer.from(obj.Payload.Attributes!, "base64")
+                        )[2]
+                      )
+                    );
                   }, 0n),
                 },
                 clientMetadata: {
@@ -105,6 +116,7 @@ export const handleSwapRequest = async (
               hashingPrivateKey,
               hashingPublicKey
             );
+            console.log(transferData, "consolidate");
 
             proof.isSignatureValid &&
               makeTransaction(
@@ -174,10 +186,10 @@ export const handleDC = async (
             type: AlphaDcType,
             unitId: Buffer.from(bill.id, "base64"),
             attributes: {
-              backlink: Buffer.from(bill.txHash, "base64"),
               nonce: nonceHash,
               targetBearer: getNewBearer(account),
               targetValue: BigInt(bill.value),
+              backlink: Buffer.from(bill.txHash, "base64"),
             },
             clientMetadata: {
               timeout: roundNumber + timeoutBlocks,

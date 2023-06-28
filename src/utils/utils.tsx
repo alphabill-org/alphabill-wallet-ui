@@ -18,6 +18,9 @@ import {
   ITokensListTypes,
   INFTAsset,
   ITransactionPayloadObj,
+  Iv2TxProof,
+  Iv2TxRecord,
+  Iv2Tx_Proof,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -95,11 +98,17 @@ export const sortBillsByID = (bills: IBill[]) =>
       : 0
   );
 
-export const sortTxProofsByID = (transfers: ITxProof[]) =>
-  transfers.sort((a: ITxProof, b: ITxProof) => {
-    if (a.tx.payload.unitId < b.tx.payload.unitId) {
+export const sortTxProofsByID = (transfers: Iv2Tx_Proof[]) =>
+  transfers.sort((a: Iv2Tx_Proof, b: Iv2Tx_Proof) => {
+    if (
+      a.txRecord.TransactionOrder.Payload.UnitID <
+      b.txRecord.TransactionOrder.Payload.UnitID
+    ) {
       return -1;
-    } else if (a.tx.payload.unitId > b.tx.payload.unitId) {
+    } else if (
+      a.txRecord.TransactionOrder.Payload.UnitID >
+      b.txRecord.TransactionOrder.Payload.UnitID
+    ) {
       return 1;
     } else {
       return 0;
@@ -253,18 +262,19 @@ export const createOwnerProof = async (
   hashingPrivateKey: Uint8Array,
   pubKey: Uint8Array
 ) => {
+  console.log(payload, "payload");
+
   payload.attributes = Object.values(payload.attributes);
   payload.clientMetadata = Object.values(payload.clientMetadata);
   const payloadHash = await secp.utils.sha256(
     encodeCanonical(Object.values(payload))
   );
-
   const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,
     recovered: true,
   });
-
   const isValid = secp.verify(signature[0], payloadHash, pubKey);
+
   return {
     isSignatureValid: isValid,
     ownerProof: Buffer.from(

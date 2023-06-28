@@ -186,9 +186,9 @@ export interface ITransactionAttributes {
   earliestAdditionTime?: BigInt | bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   latestAdditionTime?: BigInt | bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   ownerCondition?: Uint8Array;
-  billIdentifiers?: string[];
-  proofs?: IProof[];
-  dcTransfers?: ITransactionPayload[];
+  billIdentifiers?: Uint8Array[];
+  proofs?: any[];
+  dcTransfers?: any[];
   nftType?: Uint8Array;
   feeCreditOwnerCondition?: Uint8Array | null;
   feeCreditTransfer?: Uint8Array | any;
@@ -246,7 +246,7 @@ export interface IProofTx {
       billIdentifiers?: string[];
       remainingValue?: string;
       proofs?: IProof[];
-      dcTransfers?: IProofTx[];
+      dcTransfers?: Uint8Array[] | IProofTx[];
       targetValue?: string;
       newBearer?: string;
       invariantPredicateSignatures?: string[];
@@ -423,7 +423,8 @@ export interface ItxRecord {
       UnitID: string;
       Attributes: string | Buffer[] | ITransactionAttributes;
       ClientMetadata:
-        | string | Buffer[]
+        | string
+        | Buffer[]
         | {
             Timeout: number;
             MaxTransactionFee: number;
@@ -482,3 +483,73 @@ export type IActionVies =
   | "";
 
 export type INavbarViews = "fungible" | "nonFungible" | "fees";
+
+export interface Iv2TxOrder {
+  Payload: {
+    SystemID: string;
+    Type: string;
+    UnitID: string;
+    Attributes: string;
+    ClientMetadata: {
+      Timeout: number;
+      MaxTransactionFee: number;
+      FeeCreditRecordID: string;
+    };
+  };
+  OwnerProof: string;
+  FeeProof: string;
+}
+
+export interface Iv2Tx_Proof {
+  txRecord: Iv2TxRecord;
+  txProof: Iv2TxProof;
+}
+
+export interface Iv2ProofBills {
+  bills: Iv2Proof[];
+}
+
+export interface Iv2Proof {
+  id: string;
+  value: string;
+  tx_hash: string;
+  tx_proof: Iv2Tx_Proof;
+}
+
+export interface Iv2Tx_Proof {
+  txRecord: Iv2TxRecord;
+  txProof: Iv2TxProof;
+}
+
+export interface Iv2TxRecord {
+  TransactionOrder: Iv2TxOrder;
+  ServerMetadata: {
+    ActualFee: number;
+    TargetUnits: null;
+  };
+}
+export interface Iv2TxProof {
+  BlockHeaderHash: string;
+  Chain: string[];
+  UnicityCertificate: {
+    input_record: {
+      previous_hash: string;
+      hash: string;
+      block_hash: string;
+      summary_value: string;
+      round_number: 634504;
+      sum_of_earned_fees: 142;
+    };
+    unicity_tree_certificate: {
+      system_identifier: string;
+      sibling_hashes: string[];
+      system_description_hash: string;
+    };
+    unicity_seal: {
+      root_chain_round_number: 634509;
+      timestamp: 1687938038;
+      hash: string;
+      signatures: string[];
+    };
+  };
+}

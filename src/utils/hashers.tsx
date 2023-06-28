@@ -5,7 +5,6 @@ import { decode } from "cbor";
 
 import {
   ITransactionPayload,
-  ITransactionAttributes,
   ItxProof,
   ItxRecord,
 } from "../types/Types";
@@ -22,24 +21,6 @@ import {
   TokensSplitType,
   TokensTransferType,
 } from "./constants";
-
-export const NFTTransferOrderTxHash = async (tx: ITransactionPayload) => {
-  const attributes = tx.payload.attributes as ITransactionAttributes;
-
-  return Buffer.from(
-    await secp.utils.sha256(
-      secp.utils.concatBytes(
-        tx.payload.systemId,
-        tx.payload.unitId,
-        tx.ownerProof!,
-        attributes.newBearer!,
-        attributes.backlink!,
-        attributes.invariantPredicateSignatures!,
-        attributes?.nftType!
-      )
-    )
-  ).toString("base64");
-};
 
 export const transferOrderTxHash = async (tx: Uint8Array[]) => {
   return Buffer.from(await secp.utils.sha256(encodeCanonical(tx))).toString(
@@ -132,7 +113,7 @@ export const createConcatenatedBuffer = (obj: any): Buffer | null => {
   }
 };
 
-export const bufferizeObject = (obj: any) => {
+export const bufferizeObject = (obj: any): Uint8Array[] => {
   const bufferedObj = { ...obj };
 
   const convertValueToBuffer = (value: any): any => {

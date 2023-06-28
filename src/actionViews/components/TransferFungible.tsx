@@ -313,7 +313,6 @@ export default function TransferFungible(): JSX.Element | null {
                     },
                   },
                 };
-                console.log(splitData, "splitData");
 
                 handleValidation(
                   splitData as ITransactionPayload,
@@ -344,23 +343,27 @@ export default function TransferFungible(): JSX.Element | null {
                   attr.remainingValue;
               }
             }
+
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
 
-            const finishTransaction = async (billData: ITransactionPayload) => {
+            const finishTransaction = async (
+              transferData: ITransactionPayload
+            ) => {
+              console.log(transferData, "finishTransaction");
               const feeProof = await createOwnerProof(
-                billData.payload,
+                transferData.payload,
                 hashingPrivateKey,
                 hashingPublicKey
               );
 
-              proof.isSignatureValid &&
+              if (proof.isSignatureValid) {
                 makeTransaction(
                   prepTransactionRequestData(
-                    billData,
+                    transferData,
                     proof.ownerProof,
                     feeProof.ownerProof
                   ),
@@ -369,7 +372,7 @@ export default function TransferFungible(): JSX.Element | null {
                 )
                   .then(() => {
                     setPreviousView(null);
-                    const attributes = billData?.payload
+                    const attributes = transferData?.payload
                       .attributes as ITransactionAttributes;
                     const amount =
                       (attributes?.amount as bigint) ||
@@ -406,35 +409,28 @@ export default function TransferFungible(): JSX.Element | null {
                       handleTransferEnd();
                     }
                   });
+              }
             };
 
             if (selectedAsset?.typeId !== AlphaType) {
-              await getTypeHierarchy(billTypeId || "")
-                .then(async (hierarchy: ITypeHierarchy[]) => {
-                  let signatures;
-                  try {
-                    signatures = createInvariantPredicateSignatures(
-                      hierarchy,
-                      proof.ownerProof,
-                      activeAccountId
-                    );
-                  } catch (error) {
-                    setIsSending(false);
-                    return setErrors({
-                      password: error.message,
-                    });
-                  }
-
-                  billData.payload.attributes.push(signatures);
-                  finishTransaction(billData);
-                })
-                .catch(() => {
-                  setIsSending(false);
-                  setErrors({
-                    password:
-                      "Fetching token hierarchy for " + billTypeId + "failed",
-                  });
+              try {
+                const hierarchy: ITypeHierarchy[] = await getTypeHierarchy(
+                  billTypeId || ""
+                );
+                const signatures = createInvariantPredicateSignatures(
+                  hierarchy,
+                  proof.ownerProof,
+                  activeAccountId
+                );
+                billData.payload.attributes.invariantPredicateSignatures =
+                  signatures;
+                finishTransaction(billData);
+              } catch (error) {
+                setIsSending(false);
+                setErrors({
+                  password: error.message,
                 });
+              }
             } else {
               finishTransaction(billData);
             }

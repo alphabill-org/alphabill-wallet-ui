@@ -8,6 +8,7 @@ import {
   ITypeHierarchy,
   ITokensListTypes,
   IFeeCreditBills,
+  Iv2ProofBills,
 } from "../types/Types";
 
 import {
@@ -177,7 +178,7 @@ export function useGeTypeHierarchy(
 
 export function useGetProof(
   billID: string
-): QueryObserverResult<IProofsProps, AxiosError> {
+): QueryObserverResult<Iv2ProofBills, AxiosError> {
   return useQuery([`proof`, billID], async () => getProof(billID), {
     enabled: true,
     keepPreviousData: true,
