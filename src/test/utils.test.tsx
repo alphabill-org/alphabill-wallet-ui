@@ -339,7 +339,7 @@ describe("Create invariant predicate signatures", () => {
       "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual(Buffer.concat(hierarchy?.map(() => ownerProof)));
+    ).toEqual(hierarchy?.map(() => ownerProof));
   });
 
   test("should return true for a valid signatures for valid predicate and key", () => {
@@ -364,7 +364,7 @@ describe("Create invariant predicate signatures", () => {
       "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual(Buffer.from("Uw==", "base64"));
+    ).toEqual([Buffer.from("Uw==", "base64")]);
   });
 });
 
