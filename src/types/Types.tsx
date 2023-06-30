@@ -113,7 +113,7 @@ export interface IActiveAsset {
   value?: string;
   txHash?: string;
   kind?: number;
-  isDcBill?: boolean;
+  dcNonce?: boolean;
   nftUri?: string;
   nftData?: string;
 }
@@ -148,7 +148,7 @@ export interface IBill {
   typeId?: string;
   kind?: number;
   decimals?: number;
-  isDcBill?: boolean;
+  dcNonce?: boolean;
 }
 
 export interface IBillsList {
@@ -192,7 +192,7 @@ export interface ITransactionAttributes {
   nftType?: Uint8Array;
   feeCreditOwnerCondition?: Uint8Array | null;
   feeCreditTransfer?: Uint8Array | any;
-  feeCreditTransferProof?: ItxProof | any[];
+  feeCreditTransferProof?: ItxProof | any;
   typeID?: Uint8Array;
 }
 
@@ -315,7 +315,7 @@ export interface IProofProps {
   value: string;
   txHash?: string;
   tx_hash?: string;
-  isDcBill?: boolean;
+  dcNonce?: boolean;
   txProof?: ITxProof;
   tx_proof?: ITxProof;
 }
@@ -505,7 +505,7 @@ export interface Iv2Tx_Proof {
   txProof: Iv2TxProof;
 }
 
-export interface Iv2ProofBills {
+export interface Iv2Proof {
   bills: Iv2Proof[];
 }
 

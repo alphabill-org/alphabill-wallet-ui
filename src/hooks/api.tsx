@@ -8,7 +8,6 @@ import {
   ITypeHierarchy,
   ITokensListTypes,
   IFeeCreditBills,
-  Iv2ProofBills,
 } from "../types/Types";
 
 import {
@@ -97,11 +96,15 @@ export function useGetImageUrl(
 export function useGetFeeCreditBills(
   id: string
 ): QueryObserverResult<IFeeCreditBills, AxiosError> {
-  return useQuery<IFeeCreditBills, AxiosError>(['feeBillsList', id], () => getFeeCreditBills(id), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
+  return useQuery<IFeeCreditBills, AxiosError>(
+    ["feeBillsList", id],
+    () => getFeeCreditBills(id),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
+    }
+  );
 }
 
 export function useGetImageUrlAndDownloadType(url: string): QueryObserverResult<
@@ -177,9 +180,10 @@ export function useGeTypeHierarchy(
 }
 
 export function useGetProof(
-  billID: string
-): QueryObserverResult<Iv2ProofBills, AxiosError> {
-  return useQuery([`proof`, billID], async () => getProof(billID), {
+  billID: string,
+  txHash: string
+): QueryObserverResult<any, AxiosError> {
+  return useQuery([`proof`, billID], async () => getProof(billID, txHash), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,

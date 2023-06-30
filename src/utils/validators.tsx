@@ -213,11 +213,11 @@ export const Verify = async (
     return "Proof & bill ID do not match";
   }
 
-  if (Boolean(bill.isDcBill) && bill.isDcBill !== false) {
+  if (Boolean(bill.dcNonce) && bill.dcNonce !== false) {
     return "Bill type is incorrect";
   }
 
-  if (Boolean(proof?.isDcBill) && proof?.isDcBill !== false) {
+  if (Boolean(proof?.dcNonce) && proof?.dcNonce !== false) {
     return "Proof bill type is incorrect";
   }
 

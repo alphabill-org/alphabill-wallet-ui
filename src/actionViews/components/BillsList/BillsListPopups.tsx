@@ -123,20 +123,21 @@ function BillsListPopups({
 
               setPassword(values.password);
               isPasswordFormVisible === "proofCheck"
-                ? getProof(base64ToHexPrefixed(activeBill.id)).then(
-                    async (data: IProofsProps | undefined) => {
-                      data?.bills[0] &&
-                        setProofCheckStatus(
-                          await Verify(
-                            data.bills[0],
-                            activeBill as IBill,
-                            hashingPrivateKey,
-                            hashingPublicKey
-                          )
-                        );
-                      await setIsProofVisible(true);
-                    }
-                  )
+                ? getProof(
+                    base64ToHexPrefixed(activeBill.id),
+                    base64ToHexPrefixed(activeBill.txHash)
+                  ).then(async (data: IProofsProps | undefined) => {
+                    data &&
+                      setProofCheckStatus(
+                        await Verify(
+                          data,
+                          activeBill as IBill,
+                          hashingPrivateKey,
+                          hashingPublicKey
+                        )
+                      );
+                    await setIsProofVisible(true);
+                  })
                 : handleDC(values.password);
               setIsPasswordFormVisible(null);
             }}

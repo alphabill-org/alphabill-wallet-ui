@@ -119,8 +119,7 @@ describe("Function that finds an object that has a value greater than or equal t
     expect(result).toEqual({
       id: "3",
       value: "500",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-      isDcBill: false,
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
     });
   });
 
@@ -142,8 +141,7 @@ describe("Function that gets closest value to the target value", () => {
     expect(result).toEqual({
       id: "2",
       value: "200",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
-      isDcBill: false,
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
     });
   });
 });
@@ -159,13 +157,11 @@ describe("Function that gets optimal combination of bills to reach the target am
         id: "4",
         value: "1000",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-        isDcBill: false,
       },
       {
         id: "3",
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-        isDcBill: false,
       },
     ]);
   });
@@ -189,13 +185,11 @@ describe("Function that gets optimal combination of bills to reach the target am
         id: "4",
         value: "1000",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-        isDcBill: false,
       },
       {
         id: "3",
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-        isDcBill: false,
       },
     ]);
   });

@@ -44,7 +44,6 @@ import {
 } from "../../utils/constants";
 
 import {
-  bufferizeObject,
   prepTransactionRequestData,
   publicKeyHash,
   transferOrderTxHash,
@@ -135,7 +134,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           }
 
           const billsArr = billsList?.filter(
-            (bill: IBill) => bill.isDcBill !== true
+            (bill: IBill) => !Boolean(bill.dcNonce)
           );
 
           const selectedBills = getOptimalBills(
@@ -285,20 +284,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
               const pubKeyHash = await publicKeyHash(activeAccountId, true);
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
               queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
-              getProof(id).then(async (data) => {
-                const hashMatch = data?.bills[0].tx_hash === hash;
-                if (hashMatch) {
-                  billProof.current = data?.bills[0];
-                }
-              });
-
-              if (base64ToHexPrefixed(billProof.current?.id) === id) {
-                if (isFeeAdded.current !== true) {
-                  addFeeCredit();
-                }
+              getProof(id, base64ToHexPrefixed(hash)).then(async (data) => {
+                billProof.current = data;
+                addFeeCredit();
                 pollingInterval.current &&
                   clearInterval(pollingInterval.current);
-              }
+              });
 
               getRoundNumber(defaultAsset?.value === AlphaType).then(
                 (roundNumber) => {
@@ -321,15 +312,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const addFeeCredit = () => {
             getRoundNumber(defaultAsset?.value === AlphaType).then(
               async (roundNumber) => {
-                let proofFee = billProof.current.tx_proof.txProof;
-                const seal = proofFee.UnicityCertificate.unicity_seal;
-                proofFee.UnicityCertificate.unicity_seal = {
-                  root_chain_round_number: seal.root_chain_round_number,
-                  timestamp: seal.timestamp,
-                  previousHash: seal.PreviousHash || null,
-                  hash: seal.hash,
-                  signatures: seal.signatures,
-                };
                 const transferData: ITransactionPayload = {
                   payload: {
                     systemId: Boolean(values.assets.value === AlphaType)
@@ -339,10 +321,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     unitId: pubKeyHash as Uint8Array,
                     attributes: {
                       feeCreditOwnerCondition: getNewBearer(account),
-                      feeCreditTransfer: bufferizeObject(
-                        billProof.current.tx_proof.txRecord
-                      ), // bill transfer record of type "transfer fee credit" (based on created bill GET /proof)
-                      feeCreditTransferProof: bufferizeObject(proofFee), // transaction proof of "transfer fee credit" transaction (based on created bill GET /proof)
+                      feeCreditTransfer: billProof.current.txRecord,
+                      // bill transfer record of type "transfer fee credit" (based on created bill GET /proof)
+                      feeCreditTransferProof: billProof.current.txProof, // transaction proof of "transfer fee credit" transaction (based on created bill GET /proof)
                     },
                     clientMetadata: {
                       timeout: roundNumber + feeTimeoutBlocks,
@@ -351,6 +332,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     },
                   },
                 };
+                console.log(transferData);
 
                 isFeeAdded.current = true;
                 handleValidation(

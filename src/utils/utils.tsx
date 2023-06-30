@@ -98,23 +98,21 @@ export const sortBillsByID = (bills: IBill[]) =>
       : 0
   );
 
-export const sortTxProofsByID = (transfers: Iv2Tx_Proof[]) =>
-  transfers.sort((a: Iv2Tx_Proof, b: Iv2Tx_Proof) => {
-    if (
-      a.txRecord.TransactionOrder.Payload.UnitID <
-      b.txRecord.TransactionOrder.Payload.UnitID
-    ) {
+export const sortTx_ProofsByID = (proofs: any[]) => {
+  return proofs.sort((a: any, b: any) => {
+    const aTxUnitId = a.txRecord[0][0][2];
+    const bTxUnitId = b.txRecord[0][0][2];
+    console.log(bTxUnitId, aTxUnitId);
+
+    if (aTxUnitId < bTxUnitId) {
       return -1;
-    } else if (
-      a.txRecord.TransactionOrder.Payload.UnitID >
-      b.txRecord.TransactionOrder.Payload.UnitID
-    ) {
+    } else if (aTxUnitId > bTxUnitId) {
       return 1;
     } else {
       return 0;
     }
   });
-
+};
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
     BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
@@ -262,8 +260,6 @@ export const createOwnerProof = async (
   hashingPrivateKey: Uint8Array,
   pubKey: Uint8Array
 ) => {
-  console.log(payload, "payload");
-
   payload.attributes = Object.values(payload.attributes);
   payload.clientMetadata = Object.values(payload.clientMetadata);
   const payloadHash = await secp.utils.sha256(

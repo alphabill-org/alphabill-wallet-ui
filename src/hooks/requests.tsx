@@ -1,17 +1,16 @@
 import axios, { AxiosResponse, isCancel } from "axios";
 import { encodeCanonical } from "cbor";
+import { decodeAllSync, decode } from "cbor";
 
 import {
   IBillsList,
   ITransactionPayload,
-  IProofsProps,
   IBill,
   IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,
   IBalance,
   IFeeCreditBills,
-  Iv2ProofBills,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -224,17 +223,27 @@ export const getUserTokens = async (
 };
 
 export const getProof = async (
-  billID: string
-): Promise<Iv2ProofBills | undefined> => {
+  billID: string,
+  txHash: string
+): Promise<any | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
 
-  const response = await axios.get<Iv2ProofBills>(
-    `${MONEY_BACKEND_URL}/proof?bill_id=${billID}`
+  const response = await axios.get<any>(
+    `${MONEY_BACKEND_URL}/units/${billID}/transactions/${txHash}/proof`,
+    { responseType: "arraybuffer" }
   );
 
-  return response.data;
+  const decoded = decode(Buffer.from(response.data));
+
+  const proofObj = {
+    txRecord: decoded[0],
+    txProof: decoded[1],
+  };
+  console.log(proofObj, 'proofObj');
+
+  return proofObj;
 };
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
@@ -252,7 +261,11 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  console.log(Buffer.from(encodeCanonical(Object.values({ transactions: [data] }))).toString('hex'));
+  console.log(
+    Buffer.from(
+      encodeCanonical(Object.values({ transactions: [data] }))
+    ).toString("hex")
+  );
 
   const body = encodeCanonical(Object.values({ transactions: [data] }));
   const response = await axios.post<{

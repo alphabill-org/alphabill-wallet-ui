@@ -37,7 +37,9 @@ function BillsList(): JSX.Element | null {
   const DCBills = useMemo(
     () =>
       sortedListByValue
-        ? sortBillsByID(sortedListByValue)?.filter((b: IBill) => b.isDcBill)
+        ? sortBillsByID(sortedListByValue)?.filter((b: IBill) =>
+            Boolean(b.dcNonce)
+          )
         : [],
     [sortedListByValue]
   );
@@ -82,7 +84,10 @@ function BillsList(): JSX.Element | null {
   // Bills list functions
   const handleProof = (bill: IBill) => {
     password
-      ? getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
+      ? getProof(
+          base64ToHexPrefixed(bill.id),
+          base64ToHexPrefixed(bill.txHash)
+        ).then(async (data) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             password,
             Number(account?.idx),
@@ -93,14 +98,9 @@ function BillsList(): JSX.Element | null {
             return;
           }
 
-          data?.bills[0] &&
+          data &&
             setProofCheckStatus(
-              await Verify(
-                data.bills[0],
-                bill,
-                hashingPrivateKey,
-                hashingPublicKey
-              )
+              await Verify(data, bill, hashingPrivateKey, hashingPublicKey)
             );
           await setIsProofVisible(true);
         })
@@ -117,7 +117,7 @@ function BillsList(): JSX.Element | null {
           initialRoundNumber.current = roundNumber;
         }
 
-        if ((initialRoundNumber?.current + swapTimeout) < roundNumber) {
+        if (initialRoundNumber?.current + swapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
@@ -269,11 +269,11 @@ function BillsList(): JSX.Element | null {
         )}
         <Spacer mt={24} />
         {Number(
-          sortedListByValue?.filter((b: IBill) => b.isDcBill !== true)?.length
+          sortedListByValue?.filter((b: IBill) => !Boolean(b.dcNonce))?.length
         ) >= 1 && (
           <AssetsList
             assetList={sortedListByValue?.filter(
-              (b: IBill) => b.isDcBill !== true
+              (b: IBill) => !Boolean(b.dcNonce)
             )}
             isTypeListItem
             setIsProofVisible={(asset) => {

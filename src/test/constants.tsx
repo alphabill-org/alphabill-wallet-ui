@@ -318,25 +318,21 @@ export const testBills = [
   {
     id: "1",
     value: "100",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzR=",
-    isDcBill: false,
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzR="
   },
   {
     id: "2",
     value: "200",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
-    isDcBill: false,
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
   },
   {
     id: "3",
     value: "500",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-    isDcBill: false,
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
   },
   {
     id: "4",
     value: "1000",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-    isDcBill: false,
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV="
   },
 ];

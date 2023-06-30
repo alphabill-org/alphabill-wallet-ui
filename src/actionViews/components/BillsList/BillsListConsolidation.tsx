@@ -1,12 +1,11 @@
 import * as secp from "@noble/secp256k1";
-import { decode } from "cbor";
 
 import {
   base64ToHexPrefixed,
   createOwnerProof,
   getNewBearer,
   sortIDBySize,
-  sortTxProofsByID,
+  sortTx_ProofsByID,
 } from "../../../utils/utils";
 import {
   AlphaDcType,
@@ -34,7 +33,6 @@ import {
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
-  bufferizeObject,
   prepTransactionRequestData,
   publicKeyHash,
 } from "../../../utils/hashers";
@@ -48,7 +46,7 @@ export const handleSwapRequest = async (
   lastNonceIDs: { [key: string]: string[] },
   activeAsset: IActiveAsset
 ) => {
-  let txProofs: Iv2Tx_Proof[] = [];
+  let tx_proofs: Iv2Tx_Proof[] = [];
   let billIdentifiers: Buffer[] = [];
 
   sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
@@ -57,25 +55,29 @@ export const handleSwapRequest = async (
   });
 
   DCBills?.map((bill: IBill) =>
-    getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
-      const txProof = data?.bills[0]?.tx_proof! as Iv2Tx_Proof;
+    getProof(
+      base64ToHexPrefixed(bill.id),
+      base64ToHexPrefixed(bill.txHash)
+    ).then(async (data) => {
+      const tx_proof = data! as Iv2Tx_Proof;
 
-      txProof && txProofs.push(txProof);
-      if (txProofs?.length === DCBills.length) {
+      tx_proof && tx_proofs.push(tx_proof);
+      if (tx_proofs?.length === DCBills.length) {
         let dcTransfers: Iv2TxOrder[] = [];
         let proofs: Iv2TxProof[] = [];
 
-        sortTxProofsByID(txProofs).forEach((txProof) => {
-          const tx = txProof.txRecord.TransactionOrder;
-          const proof = txProof.txProof;
-          dcTransfers.push(tx);
-          proofs.push(proof);
+        sortTx_ProofsByID(tx_proofs).forEach((proof) => {
+          dcTransfers.push(proof.txRecord);
+          proofs.push(proof.txProof);
         });
 
         if (!hashingPublicKey || !hashingPrivateKey) return;
 
         if (!billIdentifiers.length) return;
-        const nonceHash = await secp.utils.sha256(Buffer.concat(billIdentifiers));
+        const nonceHash = await secp.utils.sha256(
+          Buffer.concat(billIdentifiers)
+        );
+
         getRoundNumber(activeAsset?.typeId === AlphaType).then(
           async (roundNumber) => {
             const transferData: ITransactionPayload = {
@@ -86,19 +88,10 @@ export const handleSwapRequest = async (
                 attributes: {
                   ownerCondition: getNewBearer(account),
                   billIdentifiers: billIdentifiers,
-                  dcTransfers: dcTransfers.map((dcTransfer) =>
-                    bufferizeObject(dcTransfer)
-                  ),
-                  proofs: proofs.map((proof) => bufferizeObject(proof)),
-                  targetValue: dcTransfers?.reduce((acc, obj: any) => {
-                    return (
-                      acc +
-                      BigInt(
-                        decode(
-                          Buffer.from(obj.Payload.Attributes!, "base64")
-                        )[2]
-                      )
-                    );
+                  dcTransfers: dcTransfers,
+                  proofs: proofs,
+                  targetValue: DCBills?.reduce((acc, obj: any) => {
+                    return acc + BigInt(obj.value);
                   }, 0n),
                 },
                 clientMetadata: {
