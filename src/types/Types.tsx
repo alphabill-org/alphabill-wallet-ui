@@ -187,12 +187,12 @@ export interface ITransactionAttributes {
   latestAdditionTime?: BigInt | bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   ownerCondition?: Uint8Array;
   billIdentifiers?: Uint8Array[];
-  proofs?: any[];
-  dcTransfers?: any[];
+  proofs?: Uint8Array[];
+  dcTransfers?: Uint8Array[];
   nftType?: Uint8Array;
-  feeCreditOwnerCondition?: Uint8Array | null;
-  feeCreditTransfer?: Uint8Array | any;
-  feeCreditTransferProof?: ItxProof | any;
+  feeCreditOwnerCondition?: Uint8Array;
+  feeCreditTransfer?: Uint8Array;
+  feeCreditTransferProof?: Uint8Array;
   typeID?: Uint8Array;
 }
 
@@ -232,37 +232,6 @@ export interface ITransactionPayloadObj {
       };
 }
 
-export interface IProofTx {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    attributes: {
-      nonce?: string;
-      targetBearer?: string;
-      backlink: string;
-      amount?: string;
-      ownerCondition?: string;
-      billIdentifiers?: string[];
-      remainingValue?: string;
-      proofs?: IProof[];
-      dcTransfers?: Uint8Array[] | IProofTx[];
-      targetValue?: string;
-      newBearer?: string;
-      invariantPredicateSignatures?: string[];
-      type?: string;
-    };
-    clientMetadata:
-      | any[]
-      | {
-          timeout: string;
-          maxTransactionFee: string;
-          feeCreditRecordID?: Uint8Array | null;
-        };
-  };
-  ownerProof: string;
-}
-
 export interface IActivity {
   id: string;
   name: string;
@@ -284,192 +253,14 @@ export interface ITransactionPayloadProps {
   setIsActionsViewVisible: (e: boolean) => void;
 }
 
-export interface ISwapProps {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    attributes: {
-      billIdentifiers: string[]; // All the bills that are used in a swap
-      dcTransfers: ITransactionPayload[];
-      ownerCondition: string;
-      proofs: IProof[];
-      targetValue: string;
-      invariantPredicateSignatures?: string[];
-    };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array | null;
-    };
-  };
-  ownerProof: string;
-}
-
-export interface IProofsProps {
-  bills: IProofProps[];
-}
-
-export interface IProofProps {
-  id: string;
-  value: string;
-  txHash?: string;
-  tx_hash?: string;
-  dcNonce?: boolean;
-  txProof?: ITxProof;
-  tx_proof?: ITxProof;
-}
-
-export interface ITxProof {
-  blockNumber: string;
-  tx: ITransactionPayload;
-  proof: IProof;
-}
-
-export interface IProof {
-  proofType: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
-  blockHeaderHash: string;
-  transactionsHash: string;
-  hashValue: string;
-  blockTreeHashChain: {
-    items: { val: string; hash: string }[];
-  };
-  secTreeHashChain?: null;
-  unicityCertificate: IUnicityCertificate;
-}
-
-export interface IInputRecord {
-  previousHash: string;
-  hash: string;
-  blockHash: string;
-  summaryValue: string;
-}
-
-export interface IUnicityCertificate {
-  inputRecord: IInputRecord;
-  unicityTreeCertificate: IUnicityTreeCertificate;
-  unicitySeal: IUnicitySeal;
-}
-
-export interface IUnicitySeal {
-  rootChainRoundNumber: string;
-  previousHash: string;
-  hash: string;
-  signatures: {
-    test: string;
-  };
-}
-
-export interface IUnicityTreeCertificate {
-  systemIdentifier: string;
-  siblingHashes: string[];
-  systemDescriptionHash: string;
-}
-
-export interface ISwapProofProps {
-  proofType: "PRIM" | "SEC" | "ONLYSEC" | "NOTRANS" | "EMPTYBLOCK";
-  blockHeaderHash: string;
-  transactionsHash: string;
-  hashValue: string;
-  blockTreeHashChain: {
-    items: IChainItems[];
-  };
-  secTreeHashChain?: string;
-  unicityCertificate: {
-    inputRecord: IInputRecord;
-    unicityTreeCertificate: IUnicityTreeCertificate;
-    unicitySeal: IUnicitySeal;
-  };
-}
-
-export interface IChainItems {
-  val: string;
-  hash: string;
-}
-export interface IFeeCreditBills {
-  alpha: any;
-  tokens: any;
-}
-export interface IDCTransferProps {
-  payload: {
-    systemId: string;
-    unitId: string;
-    type: string;
-    attributes: {
-      backlink: string;
-      nonce: string;
-      targetBearer: string;
-      targetValue: string;
-    };
-    clientMetadata: {
-      timeout: string;
-      maxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array | null;
-    };
-  };
-  ownerProof: string;
-}
-
 export interface IBalance {
   balance: number;
   pubKey: string;
 }
 
-export interface ItxRecord {
-  TransactionOrder: {
-    Payload: {
-      SystemID: string;
-      Type: string;
-      UnitID: string;
-      Attributes: string | Buffer[] | ITransactionAttributes;
-      ClientMetadata:
-        | string
-        | Buffer[]
-        | {
-            Timeout: number;
-            MaxTransactionFee: number;
-            FeeCreditRecordID: string | null;
-          };
-    };
-    OwnerProof: string;
-    FeeProof: string | null;
-  };
-  ServerMetadata: {
-    ActualFee: 1;
-    TargetUnits: null;
-  };
-}
-
-export interface ItxProof {
-  BlockHeaderHash: string;
-  Chain: [];
-  UnicityCertificate: {
-    input_record: ItxProofInputRecord;
-    unicity_tree_certificate: ItxProofUnicityTreeCert;
-    unicity_seal: ItxProofUnicitySeal;
-  };
-}
-export interface ItxProofInputRecord {
-  previous_hash: string;
-  hash: string;
-  block_hash: string;
-  summary_value: string;
-  round_number: number;
-  sum_of_earned_fees: number;
-}
-
-export interface ItxProofUnicityTreeCert {
-  system_identifier: string;
-  sibling_hashes: string[];
-  system_description_hash: string;
-}
-export interface ItxProofUnicitySeal {
-  root_chain_round_number: number;
-  timestamp: number;
-  hash: string;
-  signatures: {
-    test: string;
-  };
+export interface IFeeCreditBills {
+  alpha: any;
+  tokens: any;
 }
 
 export type IActionVies =
@@ -484,7 +275,7 @@ export type IActionVies =
 
 export type INavbarViews = "fungible" | "nonFungible" | "fees";
 
-export interface Iv2TxOrder {
+export interface ITxOrder {
   Payload: {
     SystemID: string;
     Type: string;
@@ -500,35 +291,19 @@ export interface Iv2TxOrder {
   FeeProof: string;
 }
 
-export interface Iv2Tx_Proof {
-  txRecord: Iv2TxRecord;
-  txProof: Iv2TxProof;
+export interface ITxProof {
+  txRecord: Uint8Array;
+  txProof: Uint8Array;
 }
 
-export interface Iv2Proof {
-  bills: Iv2Proof[];
-}
-
-export interface Iv2Proof {
-  id: string;
-  value: string;
-  tx_hash: string;
-  tx_proof: Iv2Tx_Proof;
-}
-
-export interface Iv2Tx_Proof {
-  txRecord: Iv2TxRecord;
-  txProof: Iv2TxProof;
-}
-
-export interface Iv2TxRecord {
-  TransactionOrder: Iv2TxOrder;
+export interface ITxRecord {
+  TransactionOrder: ITxOrder;
   ServerMetadata: {
     ActualFee: number;
     TargetUnits: null;
   };
 }
-export interface Iv2TxProof {
+export interface ITxProofObj {
   BlockHeaderHash: string;
   Chain: string[];
   UnicityCertificate: {

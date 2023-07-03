@@ -178,15 +178,15 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     type: FeeCreditTransferType,
                     unitId: Buffer.from(bill.id, "base64"),
                     attributes: {
-                      amount: convertedAmount, // amount to transfer
+                      amount: convertedAmount,
                       targetSystemIdentifier: isAlpha
                         ? AlphaSystemId
-                        : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (public key hash)
-                      earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
-                      backlink: Buffer.from(bill.txHash, "base64"), // hash of this unit's previous transacton (selle billi txHash, mille ma saadan tehingusse)
+                        : TokensSystemId,
+                      targetRecordID: pubKeyHash,
+                      earliestAdditionTime: roundNumber,
+                      latestAdditionTime: roundNumber + feeTimeoutBlocks,
+                      nonce: backlink,
+                      backlink: Buffer.from(bill.txHash, "base64"),
                     },
                     clientMetadata: {
                       timeout: roundNumber + feeTimeoutBlocks,
@@ -210,16 +210,16 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     type: FeeCreditTransferType,
                     unitId: Buffer.from(billToSplit.id, "base64"),
                     attributes: {
-                      amount: convertedAmount, // amount to transfer
+                      amount: convertedAmount,
                       targetSystemIdentifier:
                         values.assets.value === AlphaType
                           ? AlphaSystemId
-                          : TokensSystemId, // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-                      targetRecordID: pubKeyHash, // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on public key hash)
-                      earliestAdditionTime: roundNumber, // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      latestAdditionTime: roundNumber + feeTimeoutBlocks, // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-                      nonce: backlink, // the current state hash of the target credit record if the record exists, or to nil if the record does not exist yet (TargetRecordID billi backlink, kui on olemas)
-                      backlink: Buffer.from(billToSplit.txHash, "base64"), // hash of this unit's previous transacton (selle billi backlink, mille ma saadan tehingusse)
+                          : TokensSystemId,
+                      targetRecordID: pubKeyHash,
+                      earliestAdditionTime: roundNumber,
+                      latestAdditionTime: roundNumber + feeTimeoutBlocks,
+                      nonce: backlink,
+                      backlink: Buffer.from(billToSplit.txHash, "base64"),
                     },
                     clientMetadata: {
                       timeout: roundNumber + feeTimeoutBlocks,
@@ -322,8 +322,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     attributes: {
                       feeCreditOwnerCondition: getNewBearer(account),
                       feeCreditTransfer: billProof.current.txRecord,
-                      // bill transfer record of type "transfer fee credit" (based on created bill GET /proof)
-                      feeCreditTransferProof: billProof.current.txProof, // transaction proof of "transfer fee credit" transaction (based on created bill GET /proof)
+                      feeCreditTransferProof: billProof.current.txProof,
                     },
                     clientMetadata: {
                       timeout: roundNumber + feeTimeoutBlocks,

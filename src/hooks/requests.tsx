@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, isCancel } from "axios";
 import { encodeCanonical } from "cbor";
-import { decodeAllSync, decode } from "cbor";
+import { decode } from "cbor";
 
 import {
   IBillsList,
@@ -11,6 +11,7 @@ import {
   IRoundNumber,
   IBalance,
   IFeeCreditBills,
+  ITxProof,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -225,7 +226,7 @@ export const getUserTokens = async (
 export const getProof = async (
   billID: string,
   txHash: string
-): Promise<any | undefined> => {
+): Promise<ITxProof | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }

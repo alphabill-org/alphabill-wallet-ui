@@ -12,15 +12,11 @@ import {
   IAccount,
   IFungibleAsset,
   IBill,
-  ITxProof,
   ITypeHierarchy,
   IListTokensResponse,
   ITokensListTypes,
   INFTAsset,
   ITransactionPayloadObj,
-  Iv2TxProof,
-  Iv2TxRecord,
-  Iv2Tx_Proof,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -260,10 +256,13 @@ export const createOwnerProof = async (
   hashingPrivateKey: Uint8Array,
   pubKey: Uint8Array
 ) => {
-  payload.attributes = Object.values(payload.attributes);
-  payload.clientMetadata = Object.values(payload.clientMetadata);
+  const modifiedPayload = { ...payload };
+  modifiedPayload.attributes = Object.values(modifiedPayload.attributes);
+  modifiedPayload.clientMetadata = Object.values(
+    modifiedPayload.clientMetadata
+  );
   const payloadHash = await secp.utils.sha256(
-    encodeCanonical(Object.values(payload))
+    encodeCanonical(Object.values(modifiedPayload))
   );
   const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,

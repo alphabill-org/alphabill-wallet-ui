@@ -338,6 +338,7 @@ export default function TransferFungible(): JSX.Element | null {
                 billData.payload.attributes.remainingValue =
                   attr.remainingValue;
               }
+              billData.payload.attributes.invariantPredicateSignatures = null;
             }
 
             const proof = await createOwnerProof(
@@ -417,8 +418,7 @@ export default function TransferFungible(): JSX.Element | null {
                   proof.ownerProof,
                   activeAccountId
                 );
-                billData.payload.attributes.invariantPredicateSignatures =
-                  signatures;
+                billData.payload.attributes.invariantPredicateSignatures = signatures;
                 finishTransaction(billData);
               } catch (error) {
                 setIsSending(false);

@@ -16,12 +16,10 @@ import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { getRoundNumber, getProof } from "../../../hooks/requests";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
-import { Verify } from "../../../utils/validators";
 import BillsListPopups from "./BillsListPopups";
 import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
 import {
   getKeys,
-  base64ToHexPrefixed,
   sortBillsByID,
 } from "../../../utils/utils";
 import AssetsList from "../../../components/AssetsList/AssetsList";
@@ -46,18 +44,12 @@ function BillsList(): JSX.Element | null {
 
   //Popup hooks
   const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
-    "proofCheck" | "handleDC" | null | undefined
+    "handleDC" | null | undefined
   >();
-  const [isProofVisible, setIsProofVisible] = useState<boolean>(false);
-
   // Swap related hooks
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
-  const [proofCheckStatus, setProofCheckStatus] = useState<
-    string | null | undefined
-  >();
   const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
-
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
@@ -82,31 +74,6 @@ function BillsList(): JSX.Element | null {
   const initialRoundNumber = useRef<bigint | null>(null);
 
   // Bills list functions
-  const handleProof = (bill: IBill) => {
-    password
-      ? getProof(
-          base64ToHexPrefixed(bill.id),
-          base64ToHexPrefixed(bill.txHash)
-        ).then(async (data) => {
-          const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-            password,
-            Number(account?.idx),
-            vault
-          );
-
-          if (error || !hashingPublicKey || !hashingPrivateKey) {
-            return;
-          }
-
-          data &&
-            setProofCheckStatus(
-              await Verify(data, bill, hashingPrivateKey, hashingPublicKey)
-            );
-          await setIsProofVisible(true);
-        })
-      : setIsPasswordFormVisible("proofCheck");
-  };
-
   const addInterval = () => {
     initialRoundNumber.current = null;
     swapInterval.current = setInterval(() => {
@@ -276,12 +243,6 @@ function BillsList(): JSX.Element | null {
               (b: IBill) => !Boolean(b.dcNonce)
             )}
             isTypeListItem
-            setIsProofVisible={(asset) => {
-              handleProof(asset);
-            }}
-            isProofButton={sortedListByValue.find(
-              (asset: IBill) => asset.typeId === AlphaType
-            )}
             isTransferButton
             isHoverDisabled
             onSendClick={() => setPreviousView(FungibleListView)}
@@ -291,8 +252,6 @@ function BillsList(): JSX.Element | null {
       </div>
       {!isConsolidationLoading && (
         <BillsListPopups
-          setIsProofVisible={setIsProofVisible}
-          setProofCheckStatus={setProofCheckStatus}
           setIsPasswordFormVisible={setIsPasswordFormVisible}
           setPassword={setPassword}
           handleDC={(formPassword) =>
@@ -312,10 +271,8 @@ function BillsList(): JSX.Element | null {
               activeAsset
             )
           }
-          isProofVisible={isProofVisible}
           account={account}
           activeBill={activeAsset}
-          proofCheckStatus={proofCheckStatus}
           isPasswordFormVisible={isPasswordFormVisible}
           sortedListByValue={sortedListByValue}
           tokenLabel={tokenLabel}

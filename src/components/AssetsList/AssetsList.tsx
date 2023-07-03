@@ -21,8 +21,6 @@ export interface IAssetsListProps {
   isTypeListItem?: boolean;
   onItemClick?: () => void;
   onSendClick?: (e: IActiveAsset) => void;
-  setIsProofVisible?: (e: IBill) => void;
-  isProofButton?: boolean;
   isTransferButton?: boolean;
   isHoverDisabled?: boolean;
 }
@@ -31,9 +29,7 @@ export default function AssetsList({
   assetList,
   isTypeListItem,
   onItemClick,
-  setIsProofVisible,
   isTransferButton,
-  isProofButton,
   isHoverDisabled,
   onSendClick,
 }: IAssetsListProps): JSX.Element | null {
@@ -65,7 +61,7 @@ export default function AssetsList({
           ? hexId
           : asset?.name || asset?.symbol || hexId;
         const amount = asset.UIAmount || asset.amountOfSameType;
-        const isButtons = isProofButton || isTransferButton;
+        const isButtons = isTransferButton;
         const isFungibleKind =
           asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
 
@@ -89,23 +85,6 @@ export default function AssetsList({
             {amount && <div className="assets-list__item-amount">{amount}</div>}
             {isButtons && (
               <div className="assets-list__item-actions">
-                {isProofButton && (
-                  <Button
-                    onClick={() => {
-                      setIsProofVisible && setIsProofVisible(asset);
-                      handleClick(asset);
-                      queryClient.invalidateQueries([
-                        "proof",
-                        base64ToHexPrefixed(asset.id),
-                      ]);
-                    }}
-                    type="button"
-                    variant="icon"
-                  >
-                    <Proof />
-                  </Button>
-                )}
-
                 {isTransferButton && (
                   <Button
                     onClick={() => {

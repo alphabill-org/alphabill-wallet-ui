@@ -3,11 +3,10 @@ import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
   IListTokensResponse,
-  IProofsProps,
-  ITransactionPayload,
   ITypeHierarchy,
   ITokensListTypes,
   IFeeCreditBills,
+  ITxProof,
 } from "../types/Types";
 
 import {
@@ -20,7 +19,6 @@ import {
   getProof,
   getTypeHierarchy,
   getUserTokens,
-  makeTransaction,
 } from "./requests";
 
 export function useGetBalances(pubKeys: string[] | undefined) {
@@ -182,7 +180,7 @@ export function useGeTypeHierarchy(
 export function useGetProof(
   billID: string,
   txHash: string
-): QueryObserverResult<any, AxiosError> {
+): QueryObserverResult<ITxProof, AxiosError> {
   return useQuery([`proof`, billID], async () => getProof(billID, txHash), {
     enabled: true,
     keepPreviousData: true,

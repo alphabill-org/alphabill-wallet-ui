@@ -22,9 +22,7 @@ import {
   IActiveAsset,
   IBill,
   ITransactionPayload,
-  Iv2TxOrder,
-  Iv2TxProof,
-  Iv2Tx_Proof,
+  ITxProof,
 } from "../../../types/Types";
 import {
   getRoundNumber,
@@ -46,7 +44,7 @@ export const handleSwapRequest = async (
   lastNonceIDs: { [key: string]: string[] },
   activeAsset: IActiveAsset
 ) => {
-  let tx_proofs: Iv2Tx_Proof[] = [];
+  let tx_proofs: ITxProof[] = [];
   let billIdentifiers: Buffer[] = [];
 
   sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
@@ -59,12 +57,12 @@ export const handleSwapRequest = async (
       base64ToHexPrefixed(bill.id),
       base64ToHexPrefixed(bill.txHash)
     ).then(async (data) => {
-      const tx_proof = data! as Iv2Tx_Proof;
+      const tx_proof = data! as ITxProof;
 
       tx_proof && tx_proofs.push(tx_proof);
       if (tx_proofs?.length === DCBills.length) {
-        let dcTransfers: Iv2TxOrder[] = [];
-        let proofs: Iv2TxProof[] = [];
+        let dcTransfers: Uint8Array[] = [];
+        let proofs: Uint8Array[] = [];
 
         sortTx_ProofsByID(tx_proofs).forEach((proof) => {
           dcTransfers.push(proof.txRecord);
