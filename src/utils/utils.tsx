@@ -98,7 +98,6 @@ export const sortTx_ProofsByID = (proofs: any[]) => {
   return proofs.sort((a: any, b: any) => {
     const aTxUnitId = a.txRecord[0][0][2];
     const bTxUnitId = b.txRecord[0][0][2];
-    console.log(bTxUnitId, aTxUnitId);
 
     if (aTxUnitId < bTxUnitId) {
       return -1;

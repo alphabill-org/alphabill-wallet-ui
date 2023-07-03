@@ -19,6 +19,7 @@ import {
   AlphaType,
   downloadableTypes,
   maxImageSize,
+  TokenType,
 } from "../utils/constants";
 import {
   addDecimal,
@@ -242,7 +243,6 @@ export const getProof = async (
     txRecord: decoded[0],
     txProof: decoded[1],
   };
-  console.log(proofObj, 'proofObj');
 
   return proofObj;
 };
@@ -262,13 +262,8 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  console.log(
-    Buffer.from(
-      encodeCanonical(Object.values({ transactions: [data] }))
-    ).toString("hex")
-  );
-
   const body = encodeCanonical(Object.values({ transactions: [data] }));
+
   const response = await axios.post<{
     data: ITransactionPayload;
   }>(`${url}/transactions/${pubKey}`, body, {
@@ -397,26 +392,20 @@ export const getFeeCreditBills = async (
   try {
     const moneyResponse = await moneyDataPromise;
     moneyData = moneyResponse.data;
-  } catch (moneyError) {
-    console.error(
-      "An error occurred while fetching money fee credit bills:",
-      moneyError
-    );
+  } catch (_e) {
+    moneyData = null;
   }
 
   try {
     const tokensResponse = await tokensDataPromise;
     tokensData = tokensResponse.data;
-  } catch (tokensError) {
-    console.error(
-      "An error occurred while fetching tokens fee credit bills:",
-      tokensError
-    );
+  } catch (_e) {
+    tokensData = null;
   }
 
   const data: IFeeCreditBills = {
-    alpha: moneyData,
-    tokens: tokensData,
+    [AlphaType]: moneyData,
+    [TokenType]: tokensData,
   };
 
   return data;

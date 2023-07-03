@@ -107,7 +107,6 @@ export const handleSwapRequest = async (
               hashingPrivateKey,
               hashingPublicKey
             );
-            console.log(transferData, "consolidate");
 
             proof.isSignatureValid &&
               makeTransaction(

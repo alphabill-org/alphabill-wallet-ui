@@ -3,6 +3,7 @@ import classNames from "classnames";
 import {
   AlphaDecimals,
   AlphaType,
+  TokenType,
   TransferFeeCreditView,
 } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
@@ -15,7 +16,7 @@ import Spacer from "../Spacer/Spacer";
 import { separateDigits, addDecimal } from "../../utils/utils";
 
 export default function FeeCredit(): JSX.Element | null {
-  const { activeAsset, activeAccountId } = useAuth();
+  const { activeAsset } = useAuth();
   const {
     account,
     setIsActionsViewVisible,
@@ -30,11 +31,6 @@ export default function FeeCredit(): JSX.Element | null {
       (asset: IFungibleAsset) => asset.typeId === AlphaType
     )?.amount
   );
-
-  const feeCredits = [
-    { name: "ALPHA", balance: 100 },
-    { name: "User Tokens", balance: 100 },
-  ];
 
   return (
     <div
@@ -57,7 +53,7 @@ export default function FeeCredit(): JSX.Element | null {
                   {<ABLogo />}
                 </div>
                 <div className="assets-list__item-title">
-                  {key === "alpha" ? "ALPHA" : "Tokens"} credits
+                  {key === AlphaType ? AlphaType : TokenType} credits
                 </div>
                 <div className="assets-list__item-amount">
                   {separateDigits(

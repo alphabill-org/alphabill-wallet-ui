@@ -1,4 +1,5 @@
 import { string } from "yup/lib/locale";
+import { AlphaType, TokenType } from "../utils/constants";
 
 export interface IAccount {
   pubKey: string;
@@ -259,8 +260,8 @@ export interface IBalance {
 }
 
 export interface IFeeCreditBills {
-  alpha: any;
-  tokens: any;
+  [AlphaType]: any;
+  [TokenType]: any;
 }
 
 export type IActionVies =

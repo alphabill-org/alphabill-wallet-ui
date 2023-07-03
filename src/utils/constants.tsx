@@ -41,6 +41,7 @@ export const TokensSystemId = Buffer.from("AAAAAg==", "base64");
 export const FeeSystemId = Buffer.from("AAAAAw==", "base64");
 
 export const AlphaType = "ALPHA";
+export const TokenType = "UTP";
 export const NonFungibleTokenKind = 4;
 export const FungibleTokenKind = 2;
 
