@@ -53,6 +53,7 @@ import {
   FungibleListView,
   TransferFungibleView,
   maxTransactionFee,
+  TokenType,
 } from "../../utils/constants";
 
 import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
@@ -69,6 +70,7 @@ export default function TransferFungible(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -418,7 +420,8 @@ export default function TransferFungible(): JSX.Element | null {
                   proof.ownerProof,
                   activeAccountId
                 );
-                billData.payload.attributes.invariantPredicateSignatures = signatures;
+                billData.payload.attributes.invariantPredicateSignatures =
+                  signatures;
                 finishTransaction(billData);
               } catch (error) {
                 setIsSending(false);
@@ -464,6 +467,16 @@ export default function TransferFungible(): JSX.Element | null {
               "test more than",
               "Value must be greater than 0",
               (value: string | undefined) => Number(value || "") > 0n
+            )
+            .test(
+              "test less than",
+              "Add fee credits",
+              () =>
+                BigInt(
+                  feeCreditBills?.[
+                    selectedAsset?.typeId === AlphaType ? AlphaType : TokenType
+                  ]?.value || "0"
+                ) >= BigInt("1")
             )
             .test(
               "test less than",

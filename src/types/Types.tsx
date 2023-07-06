@@ -181,7 +181,7 @@ export interface ITransactionAttributes {
   nonce?: Uint8Array | null;
   value?: BigInt | bigint;
   targetValue?: BigInt | bigint;
-  invariantPredicateSignatures?: Uint8Array[];
+  invariantPredicateSignatures?: Uint8Array[] | null;
   targetSystemIdentifier?: Uint8Array; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
   targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
   earliestAdditionTime?: BigInt | bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
@@ -206,7 +206,7 @@ export interface ITransactionPayload {
     systemId: Uint8Array;
     type: string;
     unitId: Uint8Array;
-    attributes: any[] | ITransactionAttributes;
+    attributes: any | ITransactionAttributes;
     clientMetadata:
       | any[]
       | {
@@ -223,7 +223,7 @@ export interface ITransactionPayloadObj {
   systemId: Uint8Array;
   unitId: Uint8Array;
   type: string;
-  attributes: any[] | ITransactionAttributes;
+  attributes: any | ITransactionAttributes;
   clientMetadata:
     | any[]
     | {

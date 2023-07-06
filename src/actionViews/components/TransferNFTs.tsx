@@ -42,9 +42,14 @@ import {
   NFTTokensTransferType,
   NFTListView,
   maxTransactionFee,
+  TokenType,
 } from "../../utils/constants";
 
-import { prepTransactionRequestData, publicKeyHash, transferOrderTxHash } from "../../utils/hashers";
+import {
+  prepTransactionRequestData,
+  publicKeyHash,
+  transferOrderTxHash,
+} from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -57,6 +62,7 @@ export default function TransferNFTs(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -158,6 +164,8 @@ export default function TransferNFTs(): JSX.Element | null {
                       newBearer: newBearer,
                       nftType: Buffer.from(selectedNFT.typeId, "base64"),
                       backlink: Buffer.from(selectedNFT.txHash, "base64"),
+                      typeID: Buffer.from(selectedNFT.typeId, "base64"),
+                      invariantPredicateSignatures: null,
                     },
                     clientMetadata: {
                       timeout: roundNumber + timeoutBlocks,
@@ -283,7 +291,14 @@ export default function TransferNFTs(): JSX.Element | null {
                 }
               }
             ),
-          password: Yup.string().required("Password is required"),
+          password: Yup.string()
+            .test(
+              "test less than",
+              "Add fee credits",
+              () =>
+                BigInt(feeCreditBills?.[TokenType]?.value || "0") >= BigInt("1")
+            )
+            .required("Password is required"),
         })}
       >
         {(formikProps) => {

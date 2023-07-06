@@ -14,7 +14,7 @@ import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import { getRoundNumber, getProof } from "../../../hooks/requests";
+import { getRoundNumber } from "../../../hooks/requests";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import BillsListPopups from "./BillsListPopups";
 import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
@@ -26,7 +26,8 @@ import AssetsList from "../../../components/AssetsList/AssetsList";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
-  const { billsList, account, setPreviousView } = useApp();
+  const { billsList, account, setPreviousView, feeCreditBills } = useApp();
+
   // Bills lists
   const sortedListByValue = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
@@ -41,6 +42,8 @@ function BillsList(): JSX.Element | null {
         : [],
     [sortedListByValue]
   );
+
+  const isFeeCredit = Number(feeCreditBills?.ALPHA?.value) >= DCBills.length;
 
   //Popup hooks
   const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
@@ -226,7 +229,7 @@ function BillsList(): JSX.Element | null {
                       }
                     }}
                   >
-                    Consolidate Bills
+                    {isFeeCredit ?  "Consolidate Bills":"Not enough fee credit for consolidation"}
                   </Button>
                 </>
               )}

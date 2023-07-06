@@ -263,7 +263,6 @@ export const makeTransaction = async (
 }> => {
   const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
   const body = encodeCanonical(Object.values({ transactions: [data] }));
-
   const response = await axios.post<{
     data: ITransactionPayload;
   }>(`${url}/transactions/${pubKey}`, body, {
