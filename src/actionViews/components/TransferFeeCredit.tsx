@@ -31,6 +31,7 @@ import {
   convertToWholeNumberBigInt,
   base64ToHexPrefixed,
   getNewBearer,
+  unit8ToHexPrefixed,
 } from "../../utils/utils";
 import {
   feeTimeoutBlocks,
@@ -59,6 +60,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     selectedTransferKey,
     setSelectedTransferKey,
     setPreviousView,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
@@ -80,8 +82,22 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
-  const billProof = useRef<any>(null);
-  const isFeeAdded = useRef<boolean | null>(null);
+  const transferBillProof = useRef<any>(null);
+  const isAllFeesAdded = useRef<boolean>(false);
+  const transferFeePollingProofProps = useRef<{
+    id: string;
+    txHash: string;
+  } | null>(null);
+  const addFeePollingProofProps = useRef<{
+    id: string;
+    txHash: string;
+    isTokensRequest: boolean;
+  } | null>(null);
+  const transferrableBills = useRef<ITransactionPayload[] | null>(null);
+  const feeAfterSending = useRef<{
+    amount: bigint;
+    type: "ALPHA" | "UTP";
+  } | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
@@ -97,6 +113,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
     [account]
   );
 
+  const resetRefs = () => {
+    feeAfterSending.current = null;
+    transferrableBills.current = null;
+    transferFeePollingProofProps.current = null;
+    addFeePollingProofProps.current = null;
+    isAllFeesAdded.current = false;
+  };
+
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(AlphaDecimals || 0)
   );
@@ -104,6 +128,21 @@ export default function TransferFeeCredit(): JSX.Element | null {
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(AlphaDecimals || 0));
   }, [getAvailableAmount, isActionsViewVisible]);
+
+  useEffect(() => {
+    if (
+      feeCreditBills?.[feeAfterSending.current?.type || AlphaType]?.value ===
+      feeAfterSending.current?.amount.toString()
+    ) {
+      if (isAllFeesAdded.current === true) {
+        pollingInterval.current && clearInterval(pollingInterval.current);
+        setIsSending(false);
+        setSelectedTransferKey(null);
+        setIsActionsViewVisible(false);
+        resetRefs();
+      }
+    }
+  }, [feeCreditBills, getAvailableAmount, isActionsViewVisible]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -115,8 +154,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
           assets: defaultAsset,
           password: "",
         }}
-        onSubmit={async (values, { setErrors, resetForm }) => {
-          isFeeAdded.current = null;
+        onSubmit={async (values, { setErrors }) => {
+          resetRefs();
+
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -133,11 +173,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           // Adding fee amount so you get the inserted amount in fee credits
           try {
-            convertedAmount =
-              (convertToWholeNumberBigInt(
-                values.amount,
-                AlphaDecimals
-              ) as bigint) + maxTransactionFee;
+            convertedAmount = convertToWholeNumberBigInt(
+              values.amount,
+              AlphaDecimals
+            ) as bigint;
           } catch (error) {
             return setErrors({
               password: error.message,
@@ -154,7 +193,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           );
 
           const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount;
+            getBillsSum(selectedBills) - convertedAmount + maxTransactionFee;
 
           const billToSplit =
             billsSumDifference !== 0n
@@ -172,13 +211,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           setIsSending(true);
 
           const pubKeyHash = await publicKeyHash(activeAccountId);
-          const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
-          const creditBills = await getFeeCreditBills(pubKeyHashHex as string);
           const isAlpha = values.assets.value === AlphaType;
-          const creditBill = creditBills?.[isAlpha ? AlphaType : TokenType];
-          const backlink = creditBill
-            ? Buffer.from(creditBill?.tx_hash, "base64")
-            : null;
 
           getRoundNumber(true).then(async (alphaRoundNumber) => {
             billsToTransfer?.map(async (bill, idx) => {
@@ -188,14 +221,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   type: FeeCreditTransferType,
                   unitId: Buffer.from(bill.id, "base64"),
                   attributes: {
-                    amount: convertedAmount,
+                    amount: BigInt(bill.value) - maxTransactionFee,
                     targetSystemIdentifier: isAlpha
                       ? AlphaSystemId
                       : TokensSystemId,
                     targetRecordID: pubKeyHash,
                     earliestAdditionTime: alphaRoundNumber,
                     latestAdditionTime: alphaRoundNumber + feeTimeoutBlocks,
-                    nonce: backlink,
+                    nonce: null,
                     backlink: Buffer.from(bill.txHash, "base64"),
                   },
                   clientMetadata: {
@@ -206,11 +239,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 },
               };
 
-              const isLastTransaction =
-                Number(billsToTransfer?.length) === idx + 1 &&
-                !billToSplit &&
-                !splitBillAmount;
-              handleValidation(transferData as any, isLastTransaction);
+              transferrableBills.current = transferrableBills.current
+                ? [...transferrableBills.current, transferData]
+                : [transferData];
             });
 
             if (billToSplit && splitBillAmount) {
@@ -220,7 +251,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   type: FeeCreditTransferType,
                   unitId: Buffer.from(billToSplit.id, "base64"),
                   attributes: {
-                    amount: convertedAmount,
+                    amount: splitBillAmount,
                     targetSystemIdentifier:
                       values.assets.value === AlphaType
                         ? AlphaSystemId
@@ -228,7 +259,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     targetRecordID: pubKeyHash,
                     earliestAdditionTime: alphaRoundNumber - feeTimeoutBlocks,
                     latestAdditionTime: alphaRoundNumber + feeTimeoutBlocks,
-                    nonce: backlink,
+                    nonce: null,
                     backlink: Buffer.from(billToSplit.txHash, "base64"),
                   },
                   clientMetadata: {
@@ -238,21 +269,79 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   },
                 },
               };
-
-              handleValidation(splitData, true);
+              transferrableBills.current = transferrableBills.current
+                ? [...transferrableBills.current, splitData]
+                : [splitData];
             }
+
+            if (
+              !transferrableBills ||
+              !transferrableBills.current ||
+              !transferrableBills.current[0] ||
+              !transferrableBills.current[0].payload ||
+              !transferrableBills.current[0].payload.attributes
+            ) {
+              return setErrors({
+                password: "Error selecting suitable bills",
+              });
+            }
+
+            const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
+            const creditBills = await getFeeCreditBills(
+              pubKeyHashHex as string
+            );
+            const creditBill = creditBills?.[isAlpha ? AlphaType : TokenType];
+
+            if (
+              creditBill?.tx_hash &&
+              transferrableBills?.current[0].payload.type !== FeeCreditAddType
+            ) {
+              transferrableBills.current[0].payload.attributes.nonce =
+                creditBill && creditBill.tx_hash
+                  ? Buffer.from(creditBill.tx_hash, "base64")
+                  : null;
+            }
+
+            await initTransaction(transferrableBills?.current[0], false);
           });
 
-          const handleValidation = async (
+          const initTransaction = async (
             billData: ITransactionPayload,
-            isLastTransfer: boolean,
+            addNonce: boolean,
+            isAddFee?: boolean,
             isTokensRequest?: boolean
           ) => {
+            const id = billData.payload.unitId;
+            const amount = billData.payload.attributes.amount;
+            const deductedWithFee =
+              amount && billData.payload.attributes.amount - maxTransactionFee;
+            if (deductedWithFee) {
+              const feeBillsValue =
+                feeCreditBills?.[isAlpha ? AlphaType : TokenType]?.value || 0n;
+              feeAfterSending.current = {
+                amount: feeAfterSending.current
+                  ? feeAfterSending.current.amount + deductedWithFee
+                  : BigInt(feeBillsValue) + deductedWithFee,
+                type: isAlpha ? AlphaType : TokenType,
+              };
+            }
+
+            if (addNonce && !isAddFee) {
+              billData.payload.attributes.nonce =
+                (addFeePollingProofProps?.current?.txHash &&
+                  Buffer.from(
+                    addFeePollingProofProps?.current?.txHash,
+                    "base64"
+                  )) ||
+                null;
+            }
+
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
+
             const finishTransaction = (billData: ITransactionPayload) => {
               proof.isSignatureValid &&
                 makeTransaction(
@@ -263,24 +352,33 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   .then(() => {
                     setPreviousView(null);
                   })
-                  .finally(() => {
-                    const handleTransferEnd = async () => {
-                      addPollingInterval(
-                        "0x" +
-                          Buffer.from(billData.payload.unitId).toString("hex"),
-                        await transferOrderTxHash(
-                          prepTransactionRequestData(billData, proof.ownerProof)
-                        )
-                      );
+                  .catch(() => {
+                    pollingInterval.current &&
+                      clearInterval(pollingInterval.current);
+                    resetRefs();
+                  })
+                  .finally(async () => {
+                    const txHash = await transferOrderTxHash(
+                      prepTransactionRequestData(billData, proof.ownerProof)
+                    );
 
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
-                    };
+                    if (isAddFee) {
+                      addFeePollingProofProps.current = {
+                        id: unit8ToHexPrefixed(id),
+                        txHash: txHash,
+                        isTokensRequest: Boolean(isTokensRequest),
+                      };
+                      transferFeePollingProofProps.current = null;
+                    } else {
+                      transferFeePollingProofProps.current = {
+                        id: unit8ToHexPrefixed(id),
+                        txHash: txHash,
+                      };
+                      addFeePollingProofProps.current = null;
 
-                    if (isLastTransfer) {
-                      handleTransferEnd();
+                      pollingInterval.current &&
+                        clearInterval(pollingInterval.current);
+                      addPollingInterval();
                     }
                   });
             };
@@ -288,33 +386,84 @@ export default function TransferFeeCredit(): JSX.Element | null {
             finishTransaction(billData);
           };
 
-          const addPollingInterval = (id: string, hash: string) => {
-            initialRoundNumber.current = null;
+          const addPollingInterval = () => {
             pollingInterval.current = setInterval(async () => {
               const pubKeyHash = await publicKeyHash(activeAccountId, true);
+              queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
+
+              if (
+                !transferrableBills.current?.[0]?.payload?.unitId &&
+                isAllFeesAdded.current === true
+              ) {
+                const handleTransferEnd = () => {
+                  setIsSending(false);
+                  setSelectedTransferKey(null);
+                  setIsActionsViewVisible(false);
+                };
+
+                return handleTransferEnd();
+              }
+
+              const transferBillForValidation = transferrableBills.current?.[0];
+              initialRoundNumber.current = null;
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
               queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
-              getProof(id, base64ToHexPrefixed(hash)).then(async (data) => {
-                billProof.current = data;
-                addFeeCredit();
-                pollingInterval.current &&
-                  clearInterval(pollingInterval.current);
-              });
 
-              getRoundNumber(isAlpha).then((roundNumber) => {
-                if (!initialRoundNumber?.current) {
-                  initialRoundNumber.current = roundNumber;
-                }
+              if (transferFeePollingProofProps.current) {
+                getProof(
+                  transferFeePollingProofProps.current.id,
+                  base64ToHexPrefixed(
+                    transferFeePollingProofProps.current.txHash
+                  )
+                )
+                  .then(async (data) => {
+                    transferrableBills.current =
+                      (transferBillForValidation &&
+                        transferrableBills.current?.filter(
+                          (item) =>
+                            item.payload.unitId !==
+                            transferBillForValidation.payload.unitId
+                        )) ||
+                      null;
 
-                if (
-                  BigInt(initialRoundNumber?.current) + feeTimeoutBlocks <
-                  roundNumber
-                ) {
-                  pollingInterval.current &&
-                    clearInterval(pollingInterval.current);
-                }
-              });
-            }, 500);
+                    isAllFeesAdded.current = !Boolean(
+                      transferrableBills.current?.[0]?.payload?.unitId
+                    );
+                    transferBillProof.current = data;
+                    addFeeCredit();
+                  })
+                  .finally(() => setIntervalCancel());
+              }
+
+              if (addFeePollingProofProps.current) {
+                getProof(
+                  addFeePollingProofProps.current.id,
+                  base64ToHexPrefixed(addFeePollingProofProps.current.txHash),
+                  addFeePollingProofProps.current.isTokensRequest
+                )
+                  .then(async () => {
+                    transferBillProof.current = null;
+                    transferBillForValidation &&
+                      initTransaction(transferBillForValidation, true, false);
+                  })
+                  .finally(() => setIntervalCancel());
+              }
+
+              const setIntervalCancel = () => {
+                getRoundNumber(isAlpha).then((roundNumber) => {
+                  if (!initialRoundNumber?.current) {
+                    initialRoundNumber.current = roundNumber;
+                  }
+                  if (
+                    BigInt(initialRoundNumber?.current) + feeTimeoutBlocks <
+                    roundNumber
+                  ) {
+                    pollingInterval.current &&
+                      clearInterval(pollingInterval.current);
+                  }
+                });
+              };
+            }, 1000);
           };
 
           const addFeeCredit = () => {
@@ -328,8 +477,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   unitId: pubKeyHash as Uint8Array,
                   attributes: {
                     feeCreditOwnerCondition: getNewBearer(account),
-                    feeCreditTransfer: billProof.current.txRecord,
-                    feeCreditTransferProof: billProof.current.txProof,
+                    feeCreditTransfer: transferBillProof.current.txRecord,
+                    feeCreditTransferProof: transferBillProof.current.txProof,
                   },
                   clientMetadata: {
                     timeout: roundNumber + feeTimeoutBlocks,
@@ -339,9 +488,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 },
               };
 
-              isFeeAdded.current = true;
-              handleValidation(
+              initTransaction(
                 transferData as any,
+                false,
                 true,
                 !Boolean(values.assets.value === AlphaType)
               );
