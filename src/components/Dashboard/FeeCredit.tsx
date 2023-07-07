@@ -22,7 +22,6 @@ export default function FeeCredit(): JSX.Element | null {
     setIsActionsViewVisible,
     setActionsView,
     setSelectedTransferKey,
-    setPreviousView,
     feeCreditBills,
   } = useApp();
 

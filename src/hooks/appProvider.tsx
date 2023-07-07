@@ -33,7 +33,6 @@ import {
   removeConnectTransferData,
 } from "../utils/utils";
 import Popup from "../components/Popup/Popup";
-import { getFeeCreditBills } from "./requests";
 
 interface IAppContextShape {
   balances: any;

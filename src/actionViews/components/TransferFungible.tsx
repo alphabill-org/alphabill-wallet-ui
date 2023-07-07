@@ -119,16 +119,17 @@ export default function TransferFungible(): JSX.Element | null {
     },
     [account, selectedAsset]
   );
+
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimals || 0)
   );
 
-  const handleTransactionEnd = () => {
+  const handleTransactionEnd = useCallback(() => {
     pollingInterval.current && clearInterval(pollingInterval.current);
     setIsSending(false);
     setSelectedTransferKey(null);
     setIsActionsViewVisible(false);
-  };
+  }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
   const addPollingInterval = () => {
     initialRoundNumber.current = null;
@@ -184,6 +185,7 @@ export default function TransferFungible(): JSX.Element | null {
     selectedAsset?.typeId,
     isSending,
     actionsView,
+    handleTransactionEnd,
   ]);
 
   if (!isActionsViewVisible) return <div></div>;

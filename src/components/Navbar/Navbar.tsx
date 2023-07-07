@@ -4,7 +4,6 @@ import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";
 import { AlphaType } from "../../utils/constants";
-import { publicKeyHash } from "../../utils/hashers";
 import { invalidateAllLists } from "../../utils/utils";
 
 export interface INavbarProps {

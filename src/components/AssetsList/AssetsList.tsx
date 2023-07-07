@@ -8,12 +8,11 @@ import {
   TransferNFTView,
 } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
-import { ReactComponent as Proof } from "../../images/proof.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IActiveAsset, IBill } from "../../types/Types";
+import { IActiveAsset } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
 
 export interface IAssetsListProps {

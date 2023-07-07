@@ -4,6 +4,7 @@ import Button from "../components/Button/Button";
 import { ReactComponent as Arrow } from "./../images/arrow.svg";
 import { useApp } from "../hooks/appProvider";
 import TransferFungible from "./components/TransferFungible";
+import TransferFeeCredit from "./components/TransferFeeCredit";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
@@ -23,7 +24,6 @@ import {
 import NFTDetails from "./components/NFTDetails";
 import { IActionVies, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
-import TransferFeeCredit from "./components/TransferFeeCredit";
 
 function Actions(): JSX.Element | null {
   const {

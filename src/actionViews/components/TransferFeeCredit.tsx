@@ -142,7 +142,13 @@ export default function TransferFeeCredit(): JSX.Element | null {
         resetRefs();
       }
     }
-  }, [feeCreditBills, getAvailableAmount, isActionsViewVisible]);
+  }, [
+    feeCreditBills,
+    getAvailableAmount,
+    isActionsViewVisible,
+    setIsActionsViewVisible,
+    setSelectedTransferKey,
+  ]);
 
   if (!isActionsViewVisible) return <div></div>;
 
