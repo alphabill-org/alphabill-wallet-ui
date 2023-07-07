@@ -22,6 +22,7 @@ import {
   IActiveAsset,
   IBill,
   ITransactionPayload,
+  ITransactionPayloadObj,
   ITxProof,
 } from "../../../types/Types";
 import {
@@ -103,7 +104,7 @@ export const handleSwapRequest = async (
             };
 
             const proof = await createOwnerProof(
-              transferData.payload,
+              transferData.payload as ITransactionPayloadObj,
               hashingPrivateKey,
               hashingPublicKey
             );
@@ -192,7 +193,7 @@ export const handleDC = async (
         };
 
         const proof = await createOwnerProof(
-          transferData.payload,
+          transferData.payload as ITransactionPayloadObj,
           hashingPrivateKey,
           hashingPublicKey
         );

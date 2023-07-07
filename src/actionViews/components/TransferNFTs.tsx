@@ -15,6 +15,7 @@ import {
   IListTokensResponse,
   ITransactionPayload,
   ITransactionAttributes,
+  ITransactionPayloadObj,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -179,7 +180,7 @@ export default function TransferNFTs(): JSX.Element | null {
                 const tokenDataObj = tokenData;
 
                 const proof = await createOwnerProof(
-                  tokenData.payload,
+                  tokenData.payload as ITransactionPayloadObj,
                   hashingPrivateKey,
                   hashingPublicKey
                 );
@@ -203,7 +204,7 @@ export default function TransferNFTs(): JSX.Element | null {
 
                 transferredToken.current = selectedNFT;
                 const feeProof = await createOwnerProof(
-                  tokenData.payload,
+                  tokenData.payload as ITransactionPayloadObj,
                   hashingPrivateKey,
                   hashingPublicKey
                 );

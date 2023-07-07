@@ -207,18 +207,17 @@ export interface ITransactionPayload {
     type: string;
     unitId: Uint8Array;
     attributes: any | ITransactionAttributes;
-    clientMetadata:
-      | any[]
-      | {
-          timeout: BigInt | bigint;
-          maxTransactionFee: BigInt | bigint;
-          feeCreditRecordID?: Uint8Array | null;
-        };
+    clientMetadata: any[] | IPayloadClientMetadata;
   };
   ownerProof?: Uint8Array;
   feeProof?: string | null;
 }
 
+export interface IPayloadClientMetadata {
+  timeout?: BigInt | bigint;
+  maxTransactionFee: BigInt | bigint;
+  feeCreditRecordID?: Uint8Array | null;
+}
 export interface ITransactionPayloadObj {
   systemId: Uint8Array;
   unitId: Uint8Array;
@@ -282,14 +281,16 @@ export interface ITxOrder {
     Type: string;
     UnitID: string;
     Attributes: string;
-    ClientMetadata: {
-      Timeout: number;
-      MaxTransactionFee: number;
-      FeeCreditRecordID: string;
-    };
+    ClientMetadata: ITxClientMeta;
   };
   OwnerProof: string;
   FeeProof: string;
+}
+
+export interface ITxClientMeta {
+  Timeout: number;
+  MaxTransactionFee?: number;
+  FeeCreditRecordID?: string;
 }
 
 export interface ITxProof {

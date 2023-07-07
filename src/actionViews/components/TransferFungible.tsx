@@ -16,6 +16,7 @@ import {
   ITypeHierarchy,
   IActiveAsset,
   ITransactionAttributes,
+  ITransactionPayloadObj,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -373,7 +374,7 @@ export default function TransferFungible(): JSX.Element | null {
               transferData: ITransactionPayload
             ) => {
               const feeProof = await createOwnerProof(
-                transferData.payload,
+                transferData.payload as ITransactionPayloadObj,
                 hashingPrivateKey,
                 hashingPublicKey
               );
