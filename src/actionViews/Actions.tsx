@@ -53,7 +53,7 @@ function Actions(): JSX.Element | null {
             } else if (previousView) {
               setActionsView(previousView as IActionVies);
             } else {
-              setIsActionsViewVisible(!isActionsViewVisible);
+              setIsActionsViewVisible(false);
             }
 
             if (isTransferView) {

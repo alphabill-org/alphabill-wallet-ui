@@ -23,6 +23,7 @@ export default function FeeCredit(): JSX.Element | null {
     setActionsView,
     setSelectedTransferKey,
     feeCreditBills,
+    setPreviousView
   } = useApp();
 
   const alphaBalance = Number(
@@ -67,6 +68,7 @@ export default function FeeCredit(): JSX.Element | null {
           onClick={() => {
             setActionsView(TransferFeeCreditView);
             setIsActionsViewVisible(true);
+            setPreviousView(null);
             activeAsset && setSelectedTransferKey(activeAsset.id!);
           }}
           disabled={!Boolean(alphaBalance > 0)}
