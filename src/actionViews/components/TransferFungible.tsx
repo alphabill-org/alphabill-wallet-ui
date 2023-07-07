@@ -96,9 +96,11 @@ export default function TransferFungible(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<
     IBill | IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
+
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
+  const formRef = useRef(null);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
@@ -121,6 +123,13 @@ export default function TransferFungible(): JSX.Element | null {
     getAvailableAmount(selectedAsset?.decimals || 0)
   );
 
+  const handleTransactionEnd = () => {
+    pollingInterval.current && clearInterval(pollingInterval.current);
+    setIsSending(false);
+    setSelectedTransferKey(null);
+    setIsActionsViewVisible(false);
+  };
+
   const addPollingInterval = () => {
     initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
@@ -139,7 +148,7 @@ export default function TransferFungible(): JSX.Element | null {
             BigInt(initialRoundNumber?.current) + timeoutBlocks <
             roundNumber
           ) {
-            pollingInterval.current && clearInterval(pollingInterval.current);
+            handleTransactionEnd();
           }
         }
       );
@@ -156,18 +165,18 @@ export default function TransferFungible(): JSX.Element | null {
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
-      pollingInterval.current && clearInterval(pollingInterval.current);
+      handleTransactionEnd();
       balanceAfterSending.current = null;
     } else if (
       balanceAfterSending.current === null &&
       pollingInterval.current &&
       !isSending
     ) {
-      clearInterval(pollingInterval.current);
+      handleTransactionEnd();
     }
 
     if (actionsView !== TransferFungibleView && pollingInterval.current) {
-      clearInterval(pollingInterval.current);
+      handleTransactionEnd();
     }
   }, [
     account?.assets,
@@ -182,13 +191,14 @@ export default function TransferFungible(): JSX.Element | null {
   return (
     <div className="w-100p">
       <Formik
+        innerRef={formRef}
         initialValues={{
           assets: defaultAsset,
           amount: "",
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={(values, { setErrors, resetForm }) => {
+        onSubmit={(values, { setErrors }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -343,6 +353,14 @@ export default function TransferFungible(): JSX.Element | null {
               billData.payload.attributes.invariantPredicateSignatures = null;
             }
 
+            const attributes = billData?.payload
+              .attributes as ITransactionAttributes;
+            const amount =
+              (attributes?.amount as bigint) ||
+              (attributes?.targetValue as bigint) ||
+              (attributes?.value as bigint) ||
+              0n;
+
             const proof = await createOwnerProof(
               billData.payload,
               hashingPrivateKey,
@@ -370,13 +388,7 @@ export default function TransferFungible(): JSX.Element | null {
                 )
                   .then(() => {
                     setPreviousView(null);
-                    const attributes = transferData?.payload
-                      .attributes as ITransactionAttributes;
-                    const amount =
-                      (attributes?.amount as bigint) ||
-                      (attributes?.targetValue as bigint) ||
-                      (attributes?.value as bigint) ||
-                      0n;
+
                     const fungibleSelectedAsset = account?.assets?.fungible
                       ?.filter(
                         (asset) => account?.activeNetwork === asset.network
@@ -396,10 +408,6 @@ export default function TransferFungible(): JSX.Element | null {
                   .finally(() => {
                     const handleTransferEnd = () => {
                       addPollingInterval();
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
                       setSelectedAsset(activeAsset);
                     };
 

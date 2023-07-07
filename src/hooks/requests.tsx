@@ -226,14 +226,15 @@ export const getUserTokens = async (
 
 export const getProof = async (
   billID: string,
-  txHash: string
+  txHash: string,
+  isTokens?: boolean
 ): Promise<ITxProof | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
-
+  const url = isTokens ?  TOKENS_BACKEND_URL : MONEY_BACKEND_URL;
   const response = await axios.get<any>(
-    `${MONEY_BACKEND_URL}/units/${billID}/transactions/${txHash}/proof`,
+    `${url}/units/${billID}/transactions/${txHash}/proof`,
     { responseType: "arraybuffer" }
   );
 

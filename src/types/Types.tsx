@@ -267,7 +267,7 @@ export interface IFeeCreditBills {
 export type IActionVies =
   | "Transfer fungible view"
   | "Transfer NFT view"
-  | "Add Fee Credit view"
+  | "Transfer Fee Credit view"
   | "Fungible list view"
   | "NFT list view"
   | "Profile view"

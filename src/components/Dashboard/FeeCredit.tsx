@@ -69,7 +69,6 @@ export default function FeeCredit(): JSX.Element | null {
             setActionsView(TransferFeeCreditView);
             setIsActionsViewVisible(true);
             activeAsset && setSelectedTransferKey(activeAsset.id!);
-            setPreviousView(TransferFeeCreditView);
           }}
           disabled={!Boolean(alphaBalance > 0)}
           type="button"

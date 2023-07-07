@@ -23,7 +23,7 @@ import {
 import NFTDetails from "./components/NFTDetails";
 import { IActionVies, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
-import TransferFee from "./components/TransferFeeCredit";
+import TransferFeeCredit from "./components/TransferFeeCredit";
 
 function Actions(): JSX.Element | null {
   const {
@@ -102,7 +102,7 @@ function Actions(): JSX.Element | null {
         ) : actionsView === TransferNFTView ? (
           <TransferNFTs />
         ) : actionsView === TransferFeeCreditView ? (
-          <TransferFee />
+          <TransferFeeCredit />
         ) : actionsView === NFTDetailsView ? (
           <NFTDetails />
         ) : actionsView === FungibleListView ? (
