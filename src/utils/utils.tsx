@@ -539,6 +539,9 @@ export const getUpdatedNFTAssets = (
             ?.invariantPredicate!,
           activeAccountId
         ),
+        iconImage: tokenTypes?.find(
+          (type: ITokensListTypes) => type.id === nft.typeId
+        )?.icon,
         amountOfSameType:
           NFTsList.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -588,7 +591,7 @@ const getUpdatesUTPFungibleTokens = (
     userTokens?.map((obj: IListTokensResponse) => ({
       id: obj.id,
       typeId: obj.typeId,
-      name: obj.symbol,
+      symbol: obj.symbol,
       network: obj.network,
       amount: obj.amount?.toString(),
       decimalFactor: Number("1e" + obj.decimals),
@@ -598,6 +601,9 @@ const getUpdatesUTPFungibleTokens = (
           ?.invariantPredicate!,
         activeAccountId
       ),
+      iconImage: tokenTypes?.find(
+        (type: ITokensListTypes) => type.id === obj.typeId
+      )?.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
@@ -622,7 +628,7 @@ export const getUpdatedFungibleAssets = (
 
   const alphaAsset = {
     id: AlphaType,
-    name: AlphaType,
+    symbol: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
     amount: ALPHABalance,
     decimalFactor: AlphaDecimalFactor,
@@ -723,3 +729,17 @@ export const getFungibleAssetsAmount = (
     ).toString() || "0",
     Number(decimals)
   );
+export const Base64imageComponent: React.FC<{
+  base64Data: { data: string; type: string };
+  alt: string;
+}> = ({ base64Data, alt }) => {
+  const imageUrl = isImage(base64Data.data) ? `${base64Data.data}` : null;
+
+  return imageUrl ? <img src={`data:image;base64,${imageUrl}`} alt={alt} /> : null;
+};
+
+const isImage = (data: string): boolean => {
+  const img = new Image();
+  img.src = `data:image;base64,${data}`;
+  return img.complete && img.naturalWidth !== 0;
+};

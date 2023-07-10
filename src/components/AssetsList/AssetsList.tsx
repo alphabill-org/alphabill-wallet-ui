@@ -11,9 +11,9 @@ import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
 import Button from "../Button/Button";
-import { useApp } from "../../hooks/appProvider";
 import { IActiveAsset } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
+import { useApp } from "../../hooks/appProvider";
 
 export interface IAssetsListProps {
   assetList: any;
@@ -38,14 +38,13 @@ export default function AssetsList({
     setActiveAssetLocal,
     setActiveNFTLocal,
   } = useAuth();
-  const queryClient = useQueryClient();
   const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
     useApp();
-
   const handleClick = (asset: any) => {
     setActiveAssetLocal(JSON.stringify(asset));
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
+  const queryClient = useQueryClient();
 
   return (
     <div

@@ -12,18 +12,6 @@ export interface IAccount {
   idx?: number | string;
 }
 
-export interface IFungibleAsset {
-  id: string;
-  name: string;
-  amount: string;
-  network: string;
-  decimalFactor: number;
-  decimals: number;
-  UIAmount: string;
-  typeId: string;
-  isSendable: boolean;
-}
-
 export interface INFTAsset {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
@@ -36,6 +24,19 @@ export interface INFTAsset {
   network: string;
   amountOfSameType?: string;
   isSendable?: boolean;
+  nftName?: string;
+}
+
+export interface IFungibleAsset {
+  id: string;
+  amount: string;
+  network: string;
+  decimalFactor: number;
+  decimals: number;
+  UIAmount: string;
+  typeId: string;
+  isSendable: boolean;
+  symbol: string;
 }
 
 export interface INFTTransferPayload {
@@ -69,6 +70,8 @@ export interface ITokensListTypes {
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex  creation tx
   nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
+  icon: { data: string; type: string };
+  name: string;
 }
 
 export interface IListTokensResponse {
@@ -86,22 +89,10 @@ export interface IListTokensResponse {
   nftData?: string; // nft only
   nftDataUpdatePredicate?: string; // nft only
   network: string;
-}
-
-export interface IFungibleAsset {
-  id: string;
-  name: string;
-  amount: string;
-  network: string;
-  decimalFactor: number;
-  decimals: number;
-  UIAmount: string;
-  typeId: string;
-  isSendable: boolean;
+  nftName?: string; // nft only
 }
 
 export interface IActiveAsset {
-  name: string;
   typeId: string;
   id?: string;
   amount?: string;
@@ -117,6 +108,8 @@ export interface IActiveAsset {
   dcNonce?: boolean;
   nftUri?: string;
   nftData?: string;
+  nftName?: string;
+  name?: string;
 }
 
 export interface INonFungibleAsset {
@@ -127,6 +120,7 @@ export interface INonFungibleAsset {
   nftData: string; // base64 encoded hex - nft only
   kind: number; // [2:Fungible|4:NonFungible]
   txHash: string; // base64 encoded hex - latest tx
+  name: string;
 }
 
 export interface ITypeHierarchy {

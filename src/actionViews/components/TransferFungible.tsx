@@ -93,7 +93,7 @@ export default function TransferFungible(): JSX.Element | null {
     label: string;
   } = {
     value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
-    label: directlySelectedAsset?.id || fungibleActiveAsset.name || AlphaType,
+    label: directlySelectedAsset?.id || fungibleActiveAsset.symbol || AlphaType,
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
@@ -528,7 +528,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedAsset(activeAsset);
                               setFieldValue("assets", {
                                 value: activeAsset,
-                                label: activeAsset?.name || activeAsset?.symbol,
+                                label: activeAsset?.symbol,
                               });
                             }}
                             variant="link"
@@ -578,10 +578,10 @@ export default function TransferFungible(): JSX.Element | null {
                           asset.isSendable
                       )
                       .sort((a: IFungibleAsset, b: IFungibleAsset) => {
-                        if (a?.name! < b?.name!) {
+                        if (a?.symbol! < b?.symbol!) {
                           return -1;
                         }
-                        if (a?.name! > b?.name!) {
+                        if (a?.symbol! > b?.symbol!) {
                           return 1;
                         }
                         return 0;
@@ -594,7 +594,7 @@ export default function TransferFungible(): JSX.Element | null {
                       })
                       .map((asset: IFungibleAsset) => ({
                         value: asset,
-                        label: asset.name,
+                        label: asset.symbol,
                       }))}
                     defaultValue={defaultAsset}
                     error={extractFormikError(errors, touched, ["assets"])}

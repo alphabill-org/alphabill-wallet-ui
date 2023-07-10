@@ -14,6 +14,7 @@ import {
   IFeeCreditBills,
   IListTokensResponse,
   INFTAsset,
+  ITokensListTypes,
 } from "../types/Types";
 import {
   useGetAllTokenTypes,
@@ -53,6 +54,7 @@ interface IAppContextShape {
   selectedTransferAccountKey: string | null | undefined;
   setSelectedTransferAccountKey: (e: string | null) => void;
   feeCreditBills?: IFeeCreditBills;
+  tokenTypes: ITokensListTypes[] | undefined;
 }
 
 export const AppContext = createContext<IAppContextShape>(

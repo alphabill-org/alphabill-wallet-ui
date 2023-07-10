@@ -257,7 +257,7 @@ export const fungibleTokensList_2 = [
 export const updatedFungibleAssetsTrue = [
   {
     id: "ALPHA",
-    name: "ALPHA",
+    symbol: "ALPHA",
     network: undefined,
     amount: "388000000000",
     decimalFactor: 100000000,
@@ -269,7 +269,7 @@ export const updatedFungibleAssetsTrue = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    name: "TEST-FT",
+    symbol: "TEST-FT",
     network: "AB Devnet",
     amount: "30000000",
     decimalFactor: 1000000,
@@ -282,7 +282,7 @@ export const updatedFungibleAssetsTrue = [
 export const updatedFungibleAssetsFalse = [
   {
     id: "ALPHA",
-    name: "ALPHA",
+    symbol: "ALPHA",
     network: undefined,
     amount: "388000000000",
     decimalFactor: 100000000,
@@ -294,7 +294,7 @@ export const updatedFungibleAssetsFalse = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    name: "TEST-FT",
+    symbol: "TEST-FT",
     network: "AB Devnet",
     amount: "30000000",
     decimalFactor: 1000000,
@@ -336,3 +336,7 @@ export const testBills = [
     txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV="
   },
 ];
+
+export const tooltipOffset = -4;
+export const tooltipShowDelay = 600;
+export const tooltipHideDelay = 100;

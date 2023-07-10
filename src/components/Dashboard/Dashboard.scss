@@ -20,6 +20,7 @@
     max-width: calc(100% - 98px);
     display: flex;
     align-items: center;
+    position: relative;
 
     &-id {
       display: flex;
@@ -33,6 +34,8 @@
       }
 
       &-item {
+        max-width: 196px;
+        display: flex;
         text-overflow: ellipsis;
         overflow: hidden;
         flex: 1 0 0;
@@ -43,7 +46,6 @@
       max-width: 178px;
       display: flex;
       text-overflow: ellipsis;
-      overflow: hidden;
       white-space: nowrap;
       padding-right: 4px;
     }

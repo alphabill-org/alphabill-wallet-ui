@@ -72,10 +72,12 @@ export default function TransferNFTs(): JSX.Element | null {
   const activeNFT = account?.assets.nft
     ?.filter((asset) => account?.activeNetwork === asset.network)
     .find((asset) => asset.id === activeAsset.id);
+
   const defaultAssetId = activeNFT?.id || account?.assets.nft[0]?.id;
+  const defaultAssetName = activeNFT?.nftName || account?.assets.nft[0]?.nftName;
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
     value: activeNFT || account?.assets.nft[0],
-    label: defaultAssetId && base64ToHexPrefixed(defaultAssetId),
+    label: defaultAssetName || base64ToHexPrefixed(defaultAssetId),
   };
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
@@ -386,7 +388,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       })
                       .map((asset: INFTAsset) => ({
                         value: asset,
-                        label: base64ToHexPrefixed(asset.id),
+                        label: asset?.nftName || base64ToHexPrefixed(asset.id),
                       }))}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={async (_label, option: any) => {
