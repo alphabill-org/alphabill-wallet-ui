@@ -299,7 +299,7 @@ export default function TransferFungible(): JSX.Element | null {
                   !billToSplit &&
                   !splitBillAmount;
 
-                handleValidation(
+                handleTransaction(
                   transferData as ITransactionPayload,
                   isLastTransaction,
                   bill.typeId
@@ -321,7 +321,7 @@ export default function TransferFungible(): JSX.Element | null {
                   },
                 };
 
-                handleValidation(
+                handleTransaction(
                   splitData as ITransactionPayload,
                   true,
                   billToSplit.typeId
@@ -330,7 +330,7 @@ export default function TransferFungible(): JSX.Element | null {
             }
           );
 
-          const handleValidation = async (
+          const handleTransaction = async (
             billData: any,
             isLastTransfer: boolean,
             billTypeId?: string

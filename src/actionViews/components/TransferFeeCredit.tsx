@@ -430,7 +430,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 return;
               }
 
-              const transferBillForValidation = transferrableBills.current?.[0];
+              const billToTransfer = transferrableBills.current?.[0];
               initialRoundNumber.current = null;
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
               queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
@@ -444,11 +444,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 )
                   .then(async (data) => {
                     transferrableBills.current =
-                      (transferBillForValidation &&
+                      (billToTransfer &&
                         transferrableBills.current?.filter(
                           (item) =>
                             item.payload.unitId !==
-                            transferBillForValidation.payload.unitId
+                            billToTransfer.payload.unitId
                         )) ||
                       null;
 
@@ -469,8 +469,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 )
                   .then(async () => {
                     transferBillProof.current = null;
-                    transferBillForValidation &&
-                      initTransaction(transferBillForValidation, true, false);
+                    billToTransfer &&
+                      initTransaction(billToTransfer, true, false);
                   })
                   .finally(() => setIntervalCancel());
               }
