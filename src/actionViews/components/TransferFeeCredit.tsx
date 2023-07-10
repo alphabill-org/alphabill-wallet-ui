@@ -301,8 +301,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   const amount = (
                     billData.payload.attributes as ITransactionAttributes
                   ).amount;
-                  const clientMeta = billData.payload
-                    .clientMetadata as IPayloadClientMetadata;
+
                   const attr = billData.payload
                     .attributes as ITransactionAttributes;
                   const deductedWithFee =
