@@ -37,6 +37,7 @@ import {
   base64ToHexPrefixed,
   getNewBearer,
   unit8ToHexPrefixed,
+  FeeCostEl,
 } from "../../utils/utils";
 import {
   feeTimeoutBlocks,
@@ -501,7 +502,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   }
                 });
               };
-            }, 1000);
+            }, 600);
           };
 
           const addFeeCredit = () => {
@@ -602,6 +603,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   >
                     Transfer credit
                   </Button>
+                  <FeeCostEl />
                 </FormFooter>
               </Form>
             </form>

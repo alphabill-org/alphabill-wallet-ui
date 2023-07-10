@@ -41,6 +41,7 @@ import {
   createInvariantPredicateSignatures,
   separateDigits,
   getTokensLabel,
+  FeeCostEl,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -667,6 +668,7 @@ export default function TransferFungible(): JSX.Element | null {
                   >
                     Transfer
                   </Button>
+                  <FeeCostEl />
                 </FormFooter>
               </Form>
             </form>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { isString } from "lodash";
 
-import { getTokensLabel } from "../../../utils/utils";
+import { FeeCostEl, getTokensLabel } from "../../../utils/utils";
 import {
   DCTransfersLimit,
   swapTimeout,
@@ -231,6 +231,7 @@ function BillsList(): JSX.Element | null {
                   >
                     {isFeeCredit ?  "Consolidate Bills":"Not enough fee credit for consolidation"}
                   </Button>
+                  <FeeCostEl />
                 </>
               )}
               <Spacer mt={8} />

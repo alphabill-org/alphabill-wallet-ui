@@ -35,6 +35,7 @@ import {
   createInvariantPredicateSignatures,
   sendTransferMessage,
   removeConnectTransferData,
+  FeeCostEl,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -434,6 +435,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   >
                     Transfer
                   </Button>
+                  <FeeCostEl />
                 </FormFooter>
               </Form>
             </form>
