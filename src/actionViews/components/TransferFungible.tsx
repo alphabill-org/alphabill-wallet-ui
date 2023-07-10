@@ -42,6 +42,7 @@ import {
   separateDigits,
   getTokensLabel,
   FeeCostEl,
+  getFungibleAssetsAmount,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -109,16 +110,8 @@ export default function TransferFungible(): JSX.Element | null {
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimals: number) => {
-      return addDecimal(
-        BigInt(
-          account?.assets?.fungible?.find(
-            (asset) => asset.typeId === selectedAsset?.typeId
-          )?.amount || "0"
-        ).toString() || "0",
-        decimals
-      );
-    },
+    (decimals: number) =>
+      getFungibleAssetsAmount(account, decimals, selectedAsset?.typeId || ""),
     [account, selectedAsset]
   );
 
@@ -220,7 +213,7 @@ export default function TransferFungible(): JSX.Element | null {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
               selectedAsset?.decimals || 0
-            ) as bigint;
+            );
           } catch (error) {
             return setErrors({
               password: error.message,
@@ -272,22 +265,32 @@ export default function TransferFungible(): JSX.Element | null {
                 activeAccountId
               )) as Uint8Array;
 
+              const baseObj = (bill: IBill, transferType: string) => {
+                return {
+                  systemId: systemId,
+                  type: transferType,
+                  unitId: Buffer.from(bill.id, "base64"),
+                };
+              };
+
+              const clientDataObj = {
+                clientMetadata: {
+                  timeout: roundNumber + timeoutBlocks,
+                  maxTransactionFee: maxTransactionFee,
+                  feeCreditRecordID: targetRecord,
+                },
+              };
+
               billsToTransfer?.map(async (bill, idx) => {
                 const transferData: ITransactionPayload = {
                   payload: {
-                    systemId: systemId,
-                    type: transferType,
-                    unitId: Buffer.from(bill.id, "base64"),
+                    ...baseObj(bill, transferType),
                     attributes: {
                       newBearer: newBearer,
                       targetValue: BigInt(bill.value),
                       backlink: Buffer.from(bill.txHash, "base64"),
                     } as ITransactionAttributes,
-                    clientMetadata: {
-                      timeout: roundNumber + timeoutBlocks,
-                      maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: targetRecord,
-                    },
+                    ...clientDataObj,
                   },
                 };
 
@@ -306,9 +309,7 @@ export default function TransferFungible(): JSX.Element | null {
               if (billToSplit && splitBillAmount) {
                 const splitData: ITransactionPayload = {
                   payload: {
-                    systemId: systemId,
-                    type: splitType,
-                    unitId: Buffer.from(billToSplit.id, "base64"),
+                    ...baseObj(billToSplit, splitType),
                     attributes: {
                       amount: splitBillAmount,
                       targetBearer: newBearer,
@@ -316,11 +317,7 @@ export default function TransferFungible(): JSX.Element | null {
                         BigInt(billToSplit.value) - splitBillAmount,
                       backlink: Buffer.from(billToSplit.txHash, "base64"),
                     } as ITransactionAttributes,
-                    clientMetadata: {
-                      timeout: roundNumber + timeoutBlocks,
-                      maxTransactionFee: maxTransactionFee,
-                      feeCreditRecordID: targetRecord,
-                    },
+                    ...clientDataObj,
                   },
                 };
 
@@ -344,7 +341,7 @@ export default function TransferFungible(): JSX.Element | null {
                 bearer: Boolean(attr.newBearer)
                   ? attr.newBearer
                   : attr.targetBearer,
-                targetValue: attr.amount > 0 ? attr.amount : attr.targetValue,
+                value: attr.amount > 0 ? attr.amount : attr.targetValue,
                 nonce: null,
                 backlink: attr.backlink,
                 typeID: Buffer.from(billTypeId, "base64"),
@@ -360,9 +357,9 @@ export default function TransferFungible(): JSX.Element | null {
             const attributes = billData?.payload
               .attributes as ITransactionAttributes;
             const amount =
-              (attributes?.amount as bigint) ||
-              (attributes?.targetValue as bigint) ||
-              (attributes?.value as bigint) ||
+              attributes?.amount ||
+              attributes?.targetValue ||
+              attributes?.value ||
               0n;
 
             const proof = await createOwnerProof(
@@ -399,7 +396,7 @@ export default function TransferFungible(): JSX.Element | null {
                       )
                       .find(
                         (asset) => asset.typeId === values.assets.value?.typeId
-                      ) as IBill | IFungibleAsset | undefined;
+                      ) as IBill | IFungibleAsset;
 
                     balanceAfterSending.current = balanceAfterSending.current
                       ? BigInt(balanceAfterSending.current) - amount

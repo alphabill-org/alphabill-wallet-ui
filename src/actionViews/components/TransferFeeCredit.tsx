@@ -14,6 +14,7 @@ import {
   ITransactionPayload,
   IPayloadClientMetadata,
   ITransactionPayloadObj,
+  ITransactionAttributes,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -32,12 +33,12 @@ import {
   getOptimalBills,
   getBillsSum,
   invalidateAllLists,
-  addDecimal,
   convertToWholeNumberBigInt,
   base64ToHexPrefixed,
   getNewBearer,
   unit8ToHexPrefixed,
   FeeCostEl,
+  getFungibleAssetsAmount,
 } from "../../utils/utils";
 import {
   feeTimeoutBlocks,
@@ -107,15 +108,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimals: number) => {
-      return addDecimal(
-        BigInt(
-          account?.assets?.fungible?.find((asset) => asset.typeId === AlphaType)
-            ?.amount || "0"
-        ).toString() || "0",
-        decimals
-      );
-    },
+    (decimals: number) => getFungibleAssetsAmount(account, decimals, AlphaType),
     [account]
   );
 
@@ -183,12 +176,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           let convertedAmount: bigint;
 
-          // Adding fee amount so you get the inserted amount in fee credits
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
               AlphaDecimals
-            ) as bigint;
+            );
           } catch (error) {
             return setErrors({
               password: error.message,
@@ -225,26 +217,34 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const pubKeyHash = await publicKeyHash(activeAccountId);
           const isAlpha = values.assets.value === AlphaType;
 
-          billsToTransfer?.map(async (bill, idx) => {
-            const transferData: ITransactionPayload = {
+          const baseObj = (bill: IBill, amount: string) => {
+            return {
               payload: {
                 systemId: AlphaSystemId,
                 type: FeeCreditTransferType,
                 unitId: Buffer.from(bill.id, "base64"),
-                attributes: {
-                  amount: BigInt(bill.value) - maxTransactionFee,
-                  targetSystemIdentifier: isAlpha
-                    ? AlphaSystemId
-                    : TokensSystemId,
-                  targetRecordID: pubKeyHash,
-                  nonce: null,
-                  backlink: Buffer.from(bill.txHash, "base64"),
-                },
-                clientMetadata: {
-                  maxTransactionFee: maxTransactionFee,
-                  feeCreditRecordID: null,
-                },
+                ...baseAttr(bill, amount),
               },
+            };
+          };
+
+          const baseAttr = (bill: IBill, amount: string) => {
+            return {
+              attributes: {
+                amount: BigInt(amount) - maxTransactionFee,
+                targetSystemIdentifier: isAlpha
+                  ? AlphaSystemId
+                  : TokensSystemId,
+                targetRecordID: pubKeyHash,
+                nonce: null,
+                backlink: Buffer.from(bill.txHash, "base64"),
+              },
+            };
+          };
+
+          billsToTransfer?.map(async (bill) => {
+            const transferData: ITransactionPayload = {
+              ...baseObj(bill, bill.value),
             };
 
             transferrableBills.current = transferrableBills.current
@@ -254,25 +254,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           if (billToSplit && splitBillAmount) {
             const splitData: ITransactionPayload = {
-              payload: {
-                systemId: AlphaSystemId,
-                type: FeeCreditTransferType,
-                unitId: Buffer.from(billToSplit.id, "base64"),
-                attributes: {
-                  amount: splitBillAmount,
-                  targetSystemIdentifier:
-                    values.assets.value === AlphaType
-                      ? AlphaSystemId
-                      : TokensSystemId,
-                  targetRecordID: pubKeyHash,
-                  nonce: null,
-                  backlink: Buffer.from(billToSplit.txHash, "base64"),
-                },
-                clientMetadata: {
-                  maxTransactionFee: maxTransactionFee,
-                  feeCreditRecordID: null,
-                },
-              },
+              ...baseObj(billToSplit, splitBillAmount.toString()),
             };
             transferrableBills.current = transferrableBills.current
               ? [...transferrableBills.current, splitData]
@@ -280,11 +262,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
           }
 
           if (
-            !transferrableBills ||
-            !transferrableBills.current ||
-            !transferrableBills.current[0] ||
-            !transferrableBills.current[0].payload ||
-            !transferrableBills.current[0].payload.attributes
+            !transferrableBills?.current?.[0] ||
+            !transferrableBills?.current[0].payload
           ) {
             return setErrors({
               password: "Error selecting suitable bills",
@@ -300,7 +279,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
             pollingInterval.current && clearInterval(pollingInterval.current);
 
             if (addNonce) {
-              billData.payload.attributes.nonce =
+              (billData.payload.attributes as ITransactionAttributes).nonce =
                 (addFeePollingProofProps?.current?.txHash &&
                   Buffer.from(
                     addFeePollingProofProps?.current?.txHash,
@@ -314,17 +293,22 @@ export default function TransferFeeCredit(): JSX.Element | null {
             } else {
               addFeePollingProofProps.current = null;
             }
+
             getRoundNumber(true).then((alphaRoundNumber) => {
               getRoundNumber(!isTokensRequest).then(
                 async (variableRoundNumber) => {
                   const id = billData.payload.unitId;
-                  const amount = billData.payload.attributes.amount;
+                  const amount = (
+                    billData.payload.attributes as ITransactionAttributes
+                  ).amount;
                   const clientMeta = billData.payload
                     .clientMetadata as IPayloadClientMetadata;
-                  const attr = billData.payload.attributes;
+                  const attr = billData.payload
+                    .attributes as ITransactionAttributes;
                   const deductedWithFee =
                     amount &&
-                    billData.payload.attributes.amount - maxTransactionFee;
+                    (billData.payload.attributes as ITransactionAttributes)
+                      .amount! - maxTransactionFee;
 
                   if (deductedWithFee) {
                     const feeBillsValue =
@@ -353,8 +337,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   (billData.payload.clientMetadata as IPayloadClientMetadata) =
                     {
                       timeout: variableRoundNumber + feeTimeoutBlocks,
-                      maxTransactionFee: clientMeta.maxTransactionFee,
-                      feeCreditRecordID: clientMeta.feeCreditRecordID,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: null,
                     };
 
                   const proof = await createOwnerProof(
@@ -415,19 +399,22 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
           const creditBills = await getFeeCreditBills(pubKeyHashHex as string);
           const creditBill = creditBills?.[isAlpha ? AlphaType : TokenType];
+          const firstBillToTransfer = transferrableBills!.current![0];
 
           if (
             creditBill?.tx_hash &&
-            transferrableBills?.current[0].payload.type !== FeeCreditAddType
+            firstBillToTransfer.payload.type !== FeeCreditAddType
           ) {
-            transferrableBills.current[0].payload.attributes.nonce =
+            (
+              firstBillToTransfer.payload.attributes as ITransactionAttributes
+            ).nonce =
               creditBill && creditBill.tx_hash
                 ? Buffer.from(creditBill.tx_hash, "base64")
                 : null;
           }
 
           await initTransaction(
-            transferrableBills?.current[0] as ITransactionPayload,
+            firstBillToTransfer as ITransactionPayload,
             false
           );
 
@@ -517,10 +504,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   feeCreditOwnerCondition: getNewBearer(account),
                   feeCreditTransfer: transferBillProof.current.txRecord,
                   feeCreditTransferProof: transferBillProof.current.txProof,
-                },
-                clientMetadata: {
-                  maxTransactionFee: maxTransactionFee,
-                  feeCreditRecordID: null,
                 },
               },
             };

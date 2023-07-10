@@ -440,7 +440,7 @@ export const countDecimalLength = (str: string) => {
 export const convertToWholeNumberBigInt = (
   val: string | number,
   decimals: number
-): BigInt => {
+): bigint => {
   let numStr = isNumber(val) ? val.toString() : val;
   const num = parseFloat(numStr);
 
@@ -711,3 +711,15 @@ export const FeeCostEl = () => (
     Transaction fee per transaction 0.000'000'01 ALPHA
   </span>
 );
+
+export const getFungibleAssetsAmount = (
+  account: IAccount,
+  decimals: number,
+  assetTypeId: string
+) =>
+  addDecimal(
+    BigInt(
+      account?.assets?.fungible?.find((asset) => assetTypeId)?.amount || "0"
+    ).toString() || "0",
+    Number(decimals)
+  );

@@ -175,17 +175,17 @@ export interface ITransactionAttributes {
   type?: Uint8Array;
   backlink?: Uint8Array;
   newBearer?: Buffer | Uint8Array;
-  remainingValue?: BigInt | bigint;
+  remainingValue?: bigint;
   targetBearer?: Uint8Array;
-  amount?: BigInt | bigint;
+  amount?: bigint;
   nonce?: Uint8Array | null;
-  value?: BigInt | bigint;
-  targetValue?: BigInt | bigint;
+  value?: bigint;
+  targetValue?: bigint;
   invariantPredicateSignatures?: Uint8Array[] | null;
   targetSystemIdentifier?: Uint8Array; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
   targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
-  earliestAdditionTime?: BigInt | bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-  latestAdditionTime?: BigInt | bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+  earliestAdditionTime?: bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
+  latestAdditionTime?: bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   ownerCondition?: Uint8Array;
   billIdentifiers?: Uint8Array[];
   proofs?: Uint8Array[];
@@ -206,16 +206,16 @@ export interface ITransactionPayload {
     systemId: Uint8Array;
     type: string;
     unitId: Uint8Array;
-    attributes: any | ITransactionAttributes;
-    clientMetadata: any[] | IPayloadClientMetadata;
+    attributes: Uint8Array | ITransactionAttributes;
+    clientMetadata?: Uint8Array | IPayloadClientMetadata;
   };
   ownerProof?: Uint8Array;
   feeProof?: string | null;
 }
 
 export interface IPayloadClientMetadata {
-  timeout?: BigInt | bigint;
-  maxTransactionFee: BigInt | bigint;
+  timeout?: bigint;
+  maxTransactionFee: bigint;
   feeCreditRecordID?: Uint8Array | null;
 }
 export interface ITransactionPayloadObj {
@@ -226,8 +226,8 @@ export interface ITransactionPayloadObj {
   clientMetadata:
     | any[]
     | {
-        timeout: BigInt | bigint;
-        maxTransactionFee: BigInt | bigint;
+        timeout: bigint;
+        maxTransactionFee: bigint;
         feeCreditRecordID?: Uint8Array | null;
       };
 }
