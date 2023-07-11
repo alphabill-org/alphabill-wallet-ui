@@ -725,10 +725,11 @@ export const getFungibleAssetsAmount = (
 ) =>
   addDecimal(
     BigInt(
-      account?.assets?.fungible?.find((asset) => assetTypeId)?.amount || "0"
+      account?.assets?.fungible?.find((asset) => asset.id === assetTypeId)?.amount || "0"
     ).toString() || "0",
     Number(decimals)
   );
+
 export const Base64imageComponent: React.FC<{
   base64Data: { data: string; type: string };
   alt: string;
