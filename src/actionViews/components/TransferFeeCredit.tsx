@@ -38,7 +38,7 @@ import {
   getNewBearer,
   unit8ToHexPrefixed,
   FeeCostEl,
-  getFungibleAssetsAmount,
+  addDecimal,
 } from "../../utils/utils";
 import {
   feeTimeoutBlocks,
@@ -86,7 +86,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
     value: string;
     label: string;
   } = feeAssets[0];
-
+  const billsArr = billsList
+    .filter((bill: any) => bill.value > 1)
+    ?.filter((bill: IBill) => !Boolean(bill.dcNonce));
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const transferBillProof = useRef<any>(null);
@@ -108,8 +110,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimals: number) => getFungibleAssetsAmount(account, decimals, AlphaType),
-    [account]
+    (decimals: number) =>
+      addDecimal(getBillsSum(billsArr).toString() || "0", Number(decimals)),
+    [billsArr]
   );
 
   const resetRefs = () => {
@@ -130,8 +133,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
   useEffect(() => {
     if (
-      feeCreditBills?.[feeAfterSending.current?.type || AlphaType]?.value ===
-      feeAfterSending.current?.amount.toString()
+      BigInt(
+        feeCreditBills?.[feeAfterSending.current?.type || AlphaType]?.value ||
+          "0"
+      ) >= BigInt(feeAfterSending.current?.amount || "0")
     ) {
       if (isAllFeesAdded.current === true) {
         pollingInterval.current && clearInterval(pollingInterval.current);
@@ -187,17 +192,13 @@ export default function TransferFeeCredit(): JSX.Element | null {
             });
           }
 
-          const billsArr = billsList?.filter(
-            (bill: IBill) => !Boolean(bill.dcNonce)
-          );
-
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
             billsArr as IBill[]
           );
 
           const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount + maxTransactionFee;
+            getBillsSum(selectedBills) - convertedAmount;
 
           const billToSplit =
             billsSumDifference !== 0n
@@ -488,7 +489,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   }
                 });
               };
-            }, 600);
+            }, 1000);
           };
 
           const addFeeCredit = () => {

@@ -248,7 +248,8 @@ export const AppProvider: FunctionComponent<{
         setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
-        feeCreditBills
+        feeCreditBills,
+        tokenTypes
       }}
     >
       {children}

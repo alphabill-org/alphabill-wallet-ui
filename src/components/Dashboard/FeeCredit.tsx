@@ -8,6 +8,7 @@ import {
 } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
+import { useAuth } from "../../hooks/useAuth";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
 import { IFungibleAsset } from "../../types/Types";
@@ -15,12 +16,13 @@ import Spacer from "../Spacer/Spacer";
 import { separateDigits, addDecimal } from "../../utils/utils";
 
 export default function FeeCredit(): JSX.Element | null {
+  const { setActiveAssetLocal } = useAuth();
   const {
     account,
     setIsActionsViewVisible,
     setActionsView,
     feeCreditBills,
-    setPreviousView
+    setPreviousView,
   } = useApp();
 
   const alphaBalance = Number(
@@ -66,6 +68,13 @@ export default function FeeCredit(): JSX.Element | null {
             setActionsView(TransferFeeCreditView);
             setIsActionsViewVisible(true);
             setPreviousView(null);
+            setActiveAssetLocal(
+              JSON.stringify(
+                account?.assets?.fungible.find(
+                  (asset) => asset.typeId === AlphaType
+                )
+              )
+            );
           }}
           disabled={!Boolean(alphaBalance > 0)}
           type="button"
