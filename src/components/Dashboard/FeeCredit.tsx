@@ -8,7 +8,6 @@ import {
 } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
-import { useAuth } from "../../hooks/useAuth";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
 import { IFungibleAsset } from "../../types/Types";
@@ -16,12 +15,10 @@ import Spacer from "../Spacer/Spacer";
 import { separateDigits, addDecimal } from "../../utils/utils";
 
 export default function FeeCredit(): JSX.Element | null {
-  const { activeAsset } = useAuth();
   const {
     account,
     setIsActionsViewVisible,
     setActionsView,
-    setSelectedTransferKey,
     feeCreditBills,
     setPreviousView
   } = useApp();
@@ -69,7 +66,6 @@ export default function FeeCredit(): JSX.Element | null {
             setActionsView(TransferFeeCreditView);
             setIsActionsViewVisible(true);
             setPreviousView(null);
-            activeAsset && setSelectedTransferKey(activeAsset.id!);
           }}
           disabled={!Boolean(alphaBalance > 0)}
           type="button"

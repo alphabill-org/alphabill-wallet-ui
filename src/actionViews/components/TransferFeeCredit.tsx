@@ -546,7 +546,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
               <Form>
                 <FormContent>
                   <Select
-                    label="Assets"
+                    label=""
                     name="assets"
                     options={feeAssets}
                     defaultValue={defaultAsset}
