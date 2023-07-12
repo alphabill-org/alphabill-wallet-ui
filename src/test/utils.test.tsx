@@ -110,8 +110,6 @@ describe("Function return a formatted number string with separated digits", () =
   });
 });
 
-
-
 describe("Function that finds an object that has a value greater than or equal to the target value", () => {
   it("should return the bill object that has a value greater than or equal to the target value", () => {
     const target = "300";
@@ -121,8 +119,7 @@ describe("Function that finds an object that has a value greater than or equal t
     expect(result).toEqual({
       id: "3",
       value: "500",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-      isDcBill: false,
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
     });
   });
 
@@ -144,8 +141,7 @@ describe("Function that gets closest value to the target value", () => {
     expect(result).toEqual({
       id: "2",
       value: "200",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
-      isDcBill: false,
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
     });
   });
 });
@@ -161,13 +157,11 @@ describe("Function that gets optimal combination of bills to reach the target am
         id: "4",
         value: "1000",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-        isDcBill: false,
       },
       {
         id: "3",
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-        isDcBill: false,
       },
     ]);
   });
@@ -191,13 +185,11 @@ describe("Function that gets optimal combination of bills to reach the target am
         id: "4",
         value: "1000",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
-        isDcBill: false,
       },
       {
         id: "3",
         value: "500",
         txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
-        isDcBill: false,
       },
     ]);
   });
@@ -268,7 +260,7 @@ describe("Create invariant predicate signatures", () => {
         invariantPredicate: "",
       },
     ];
-    const ownerProof = "abcdef";
+    const ownerProof = Buffer.from("abcdef");
     const key = "0xabcdef";
     expect(() =>
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
@@ -289,7 +281,7 @@ describe("Create invariant predicate signatures", () => {
         invariantPredicate: null,
       },
     ];
-    const ownerProof = "abcdef";
+    const ownerProof = Buffer.from("abcdef");
     const key = "0xabcdef";
     expect(() =>
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
@@ -310,7 +302,7 @@ describe("Create invariant predicate signatures", () => {
         invariantPredicate: pushBoolFalse,
       },
     ];
-    const ownerProof = "abcdef";
+    const ownerProof = Buffer.from("abcdef");
     const key = "0xabcdef";
     expect(() =>
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
@@ -333,15 +325,15 @@ describe("Create invariant predicate signatures", () => {
         txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
       },
     ];
-    const ownerProof =
-      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu";
+    const ownerProof = Buffer.from(
+      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
+      "base64"
+    );
     const key =
       "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual([
-      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
-    ]);
+    ).toEqual(hierarchy?.map(() => ownerProof));
   });
 
   test("should return true for a valid signatures for valid predicate and key", () => {
@@ -358,13 +350,15 @@ describe("Create invariant predicate signatures", () => {
         txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
       },
     ];
-    const ownerProof =
-      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu";
+    const ownerProof = Buffer.from(
+      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
+      "base64"
+    );
     const key =
       "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual(["Uw=="]);
+    ).toEqual([Buffer.from("Uw==", "base64")]);
   });
 });
 
@@ -404,8 +398,6 @@ describe("Check if owner predicate", () => {
 
 describe("Get updated NFT assets with is sendable & amount of same type", () => {
   it("should return updated NFT assets with correct properties with two of the same type", () => {
-
-
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_1,
       tokenTypes,
@@ -426,7 +418,6 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   });
 
   it("should return updated NFT assets with correct properties with isSendable false", () => {
-
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_3,
       tokenTypes,

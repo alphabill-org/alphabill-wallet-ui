@@ -11,6 +11,7 @@ import { isEqual, sortBy } from "lodash";
 import {
   IAccount,
   IActionVies,
+  IFeeCreditBills,
   IListTokensResponse,
   INFTAsset,
   ITokensListTypes,
@@ -23,6 +24,7 @@ import {
   useGetUserTokens,
   useGetAllNFTs,
   useGetNFTs,
+  useGetFeeCreditBills,
 } from "./api";
 import { useAuth } from "./useAuth";
 import { AlphaType, TransferNFTView } from "../utils/constants";
@@ -51,6 +53,7 @@ interface IAppContextShape {
   setSelectedTransferKey: (e: string | null) => void;
   selectedTransferAccountKey: string | null | undefined;
   setSelectedTransferAccountKey: (e: string | null) => void;
+  feeCreditBills?: IFeeCreditBills;
   tokenTypes: ITokensListTypes[] | undefined;
 }
 
@@ -70,6 +73,7 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     activeNFT,
     setActiveAssetLocal,
+    pubKeyHash
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
@@ -87,6 +91,7 @@ export const AppProvider: FunctionComponent<{
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
+  const { data: feeCreditBills } = useGetFeeCreditBills(pubKeyHash);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
     useGetAllUserTokens(activeAccountId);
   const { data: NFTsList, isLoading: isLoadingNFTs } =
@@ -220,7 +225,7 @@ export const AppProvider: FunctionComponent<{
     account?.pubKey,
     isLoadingNFTs,
     isLoadingTokenTypes,
-    isLoadingFungibleTokens
+    isLoadingFungibleTokens,
   ]);
 
   return (
@@ -243,7 +248,8 @@ export const AppProvider: FunctionComponent<{
         setSelectedTransferAccountKey,
         previousView,
         setPreviousView,
-        tokenTypes,
+        feeCreditBills,
+        tokenTypes
       }}
     >
       {children}

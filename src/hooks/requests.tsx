@@ -1,16 +1,17 @@
 import axios, { AxiosResponse, isCancel } from "axios";
+import { encodeCanonical } from "cbor";
+import { decode } from "cbor";
 
 import {
   IBillsList,
-  ITransfer,
-  IProofsProps,
-  ISwapTransferProps,
+  ITransactionPayload,
   IBill,
   IListTokensResponse,
   ITypeHierarchy,
   IRoundNumber,
-  INFTTransferPayload,
   IBalance,
+  IFeeCreditBills,
+  ITxProof,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -18,6 +19,7 @@ import {
   AlphaType,
   downloadableTypes,
   maxImageSize,
+  TokenType,
 } from "../utils/constants";
 import {
   addDecimal,
@@ -224,39 +226,52 @@ export const getUserTokens = async (
 };
 
 export const getProof = async (
-  billID: string
-): Promise<IProofsProps | undefined> => {
+  billID: string,
+  txHash: string,
+  isTokens?: boolean
+): Promise<ITxProof | undefined> => {
   if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
     return;
   }
-
-  const response = await axios.get<IProofsProps>(
-    `${MONEY_BACKEND_URL}/proof?bill_id=${billID}`
+  const url = isTokens ? TOKENS_BACKEND_URL : MONEY_BACKEND_URL;
+  const response = await axios.get<any>(
+    `${url}/units/${billID}/transactions/${txHash}/proof`,
+    { responseType: "arraybuffer" }
   );
 
-  return response.data;
+  const decoded = decode(Buffer.from(response.data));
+
+  const proofObj = {
+    txRecord: decoded[0],
+    txProof: decoded[1],
+  };
+
+  return proofObj;
 };
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
   const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const response = await axios.get<IRoundNumber>(
-    backendUrl + "/round-number"
-  );
+  const response = await axios.get<IRoundNumber>(backendUrl + "/round-number");
 
   return BigInt((response.data as IRoundNumber).roundNumber);
 };
 
 export const makeTransaction = async (
-  data: ITransfer | INFTTransferPayload,
-  pubKey?: string
-): Promise<{ data: ITransfer }> => {
-  const url = pubKey ? TOKENS_BACKEND_URL : MONEY_NODE_URL;
-  const response = await axios.post<{ data: ITransfer | ISwapTransferProps }>(
-    `${url}/transactions${pubKey ? "/" + pubKey : ""}`,
-    {
-      ...data,
-    }
-  );
+  data: any,
+  pubKey: string,
+  isAlpha?: boolean
+): Promise<{
+  data: ITransactionPayload;
+}> => {
+  const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
+  const body = encodeCanonical(Object.values({ transactions: [data] }));
+  const response = await axios.post<{
+    data: ITransactionPayload;
+  }>(`${url}/transactions/${pubKey}`, body, {
+    headers: {
+      "Content-Type": "application/cbor",
+    },
+  });
 
   return response.data;
 };
@@ -360,6 +375,41 @@ export const getImageUrlAndDownloadType = async (
   } finally {
     clearTimeout(timeout);
   }
+};
+
+export const getFeeCreditBills = async (
+  id: string
+): Promise<IFeeCreditBills> => {
+  let moneyDataPromise = axios.get<any>(
+    `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`
+  );
+  let tokensDataPromise = axios.get<any>(
+    `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`
+  );
+
+  let moneyData = null;
+  let tokensData = null;
+
+  try {
+    const moneyResponse = await moneyDataPromise;
+    moneyData = moneyResponse.data;
+  } catch (_e) {
+    moneyData = null;
+  }
+
+  try {
+    const tokensResponse = await tokensDataPromise;
+    tokensData = tokensResponse.data;
+  } catch (_e) {
+    tokensData = null;
+  }
+
+  const data: IFeeCreditBills = {
+    [AlphaType]: moneyData,
+    [TokenType]: tokensData,
+  };
+
+  return data;
 };
 
 export const downloadFile = async (url: string, filename: string) => {

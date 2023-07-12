@@ -6,16 +6,17 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
+import { encodeCanonical } from "cbor";
 
 import {
   IAccount,
   IFungibleAsset,
   IBill,
-  ITxProof,
   ITypeHierarchy,
   IListTokensResponse,
   ITokensListTypes,
   INFTAsset,
+  ITransactionPayloadObj,
 } from "../types/Types";
 import {
   AlphaDecimalFactor,
@@ -82,6 +83,8 @@ export const base64ToHexPrefixed = (key: string = "") =>
 export const base64ToHex = (key: string = "") =>
   Buffer.from(key, "base64").toString("hex");
 
+export const base64ToBuffer = (key: string = "") => Buffer.from(key, "base64");
+
 export const sortBillsByID = (bills: IBill[]) =>
   uniq(bills).sort((a: IBill, b: IBill) =>
     BigInt(base64ToHexPrefixed(a.id)) < BigInt(base64ToHexPrefixed(b.id))
@@ -91,17 +94,20 @@ export const sortBillsByID = (bills: IBill[]) =>
       : 0
   );
 
-export const sortTxProofsByID = (transfers: ITxProof[]) =>
-  transfers.sort((a: ITxProof, b: ITxProof) =>
-    BigInt(base64ToHexPrefixed(a.tx.unitId)) <
-    BigInt(base64ToHexPrefixed(b.tx.unitId))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a.tx.unitId)) >
-        BigInt(base64ToHexPrefixed(b.tx.unitId))
-      ? 1
-      : 0
-  );
+export const sortTx_ProofsByID = (proofs: any[]) => {
+  return proofs.sort((a: any, b: any) => {
+    const aTxUnitId = a.txRecord[0][0][2];
+    const bTxUnitId = b.txRecord[0][0][2];
 
+    if (aTxUnitId < bTxUnitId) {
+      return -1;
+    } else if (aTxUnitId > bTxUnitId) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+};
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
     BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
@@ -131,7 +137,7 @@ export const getNewBearer = (account: IAccount) => {
       opCheckSig +
       sigScheme,
     "hex"
-  ).toString("base64");
+  );
 };
 
 export const checkPassword = (password: string | undefined) => {
@@ -241,20 +247,27 @@ export const createNewBearer = (address: string) => {
       opCheckSig +
       sigScheme,
     "hex"
-  ).toString("base64");
+  );
 };
 
 export const createOwnerProof = async (
-  msgHash: Uint8Array,
+  payload: ITransactionPayloadObj,
   hashingPrivateKey: Uint8Array,
   pubKey: Uint8Array
 ) => {
-  const signature = await secp.sign(msgHash, hashingPrivateKey, {
+  const modifiedPayload = { ...payload };
+  modifiedPayload.attributes = Object.values(modifiedPayload.attributes);
+  modifiedPayload.clientMetadata = Object.values(
+    modifiedPayload.clientMetadata
+  );
+  const payloadHash = await secp.utils.sha256(
+    encodeCanonical(Object.values(modifiedPayload))
+  );
+  const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,
     recovered: true,
   });
-
-  const isValid = secp.verify(signature[0], msgHash, pubKey);
+  const isValid = secp.verify(signature[0], payloadHash, pubKey);
 
   return {
     isSignatureValid: isValid,
@@ -269,7 +282,7 @@ export const createOwnerProof = async (
         sigScheme +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
-    ).toString("base64"),
+    ),
   };
 };
 
@@ -495,14 +508,14 @@ export const isTokenSendable = (invariantPredicate: string, key: string) => {
 
 export const createInvariantPredicateSignatures = (
   hierarchy: ITypeHierarchy[],
-  ownerProof: string,
+  ownerProof: Uint8Array,
   key: string
 ) => {
   return hierarchy?.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
 
     if (predicate === hexToBase64(pushBoolTrue)) {
-      return hexToBase64(startByte);
+      return Buffer.from(startByte, "hex");
     } else if (checkOwnerPredicate(key, predicate)) {
       return ownerProof;
     }
@@ -699,17 +712,41 @@ export const sendTransferMessage = async (
 export const removeConnectTransferData = () =>
   chrome?.storage?.local.remove("ab_connect_transfer");
 
+export const FeeCostEl = () => (
+  <span className="t-small pad-8-t m-auto w-100p flex flex-justify-c op-06">
+    Transaction fee per transaction 0.000'000'01 ALPHA
+  </span>
+);
+
+export const getFungibleAssetsAmount = (
+  account: IAccount,
+  decimals: number,
+  assetTypeId: string
+) =>
+  addDecimal(
+    BigInt(
+      account?.assets?.fungible?.find((asset) => asset.id === assetTypeId)
+        ?.amount || "0"
+    ).toString() || "0",
+    Number(decimals)
+  );
+
 export const Base64imageComponent: React.FC<{
   base64Data: { data: string; type: string };
   alt: string;
 }> = ({ base64Data, alt }) => {
   const imageUrl = isImage(base64Data.data) ? `${base64Data.data}` : null;
 
-  return imageUrl ? <img src={`data:image;base64,${imageUrl}`} alt={alt} /> : null;
+  return imageUrl ? (
+    <img src={`data:image;base64,${imageUrl}`} alt={alt} />
+  ) : null;
 };
 
-const isImage = (data: string): boolean => {
+export const isImage = (data: string): boolean => {
   const img = new Image();
   img.src = `data:image;base64,${data}`;
   return img.complete && img.naturalWidth !== 0;
 };
+
+export const isValidAddress = (value?: string) =>
+  Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/));
