@@ -450,24 +450,12 @@ export default function TransferFungible(): JSX.Element | null {
             .test(
               "account-id-same",
               `Receiver's account is your account`,
-              function (value) {
-                if (value) {
-                  return account?.pubKey !== value;
-                } else {
-                  return true;
-                }
-              }
+              (value) => !value || account?.pubKey !== value
             )
             .test(
               "account-id-correct",
               `Address in not in valid format`,
-              function (value) {
-                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
+              (value) => Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/))
             ),
           password: Yup.string().required("Password is required"),
           amount: Yup.string()
