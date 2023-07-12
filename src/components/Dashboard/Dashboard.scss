@@ -323,9 +323,16 @@
     color: $color-underpants;
     width: 50%;
     text-align: center;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
+    padding-top: 4px;
     cursor: pointer;
     transition: all .3;
+    border-right: 1px solid $color-secondary;
+
+    &:last-child {
+      border-right: none;
+    }
+
 
     &.active,
     &:hover {

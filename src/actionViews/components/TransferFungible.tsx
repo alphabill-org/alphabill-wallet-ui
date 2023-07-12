@@ -12,10 +12,11 @@ import Select from "../../components/Select/Select";
 import {
   IFungibleAsset,
   IBill,
-  IProofTx,
-  ITransfer,
+  ITransactionPayload,
   ITypeHierarchy,
   IActiveAsset,
+  ITransactionAttributes,
+  ITransactionPayloadObj,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -40,6 +41,9 @@ import {
   createInvariantPredicateSignatures,
   separateDigits,
   getTokensLabel,
+  FeeCostEl,
+  getFungibleAssetsAmount,
+  isValidAddress,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -52,9 +56,11 @@ import {
   AlphaType,
   FungibleListView,
   TransferFungibleView,
+  maxTransactionFee,
+  TokenType,
 } from "../../utils/constants";
 
-import { splitOrderHash, transferOrderHash } from "../../utils/hashers";
+import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -68,6 +74,7 @@ export default function TransferFungible(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -93,30 +100,32 @@ export default function TransferFungible(): JSX.Element | null {
   const [selectedAsset, setSelectedAsset] = useState<
     IBill | IFungibleAsset | IActiveAsset | undefined
   >(defaultAsset?.value);
+
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
   const selectedBillValue = directlySelectedAsset?.value || "";
+  const formRef = useRef(null);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimals: number) => {
-      return addDecimal(
-        BigInt(
-          account?.assets?.fungible?.find(
-            (asset) => asset.typeId === selectedAsset?.typeId
-          )?.amount || "0"
-        ).toString() || "0",
-        decimals
-      );
-    },
+    (decimals: number) =>
+      getFungibleAssetsAmount(account, decimals, selectedAsset?.typeId || ""),
     [account, selectedAsset]
   );
+
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(selectedAsset?.decimals || 0)
   );
+
+  const handleTransactionEnd = useCallback(() => {
+    pollingInterval.current && clearInterval(pollingInterval.current);
+    setIsSending(false);
+    setSelectedTransferKey(null);
+    setIsActionsViewVisible(false);
+  }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
   const addPollingInterval = () => {
     initialRoundNumber.current = null;
@@ -136,7 +145,7 @@ export default function TransferFungible(): JSX.Element | null {
             BigInt(initialRoundNumber?.current) + timeoutBlocks <
             roundNumber
           ) {
-            pollingInterval.current && clearInterval(pollingInterval.current);
+            handleTransactionEnd();
           }
         }
       );
@@ -153,18 +162,18 @@ export default function TransferFungible(): JSX.Element | null {
       .find((asset) => asset.typeId === selectedAsset?.typeId)?.amount;
 
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
-      pollingInterval.current && clearInterval(pollingInterval.current);
+      handleTransactionEnd();
       balanceAfterSending.current = null;
     } else if (
       balanceAfterSending.current === null &&
       pollingInterval.current &&
       !isSending
     ) {
-      clearInterval(pollingInterval.current);
+      handleTransactionEnd();
     }
 
     if (actionsView !== TransferFungibleView && pollingInterval.current) {
-      clearInterval(pollingInterval.current);
+      handleTransactionEnd();
     }
   }, [
     account?.assets,
@@ -172,6 +181,7 @@ export default function TransferFungible(): JSX.Element | null {
     selectedAsset?.typeId,
     isSending,
     actionsView,
+    handleTransactionEnd,
   ]);
 
   if (!isActionsViewVisible) return <div></div>;
@@ -179,13 +189,14 @@ export default function TransferFungible(): JSX.Element | null {
   return (
     <div className="w-100p">
       <Formik
+        innerRef={formRef}
         initialValues={{
           assets: defaultAsset,
           amount: "",
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={(values, { setErrors, resetForm }) => {
+        onSubmit={(values, { setErrors }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -198,7 +209,7 @@ export default function TransferFungible(): JSX.Element | null {
             });
           }
 
-          let convertedAmount;
+          let convertedAmount: bigint;
           try {
             convertedAmount = convertToWholeNumberBigInt(
               values.amount,
@@ -212,7 +223,7 @@ export default function TransferFungible(): JSX.Element | null {
 
           const billsArr = selectedTransferKey
             ? [directlySelectedAsset]
-            : billsList?.filter((bill: IBill) => bill.isDcBill !== true);
+            : billsList?.filter((bill: IBill) => !Boolean(bill.dcNonce));
 
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
@@ -244,76 +255,75 @@ export default function TransferFungible(): JSX.Element | null {
               let transferType = TokensTransferType;
               let splitType = TokensSplitType;
               let systemId = TokensSystemId;
-              let amountField = "targetValue";
-              let bearerField = "newBearer";
-              let transferField = "value";
 
               if (selectedAsset?.typeId === AlphaType) {
                 transferType = AlphaTransferType;
                 splitType = AlphaSplitType;
                 systemId = AlphaSystemId;
-                bearerField = "targetBearer";
-                amountField = "amount";
-                transferField = "targetValue";
               }
 
-              billsToTransfer?.map(async (bill, idx) => {
-                const transferData: IProofTx = {
-                  systemId: systemId,
-                  unitId: bill.id,
-                  transactionAttributes: {
-                    "@type": transferType,
-                    newBearer: newBearer,
-                    [transferField]: bill.value,
-                    backlink: bill.txHash,
-                  },
-                  timeout: (roundNumber + timeoutBlocks).toString(),
-                  ownerProof: "",
-                };
+              const targetRecord = (await publicKeyHash(
+                activeAccountId
+              )) as Uint8Array;
 
-                if (selectedAsset?.typeId !== AlphaType) {
-                  transferData.transactionAttributes.type = bill.typeId;
-                }
+              const baseObj = (bill: IBill, transferType: string) => {
+                return {
+                  systemId: systemId,
+                  type: transferType,
+                  unitId: Buffer.from(bill.id, "base64"),
+                };
+              };
+
+              const clientDataObj = {
+                clientMetadata: {
+                  timeout: roundNumber + timeoutBlocks,
+                  maxTransactionFee: maxTransactionFee,
+                  feeCreditRecordID: targetRecord,
+                },
+              };
+
+              billsToTransfer?.map(async (bill, idx) => {
+                const transferData: ITransactionPayload = {
+                  payload: {
+                    ...baseObj(bill, transferType),
+                    attributes: {
+                      newBearer: newBearer,
+                      targetValue: BigInt(bill.value),
+                      backlink: Buffer.from(bill.txHash, "base64"),
+                    } as ITransactionAttributes,
+                    ...clientDataObj,
+                  },
+                };
 
                 const isLastTransaction =
                   Number(billsToTransfer?.length) === idx + 1 &&
                   !billToSplit &&
                   !splitBillAmount;
 
-                handleValidation(
-                  await transferOrderHash(transferData),
-                  roundNumber,
-                  transferData as ITransfer,
+                handleTransaction(
+                  transferData as ITransactionPayload,
                   isLastTransaction,
                   bill.typeId
                 );
               });
 
               if (billToSplit && splitBillAmount) {
-                const splitData: IProofTx = {
-                  systemId: systemId,
-                  unitId: billToSplit.id,
-                  transactionAttributes: {
-                    "@type": splitType,
-                    [amountField]: splitBillAmount.toString(),
-                    [bearerField]: newBearer,
-                    remainingValue: (
-                      BigInt(billToSplit.value) - splitBillAmount
-                    ).toString(),
-                    backlink: billToSplit.txHash,
+                const splitData: ITransactionPayload = {
+                  payload: {
+                    ...baseObj(billToSplit, splitType),
+                    attributes: {
+                      amount: splitBillAmount,
+                      targetBearer: newBearer,
+                      remainingValue:
+                        BigInt(billToSplit.value) - splitBillAmount,
+                      backlink: Buffer.from(billToSplit.txHash, "base64"),
+                    } as ITransactionAttributes,
+                    ...clientDataObj,
                   },
-                  timeout: (roundNumber + timeoutBlocks).toString(),
-                  ownerProof: "",
                 };
 
-                if (selectedAsset?.typeId !== AlphaType) {
-                  splitData.transactionAttributes.type = billToSplit.typeId;
-                }
-
-                handleValidation(
-                  await splitOrderHash(splitData),
-                  roundNumber,
-                  splitData as ITransfer,
+                handleTransaction(
+                  splitData as ITransactionPayload,
                   true,
                   billToSplit.typeId
                 );
@@ -321,64 +331,85 @@ export default function TransferFungible(): JSX.Element | null {
             }
           );
 
-          const handleValidation = async (
-            msgHash: Uint8Array,
-            roundNumber: bigint,
-            billData: ITransfer,
+          const handleTransaction = async (
+            billData: any,
             isLastTransfer: boolean,
             billTypeId?: string
           ) => {
+            if (billTypeId && billTypeId !== AlphaType) {
+              const attr = billData.payload.attributes;
+              billData.payload.attributes = {
+                bearer: Boolean(attr.newBearer)
+                  ? attr.newBearer
+                  : attr.targetBearer,
+                value: attr.amount > 0 ? attr.amount : attr.targetValue,
+                nonce: null,
+                backlink: attr.backlink,
+                typeID: Buffer.from(billTypeId, "base64"),
+              };
+
+              if (billData.payload.type === TokensSplitType) {
+                billData.payload.attributes.remainingValue =
+                  attr.remainingValue;
+              }
+              billData.payload.attributes.invariantPredicateSignatures = null;
+            }
+
+            const attributes = billData?.payload
+              .attributes as ITransactionAttributes;
+            const amount =
+              attributes?.amount ||
+              attributes?.targetValue ||
+              attributes?.value ||
+              0n;
+
             const proof = await createOwnerProof(
-              msgHash,
+              billData.payload,
               hashingPrivateKey,
               hashingPublicKey
             );
 
-            const finishTransaction = (billData: ITransfer) => {
-              let dataWithProof = Object.assign(billData, {
-                ownerProof: proof.ownerProof,
-                timeout: (roundNumber + timeoutBlocks).toString(),
-              });
+            const finishTransaction = async (
+              transferData: ITransactionPayload
+            ) => {
+              const feeProof = await createOwnerProof(
+                transferData.payload as ITransactionPayloadObj,
+                hashingPrivateKey,
+                hashingPublicKey
+              );
 
-              if (selectedAsset?.typeId !== AlphaType) {
-                dataWithProof = { transactions: [dataWithProof] } as any;
-              }
-
-              proof.isSignatureValid &&
+              if (proof.isSignatureValid) {
                 makeTransaction(
-                  dataWithProof,
-                  selectedAsset?.typeId === AlphaType ? "" : values.address
+                  prepTransactionRequestData(
+                    transferData,
+                    proof.ownerProof,
+                    feeProof.ownerProof
+                  ),
+                  values.address,
+                  selectedAsset?.typeId === AlphaType
                 )
                   .then(() => {
                     setPreviousView(null);
-                    const amount: string =
-                      billData?.transactionAttributes?.amount ||
-                      billData?.transactionAttributes?.targetValue ||
-                      billData?.transactionAttributes?.value ||
-                      "";
+
                     const fungibleSelectedAsset = account?.assets?.fungible
                       ?.filter(
                         (asset) => account?.activeNetwork === asset.network
                       )
                       .find(
                         (asset) => asset.typeId === values.assets.value?.typeId
-                      ) as IBill | IFungibleAsset | undefined;
+                      ) as IBill | IFungibleAsset;
 
                     balanceAfterSending.current = balanceAfterSending.current
-                      ? BigInt(balanceAfterSending.current) - BigInt(amount)
+                      ? BigInt(balanceAfterSending.current) - amount
                       : BigInt(
                           (fungibleSelectedAsset as IFungibleAsset)?.amount ||
                             (fungibleSelectedAsset as IBill)?.value ||
                             ""
-                        ) - BigInt(amount);
+                        ) - amount;
                   })
                   .finally(() => {
                     const handleTransferEnd = () => {
                       addPollingInterval();
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
                       setSelectedAsset(activeAsset);
                     };
 
@@ -386,35 +417,28 @@ export default function TransferFungible(): JSX.Element | null {
                       handleTransferEnd();
                     }
                   });
+              }
             };
 
             if (selectedAsset?.typeId !== AlphaType) {
-              await getTypeHierarchy(billTypeId || "")
-                .then(async (hierarchy: ITypeHierarchy[]) => {
-                  let signatures;
-                  try {
-                    signatures = createInvariantPredicateSignatures(
-                      hierarchy,
-                      proof.ownerProof,
-                      activeAccountId
-                    );
-                  } catch (error) {
-                    setIsSending(false);
-                    return setErrors({
-                      password: error.message,
-                    });
-                  }
-                  billData.transactionAttributes.invariantPredicateSignatures =
-                    signatures;
-                  finishTransaction(billData);
-                })
-                .catch(() => {
-                  setIsSending(false);
-                  setErrors({
-                    password:
-                      "Fetching token hierarchy for " + billTypeId + "failed",
-                  });
+              try {
+                const hierarchy: ITypeHierarchy[] = await getTypeHierarchy(
+                  billTypeId || ""
+                );
+                const signatures = createInvariantPredicateSignatures(
+                  hierarchy,
+                  proof.ownerProof,
+                  activeAccountId
+                );
+                billData.payload.attributes.invariantPredicateSignatures =
+                  signatures;
+                finishTransaction(billData);
+              } catch (error) {
+                setIsSending(false);
+                setErrors({
+                  password: error.message,
                 });
+              }
             } else {
               finishTransaction(billData);
             }
@@ -427,24 +451,12 @@ export default function TransferFungible(): JSX.Element | null {
             .test(
               "account-id-same",
               `Receiver's account is your account`,
-              function (value) {
-                if (value) {
-                  return account?.pubKey !== value;
-                } else {
-                  return true;
-                }
-              }
+              (value) => !value || account?.pubKey !== value
             )
             .test(
               "account-id-correct",
               `Address in not in valid format`,
-              function (value) {
-                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
+              (value) => isValidAddress(value)
             ),
           password: Yup.string().required("Password is required"),
           amount: Yup.string()
@@ -453,6 +465,16 @@ export default function TransferFungible(): JSX.Element | null {
               "test more than",
               "Value must be greater than 0",
               (value: string | undefined) => Number(value || "") > 0n
+            )
+            .test(
+              "test less than",
+              "Add fee credits",
+              () =>
+                BigInt(
+                  feeCreditBills?.[
+                    selectedAsset?.typeId === AlphaType ? AlphaType : TokenType
+                  ]?.value || "0"
+                ) >= BigInt("1")
             )
             .test(
               "test less than",
@@ -632,6 +654,7 @@ export default function TransferFungible(): JSX.Element | null {
                   >
                     Transfer
                   </Button>
+                  <FeeCostEl />
                 </FormFooter>
               </Form>
             </form>

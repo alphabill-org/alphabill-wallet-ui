@@ -13,7 +13,9 @@ import {
   ITypeHierarchy,
   INFTAsset,
   IListTokensResponse,
-  INFTTransferPayload,
+  ITransactionPayload,
+  ITransactionAttributes,
+  ITransactionPayloadObj,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -33,6 +35,8 @@ import {
   createInvariantPredicateSignatures,
   sendTransferMessage,
   removeConnectTransferData,
+  FeeCostEl,
+  isValidAddress,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -40,11 +44,14 @@ import {
   AlphaType,
   NFTTokensTransferType,
   NFTListView,
+  maxTransactionFee,
+  TokenType,
 } from "../../utils/constants";
 
 import {
-  NFTTransferOrderHash,
-  NFTTransferOrderTxHash,
+  prepTransactionRequestData,
+  publicKeyHash,
+  transferOrderTxHash,
 } from "../../utils/hashers";
 
 export default function TransferNFTs(): JSX.Element | null {
@@ -58,6 +65,7 @@ export default function TransferNFTs(): JSX.Element | null {
     setSelectedTransferKey,
     setPreviousView,
     selectedTransferAccountKey,
+    feeCreditBills,
   } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
@@ -152,21 +160,31 @@ export default function TransferNFTs(): JSX.Element | null {
           getRoundNumber(false).then(async (roundNumber) => {
             await getTypeHierarchy(selectedNFT.typeId || "")
               .then(async (hierarchy: ITypeHierarchy[]) => {
-                const tokenData: INFTTransferPayload = {
-                  systemId: TokensSystemId,
-                  unitId: selectedNFT.id,
-                  transactionAttributes: {
-                    "@type": NFTTokensTransferType,
-                    newBearer: newBearer,
-                    nftType: selectedNFT.typeId,
-                    backlink: selectedNFT.txHash,
+                const tokenData: ITransactionPayload = {
+                  payload: {
+                    systemId: TokensSystemId,
+                    type: NFTTokensTransferType,
+                    unitId: Buffer.from(selectedNFT.id, "base64"),
+                    attributes: {
+                      newBearer: newBearer,
+                      nftType: Buffer.from(selectedNFT.typeId, "base64"),
+                      backlink: Buffer.from(selectedNFT.txHash, "base64"),
+                      typeID: Buffer.from(selectedNFT.typeId, "base64"),
+                      invariantPredicateSignatures: null,
+                    },
+                    clientMetadata: {
+                      timeout: roundNumber + timeoutBlocks,
+                      maxTransactionFee: maxTransactionFee,
+                      feeCreditRecordID: (await publicKeyHash(
+                        activeAccountId
+                      )) as Uint8Array,
+                    },
                   },
-                  timeout: (roundNumber + timeoutBlocks).toString(),
-                  ownerProof: "",
                 };
-                const msgHash = await NFTTransferOrderHash(tokenData);
+                const tokenDataObj = tokenData;
+
                 const proof = await createOwnerProof(
-                  msgHash,
+                  tokenData.payload as ITransactionPayloadObj,
                   hashingPrivateKey,
                   hashingPublicKey
                 );
@@ -184,61 +202,62 @@ export default function TransferNFTs(): JSX.Element | null {
                   });
                 }
 
-                tokenData.transactionAttributes.invariantPredicateSignatures =
-                  signatures;
-
-                const dataWithProof = {
-                  transactions: [
-                    Object.assign(tokenData, {
-                      ownerProof: proof.ownerProof,
-                      timeout: (roundNumber + timeoutBlocks).toString(),
-                    }),
-                  ],
-                } as any;
+                (
+                  tokenData.payload.attributes as ITransactionAttributes
+                ).invariantPredicateSignatures = signatures;
 
                 transferredToken.current = selectedNFT;
-
+                const feeProof = await createOwnerProof(
+                  tokenData.payload as ITransactionPayloadObj,
+                  hashingPrivateKey,
+                  hashingPublicKey
+                );
                 proof.isSignatureValid &&
-                  makeTransaction(dataWithProof, values.address).then(
-                    async () => {
-                      const handleTransferEnd = () => {
-                        addPollingInterval();
-                        setIsSending(false);
-                        setSelectedTransferKey(null);
-                        setIsActionsViewVisible(false);
-                        resetForm();
-                        setPreviousView(null);
-                      };
+                  makeTransaction(
+                    prepTransactionRequestData(
+                      tokenData,
+                      proof.ownerProof,
+                      feeProof.ownerProof
+                    ),
+                    values.address
+                  ).then(async () => {
+                    const handleTransferEnd = () => {
+                      addPollingInterval();
+                      setIsSending(false);
+                      setSelectedTransferKey(null);
+                      setIsActionsViewVisible(false);
+                      resetForm();
+                      setPreviousView(null);
+                    };
 
-                      if (
-                        Boolean(chrome?.storage) &&
-                        dataWithProof?.transactions[0]
-                      ) {
-                        chrome?.storage?.local.get(
-                          ["ab_connect_transfer"],
-                          async function (transferRes) {
-                            const typeId =
-                              transferRes?.ab_connect_transfer?.token_type_id;
+                    if (Boolean(chrome?.storage) && tokenDataObj) {
+                      chrome?.storage?.local.get(
+                        ["ab_connect_transfer"],
+                        async function (transferRes) {
+                          const typeId =
+                            transferRes?.ab_connect_transfer?.token_type_id;
 
-                            if (Boolean(typeId)) {
-                              sendTransferMessage(
-                                transferredToken.current as INFTAsset,
-                                await NFTTransferOrderTxHash(
-                                  dataWithProof
-                                    ?.transactions[0] as INFTTransferPayload
-                                ),
-                                handleTransferEnd
-                              );
-                            } else {
-                              handleTransferEnd();
-                            }
+                          if (Boolean(typeId)) {
+                            sendTransferMessage(
+                              transferredToken.current as INFTAsset,
+                              await transferOrderTxHash(
+                                prepTransactionRequestData(
+                                  tokenData,
+                                  proof.ownerProof,
+                                  feeProof.ownerProof
+                                )
+                              ),
+                              handleTransferEnd
+                            );
+                          } else {
+                            handleTransferEnd();
                           }
-                        );
-                      } else {
-                        handleTransferEnd();
-                      }
+                        }
+                      );
+                    } else {
+                      handleTransferEnd();
                     }
-                  );
+                  });
               })
               .catch(() => {
                 setIsSending(false);
@@ -258,26 +277,21 @@ export default function TransferNFTs(): JSX.Element | null {
             .test(
               "account-id-same",
               `Receiver's account is your account`,
-              function (value) {
-                if (value) {
-                  return account?.pubKey !== value;
-                } else {
-                  return true;
-                }
-              }
+              (value) => !value || account?.pubKey !== value
             )
             .test(
               "account-id-correct",
               `Address in not in valid format`,
-              function (value) {
-                if (!value || !Boolean(value.match(/^0x[0-9A-Fa-f]{66}$/))) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
+              (value) => isValidAddress(value)
             ),
-          password: Yup.string().required("Password is required"),
+          password: Yup.string()
+            .test(
+              "test less than",
+              "Add fee credits",
+              () =>
+                BigInt(feeCreditBills?.[TokenType]?.value || "0") >= BigInt("1")
+            )
+            .required("Password is required"),
         })}
       >
         {(formikProps) => {
@@ -412,6 +426,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   >
                     Transfer
                   </Button>
+                  <FeeCostEl />
                 </FormFooter>
               </Form>
             </form>

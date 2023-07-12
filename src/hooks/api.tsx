@@ -3,23 +3,22 @@ import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
   IListTokensResponse,
-  IProofsProps,
-  ISwapTransferProps,
-  ITransfer,
   ITypeHierarchy,
   ITokensListTypes,
+  IFeeCreditBills,
+  ITxProof,
 } from "../types/Types";
 
 import {
   fetchAllTypes,
   getBalance,
   getBillsList,
+  getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
   getProof,
   getTypeHierarchy,
   getUserTokens,
-  makeTransaction,
 } from "./requests";
 
 export function useGetBalances(pubKeys: string[] | undefined) {
@@ -88,6 +87,20 @@ export function useGetImageUrl(
       enabled: true,
       keepPreviousData: true,
       retry: false,
+    }
+  );
+}
+
+export function useGetFeeCreditBills(
+  id: string
+): QueryObserverResult<IFeeCreditBills, AxiosError> {
+  return useQuery<IFeeCreditBills, AxiosError>(
+    ["feeBillsList", id],
+    () => getFeeCreditBills(id),
+    {
+      enabled: true,
+      keepPreviousData: true,
+      staleTime: Infinity,
     }
   );
 }
@@ -165,19 +178,10 @@ export function useGeTypeHierarchy(
 }
 
 export function useGetProof(
-  billID: string
-): QueryObserverResult<IProofsProps, AxiosError> {
-  return useQuery([`proof`, billID], async () => getProof(billID), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}
-
-export function useMakeTransaction(
-  data: any
-): QueryObserverResult<ITransfer | ISwapTransferProps, AxiosError> {
-  return useQuery([`transaction`], async () => makeTransaction(data), {
+  billID: string,
+  txHash: string
+): QueryObserverResult<ITxProof, AxiosError> {
+  return useQuery([`proof`, billID], async () => getProof(billID, txHash), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,

@@ -4,6 +4,7 @@ import Button from "../components/Button/Button";
 import { ReactComponent as Arrow } from "./../images/arrow.svg";
 import { useApp } from "../hooks/appProvider";
 import TransferFungible from "./components/TransferFungible";
+import TransferFeeCredit from "./components/TransferFeeCredit";
 import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
@@ -16,11 +17,12 @@ import {
   NFTDetailsView,
   NFTListView,
   ProfileView,
+  TransferFeeCreditView,
   TransferFungibleView,
   TransferNFTView,
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
-import { IActionVies } from "../types/Types";
+import { IActionVies, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
 
 function Actions(): JSX.Element | null {
@@ -51,7 +53,7 @@ function Actions(): JSX.Element | null {
             } else if (previousView) {
               setActionsView(previousView as IActionVies);
             } else {
-              setIsActionsViewVisible(!isActionsViewVisible);
+              setIsActionsViewVisible(false);
             }
 
             if (isTransferView) {
@@ -77,10 +79,16 @@ function Actions(): JSX.Element | null {
           <>
             <Spacer mt={8} />
             <Navbar
-              isFungibleActive={actionsView === TransferFungibleView}
-              onChange={(isFungibleView: boolean) => {
+              activeBar={
+                actionsView === TransferFungibleView
+                  ? "fungible"
+                  : "nonFungible"
+              }
+              onChange={(isFungibleView: INavbarViews) => {
                 setActionsView(
-                  isFungibleView ? TransferFungibleView : TransferNFTView
+                  isFungibleView === "fungible"
+                    ? TransferFungibleView
+                    : TransferNFTView
                 );
                 setSelectedTransferKey(null);
                 setPreviousView(null);
@@ -93,6 +101,8 @@ function Actions(): JSX.Element | null {
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (
           <TransferNFTs />
+        ) : actionsView === TransferFeeCreditView ? (
+          <TransferFeeCredit />
         ) : actionsView === NFTDetailsView ? (
           <NFTDetails />
         ) : actionsView === FungibleListView ? (

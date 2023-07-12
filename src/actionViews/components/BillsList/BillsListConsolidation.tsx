@@ -5,7 +5,7 @@ import {
   createOwnerProof,
   getNewBearer,
   sortIDBySize,
-  sortTxProofsByID,
+  sortTx_ProofsByID,
 } from "../../../utils/utils";
 import {
   AlphaDcType,
@@ -15,16 +15,14 @@ import {
   timeoutBlocks,
   DCTransfersLimit,
   AlphaType,
+  maxTransactionFee,
 } from "../../../utils/constants";
 import {
   IAccount,
   IActiveAsset,
   IBill,
-  IProof,
-  IProofTx,
-  ISwapProps,
-  ISwapTransferProps,
-  ITransfer,
+  ITransactionPayload,
+  ITransactionPayloadObj,
   ITxProof,
 } from "../../../types/Types";
 import {
@@ -33,7 +31,10 @@ import {
   makeTransaction,
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
-import { dcOrderHash, swapOrderHash } from "../../../utils/hashers";
+import {
+  prepTransactionRequestData,
+  publicKeyHash,
+} from "../../../utils/hashers";
 
 export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
@@ -44,72 +45,76 @@ export const handleSwapRequest = async (
   lastNonceIDs: { [key: string]: string[] },
   activeAsset: IActiveAsset
 ) => {
-  let nonce: Buffer[] = [];
-  let txProofs: ITxProof[] = [];
-  let billIdentifiers: string[] = [];
+  let tx_proofs: ITxProof[] = [];
+  let billIdentifiers: Buffer[] = [];
 
   sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
-    nonce.push(Buffer.from(id, "base64"));
-    billIdentifiers.push(id);
+    const idBuffer = Buffer.from(id, "base64");
+    billIdentifiers.push(idBuffer);
   });
 
-  DCBills?.map((bill: IBill, idx: number) =>
-    getProof(base64ToHexPrefixed(bill.id)).then(async (data) => {
-      const txProof = data?.bills[0].txProof;
+  DCBills?.map((bill: IBill) =>
+    getProof(
+      base64ToHexPrefixed(bill.id),
+      base64ToHexPrefixed(bill.txHash)
+    ).then(async (data) => {
+      const tx_proof = data! as ITxProof;
 
-      txProof && txProofs.push(txProof);
-      if (txProofs?.length === DCBills.length) {
-        let dcTransfers: IProofTx[] = [];
-        let proofs: IProof[] = [];
+      tx_proof && tx_proofs.push(tx_proof);
+      if (tx_proofs?.length === DCBills.length) {
+        let dcTransfers: Uint8Array[] = [];
+        let proofs: Uint8Array[] = [];
 
-        sortTxProofsByID(txProofs).forEach((txProof) => {
-          const tx = txProof.tx;
-          const proof = txProof.proof;
-          dcTransfers.push(tx);
-          proofs.push(proof);
+        sortTx_ProofsByID(tx_proofs).forEach((proof) => {
+          dcTransfers.push(proof.txRecord);
+          proofs.push(proof.txProof);
         });
 
         if (!hashingPublicKey || !hashingPrivateKey) return;
 
-        if (!nonce.length) return;
-        const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
+        if (!billIdentifiers.length) return;
+        const nonceHash = await secp.utils.sha256(
+          Buffer.concat(billIdentifiers)
+        );
+
         getRoundNumber(activeAsset?.typeId === AlphaType).then(
           async (roundNumber) => {
-            const transferData: ISwapProps = {
-              systemId: AlphaSystemId,
-              unitId: Buffer.from(nonceHash).toString("base64"),
-              transactionAttributes: {
-                billIdentifiers: sortIDBySize(billIdentifiers),
-                dcTransfers: dcTransfers,
-                ownerCondition: getNewBearer(account),
-                proofs: proofs,
-                targetValue: dcTransfers
-                  ?.reduce((acc, obj: IProofTx) => {
-                    return acc + BigInt(obj.transactionAttributes.targetValue!);
-                  }, 0n)
-
-                  .toString(),
-                "@type": AlphaSwapType,
+            const transferData: ITransactionPayload = {
+              payload: {
+                systemId: AlphaSystemId,
+                type: AlphaSwapType,
+                unitId: Buffer.from(nonceHash),
+                attributes: {
+                  ownerCondition: getNewBearer(account),
+                  billIdentifiers: billIdentifiers,
+                  dcTransfers: dcTransfers,
+                  proofs: proofs,
+                  targetValue: DCBills?.reduce((acc, obj: any) => {
+                    return acc + BigInt(obj.value);
+                  }, 0n),
+                },
+                clientMetadata: {
+                  timeout: roundNumber + swapTimeout,
+                  maxTransactionFee: maxTransactionFee,
+                  feeCreditRecordID: (await publicKeyHash(
+                    activeAccountId
+                  )) as Uint8Array,
+                },
               },
-              timeout: (roundNumber + swapTimeout).toString(),
-              ownerProof: "",
             };
 
-            const msgHash = await swapOrderHash(transferData);
             const proof = await createOwnerProof(
-              msgHash,
+              transferData.payload as ITransactionPayloadObj,
               hashingPrivateKey,
               hashingPublicKey
             );
 
-            const dataWithProof: ISwapTransferProps = await Object.assign(
-              transferData,
-              {
-                ownerProof: proof.ownerProof,
-              }
-            );
-
-            proof.isSignatureValid && makeTransaction(dataWithProof);
+            proof.isSignatureValid &&
+              makeTransaction(
+                prepTransactionRequestData(transferData, proof.ownerProof),
+                activeAccountId,
+                true
+              );
           }
         );
       }
@@ -166,36 +171,39 @@ export const handleDC = async (
 
     getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) =>
       sortedListByID?.map(async (bill: IBill, idx) => {
-        const transferData: ITransfer = {
-          systemId: AlphaSystemId,
-          unitId: bill.id,
-          transactionAttributes: {
-            "@type": AlphaDcType,
-            backlink: bill.txHash,
-            nonce: Buffer.from(nonceHash).toString("base64"),
-            targetBearer: getNewBearer(account),
-            targetValue: bill.value,
+        const transferData: ITransactionPayload = {
+          payload: {
+            systemId: AlphaSystemId,
+            type: AlphaDcType,
+            unitId: Buffer.from(bill.id, "base64"),
+            attributes: {
+              nonce: nonceHash,
+              targetBearer: getNewBearer(account),
+              targetValue: BigInt(bill.value),
+              backlink: Buffer.from(bill.txHash, "base64"),
+            },
+            clientMetadata: {
+              timeout: roundNumber + timeoutBlocks,
+              maxTransactionFee: maxTransactionFee,
+              feeCreditRecordID: (await publicKeyHash(
+                activeAccountId
+              )) as Uint8Array,
+            },
           },
-          timeout: (roundNumber + timeoutBlocks).toString(),
-          ownerProof: "",
         };
 
-        const msgHash = await dcOrderHash(transferData, bill, nonceHash);
         const proof = await createOwnerProof(
-          msgHash,
+          transferData.payload as ITransactionPayloadObj,
           hashingPrivateKey,
           hashingPublicKey
         );
 
         if (proof.isSignatureValid !== true) return;
 
-        const dataWithProof = Object.assign(transferData, {
-          ownerProof: proof.ownerProof,
-        });
-
         makeTransaction(
-          dataWithProof,
-          activeAsset?.typeId === AlphaType ? "" : account.pubKey
+          prepTransactionRequestData(transferData, proof.ownerProof),
+          activeAccountId,
+          true
         )
           .then(() => handleTransactionEnd())
           .catch(() => handleTransactionEnd());
