@@ -725,7 +725,8 @@ export const getFungibleAssetsAmount = (
 ) =>
   addDecimal(
     BigInt(
-      account?.assets?.fungible?.find((asset) => asset.id === assetTypeId)?.amount || "0"
+      account?.assets?.fungible?.find((asset) => asset.id === assetTypeId)
+        ?.amount || "0"
     ).toString() || "0",
     Number(decimals)
   );
@@ -736,11 +737,16 @@ export const Base64imageComponent: React.FC<{
 }> = ({ base64Data, alt }) => {
   const imageUrl = isImage(base64Data.data) ? `${base64Data.data}` : null;
 
-  return imageUrl ? <img src={`data:image;base64,${imageUrl}`} alt={alt} /> : null;
+  return imageUrl ? (
+    <img src={`data:image;base64,${imageUrl}`} alt={alt} />
+  ) : null;
 };
 
-const isImage = (data: string): boolean => {
+export const isImage = (data: string): boolean => {
   const img = new Image();
   img.src = `data:image;base64,${data}`;
   return img.complete && img.naturalWidth !== 0;
 };
+
+export const isValidAddress = (value?: string) =>
+  Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/));

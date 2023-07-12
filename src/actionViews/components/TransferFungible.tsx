@@ -43,6 +43,7 @@ import {
   getTokensLabel,
   FeeCostEl,
   getFungibleAssetsAmount,
+  isValidAddress,
 } from "../../utils/utils";
 import {
   timeoutBlocks,
@@ -455,7 +456,7 @@ export default function TransferFungible(): JSX.Element | null {
             .test(
               "account-id-correct",
               `Address in not in valid format`,
-              (value) => Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/))
+              (value) => isValidAddress(value)
             ),
           password: Yup.string().required("Password is required"),
           amount: Yup.string()
