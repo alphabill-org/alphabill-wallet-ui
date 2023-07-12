@@ -223,8 +223,18 @@ export default function Popovers({
                           <div className="t-medium account__item-id">
                             {account?.name}
                           </div>
-                          <div className="t-small t-ellipsis account__item-id">
-                            {account?.pubKey}
+                          <div className="t-small account__item-id">
+                            <span
+                              className="t-ellipsis"
+                            >
+                              {account?.pubKey}
+                            </span>
+                            <span>
+                              {account?.pubKey.substr(
+                                account?.pubKey.length - 12,
+                                account?.pubKey.length
+                              )}
+                            </span>
                           </div>
                         </>
                       )}
