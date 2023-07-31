@@ -746,7 +746,6 @@ export const Base64imageComponent: React.FC<{
 
 export const isImage = (data: string, type: string): boolean => {
   const isSVG = type.startsWith("image/svg");
-  console.log(type, isSVG);
 
   if (isSVG) {
     return true;
