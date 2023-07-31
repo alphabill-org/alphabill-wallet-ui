@@ -20,7 +20,6 @@ import {
 import Textfield from "../../components/Textfield/Textfield";
 import { ReactComponent as Back } from "../../images/back-ico.svg";
 import { useAuth } from "../../hooks/useAuth";
-import { localStorageKeys } from "../../utils/constants";
 
 function CreateAccount(): JSX.Element | null {
   const { login } = useAuth();
