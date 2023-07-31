@@ -735,17 +735,26 @@ export const Base64imageComponent: React.FC<{
   base64Data: { data: string; type: string };
   alt: string;
 }> = ({ base64Data, alt }) => {
-  const imageUrl = isImage(base64Data.data) ? `${base64Data.data}` : null;
+  const imageUrl = isImage(base64Data.data, base64Data.type)
+    ? base64Data.data
+    : null;
 
   return imageUrl ? (
-    <img src={`data:image;base64,${imageUrl}`} alt={alt} />
+    <img src={`data:${base64Data.type};base64,${imageUrl}`} alt={alt} />
   ) : null;
 };
 
-export const isImage = (data: string): boolean => {
-  const img = new Image();
-  img.src = `data:image;base64,${data}`;
-  return img.complete && img.naturalWidth !== 0;
+export const isImage = (data: string, type: string): boolean => {
+  const isSVG = type.startsWith("image/svg");
+  console.log(type, isSVG);
+
+  if (isSVG) {
+    return true;
+  } else {
+    const img = new Image();
+    img.src = `data:image;base64,${data}`;
+    return img.complete && img.naturalWidth !== 0;
+  }
 };
 
 export const isValidAddress = (value?: string) =>
