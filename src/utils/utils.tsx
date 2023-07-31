@@ -22,6 +22,7 @@ import {
   AlphaDecimalFactor,
   AlphaDecimals,
   AlphaType,
+  localStorageKeys,
   opCheckSig,
   opDup,
   opEqual,
@@ -750,3 +751,6 @@ export const isImage = (data: string): boolean => {
 
 export const isValidAddress = (value?: string) =>
   Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/));
+
+export const clearStorage = () =>
+  localStorageKeys.map((key) => localStorage.removeItem(key));

@@ -27,7 +27,11 @@ import {
   useGetFeeCreditBills,
 } from "./api";
 import { useAuth } from "./useAuth";
-import { AlphaType, TransferNFTView } from "../utils/constants";
+import {
+  AlphaType,
+  localKeyAccountNames,
+  TransferNFTView,
+} from "../utils/constants";
 import {
   getUpdatedFungibleAssets,
   getUpdatedNFTAssets,
@@ -73,10 +77,10 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     activeNFT,
     setActiveAssetLocal,
-    pubKeyHash
+    pubKeyHash,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
-  const accountNames = localStorage.getItem("ab_wallet_account_names") || "";
+  const accountNames = localStorage.getItem(localKeyAccountNames) || "";
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]
@@ -249,7 +253,7 @@ export const AppProvider: FunctionComponent<{
         previousView,
         setPreviousView,
         feeCreditBills,
-        tokenTypes
+        tokenTypes,
       }}
     >
       {children}

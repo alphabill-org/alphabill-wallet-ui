@@ -14,12 +14,13 @@ import {
 } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
+import { localKeyPubKeys, localKeyVault } from "../../utils/constants";
 
 function Login(): JSX.Element | null {
   const { login } = useAuth();
   const { balances } = useApp();
-  const vault = localStorage.getItem("ab_wallet_vault");
-  const userKeys = localStorage.getItem("ab_wallet_pub_keys");
+  const vault = localStorage.getItem(localKeyVault);
+  const userKeys = localStorage.getItem(localKeyPubKeys);
 
   if (
     Boolean(balances) &&

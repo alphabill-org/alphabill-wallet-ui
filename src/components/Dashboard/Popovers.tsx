@@ -24,7 +24,7 @@ import {
   invalidateAllLists,
   unit8ToHexPrefixed,
 } from "../../utils/utils";
-import { AlphaType } from "../../utils/constants";
+import { AlphaType, localKeyAccountNames } from "../../utils/constants";
 import SelectPopover from "../SelectPopover/SelectPopover";
 import Textfield from "../Textfield/Textfield";
 import Popup from "../Popup/Popup";
@@ -113,16 +113,15 @@ export default function Popovers({
                             accountName: account?.name,
                           }}
                           onSubmit={async (values, { resetForm }) => {
-                            const accountNames = localStorage.getItem(
-                              "ab_wallet_account_names"
-                            );
+                            const accountNames =
+                              localStorage.getItem(localKeyAccountNames);
                             const accountNamesObj = accountNames
                               ? JSON.parse(accountNames)
                               : {};
                             const idx = Number(account?.idx);
 
                             localStorage.setItem(
-                              "ab_wallet_account_names",
+                              localKeyAccountNames,
                               JSON.stringify(
                                 Object.assign(accountNamesObj, {
                                   ["_" + idx]: values.accountName,
@@ -224,9 +223,7 @@ export default function Popovers({
                             {account?.name}
                           </div>
                           <div className="t-small account__item-id">
-                            <span
-                              className="t-ellipsis"
-                            >
+                            <span className="t-ellipsis">
                               {account?.pubKey}
                             </span>
                             <span>
@@ -304,13 +301,13 @@ export default function Popovers({
               );
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
               const accountNames =
-                localStorage.getItem("ab_wallet_account_names") || "";
+                localStorage.getItem(localKeyAccountNames) || "";
               const accountNamesObj = accountNames
                 ? JSON.parse(accountNames)
                 : {};
               const idx = accountIndex;
               localStorage.setItem(
-                "ab_wallet_account_names",
+                localKeyAccountNames,
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
                     ["_" + idx]:

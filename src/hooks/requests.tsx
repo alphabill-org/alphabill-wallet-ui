@@ -74,19 +74,20 @@ export const getBillsList = async (
     );
 
     const { bills, total } = response.data;
-    const billsWithType = bills.map((bill) =>
-      Object.assign(bill, {
-        typeId: AlphaType,
-        name: AlphaType,
-        network: import.meta.env.VITE_NETWORK_NAME,
-        decimalFactor: AlphaDecimalFactor,
-        decimals: AlphaDecimals,
-        UIAmount:
-          bill?.value &&
-          separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
-        isSendable: true,
-      })
-    );
+    const billsWithType =
+      bills?.map((bill) =>
+        Object.assign(bill, {
+          typeId: AlphaType,
+          name: AlphaType,
+          network: import.meta.env.VITE_NETWORK_NAME,
+          decimalFactor: AlphaDecimalFactor,
+          decimals: AlphaDecimals,
+          UIAmount:
+            bill?.value &&
+            separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
+          isSendable: true,
+        })
+      ) || [];
 
     totalBills = total;
     billsList = billsList.concat(billsWithType);
@@ -199,7 +200,7 @@ export const getUserTokens = async (
         txHash: obj.txHash,
         symbol: obj.symbol,
         network: import.meta.env.VITE_NETWORK_NAME,
-        nftName: obj.nftName
+        nftName: obj.nftName,
       };
 
       if (kind === "fungible") {
