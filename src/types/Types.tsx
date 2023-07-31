@@ -171,6 +171,7 @@ export interface ITransactionAttributes {
   newBearer?: Buffer | Uint8Array;
   remainingValue?: bigint;
   targetBearer?: Uint8Array;
+  swapTimeout?: bigint;
   amount?: bigint;
   nonce?: Uint8Array | null;
   value?: bigint;
@@ -201,7 +202,7 @@ export interface ITransactionPayload {
     type: string;
     unitId: Uint8Array;
     attributes: Uint8Array | ITransactionAttributes;
-    clientMetadata?: Uint8Array | IPayloadClientMetadata;
+    clientMetadata?: Uint8Array[] | IPayloadClientMetadata;
   };
   ownerProof?: Uint8Array;
   feeProof?: string | null;
@@ -218,7 +219,7 @@ export interface ITransactionPayloadObj {
   type: string;
   attributes: any | ITransactionAttributes;
   clientMetadata:
-    | any[]
+    | any
     | {
         timeout: bigint;
         maxTransactionFee: bigint;

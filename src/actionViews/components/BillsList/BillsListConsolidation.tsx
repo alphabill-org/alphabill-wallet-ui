@@ -133,7 +133,7 @@ export const handleDC = async (
   vault: any,
   billsList: IBill[],
   DCBills: IBill[],
-  lastNonceIDs: any[],
+  lastNonceIDs: { [key: string]: string[] },
   activeAccountId: string,
   activeAsset: IActiveAsset
 ) => {
@@ -155,7 +155,10 @@ export const handleDC = async (
 
   setIsConsolidationLoading(true);
 
-  if (DCBills?.length >= 1) {
+  if (
+    DCBills?.length >= 1 &&
+    Number(lastNonceIDs?.[activeAccountId]?.length) >= 1
+  ) {
     DCBills?.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
     handleSwapCallBack(password);
     addInterval();

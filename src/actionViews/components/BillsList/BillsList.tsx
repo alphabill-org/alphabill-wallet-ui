@@ -205,7 +205,7 @@ function BillsList(): JSX.Element | null {
                     working={isConsolidationLoading}
                     disabled={
                       (billsList?.length <= 1 && DCBills.length <= 0) ||
-                      isConsolidationLoading
+                      isConsolidationLoading || !isFeeCredit
                     }
                     onClick={() => {
                       if (password) {
