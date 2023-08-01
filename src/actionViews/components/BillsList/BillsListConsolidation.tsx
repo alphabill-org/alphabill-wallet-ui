@@ -11,11 +11,11 @@ import {
   AlphaDcType,
   AlphaSwapType,
   AlphaSystemId,
-  swapTimeout,
-  timeoutBlocks,
+  SwapTimeout,
+  TimeoutBlocks,
   DCTransfersLimit,
   AlphaType,
-  maxTransactionFee,
+  MaxTransactionFee,
 } from "../../../utils/constants";
 import {
   IAccount,
@@ -94,8 +94,8 @@ export const handleSwapRequest = async (
                   }, 0n),
                 },
                 clientMetadata: {
-                  timeout: roundNumber + swapTimeout,
-                  maxTransactionFee: maxTransactionFee,
+                  timeout: roundNumber + SwapTimeout,
+                  MaxTransactionFee: MaxTransactionFee,
                   feeCreditRecordID: (await publicKeyHash(
                     activeAccountId
                   )) as Uint8Array,
@@ -183,8 +183,8 @@ export const handleDC = async (
               backlink: Buffer.from(bill.txHash, "base64"),
             },
             clientMetadata: {
-              timeout: roundNumber + timeoutBlocks,
-              maxTransactionFee: maxTransactionFee,
+              timeout: roundNumber + TimeoutBlocks,
+              MaxTransactionFee: MaxTransactionFee,
               feeCreditRecordID: (await publicKeyHash(
                 activeAccountId
               )) as Uint8Array,

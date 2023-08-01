@@ -41,13 +41,13 @@ import {
   addDecimal,
 } from "../../utils/utils";
 import {
-  feeTimeoutBlocks,
+  FeeTimeoutBlocks,
   AlphaType,
   AlphaDecimals,
   FeeCreditTransferType,
   AlphaSystemId,
   TokensSystemId,
-  maxTransactionFee,
+  MaxTransactionFee,
   FeeCreditAddType,
   TokenType,
 } from "../../utils/constants";
@@ -232,7 +232,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const baseAttr = (bill: IBill, amount: string) => {
             return {
               attributes: {
-                amount: BigInt(amount) - maxTransactionFee,
+                amount: BigInt(amount) - MaxTransactionFee,
                 targetSystemIdentifier: isAlpha
                   ? AlphaSystemId
                   : TokensSystemId,
@@ -308,7 +308,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   const deductedWithFee =
                     amount &&
                     (billData.payload.attributes as ITransactionAttributes)
-                      .amount! - maxTransactionFee;
+                      .amount! - MaxTransactionFee;
 
                   if (deductedWithFee) {
                     const feeBillsValue =
@@ -327,8 +327,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       amount: attr.amount,
                       targetSystemIdentifier: attr.targetSystemIdentifier,
                       targetRecordID: attr.targetRecordID,
-                      earliestAdditionTime: alphaRoundNumber - feeTimeoutBlocks,
-                      latestAdditionTime: alphaRoundNumber + feeTimeoutBlocks,
+                      earliestAdditionTime: alphaRoundNumber - FeeTimeoutBlocks,
+                      latestAdditionTime: alphaRoundNumber + FeeTimeoutBlocks,
                       nonce: attr.nonce,
                       backlink: attr.backlink,
                     };
@@ -336,8 +336,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
                   (billData.payload.clientMetadata as IPayloadClientMetadata) =
                     {
-                      timeout: variableRoundNumber + feeTimeoutBlocks,
-                      maxTransactionFee: maxTransactionFee,
+                      timeout: variableRoundNumber + FeeTimeoutBlocks,
+                      MaxTransactionFee: MaxTransactionFee,
                       feeCreditRecordID: null,
                     };
 
@@ -481,7 +481,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     initialRoundNumber.current = roundNumber;
                   }
                   if (
-                    BigInt(initialRoundNumber?.current) + feeTimeoutBlocks <
+                    BigInt(initialRoundNumber?.current) + FeeTimeoutBlocks <
                     roundNumber
                   ) {
                     pollingInterval.current &&
