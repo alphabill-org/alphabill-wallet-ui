@@ -15,27 +15,27 @@ import {
 } from "../utils/utils";
 
 import {
-  opPushPubKey,
-  pushBoolFalse,
-  pushBoolTrue,
-  startByte,
+  OpPushPubKey,
+  PushBoolFalse,
+  PushBoolTrue,
+  StartByte,
 } from "../utils/constants";
 import {
   activeAccountId,
   NFTsList_1,
   NFTsList_2,
-  tokenTypes,
+  TokenTypes,
   NFTsList_3,
   updatedFungibleAssetsFalse,
   updatedFungibleAssetsTrue,
-  fungibleTokensList_1,
-  fungibleTokensList_2,
-  fungibleTokenTypes,
-  fungibleBalances,
+  FungibleTokensList_1,
+  FungibleTokensList_2,
+  FungibleTokenTypes,
+  FungibleBalances,
   NFTDifferentTypeResult,
   NFTIsSendableFalseResult,
   NFTSameTypeResult,
-  testBills,
+  TestBills,
 } from "./constants";
 
 describe("Function that counts decimal length", () => {
@@ -114,7 +114,7 @@ describe("Function that finds an object that has a value greater than or equal t
   it("should return the bill object that has a value greater than or equal to the target value", () => {
     const target = "300";
 
-    const result = findClosestBigger(testBills, target);
+    const result = findClosestBigger(TestBills, target);
 
     expect(result).toEqual({
       id: "3",
@@ -126,7 +126,7 @@ describe("Function that finds an object that has a value greater than or equal t
   it("should return undefined if there are no bills with a value greater than or equal to the target value", () => {
     const target = "1500";
 
-    const result = findClosestBigger(testBills, target);
+    const result = findClosestBigger(TestBills, target);
 
     expect(result).toBeUndefined();
   });
@@ -136,7 +136,7 @@ describe("Function that gets closest value to the target value", () => {
   it("should return the bill object with the closest value to the target value", () => {
     const target = "300";
 
-    const result = getClosestSmaller(testBills, target);
+    const result = getClosestSmaller(TestBills, target);
 
     expect(result).toEqual({
       id: "2",
@@ -150,7 +150,7 @@ describe("Function that gets optimal combination of bills to reach the target am
   it("should return the optimal combination of bills to reach the target amount", () => {
     const amount = "1300";
 
-    const result = getOptimalBills(amount, testBills);
+    const result = getOptimalBills(amount, TestBills);
 
     expect(result).toEqual([
       {
@@ -178,7 +178,7 @@ describe("Function that gets optimal combination of bills to reach the target am
   it("should return an array with the closest bill if there are no bills with a value greater than or equal to the target amount", () => {
     const amount = "1500";
 
-    const result = getOptimalBills(amount, testBills);
+    const result = getOptimalBills(amount, TestBills);
 
     expect(result).toEqual([
       {
@@ -214,22 +214,22 @@ describe("Check owner predicate", () => {
 });
 
 describe("isTokenSendable", () => {
-  test("should return false for a pushBoolFalse invariant predicate", () => {
-    const invariantPredicate = pushBoolFalse;
+  test("should return false for a PushBoolFalse invariant predicate", () => {
+    const invariantPredicate = PushBoolFalse;
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(false);
   });
 
-  test("should return true for a pushBoolTrue invariant predicate", () => {
-    const invariantPredicate = hexToBase64(pushBoolTrue);
+  test("should return true for a PushBoolTrue invariant predicate", () => {
+    const invariantPredicate = hexToBase64(PushBoolTrue);
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(true);
   });
 
   test("should return false for a invalid invariant predicate and key", () => {
-    const invariantPredicate = hexToBase64(startByte + opPushPubKey + "abcdef");
+    const invariantPredicate = hexToBase64(StartByte + OpPushPubKey + "abcdef");
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(false);
@@ -288,7 +288,7 @@ describe("Create invariant predicate signatures", () => {
     ).toThrow();
   });
 
-  test("should throw an error for a pushBoolFalse invariant predicate", () => {
+  test("should throw an error for a PushBoolFalse invariant predicate", () => {
     const hierarchy = [
       {
         id: "AA==",
@@ -299,7 +299,7 @@ describe("Create invariant predicate signatures", () => {
         txHash: "AA==",
         subTypeCreationPredicate: "AA==",
         tokenCreationPredicate: "AA==",
-        invariantPredicate: pushBoolFalse,
+        invariantPredicate: PushBoolFalse,
       },
     ];
     const ownerProof = Buffer.from("abcdef");
@@ -400,7 +400,7 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with two of the same type", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_1,
-      tokenTypes,
+      TokenTypes,
       activeAccountId
     );
 
@@ -410,7 +410,7 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with one of the each type", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_2,
-      tokenTypes,
+      TokenTypes,
       activeAccountId
     );
 
@@ -420,7 +420,7 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with isSendable false", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_3,
-      tokenTypes,
+      TokenTypes,
       activeAccountId
     );
 
@@ -431,10 +431,10 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
 describe("Get updated fungible assets with is sendable & sum of same type", () => {
   it("should return updated fungible assets with correct properties with UIAmount 30 & UTP isSendable true", () => {
     const actualOutput = getUpdatedFungibleAssets(
-      fungibleTokensList_1,
-      fungibleTokenTypes,
+      FungibleTokensList_1,
+      FungibleTokenTypes,
       activeAccountId,
-      fungibleBalances
+      FungibleBalances
     );
 
     expect(actualOutput).toEqual(updatedFungibleAssetsTrue);
@@ -442,10 +442,10 @@ describe("Get updated fungible assets with is sendable & sum of same type", () =
 
   it("should return updated NFT assets with correct properties with UIAmount 30 & UTP isSendable false", () => {
     const actualOutput = getUpdatedFungibleAssets(
-      fungibleTokensList_2,
-      fungibleTokenTypes,
+      FungibleTokensList_2,
+      FungibleTokenTypes,
       activeAccountId,
-      fungibleBalances
+      FungibleBalances
     );
 
     expect(actualOutput).toEqual(updatedFungibleAssetsFalse);

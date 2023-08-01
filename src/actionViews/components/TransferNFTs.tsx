@@ -39,12 +39,12 @@ import {
   isValidAddress,
 } from "../../utils/utils";
 import {
-  timeoutBlocks,
+  TimeoutBlocks,
   TokensSystemId,
   AlphaType,
   NFTTokensTransferType,
   NFTListView,
-  maxTransactionFee,
+  MaxTransactionFee,
   TokenType,
 } from "../../utils/constants";
 
@@ -99,7 +99,7 @@ export default function TransferNFTs(): JSX.Element | null {
           initialRoundNumber.current = roundNumber;
         }
 
-        if (BigInt(initialRoundNumber?.current) + timeoutBlocks < roundNumber) {
+        if (BigInt(initialRoundNumber?.current) + TimeoutBlocks < roundNumber) {
           pollingInterval.current && clearInterval(pollingInterval.current);
         }
       });
@@ -173,8 +173,8 @@ export default function TransferNFTs(): JSX.Element | null {
                       invariantPredicateSignatures: null,
                     },
                     clientMetadata: {
-                      timeout: roundNumber + timeoutBlocks,
-                      maxTransactionFee: maxTransactionFee,
+                      timeout: roundNumber + TimeoutBlocks,
+                      MaxTransactionFee: MaxTransactionFee,
                       feeCreditRecordID: (await publicKeyHash(
                         activeAccountId
                       )) as Uint8Array,

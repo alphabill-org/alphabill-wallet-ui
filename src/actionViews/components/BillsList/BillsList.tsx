@@ -5,9 +5,10 @@ import { isString } from "lodash";
 import { FeeCostEl, getTokensLabel } from "../../../utils/utils";
 import {
   DCTransfersLimit,
-  swapTimeout,
+  SwapTimeout,
   AlphaType,
   FungibleListView,
+  LocalKeyLastNonce,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -18,10 +19,7 @@ import { getRoundNumber } from "../../../hooks/requests";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import BillsListPopups from "./BillsListPopups";
 import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
-import {
-  getKeys,
-  sortBillsByID,
-} from "../../../utils/utils";
+import { getKeys, sortBillsByID } from "../../../utils/utils";
 import AssetsList from "../../../components/AssetsList/AssetsList";
 
 function BillsList(): JSX.Element | null {
@@ -56,7 +54,7 @@ function BillsList(): JSX.Element | null {
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
-    "ab_last_nonce",
+    LocalKeyLastNonce,
     null
   );
   const lastNonceIDs = useMemo(
@@ -87,7 +85,7 @@ function BillsList(): JSX.Element | null {
           initialRoundNumber.current = roundNumber;
         }
 
-        if (initialRoundNumber?.current + swapTimeout < roundNumber) {
+        if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);
@@ -229,7 +227,9 @@ function BillsList(): JSX.Element | null {
                       }
                     }}
                   >
-                    {isFeeCredit ?  "Consolidate Bills":"Not enough fee credit for consolidation"}
+                    {isFeeCredit
+                      ? "Consolidate Bills"
+                      : "Not enough fee credit for consolidation"}
                   </Button>
                   <FeeCostEl />
                 </>
