@@ -16,6 +16,7 @@ import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
 import { useGetImageUrlAndDownloadType } from "../../hooks/api";
 import Spinner from "../../components/Spinner/Spinner";
+import Spacer from "../../components/Spacer/Spacer";
 
 export interface INFTDetailsProps {
   onItemClick?: () => void;
@@ -56,26 +57,6 @@ export default function NFTDetails({
 
   return (
     <div className={"asset-details pad-view"}>
-      <div className="asset-details__head">
-        <div className="asset-details__key">
-          <div className="t-ellipsis">
-            Unit ID {base64ToHexPrefixed(activeAsset?.id)}
-          </div>
-          <Button
-            onClick={() => {
-              setActionsView(TransferNFTView);
-              setIsActionsViewVisible(true);
-              activeAsset && setSelectedTransferKey(activeAsset.id!);
-              handleClick();
-              setPreviousView(NFTListView);
-            }}
-            type="button"
-            variant="icon"
-          >
-            <Send height="14" width="14" />
-          </Button>
-        </div>
-      </div>
       <div
         className={classNames("asset-details__content", {
           "is-empty": !isImage,
@@ -98,37 +79,82 @@ export default function NFTDetails({
         )}
       </div>
       <div className="asset-details__actions">
-        {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => {
-              downloadFile(
-                data?.imageUrl!,
-                base64ToHexPrefixed(activeAsset?.id)
-              );
-            }}
-          >
-            <Download />
-            <div className="pad-8-l t-ellipsis">{data?.downloadType}</div>
-          </Button>
-        )}
+        <Button
+          onClick={() => {
+            setActionsView(TransferNFTView);
+            setIsActionsViewVisible(true);
+            activeAsset && setSelectedTransferKey(activeAsset.id!);
+            handleClick();
+            setPreviousView(NFTListView);
+          }}
+          type="button"
+          variant="primary"
+        >
+          <Send height="16" width="16" />
+          <div className="pad-8-l">Transfer</div>
+        </Button>
+      </div>
+      <Spacer mt={16} />
+      <div className="asset-details__footer">
+        <div className="asset-details__info">
+          <div className="asset-details__info--item">
+            <div className="t-ellipsis">
+              ID: {base64ToHexPrefixed(activeAsset?.id)}
+            </div>
+          </div>
+          {activeAsset?.nftName && (
+            <div className="asset-details__info--item">
+              <div>Name: </div> <div>{activeAsset?.nftName}</div>
+            </div>
+          )}
+          {activeAsset?.nftUri && (
+            <div className="asset-details__info--item">
+              <div>URL: </div>
+              <div>{activeAsset?.nftUri}</div>
+            </div>
+          )}
 
-        {activeAsset?.nftData && (
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => {
-              downloadHexFile(
-                activeAsset.nftData!,
-                base64ToHexPrefixed(activeAsset?.id)
-              );
-            }}
-          >
-            <Download />
-            <div className="pad-8-l ">Data</div>
-          </Button>
-        )}
+          {(Boolean(data?.downloadType) && Boolean(data?.imageUrl)) ||
+            (activeAsset?.nftData && (
+              <div className="asset-details__actions">
+                {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={() => {
+                      downloadFile(
+                        data?.imageUrl!,
+                        base64ToHexPrefixed(activeAsset?.id)
+                      );
+                    }}
+                    small
+                  >
+                    <Download />
+                    <div className="pad-8-l t-ellipsis">
+                      {data?.downloadType}
+                    </div>
+                  </Button>
+                )}
+
+                {activeAsset?.nftData && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={() => {
+                      downloadHexFile(
+                        activeAsset.nftData!,
+                        base64ToHexPrefixed(activeAsset?.id)
+                      );
+                    }}
+                    small
+                  >
+                    <Download />
+                    <div className="pad-8-l ">Data</div>
+                  </Button>
+                )}
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );
