@@ -1,9 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { encodeCanonical } from "cbor";
 
-import {
-  ITransactionPayload
-} from "../types/Types";
+import { ITransactionPayload } from "../types/Types";
 
 export const transferOrderTxHash = async (tx: Uint8Array[]) => {
   return Buffer.from(await secp.utils.sha256(encodeCanonical(tx))).toString(
@@ -29,12 +27,13 @@ export const prepTransactionRequestData = (
   feeProof?: Uint8Array | null
 ): Uint8Array[] => {
   let dataWithProof = data;
-  dataWithProof.payload.attributes = Object.values(
+  (dataWithProof.payload.attributes as Uint8Array[]) = Object.values(
     dataWithProof.payload.attributes
   );
-  dataWithProof.payload.clientMetadata = Object.values(
-    dataWithProof.payload.clientMetadata
+  (dataWithProof.payload!.clientMetadata as Uint8Array[]) = Object.values(
+    dataWithProof.payload.clientMetadata!
   );
+
   const payloadValues = Object.values(dataWithProof.payload);
 
   return [payloadValues as any, proof, feeProof || null];
