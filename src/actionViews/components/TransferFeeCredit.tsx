@@ -215,7 +215,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           setIsSending(true);
 
-          const pubKeyHash = await publicKeyHash(activeAccountId);
+          const pubKeyHash = (await publicKeyHash(
+            activeAccountId
+          )) as Uint8Array;
+
           const isAlpha = values.assets.value === AlphaType;
 
           const baseObj = (bill: IBill, amount: string) => {

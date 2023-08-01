@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import { AlphaType } from "../../utils/constants";
@@ -25,19 +24,25 @@ export default function AssetsListItemIcon({
     nftUri,
     Boolean(isTypeListItem)
   );
-  const label = isTypeListItem ? hexId : asset?.nftName || asset?.symbol || hexId;
+  const label = isTypeListItem
+    ? hexId
+    : asset?.nftName || asset?.symbol || hexId;
   const iconEmblem = (asset?.nftName || asset?.symbol || hexId)[0];
   const withImage =
     !Boolean(imageResponse?.error) &&
     Boolean(imageResponse?.imageUrl) &&
     isTypeListItem;
   let icon;
-  const tokenTyeIcon = tokenTypes?.find(
+  const tokenTypeIcon = tokenTypes?.find(
     (type: ITokensListTypes) => type.id === asset.typeId
   )?.icon;
 
-  if (tokenTyeIcon) {
-    return <Base64imageComponent base64Data={tokenTyeIcon} alt={asset.id} />;
+  if (tokenTypeIcon) {
+    return (
+      <div className="assets-list__item-icon">
+        <Base64imageComponent base64Data={tokenTypeIcon} alt={asset.id} />
+      </div>
+    );
   } else {
     if (withImage && isLoadingImage) {
       return (
@@ -61,7 +66,7 @@ export default function AssetsListItemIcon({
     }
   }
   return (
-    <div className={classNames("assets-list__item-icon")}>
+    <div className="assets-list__item-icon">
       {asset?.typeId === AlphaType ? <ABLogo /> : icon}
     </div>
   );
