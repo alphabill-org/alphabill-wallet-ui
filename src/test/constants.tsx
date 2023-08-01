@@ -131,6 +131,10 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 2,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
@@ -144,6 +148,10 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 2,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
@@ -160,6 +168,10 @@ export const NFTIsSendableFalseResult = [
     nftDataUpdatePredicate: "U1EA",
     isSendable: false,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
@@ -176,6 +188,10 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
@@ -189,6 +205,10 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
@@ -302,6 +322,10 @@ export const updatedFungibleAssetsTrue = [
     decimalFactor: 1000000,
     decimals: 6,
     isSendable: true,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    },
     UIAmount: "30",
   },
 ];
@@ -316,7 +340,7 @@ export const updatedFungibleAssetsFalse = [
     decimals: 8,
     UIAmount: "3'880",
     typeId: "ALPHA",
-    isSendable: true,
+    isSendable: true
   },
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
@@ -328,6 +352,10 @@ export const updatedFungibleAssetsFalse = [
     decimals: 6,
     isSendable: false,
     UIAmount: "30",
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
