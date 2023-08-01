@@ -17,8 +17,8 @@ import {
   AlphaDecimalFactor,
   AlphaDecimals,
   AlphaType,
-  downloadableTypes,
-  maxImageSize,
+  DownloadableTypes,
+  MaxImageSize,
   TokenType,
 } from "../utils/constants";
 import {
@@ -74,19 +74,20 @@ export const getBillsList = async (
     );
 
     const { bills, total } = response.data;
-    const billsWithType = bills.map((bill) =>
-      Object.assign(bill, {
-        typeId: AlphaType,
-        name: AlphaType,
-        network: import.meta.env.VITE_NETWORK_NAME,
-        decimalFactor: AlphaDecimalFactor,
-        decimals: AlphaDecimals,
-        UIAmount:
-          bill?.value &&
-          separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
-        isSendable: true,
-      })
-    );
+    const billsWithType =
+      bills?.map((bill) =>
+        Object.assign(bill, {
+          typeId: AlphaType,
+          name: AlphaType,
+          network: import.meta.env.VITE_NETWORK_NAME,
+          decimalFactor: AlphaDecimalFactor,
+          decimals: AlphaDecimals,
+          UIAmount:
+            bill?.value &&
+            separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
+          isSendable: true,
+        })
+      ) || [];
 
     totalBills = total;
     billsList = billsList.concat(billsWithType);
@@ -199,7 +200,7 @@ export const getUserTokens = async (
         txHash: obj.txHash,
         symbol: obj.symbol,
         network: import.meta.env.VITE_NETWORK_NAME,
-        nftName: obj.nftName
+        nftName: obj.nftName,
       };
 
       if (kind === "fungible") {
@@ -296,7 +297,7 @@ export const getImageUrl = async (
 
     if (response.status === 200) {
       const contentLength = response.headers["content-length"];
-      if (contentLength && Number(contentLength) > maxImageSize) {
+      if (contentLength && Number(contentLength) > MaxImageSize) {
         return { error: "Image size exceeds 5MB limit", imageUrl: null };
       }
 
@@ -344,7 +345,7 @@ export const getImageUrlAndDownloadType = async (
       const contentLength = response.headers["content-length"];
 
       if (contentType && contentType.startsWith("image/")) {
-        if (contentLength && Number(contentLength) > maxImageSize) {
+        if (contentLength && Number(contentLength) > MaxImageSize) {
           return {
             imageUrl: url,
             downloadType: contentType,
@@ -358,7 +359,7 @@ export const getImageUrlAndDownloadType = async (
         };
       }
 
-      if (contentType && downloadableTypes.includes(contentType)) {
+      if (contentType && DownloadableTypes.includes(contentType)) {
         return {
           imageUrl: null,
           downloadType: contentType,

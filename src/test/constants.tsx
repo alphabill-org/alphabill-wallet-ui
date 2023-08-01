@@ -1,4 +1,6 @@
-export const tokenTypes = [
+import { ITokensListTypes } from "../types/Types";
+
+export const TokenTypes: ITokensListTypes[] = [
   {
     id: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
     parentTypeId: "AA==",
@@ -9,6 +11,11 @@ export const tokenTypes = [
     invariantPredicate: "U1EA",
     decimals: 6,
     kind: 2,
+    icon: {
+      type: "image/svg+xml",
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+    },
+    name: "name",
     txHash: "ooT8IBJ2FUBRTHxs/nU82wdzN6WiL5aWN0j+xOIPQ4Y=",
   },
   {
@@ -21,6 +28,11 @@ export const tokenTypes = [
     invariantPredicate: "U1EB",
     nftDataUpdatePredicate: "U1EB",
     kind: 4,
+    icon: {
+      type: "image/svg+xml",
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+    },
+    name: "name",
     txHash: "BINeinV0ob0pNIJjH850Bsrqebaar/Knw8BjYj+6uK8=",
   },
   {
@@ -33,6 +45,11 @@ export const tokenTypes = [
     invariantPredicate: "U1EB",
     nftDataUpdatePredicate: "U1EB",
     kind: 4,
+    icon: {
+      type: "image/svg+xml",
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+    },
+    name: "name",
     txHash: "BINeinV0ob0pNIJjH850Bsrqebaar/Knw8BjYj+6uK8=",
   },
 ];
@@ -114,6 +131,10 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 2,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
@@ -127,6 +148,10 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 2,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
@@ -143,6 +168,10 @@ export const NFTIsSendableFalseResult = [
     nftDataUpdatePredicate: "U1EA",
     isSendable: false,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
@@ -159,6 +188,10 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
@@ -172,13 +205,17 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: "U1EB",
     isSendable: true,
     amountOfSameType: 1,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
 export const activeAccountId =
   "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
 
-export const fungibleTokenTypes = [
+export const FungibleTokenTypes: ITokensListTypes[] = [
   {
     id: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
     parentTypeId: "AA==",
@@ -189,6 +226,11 @@ export const fungibleTokenTypes = [
     invariantPredicate: "U1EA",
     decimals: 6,
     kind: 2,
+    icon: {
+      type: "image/svg+xml",
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+    },
+    name: "name",
     txHash: "ooT8IBJ2FUBRTHxs/nU82wdzN6WiL5aWN0j+xOIPQ4Y=",
   },
   {
@@ -201,11 +243,16 @@ export const fungibleTokenTypes = [
     invariantPredicate: "U1EB",
     decimals: 6,
     kind: 2,
+    icon: {
+      type: "image/svg+xml",
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+    },
+    name: "name",
     txHash: "ooT8IBJ2FUBRTHxs/nU82wdzN6WiL5aWN0j+xOIPQ4Y=",
   },
 ];
 
-export const fungibleTokensList_1 = [
+export const FungibleTokensList_1 = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
@@ -230,7 +277,7 @@ export const fungibleTokensList_1 = [
   },
 ];
 
-export const fungibleTokensList_2 = [
+export const FungibleTokensList_2 = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
@@ -275,6 +322,10 @@ export const updatedFungibleAssetsTrue = [
     decimalFactor: 1000000,
     decimals: 6,
     isSendable: true,
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    },
     UIAmount: "30",
   },
 ];
@@ -289,7 +340,7 @@ export const updatedFungibleAssetsFalse = [
     decimals: 8,
     UIAmount: "3'880",
     typeId: "ALPHA",
-    isSendable: true,
+    isSendable: true
   },
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
@@ -301,10 +352,14 @@ export const updatedFungibleAssetsFalse = [
     decimals: 6,
     isSendable: false,
     UIAmount: "30",
+    iconImage: {
+      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
+      type: "image/svg+xml",
+    }
   },
 ];
 
-export const fungibleBalances = [
+export const FungibleBalances = [
   {
     data: {
       balance: "388000000000",
@@ -314,26 +369,26 @@ export const fungibleBalances = [
   },
 ];
 
-export const testBills = [
+export const TestBills = [
   {
     id: "1",
     value: "100",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzR="
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzR=",
   },
   {
     id: "2",
     value: "200",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
   },
   {
     id: "3",
     value: "500",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
   },
   {
     id: "4",
     value: "1000",
-    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV="
+    txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzV=",
   },
 ];
 
