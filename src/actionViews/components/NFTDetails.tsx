@@ -99,7 +99,7 @@ export default function NFTDetails({
         <div className="asset-details__info">
           <div className="asset-details__info--item">
             <div className="t-ellipsis">
-              Unit ID: {base64ToHexPrefixed(activeAsset?.id)}
+              ID: {base64ToHexPrefixed(activeAsset?.id)}
             </div>
           </div>
           {activeAsset?.nftName && (
