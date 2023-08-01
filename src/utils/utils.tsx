@@ -23,17 +23,17 @@ import {
   AlphaDecimals,
   AlphaType,
   localStorageKeys,
-  opCheckSig,
-  opDup,
-  opEqual,
-  opHash,
-  opPushHash,
-  opPushPubKey,
-  opPushSig,
-  opVerify,
-  pushBoolTrue,
-  sigScheme,
-  startByte,
+  OpCheckSig,
+  OpDup,
+  OpEqual,
+  OpHash,
+  OpPushHash,
+  OpPushPubKey,
+  OpPushSig,
+  OpVerify,
+  PushBoolTrue,
+  SigScheme,
+  StartByte,
 } from "./constants";
 
 export const extractFormikError = (
@@ -126,17 +126,17 @@ export const getNewBearer = (account: IAccount) => {
   const SHA256 = CryptoJS.SHA256(addressHash);
 
   return Buffer.from(
-    startByte +
-      opDup +
-      opHash +
-      sigScheme +
-      opPushHash +
-      sigScheme +
+    StartByte +
+      OpDup +
+      OpHash +
+      SigScheme +
+      OpPushHash +
+      SigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
-      opEqual +
-      opVerify +
-      opCheckSig +
-      sigScheme,
+      OpEqual +
+      OpVerify +
+      OpCheckSig +
+      SigScheme,
     "hex"
   );
 };
@@ -216,8 +216,8 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
   if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore =
-    startByte + opDup + opHash + sigScheme + opPushHash + sigScheme;
-  const removeScriptAfter = opEqual + opVerify + opCheckSig + sigScheme;
+    StartByte + OpDup + OpHash + SigScheme + OpPushHash + SigScheme;
+  const removeScriptAfter = OpEqual + OpVerify + OpCheckSig + SigScheme;
   const sha256KeyFromPredicate = hex
     .replace(removeScriptBefore, "")
     .replace(removeScriptAfter, "");
@@ -236,17 +236,17 @@ export const createNewBearer = (address: string) => {
   const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
   const SHA256 = CryptoJS.SHA256(addressHash);
   return Buffer.from(
-    startByte +
-      opDup +
-      opHash +
-      sigScheme +
-      opPushHash +
-      sigScheme +
+    StartByte +
+      OpDup +
+      OpHash +
+      SigScheme +
+      OpPushHash +
+      SigScheme +
       SHA256.toString(CryptoJS.enc.Hex) +
-      opEqual +
-      opVerify +
-      opCheckSig +
-      sigScheme,
+      OpEqual +
+      OpVerify +
+      OpCheckSig +
+      SigScheme,
     "hex"
   );
 };
@@ -273,14 +273,14 @@ export const createOwnerProof = async (
   return {
     isSignatureValid: isValid,
     ownerProof: Buffer.from(
-      startByte +
-        opPushSig +
-        sigScheme +
+      StartByte +
+        OpPushSig +
+        SigScheme +
         Buffer.from(
           secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
         ).toString("hex") +
-        opPushPubKey +
-        sigScheme +
+        OpPushPubKey +
+        SigScheme +
         unit8ToHexPrefixed(pubKey).substring(2),
       "hex"
     ),
@@ -498,7 +498,7 @@ export const invalidateAllLists = (
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
   const isOwner = checkOwnerPredicate(key, invariantPredicate);
 
-  if (invariantPredicate === hexToBase64(pushBoolTrue)) {
+  if (invariantPredicate === hexToBase64(PushBoolTrue)) {
     return true;
   } else if (isOwner) {
     return isOwner;
@@ -515,8 +515,8 @@ export const createInvariantPredicateSignatures = (
   return hierarchy?.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
 
-    if (predicate === hexToBase64(pushBoolTrue)) {
-      return Buffer.from(startByte, "hex");
+    if (predicate === hexToBase64(PushBoolTrue)) {
+      return Buffer.from(StartByte, "hex");
     } else if (checkOwnerPredicate(key, predicate)) {
       return ownerProof;
     }

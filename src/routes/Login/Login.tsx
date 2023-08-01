@@ -14,13 +14,13 @@ import {
 } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
-import { localKeyPubKeys, localKeyVault } from "../../utils/constants";
+import { LocalKeyPubKeys, LocalKeyVault } from "../../utils/constants";
 
 function Login(): JSX.Element | null {
   const { login } = useAuth();
   const { balances } = useApp();
-  const vault = localStorage.getItem(localKeyVault);
-  const userKeys = localStorage.getItem(localKeyPubKeys);
+  const vault = localStorage.getItem(LocalKeyVault);
+  const userKeys = localStorage.getItem(LocalKeyPubKeys);
 
   if (
     Boolean(balances) &&

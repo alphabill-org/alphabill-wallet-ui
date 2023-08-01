@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useApp } from "../hooks/appProvider";
-import { localKeyPubKeys, localKeyVault } from "../utils/constants";
+import { LocalKeyPubKeys, LocalKeyVault } from "../utils/constants";
 import ConnectPopup from "./ConnectPopup";
 
 export interface IProtectedRouteProps {
@@ -10,8 +10,8 @@ export interface IProtectedRouteProps {
 
 function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
   const { balances } = useApp();
-  const vault = localStorage.getItem(localKeyVault);
-  const userKeys = localStorage.getItem(localKeyPubKeys);
+  const vault = localStorage.getItem(LocalKeyVault);
+  const userKeys = localStorage.getItem(LocalKeyPubKeys);
   const [isLocked, setIsLocked] = useState<"locked" | "unlocked">();
 
   const isRedirect =
@@ -26,14 +26,14 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
       .get(["ab_is_wallet_locked"])
       .then((result) => {
         if (result.ab_is_wallet_locked !== "unlocked") {
-          localStorage.setItem(localKeyPubKeys, "");
+          localStorage.setItem(LocalKeyPubKeys, "");
         }
 
         setIsLocked(result.ab_is_wallet_locked || "locked");
       })
       .catch(() => {
         setIsLocked("locked");
-        localStorage.setItem(localKeyPubKeys, "");
+        localStorage.setItem(LocalKeyPubKeys, "");
       });
   }, [isLocked]);
 

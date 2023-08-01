@@ -5,10 +5,10 @@ import { isString } from "lodash";
 import { FeeCostEl, getTokensLabel } from "../../../utils/utils";
 import {
   DCTransfersLimit,
-  swapTimeout,
+  SwapTimeout,
   AlphaType,
   FungibleListView,
-  localKeyLastNonce,
+  LocalKeyLastNonce,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -54,7 +54,7 @@ function BillsList(): JSX.Element | null {
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
-    localKeyLastNonce,
+    LocalKeyLastNonce,
     null
   );
   const lastNonceIDs = useMemo(
@@ -85,7 +85,7 @@ function BillsList(): JSX.Element | null {
           initialRoundNumber.current = roundNumber;
         }
 
-        if (initialRoundNumber?.current + swapTimeout < roundNumber) {
+        if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
           setHasSwapBegun(false);

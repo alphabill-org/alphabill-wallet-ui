@@ -29,7 +29,7 @@ import {
 import { useAuth } from "./useAuth";
 import {
   AlphaType,
-  localKeyAccountNames,
+  LocalKeyAccountNames,
   TransferNFTView,
 } from "../utils/constants";
 import {
@@ -80,7 +80,7 @@ export const AppProvider: FunctionComponent<{
     pubKeyHash,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
-  const accountNames = localStorage.getItem(localKeyAccountNames) || "";
+  const accountNames = localStorage.getItem(LocalKeyAccountNames) || "";
   const accountNamesObj = useMemo(
     () => (accountNames ? JSON.parse(accountNames) : {}),
     [accountNames]

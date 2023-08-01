@@ -46,7 +46,7 @@ import {
   isValidAddress,
 } from "../../utils/utils";
 import {
-  timeoutBlocks,
+  TimeoutBlocks,
   TokensTransferType,
   TokensSplitType,
   AlphaTransferType,
@@ -56,7 +56,7 @@ import {
   AlphaType,
   FungibleListView,
   TransferFungibleView,
-  maxTransactionFee,
+  MaxTransactionFee,
   TokenType,
 } from "../../utils/constants";
 
@@ -142,7 +142,7 @@ export default function TransferFungible(): JSX.Element | null {
           }
 
           if (
-            BigInt(initialRoundNumber?.current) + timeoutBlocks <
+            BigInt(initialRoundNumber?.current) + TimeoutBlocks <
             roundNumber
           ) {
             handleTransactionEnd();
@@ -276,8 +276,8 @@ export default function TransferFungible(): JSX.Element | null {
 
               const clientDataObj = {
                 clientMetadata: {
-                  timeout: roundNumber + timeoutBlocks,
-                  maxTransactionFee: maxTransactionFee,
+                  timeout: roundNumber + TimeoutBlocks,
+                  MaxTransactionFee: MaxTransactionFee,
                   feeCreditRecordID: targetRecord,
                 },
               };

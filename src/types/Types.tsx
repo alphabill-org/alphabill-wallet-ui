@@ -52,7 +52,7 @@ export interface INFTTransferPayload {
     };
     clientMetadata: {
       timeout: string;
-      maxTransactionFee: string;
+      MaxTransactionFee: string;
       feeCreditRecordID?: Uint8Array | null;
     };
   };
@@ -209,7 +209,7 @@ export interface ITransactionPayload {
 
 export interface IPayloadClientMetadata {
   timeout?: bigint;
-  maxTransactionFee: bigint;
+  MaxTransactionFee: bigint;
   feeCreditRecordID?: Uint8Array | null;
 }
 export interface ITransactionPayloadObj {
@@ -221,7 +221,7 @@ export interface ITransactionPayloadObj {
     | any[]
     | {
         timeout: bigint;
-        maxTransactionFee: bigint;
+        MaxTransactionFee: bigint;
         feeCreditRecordID?: Uint8Array | null;
       };
 }

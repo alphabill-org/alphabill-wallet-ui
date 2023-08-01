@@ -6,11 +6,11 @@ import { useLocalStorage } from "./useLocalStorage";
 import { IActiveAsset } from "../types/Types";
 import {
   AlphaType,
-  localKeyActiveAccount,
-  localKeyActiveAsset,
-  localKeyNFTAsset,
-  localKeyPubKeys,
-  localKeyVault,
+  LocalKeyActiveAccount,
+  LocalKeyActiveAsset,
+  LocalKeyNFTAsset,
+  LocalKeyPubKeys,
+  LocalKeyVault,
 } from "../utils/constants";
 import { publicKeyHash } from "../utils/hashers";
 
@@ -40,16 +40,16 @@ interface IUserContext {
   pubKeyHash: string;
 }
 
-const keysData = localStorage.getItem(localKeyPubKeys) || null;
-const vaultData = localStorage.getItem(localKeyVault) || null;
+const keysData = localStorage.getItem(LocalKeyPubKeys) || null;
+const vaultData = localStorage.getItem(LocalKeyVault) || null;
 const keysArr = keysData?.split(" ") || [];
 const activeAccountLocal =
-  localStorage.getItem(localKeyActiveAccount) || keysArr[0] || "";
+  localStorage.getItem(LocalKeyActiveAccount) || keysArr[0] || "";
 const initialActiveAccount = keysArr.includes(activeAccountLocal)
   ? activeAccountLocal
   : keysArr[0];
 const initialActiveAsset =
-  localStorage.getItem(localKeyActiveAsset) ||
+  localStorage.getItem(LocalKeyActiveAsset) ||
   JSON.stringify({
     name: AlphaType,
     typeId: AlphaType,
@@ -77,19 +77,19 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const [isConnectWalletPopup, setIsConnectWalletPopup] =
     useState<boolean>(false);
   const [pubKeyHash, setPubKeyHash] = useState<string>("");
-  const [userKeys, setUserKeys] = useLocalStorage(localKeyPubKeys, keysData);
+  const [userKeys, setUserKeys] = useLocalStorage(LocalKeyPubKeys, keysData);
   const [activeAccountId, setActiveAccountId] = useLocalStorage(
-    localKeyActiveAccount,
+    LocalKeyActiveAccount,
     initialActiveAccount
   );
 
   const [activeAssetLocal, setActiveAssetLocal] = useLocalStorage(
-    localKeyActiveAsset,
+    LocalKeyActiveAsset,
     initialActiveAsset
   );
 
   const [activeNFTLocal, setActiveNFTLocal] = useLocalStorage(
-    localKeyNFTAsset,
+    LocalKeyNFTAsset,
     initialActiveAsset
   );
 
@@ -105,7 +105,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
       : activeAssetLocal
     : [];
 
-  const [vault, setVault] = useLocalStorage(localKeyVault, vaultData);
+  const [vault, setVault] = useLocalStorage(LocalKeyVault, vaultData);
   const navigate = useNavigate();
 
   useEffect(() => {

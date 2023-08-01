@@ -24,7 +24,7 @@ import {
   invalidateAllLists,
   unit8ToHexPrefixed,
 } from "../../utils/utils";
-import { AlphaType, localKeyAccountNames } from "../../utils/constants";
+import { AlphaType, LocalKeyAccountNames } from "../../utils/constants";
 import SelectPopover from "../SelectPopover/SelectPopover";
 import Textfield from "../Textfield/Textfield";
 import Popup from "../Popup/Popup";
@@ -114,14 +114,14 @@ export default function Popovers({
                           }}
                           onSubmit={async (values, { resetForm }) => {
                             const accountNames =
-                              localStorage.getItem(localKeyAccountNames);
+                              localStorage.getItem(LocalKeyAccountNames);
                             const accountNamesObj = accountNames
                               ? JSON.parse(accountNames)
                               : {};
                             const idx = Number(account?.idx);
 
                             localStorage.setItem(
-                              localKeyAccountNames,
+                              LocalKeyAccountNames,
                               JSON.stringify(
                                 Object.assign(accountNamesObj, {
                                   ["_" + idx]: values.accountName,
@@ -301,13 +301,13 @@ export default function Popovers({
               );
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
               const accountNames =
-                localStorage.getItem(localKeyAccountNames) || "";
+                localStorage.getItem(LocalKeyAccountNames) || "";
               const accountNamesObj = accountNames
                 ? JSON.parse(accountNames)
                 : {};
               const idx = accountIndex;
               localStorage.setItem(
-                localKeyAccountNames,
+                LocalKeyAccountNames,
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
                     ["_" + idx]:
