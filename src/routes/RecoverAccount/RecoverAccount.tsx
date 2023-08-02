@@ -10,6 +10,7 @@ import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import {
   checkPassword,
+  clearStorage,
   extractFormikError,
   unit8ToHexPrefixed,
 } from "../../utils/utils";
@@ -98,6 +99,7 @@ function RecoverAccount(): JSX.Element | null {
                     pub_keys: prefixedPubKey,
                   };
 
+                  clearStorage();
                   login(
                     prefixedPubKey,
                     prefixedPubKey,
