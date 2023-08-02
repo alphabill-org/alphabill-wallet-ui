@@ -7,6 +7,7 @@ import { useGetImageUrl } from "../../hooks/api";
 import Spinner from "../Spinner/Spinner";
 import { ITokensListTypes } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
+import classNames from "classnames";
 
 export interface IAssetsListItemIconProps {
   asset: any;
@@ -36,10 +37,13 @@ export default function AssetsListItemIcon({
   const tokenTypeIcon = tokenTypes?.find(
     (type: ITokensListTypes) => type.id === asset.typeId
   )?.icon;
+  const wrapClass = classNames("assets-list__item-icon", {
+    "is-image": tokenTypeIcon || withImage,
+  });
 
   if (tokenTypeIcon) {
     return (
-      <div className="assets-list__item-icon">
+      <div className={wrapClass}>
         <Base64imageComponent base64Data={tokenTypeIcon} alt={asset.id} />
       </div>
     );
@@ -66,7 +70,7 @@ export default function AssetsListItemIcon({
     }
   }
   return (
-    <div className="assets-list__item-icon">
+    <div className={wrapClass}>
       {asset?.typeId === AlphaType ? <ABLogo /> : icon}
     </div>
   );
