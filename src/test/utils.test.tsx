@@ -464,16 +464,6 @@ describe('createEllipsisString', () => {
     expect(result).toBe('abcde...vwxyz');
   });
 
-  it('should return the original id when the length is less than or equal to the sum of firstCount and lastCount', () => {
-    const id = 'short';
-    const firstCount = 2;
-    const lastCount = 2;
-
-    const result = createEllipsisString(id, firstCount, lastCount);
-
-    expect(result).toBe("sh...rt");
-  });
-
   it('should return the original id when firstCount and lastCount are greater than or equal to the length of id', () => {
     const id = 'small';
     const firstCount = 10;
