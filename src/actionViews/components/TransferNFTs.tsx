@@ -37,6 +37,7 @@ import {
   removeConnectTransferData,
   FeeCostEl,
   isValidAddress,
+  createEllipsisString,
 } from "../../utils/utils";
 import {
   TimeoutBlocks,
@@ -77,7 +78,7 @@ export default function TransferNFTs(): JSX.Element | null {
   const defaultAssetId = activeNFT?.id || account?.assets.nft[0]?.id;
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
     value: activeNFT || account?.assets.nft[0],
-    label: base64ToHexPrefixed(defaultAssetId),
+    label: createEllipsisString(base64ToHexPrefixed(defaultAssetId), 16, 11),
   };
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
@@ -295,6 +296,9 @@ export default function TransferNFTs(): JSX.Element | null {
       >
         {(formikProps) => {
           const { handleSubmit, errors, touched, values } = formikProps;
+          const hexID = selectedTransferKey
+            ? base64ToHexPrefixed(selectedTransferKey)
+            : "";
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
@@ -344,7 +348,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         name="selectedNFTId"
                         label={"SELECTED TOKEN ID"}
                         type="selectedNFTId"
-                        value={base64ToHexPrefixed(selectedTransferKey)}
+                        value={createEllipsisString(hexID, 20, 14)}
                       />
                       <Spacer mb={16} />
                     </>
@@ -374,10 +378,13 @@ export default function TransferNFTs(): JSX.Element | null {
                         }
                         return 1;
                       })
-                      .map((asset: INFTAsset) => ({
-                        value: asset,
-                        label: base64ToHexPrefixed(asset.id),
-                      }))}
+                      .map((asset: INFTAsset) => {
+                        const hexID = base64ToHexPrefixed(asset.id);
+                        return {
+                          value: asset,
+                          label: createEllipsisString(hexID, 16, 11),
+                        };
+                      })}
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={async (_label, option: any) => {
                       setSelectedAsset(option);

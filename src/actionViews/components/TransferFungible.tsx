@@ -44,6 +44,7 @@ import {
   FeeCostEl,
   getFungibleAssetsAmount,
   isValidAddress,
+  createEllipsisString,
 } from "../../utils/utils";
 import {
   TimeoutBlocks,
@@ -492,7 +493,9 @@ export default function TransferFungible(): JSX.Element | null {
         {(formikProps) => {
           const { handleSubmit, setFieldValue, errors, touched, values } =
             formikProps;
-
+          const hexID = selectedTransferKey
+            ? base64ToHexPrefixed(selectedTransferKey)
+            : "";
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
               <Form>
@@ -551,7 +554,7 @@ export default function TransferFungible(): JSX.Element | null {
                         name="selectedBillId"
                         label={"SELECTED " + tokenLabel + " ID"}
                         type="selectedBillId"
-                        value={base64ToHexPrefixed(selectedTransferKey)}
+                        value={createEllipsisString(hexID, 20, 14)}
                       />
                       <Spacer mb={16} />
                     </>
