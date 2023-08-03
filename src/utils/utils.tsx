@@ -23,6 +23,7 @@ import {
   AlphaDecimals,
   AlphaType,
   localStorageKeys,
+  MaxTransactionFee,
   OpCheckSig,
   OpDup,
   OpEqual,
@@ -320,19 +321,31 @@ export const getClosestSmaller = (bills: IBill[], target: string) => {
   });
 };
 
-export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
+export const getOptimalBills = (
+  amount: string,
+  billsArr: IBill[],
+  accountForFees?: boolean
+): IBill[] => {
   if (!billsArr) {
     return [];
   }
   const selectedBills: IBill[] = [];
-  const amountBigInt = BigInt(amount);
+  const amountBigInt = accountForFees
+    ? BigInt(amount) + MaxTransactionFee * 2n
+    : BigInt(amount);
   const zeroBigInt = 0n;
 
-  const closestBigger = findClosestBigger(billsArr, amount);
+  const closestBigger = findClosestBigger(
+    billsArr,
+    accountForFees ? amount + MaxTransactionFee * 2n : amount
+  );
   if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
     selectedBills.push(closestBigger);
   } else {
-    const initialBill = getClosestSmaller(billsArr, amount);
+    const initialBill = getClosestSmaller(
+      billsArr,
+      accountForFees ? amount + MaxTransactionFee * 2n : amount
+    );
     if (initialBill === null) {
       return [];
     } else {
@@ -348,7 +361,10 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
         let addedSum;
         const closestBigger = findClosestBigger(
           filteredBills,
-          missingSum.toString()
+          (accountForFees
+            ? missingSum + MaxTransactionFee * 2n
+            : missingSum
+          ).toString()
         );
         if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
           selectedBills.push(closestBigger);
@@ -356,7 +372,10 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
         } else {
           const currentBill = getClosestSmaller(
             filteredBills,
-            missingSum.toString()
+            (accountForFees
+              ? missingSum + MaxTransactionFee * 2n
+              : missingSum
+            ).toString()
           );
           if (currentBill === null) {
             return [];

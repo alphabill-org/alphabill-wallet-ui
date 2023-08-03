@@ -194,7 +194,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           const selectedBills = getOptimalBills(
             convertedAmount.toString(),
-            billsArr as IBill[]
+            billsArr as IBill[],
+            true
           );
 
           const billsSumDifference =
@@ -210,7 +211,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
             : selectedBills;
 
           const splitBillAmount = billToSplit
-            ? BigInt(billToSplit.value) - billsSumDifference
+            ? BigInt(billToSplit.value) -
+              billsSumDifference +
+              MaxTransactionFee * 2n
             : null;
 
           setIsSending(true);
@@ -405,15 +408,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const firstBillToTransfer = transferrableBills!.current![0];
 
           if (
-            creditBill?.tx_hash &&
+            creditBill?.txHash &&
             firstBillToTransfer.payload.type !== FeeCreditAddType
           ) {
             (
               firstBillToTransfer.payload.attributes as ITransactionAttributes
-            ).nonce =
-              creditBill && creditBill.tx_hash
-                ? Buffer.from(creditBill.tx_hash, "base64")
-                : null;
+            ).nonce = Buffer.from(creditBill.txHash, "base64");
           }
 
           await initTransaction(
@@ -458,6 +458,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     isAllFeesAdded.current = !Boolean(
                       transferrableBills.current?.[0]?.payload?.unitId
                     );
+
                     transferBillProof.current = data;
                     addFeeCredit();
                   })
@@ -532,13 +533,53 @@ export default function TransferFeeCredit(): JSX.Element | null {
             .test(
               "test less than",
               "Amount exceeds available assets",
-              (value: string | undefined) =>
-                selectedTransferKey
+              (value: string | undefined) => {
+                let convertedAmount: bigint;
+                if (!value) return false;
+                try {
+                  convertedAmount = convertToWholeNumberBigInt(
+                    value,
+                    AlphaDecimals
+                  );
+                } catch (error) {
+                  return false;
+                }
+
+                const selectedBills = getOptimalBills(
+                  convertedAmount.toString(),
+                  billsArr as IBill[],
+                  true
+                );
+                if (selectedBills.length < 1) return false;
+                const billsSumDifference =
+                  getBillsSum(selectedBills) - convertedAmount;
+
+                const billToSplit =
+                  billsSumDifference !== 0n
+                    ? findClosestBigger(
+                        selectedBills,
+                        billsSumDifference.toString()
+                      )
+                    : 0;
+                const splitBillCount = billToSplit ? 1 : 0;
+
+                const billsToTransfer = billToSplit
+                  ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
+                  : selectedBills;
+
+                const feeAmount =
+                  BigInt(billsToTransfer.length + splitBillCount) *
+                  MaxTransactionFee *
+                  2n;
+
+                return selectedTransferKey
                   ? true
                   : value
-                  ? convertToWholeNumberBigInt(value || "", AlphaDecimals) <=
+                  ? convertToWholeNumberBigInt(value || "", AlphaDecimals) +
+                      feeAmount <=
                     convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
-                  : true
+                  : true;
+              }
             ),
         })}
       >
