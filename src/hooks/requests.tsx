@@ -382,10 +382,20 @@ export const getFeeCreditBills = async (
   id: string
 ): Promise<IFeeCreditBills> => {
   let moneyDataPromise = axios.get<any>(
-    `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`
+    `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`,
+    {
+      validateStatus: function (status) {
+        return status !== 404; // Resolve only if the status code is not 404
+      },
+    }
   );
   let tokensDataPromise = axios.get<any>(
-    `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`
+    `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`,
+    {
+      validateStatus: function (status) {
+        return status !== 404; // Resolve only if the status code is not 404
+      },
+    }
   );
 
   let moneyData = null;
