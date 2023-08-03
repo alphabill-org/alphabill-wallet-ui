@@ -767,7 +767,10 @@ export const createEllipsisString = (
   id: string,
   firstCount: number,
   lastCount: number
-) =>
-  id.substr(0, firstCount) +
-  "..." +
-  id.substr(id.length - lastCount, id.length);
+): string => {
+  if (firstCount + lastCount >= id.length) {
+    return id;
+  }
+
+  return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
+};
