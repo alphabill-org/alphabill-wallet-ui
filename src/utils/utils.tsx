@@ -726,7 +726,7 @@ export const getFungibleAssetsAmount = (
 ) =>
   addDecimal(
     BigInt(
-      account?.assets?.fungible?.find((asset) => asset.id === assetTypeId)
+      account?.assets?.fungible?.find((asset) => asset.typeId === assetTypeId)
         ?.amount || "0"
     ).toString() || "0",
     Number(decimals)
