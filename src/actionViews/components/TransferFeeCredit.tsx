@@ -510,8 +510,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
             .required("Amount is required")
             .test(
               "test more than",
-              "Value must be greater than 0",
-              (value: string | undefined) => Number(value || "") > 0n
+              "Value must be greater than 0.00000002",
+              (value: string | undefined) => Number(value || "") > 2n
             )
             .test(
               "test less than",
@@ -520,6 +520,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 setTransferredBillsCount(0);
                 let convertedAmount: bigint;
                 if (!value) return false;
+
                 try {
                   convertedAmount = convertToWholeNumberBigInt(
                     value,
@@ -529,15 +530,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   return false;
                 }
 
-                const {
-                  billsToTransfer,
-                  billToSplit,
-                  optimalBills,
-                } = handleBillSelection(
-                  convertedAmount.toString(),
-                  billsArr,
-                  MaxTransactionFee * 2n
-                );
+                const { billsToTransfer, billToSplit, optimalBills } =
+                  handleBillSelection(
+                    convertedAmount.toString(),
+                    billsArr,
+                    MaxTransactionFee * 2n
+                  );
 
                 if (optimalBills.length < 1) return false;
 
@@ -579,7 +577,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   <Textfield
                     id="amount"
                     name="amount"
-                    label={"Amount"}
+                    label="Amount"
                     desc={
                       availableAmount +
                       " ALPHA available" +
