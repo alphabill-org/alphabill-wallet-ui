@@ -1,19 +1,11 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
 
-import {
-  AlphaType,
-  FungibleTokenKind,
-  TransferFungibleView,
-  TransferNFTView,
-} from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
+import { AlphaType, FungibleTokenKind } from "../../utils/constants";
 import { useAuth } from "../../hooks/useAuth";
-import { base64ToHexPrefixed, invalidateAllLists } from "../../utils/utils";
-import Button from "../Button/Button";
+import { invalidateAllLists } from "../../utils/utils";
 import { IActiveAsset } from "../../types/Types";
-import AssetsListItemIcon from "./AssetListItemIcon";
-import { useApp } from "../../hooks/appProvider";
+import AssetsListItem from "./AssetsListItem";
 
 export interface IAssetsListProps {
   assetList: any;
@@ -38,8 +30,7 @@ export default function AssetsList({
     setActiveAssetLocal,
     setActiveNFTLocal,
   } = useAuth();
-  const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
-    useApp();
+
   const handleClick = (asset: any) => {
     setActiveAssetLocal(JSON.stringify(asset));
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
@@ -54,13 +45,6 @@ export default function AssetsList({
       })}
     >
       {assetList?.map((asset: any) => {
-        const hexId = base64ToHexPrefixed(asset?.id);
-        const label = isTypeListItem
-          ? hexId
-          : asset?.name || asset?.symbol || hexId;
-
-        const amount = asset.UIAmount || asset.amountOfSameType;
-        const isButtons = isTransferButton;
         const isFungibleKind =
           asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
 
@@ -79,30 +63,13 @@ export default function AssetsList({
               onClick={() => onItemClick && onItemClick()}
               className="assets-list__item-clicker"
             ></div>
-            <AssetsListItemIcon asset={asset} isTypeListItem={isTypeListItem} />
-            <div className="assets-list__item-title">{label}</div>
-            {amount && <div className="assets-list__item-amount">{amount}</div>}
-            {isButtons && (
-              <div className="assets-list__item-actions">
-                {isTransferButton && (
-                  <Button
-                    onClick={() => {
-                      setActionsView(
-                        isFungibleKind ? TransferFungibleView : TransferNFTView
-                      );
-                      setIsActionsViewVisible(true);
-                      setSelectedTransferKey(asset.id);
-                      handleClick(asset);
-                      onSendClick && onSendClick(asset);
-                    }}
-                    type="button"
-                    variant="icon"
-                  >
-                    <Send />
-                  </Button>
-                )}
-              </div>
-            )}
+            <AssetsListItem
+              asset={asset}
+              isTypeListItem={isTypeListItem}
+              isTransferButton={isTransferButton}
+              handleClick={handleClick}
+              onSendClick={onSendClick}
+            />
           </div>
         );
       })}

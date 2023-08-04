@@ -13,6 +13,7 @@ import {
   getUpdatedNFTAssets,
   getUpdatedFungibleAssets,
   handleBillSelection,
+  createEllipsisString,
 } from "../utils/utils";
 
 import {
@@ -21,6 +22,7 @@ import {
   PushBoolTrue,
   StartByte,
 } from "../utils/constants";
+
 import {
   activeAccountId,
   NFTsList_1,
@@ -478,8 +480,8 @@ describe("handleBillSelection function", () => {
     // Assert the results based on your expectations
     expect(optimalBills.length).toBe(2);
     expect(billsToTransfer.length).toBe(1);
-    expect(billToSplit).toEqual(ExpectedBill500); // Since billsSumDifference === 0n
-    expect(splitBillAmount).toEqual(250n); // Since billToSplit is null and feeAmount is provided
+    expect(billToSplit).toEqual(ExpectedBill500);
+    expect(splitBillAmount).toEqual(250n);
   });
 
   it("should select specific bills in optimalBills array", () => {
@@ -508,5 +510,27 @@ describe("handleBillSelection function", () => {
 
     // Ensure that the actual splitBillAmount matches the expected splitBillAmount
     expect(splitBillAmount).toEqual(expectedSplitBillAmount);
+  });
+});
+
+describe("createEllipsisString", () => {
+  it("should add ellipsis when the length of id is greater than the sum of firstCount and lastCount", () => {
+    const id = "abcdefghijklmnopqrstuvwxyz";
+    const firstCount = 5;
+    const lastCount = 5;
+
+    const result = createEllipsisString(id, firstCount, lastCount);
+
+    expect(result).toBe("abcde...vwxyz");
+  });
+
+  it("should return the original id when firstCount and lastCount are greater than or equal to the length of id", () => {
+    const id = "small";
+    const firstCount = 10;
+    const lastCount = 10;
+
+    const result = createEllipsisString(id, firstCount, lastCount);
+
+    expect(result).toBe(id);
   });
 });
