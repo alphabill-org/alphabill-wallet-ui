@@ -18,7 +18,7 @@ export interface IAssetsListProps {
   asset: any;
   isTypeListItem?: boolean;
   onSendClick?: (e: IActiveAsset) => void;
-  handleClick: (e: IActiveAsset) => void;
+  handleClick: (e: IActiveAsset) => void | undefined;
   isTransferButton?: boolean;
 }
 
