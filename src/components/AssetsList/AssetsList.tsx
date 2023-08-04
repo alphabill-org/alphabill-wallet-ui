@@ -58,6 +58,7 @@ export default function AssetsList({
         const label = isTypeListItem
           ? hexId
           : asset?.name || asset?.symbol || hexId;
+
         const amount = asset.UIAmount || asset.amountOfSameType;
         const isButtons = isTransferButton;
         const isFungibleKind =

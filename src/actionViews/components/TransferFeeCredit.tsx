@@ -29,8 +29,6 @@ import {
   extractFormikError,
   getKeys,
   createOwnerProof,
-  findClosestBigger,
-  getOptimalBills,
   getBillsSum,
   invalidateAllLists,
   convertToWholeNumberBigInt,
@@ -39,6 +37,7 @@ import {
   unit8ToHexPrefixed,
   FeeCostEl,
   addDecimal,
+  handleBillSelection,
 } from "../../utils/utils";
 import {
   FeeTimeoutBlocks,
@@ -108,6 +107,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     type: "ALPHA" | "UTP";
   } | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [transferredBillsCount, setTransferredBillsCount] = useState<number>(0);
 
   const getAvailableAmount = useCallback(
     (decimals: number) =>
@@ -192,29 +192,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
             });
           }
 
-          const selectedBills = getOptimalBills(
-            convertedAmount.toString(),
-            billsArr as IBill[],
-            true
-          );
-
-          const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount;
-
-          const billToSplit =
-            billsSumDifference !== 0n
-              ? findClosestBigger(selectedBills, billsSumDifference.toString())
-              : null;
-
-          const billsToTransfer = billToSplit
-            ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
-            : selectedBills;
-
-          const splitBillAmount = billToSplit
-            ? BigInt(billToSplit.value) -
-              billsSumDifference +
+          const { splitBillAmount, billsToTransfer, billToSplit } =
+            handleBillSelection(
+              convertedAmount.toString(),
+              billsArr,
               MaxTransactionFee * 2n
-            : null;
+            );
 
           setIsSending(true);
 
@@ -534,6 +517,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
               "test less than",
               "Amount exceeds available assets",
               (value: string | undefined) => {
+                setTransferredBillsCount(0);
                 let convertedAmount: bigint;
                 if (!value) return false;
                 try {
@@ -545,40 +529,34 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   return false;
                 }
 
-                const selectedBills = getOptimalBills(
+                const {
+                  billsToTransfer,
+                  billToSplit,
+                  optimalBills,
+                } = handleBillSelection(
                   convertedAmount.toString(),
-                  billsArr as IBill[],
-                  true
+                  billsArr,
+                  MaxTransactionFee * 2n
                 );
-                if (selectedBills.length < 1) return false;
-                const billsSumDifference =
-                  getBillsSum(selectedBills) - convertedAmount;
 
-                const billToSplit =
-                  billsSumDifference !== 0n
-                    ? findClosestBigger(
-                        selectedBills,
-                        billsSumDifference.toString()
-                      )
-                    : 0;
+                if (optimalBills.length < 1) return false;
+
                 const splitBillCount = billToSplit ? 1 : 0;
-
-                const billsToTransfer = billToSplit
-                  ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
-                  : selectedBills;
-
                 const feeAmount =
                   BigInt(billsToTransfer.length + splitBillCount) *
                   MaxTransactionFee *
                   2n;
-
-                return selectedTransferKey
+                const isAmountEnough = selectedTransferKey
                   ? true
                   : value
                   ? convertToWholeNumberBigInt(value || "", AlphaDecimals) +
                       feeAmount <=
                     convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
                   : true;
+                setTransferredBillsCount(
+                  selectedTransferKey ? 1 : optimalBills.length
+                );
+                return isAmountEnough;
               }
             ),
         })}
@@ -601,8 +579,19 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   <Textfield
                     id="amount"
                     name="amount"
-                    label="Amount"
-                    desc={availableAmount + " ALPHA available"}
+                    label={"Amount"}
+                    desc={
+                      availableAmount +
+                      " ALPHA available" +
+                      (transferredBillsCount >= 1
+                        ? " - fee for transfer " +
+                          addDecimal(
+                            (transferredBillsCount * 2).toString(),
+                            AlphaDecimals
+                          ).toString() +
+                          " ALPHA"
+                        : "")
+                    }
                     type="text"
                     floatingFixedPoint={AlphaDecimals}
                     error={extractFormikError(errors, touched, ["amount"])}

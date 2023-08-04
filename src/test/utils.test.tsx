@@ -12,6 +12,7 @@ import {
   hexToBase64,
   getUpdatedNFTAssets,
   getUpdatedFungibleAssets,
+  handleBillSelection,
 } from "../utils/utils";
 
 import {
@@ -36,6 +37,9 @@ import {
   NFTIsSendableFalseResult,
   NFTSameTypeResult,
   TestBills,
+  ExpectedBill1000,
+  ExpectedBill200,
+  ExpectedBill500,
 } from "./constants";
 
 describe("Function that counts decimal length", () => {
@@ -119,7 +123,7 @@ describe("Function that finds an object that has a value greater than or equal t
     expect(result).toEqual({
       id: "3",
       value: "500",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
     });
   });
 
@@ -141,7 +145,7 @@ describe("Function that gets closest value to the target value", () => {
     expect(result).toEqual({
       id: "2",
       value: "200",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
     });
   });
 });
@@ -449,5 +453,60 @@ describe("Get updated fungible assets with is sendable & sum of same type", () =
     );
 
     expect(actualOutput).toEqual(updatedFungibleAssetsFalse);
+  });
+});
+
+describe("handleBillSelection function", () => {
+  it("should split the bill without fee", () => {
+    const convertedAmount = "1200";
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills);
+
+    // Assert the results based on your expectations
+    expect(optimalBills.length).toBe(2);
+    expect(billsToTransfer.length).toBe(2);
+    expect(billToSplit).toEqual(null); // Since billsSumDifference === 0n
+    expect(splitBillAmount).toEqual(null); // Since billToSplit is null
+  });
+
+  it("should split the bill with a fee of 50", () => {
+    const convertedAmount = "1200";
+    const feeAmount = 50n;
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills, feeAmount);
+
+    // Assert the results based on your expectations
+    expect(optimalBills.length).toBe(2);
+    expect(billsToTransfer.length).toBe(1);
+    expect(billToSplit).toEqual(ExpectedBill500); // Since billsSumDifference === 0n
+    expect(splitBillAmount).toEqual(250n); // Since billToSplit is null and feeAmount is provided
+  });
+
+  it("should select specific bills in optimalBills array", () => {
+    const convertedAmount = "1200";
+    const { optimalBills } = handleBillSelection(convertedAmount, TestBills);
+
+    // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
+    expect(optimalBills).toEqual([ExpectedBill1000, ExpectedBill200]);
+  });
+
+  // Add more test cases with expectedBills
+  it("should select specific bills and split the bill", () => {
+    const convertedAmount = "300"; // Less than the total value of bills
+    const feeAmount = 50n;
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills, feeAmount);
+
+    // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
+    expect(optimalBills).toEqual([ExpectedBill1000]);
+
+    // Ensure that the actual billsToTransfer and billToSplit match the ExpectedBills
+    expect(billsToTransfer).toEqual([]);
+    expect(billToSplit).toEqual(ExpectedBill1000);
+
+    const expectedSplitBillAmount = 350n;
+
+    // Ensure that the actual splitBillAmount matches the expected splitBillAmount
+    expect(splitBillAmount).toEqual(expectedSplitBillAmount);
   });
 });

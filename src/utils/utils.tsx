@@ -23,7 +23,6 @@ import {
   AlphaDecimals,
   AlphaType,
   localStorageKeys,
-  MaxTransactionFee,
   OpCheckSig,
   OpDup,
   OpEqual,
@@ -324,28 +323,20 @@ export const getClosestSmaller = (bills: IBill[], target: string) => {
 export const getOptimalBills = (
   amount: string,
   billsArr: IBill[],
-  accountForFees?: boolean
+  feeAmount: bigint = 0n
 ): IBill[] => {
   if (!billsArr) {
     return [];
   }
   const selectedBills: IBill[] = [];
-  const amountBigInt = accountForFees
-    ? BigInt(amount) + MaxTransactionFee * 2n
-    : BigInt(amount);
+  const amountBigInt = BigInt(amount) + feeAmount;
   const zeroBigInt = 0n;
 
-  const closestBigger = findClosestBigger(
-    billsArr,
-    accountForFees ? amount + MaxTransactionFee * 2n : amount
-  );
+  const closestBigger = findClosestBigger(billsArr, amount + feeAmount);
   if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
     selectedBills.push(closestBigger);
   } else {
-    const initialBill = getClosestSmaller(
-      billsArr,
-      accountForFees ? amount + MaxTransactionFee * 2n : amount
-    );
+    const initialBill = getClosestSmaller(billsArr, amount + feeAmount);
     if (initialBill === null) {
       return [];
     } else {
@@ -361,10 +352,7 @@ export const getOptimalBills = (
         let addedSum;
         const closestBigger = findClosestBigger(
           filteredBills,
-          (accountForFees
-            ? missingSum + MaxTransactionFee * 2n
-            : missingSum
-          ).toString()
+          (feeAmount ? missingSum + feeAmount : missingSum).toString()
         );
         if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
           selectedBills.push(closestBigger);
@@ -372,10 +360,7 @@ export const getOptimalBills = (
         } else {
           const currentBill = getClosestSmaller(
             filteredBills,
-            (accountForFees
-              ? missingSum + MaxTransactionFee * 2n
-              : missingSum
-            ).toString()
+            (feeAmount ? missingSum + feeAmount : missingSum).toString()
           );
           if (currentBill === null) {
             return [];
@@ -394,6 +379,40 @@ export const getOptimalBills = (
 
   return selectedBills;
 };
+
+export function handleBillSelection(
+  convertedAmount: string,
+  billsArr: IBill[],
+  feeAmount?: bigint
+): {
+  optimalBills: IBill[];
+  billsToTransfer: IBill[];
+  billToSplit: IBill | null | undefined;
+  splitBillAmount: bigint | null;
+} {
+  const optimalBills = getOptimalBills(convertedAmount, billsArr, feeAmount);
+
+  const billsSumDifference =
+    getBillsSum(optimalBills) - BigInt(convertedAmount);
+  BigInt(optimalBills.length < 1 || !feeAmount ? 0n : optimalBills.length * 2);
+
+  const billToSplit =
+    billsSumDifference !== 0n
+      ? findClosestBigger(optimalBills, billsSumDifference.toString())
+      : null;
+
+  const billsToTransfer = billToSplit
+    ? optimalBills?.filter((bill) => bill.id !== billToSplit?.id)
+    : optimalBills;
+
+  const splitBillAmount = billToSplit
+    ? BigInt(billToSplit.value) -
+      billsSumDifference +
+      (feeAmount ? feeAmount : 0n)
+    : null;
+
+  return { optimalBills, billsToTransfer, billToSplit, splitBillAmount };
+}
 
 export const getBillsSum = (bills: IBill[]) =>
   bills?.reduce((acc, obj: IBill) => {
