@@ -746,7 +746,7 @@ export const Base64imageComponent: React.FC<{
 };
 
 export const isImage = (data: string, type: string): boolean => {
-  const isSVG = type.startsWith("image/svg");
+  const isSVG = type?.startsWith("image/svg");
 
   if (isSVG) {
     return true;
@@ -762,3 +762,15 @@ export const isValidAddress = (value?: string) =>
 
 export const clearStorage = () =>
   localStorageKeys.map((key) => localStorage.removeItem(key));
+
+export const createEllipsisString = (
+  id: string,
+  firstCount: number,
+  lastCount: number
+): string => {
+  if (firstCount + lastCount >= id.length) {
+    return id;
+  }
+
+  return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
+};

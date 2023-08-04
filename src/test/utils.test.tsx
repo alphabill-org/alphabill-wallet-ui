@@ -12,6 +12,7 @@ import {
   hexToBase64,
   getUpdatedNFTAssets,
   getUpdatedFungibleAssets,
+  createEllipsisString,
 } from "../utils/utils";
 
 import {
@@ -449,5 +450,27 @@ describe("Get updated fungible assets with is sendable & sum of same type", () =
     );
 
     expect(actualOutput).toEqual(updatedFungibleAssetsFalse);
+  });
+});
+
+describe('createEllipsisString', () => {
+  it('should add ellipsis when the length of id is greater than the sum of firstCount and lastCount', () => {
+    const id = 'abcdefghijklmnopqrstuvwxyz';
+    const firstCount = 5;
+    const lastCount = 5;
+
+    const result = createEllipsisString(id, firstCount, lastCount);
+
+    expect(result).toBe('abcde...vwxyz');
+  });
+
+  it('should return the original id when firstCount and lastCount are greater than or equal to the length of id', () => {
+    const id = 'small';
+    const firstCount = 10;
+    const lastCount = 10;
+
+    const result = createEllipsisString(id, firstCount, lastCount);
+
+    expect(result).toBe(id);
   });
 });

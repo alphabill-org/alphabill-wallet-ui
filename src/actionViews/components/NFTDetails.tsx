@@ -34,6 +34,7 @@ export default function NFTDetails({
     Boolean(data?.downloadType) && Boolean(data?.imageUrl);
   const isDownloadableImageWithError =
     isDownloadableImage && Boolean(data?.error);
+  const prefixedID = base64ToHexPrefixed(activeAsset?.id);
 
   const {
     setIsActionsViewVisible,
@@ -98,8 +99,12 @@ export default function NFTDetails({
       <div className="asset-details__footer">
         <div className="asset-details__info">
           <div className="asset-details__info--item">
-            <div className="t-ellipsis">
-              ID: {base64ToHexPrefixed(activeAsset?.id)}
+            <div className="flex">
+              ID:{" "}
+              <span className="t-ellipsis pad-8-l mw-200px">{prefixedID}</span>
+              <span>
+                {prefixedID.substr(prefixedID.length - 12, prefixedID.length)}
+              </span>
             </div>
           </div>
           {activeAsset?.nftName && (
