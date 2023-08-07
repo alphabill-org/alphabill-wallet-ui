@@ -144,6 +144,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
         setSelectedTransferKey(null);
         setIsActionsViewVisible(false);
         resetRefs();
+        setTransferredBillsCount(0);
       }
     }
   }, [
