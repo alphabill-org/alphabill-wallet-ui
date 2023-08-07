@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, isCancel } from "axios";
+import axios, { AxiosError, AxiosResponse, isCancel } from "axios";
 import { encodeCanonical } from "cbor";
 import { decode } from "cbor";
 
@@ -29,6 +29,15 @@ import {
 export const MONEY_NODE_URL = import.meta.env.VITE_MONEY_NODE_URL;
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
+
+const handleError = (error: AxiosError) => {
+  if (error.response?.status === 404) {
+    // If the status code is 404, return null to prevent the error from propagating
+    return null;
+  }
+  // For other errors, you can choose to handle them differently or re-throw them
+  throw error;
+};
 
 export const getBalance = async (
   pubKey: string
@@ -233,12 +242,13 @@ export const getProof = async (
     return;
   }
   const url = isTokens ? TOKENS_BACKEND_URL : MONEY_BACKEND_URL;
-  const response = await axios.get<any>(
-    `${url}/units/${billID}/transactions/${txHash}/proof`,
-    { responseType: "arraybuffer" }
-  );
+  const response = await axios
+    .get<any>(`${url}/units/${billID}/transactions/${txHash}/proof`, {
+      responseType: "arraybuffer",
+    })
+    .catch(handleError);
 
-  const decoded = decode(Buffer.from(response.data));
+  const decoded = response?.data && decode(Buffer.from(response?.data));
 
   const proofObj = {
     txRecord: decoded[0],
@@ -379,36 +389,27 @@ export const getImageUrlAndDownloadType = async (
 export const getFeeCreditBills = async (
   id: string
 ): Promise<IFeeCreditBills> => {
-  let moneyDataPromise = axios.get<any>(
-    `${MONEY_BACKEND_URL}/fee-credit-bills/${id}`,
-    {
-      validateStatus: function (status) {
-        return status !== 404; // Resolve only if the status code is not 404
-      },
-    }
-  );
-  let tokensDataPromise = axios.get<any>(
-    `${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`,
-    {
-      validateStatus: function (status) {
-        return status !== 404; // Resolve only if the status code is not 404
-      },
-    }
-  );
+  const moneyDataPromise = axios
+    .get<any>(`${MONEY_BACKEND_URL}/fee-credit-bills/${id}`)
+    .catch(handleError);
+
+  const tokensDataPromise = axios
+    .get<any>(`${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`)
+    .catch(handleError);
 
   let moneyData = null;
   let tokensData = null;
 
   try {
     const moneyResponse = await moneyDataPromise;
-    moneyData = moneyResponse.data;
+    moneyData = moneyResponse?.data ?? null;
   } catch (_e) {
     moneyData = null;
   }
 
   try {
     const tokensResponse = await tokensDataPromise;
-    tokensData = tokensResponse.data;
+    tokensData = tokensResponse?.data ?? null;
   } catch (_e) {
     tokensData = null;
   }
