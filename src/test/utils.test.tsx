@@ -481,7 +481,10 @@ describe("handleBillSelection function", () => {
     expect(optimalBills.length).toBe(2);
     expect(billsToTransfer.length).toBe(1);
     expect(billToSplit).toEqual(ExpectedBill500);
-    expect(splitBillAmount).toEqual(250n);
+    // Fee amount is deducted on every transfer
+    expect(splitBillAmount).toEqual(
+      200n + BigInt(optimalBills.length) * feeAmount * 2n
+    );
   });
 
   it("should select specific bills in optimalBills array", () => {
@@ -506,7 +509,9 @@ describe("handleBillSelection function", () => {
     expect(billsToTransfer).toEqual([]);
     expect(billToSplit).toEqual(ExpectedBill1000);
 
-    const expectedSplitBillAmount = 350n;
+    // Fee amount is deducted on every transfer
+    const expectedSplitBillAmount =
+      300n + BigInt(optimalBills.length) * feeAmount * 2n;
 
     // Ensure that the actual splitBillAmount matches the expected splitBillAmount
     expect(splitBillAmount).toEqual(expectedSplitBillAmount);
