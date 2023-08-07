@@ -31,7 +31,6 @@ export interface IFungibleAsset {
   id: string;
   amount: string;
   network: string;
-  decimalFactor: number;
   decimals: number;
   UIAmount: string;
   typeId: string;
@@ -97,7 +96,6 @@ export interface IActiveAsset {
   id?: string;
   amount?: string;
   network?: string;
-  decimalFactor?: number;
   decimals?: number;
   UIAmount?: string;
   isSendable?: boolean;

@@ -511,7 +511,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
             .test(
               "test more than",
               "Value must be greater than 0.00000002",
-              (value: string | undefined) => Number(value || "") > 2n
+              (value: string | undefined) => {
+                const convertedAmount = convertToWholeNumberBigInt(
+                  value || "0",
+                  AlphaDecimals
+                );
+
+                return convertedAmount > 2n;
+              }
             )
             .test(
               "test less than",

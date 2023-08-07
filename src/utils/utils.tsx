@@ -19,7 +19,6 @@ import {
   ITransactionPayloadObj,
 } from "../types/Types";
 import {
-  AlphaDecimalFactor,
   AlphaDecimals,
   AlphaType,
   localStorageKeys,
@@ -393,8 +392,11 @@ export function handleBillSelection(
   const optimalBills = getOptimalBills(convertedAmount, billsArr, feeAmount);
 
   const billsSumDifference =
-    getBillsSum(optimalBills) - BigInt(convertedAmount);
-  BigInt(optimalBills.length < 1 || !feeAmount ? 0n : optimalBills.length * 2);
+    getBillsSum(optimalBills) -
+    BigInt(convertedAmount) -
+    BigInt(
+      optimalBills.length < 1 || !feeAmount ? 0n : optimalBills.length * 2
+    );
 
   const billToSplit =
     billsSumDifference !== 0n
@@ -407,8 +409,7 @@ export function handleBillSelection(
 
   const splitBillAmount = billToSplit
     ? BigInt(billToSplit.value) -
-      billsSumDifference +
-      (feeAmount ? feeAmount : 0n)
+      billsSumDifference
     : null;
 
   return { optimalBills, billsToTransfer, billToSplit, splitBillAmount };
@@ -633,7 +634,6 @@ const getUpdatesUTPFungibleTokens = (
       symbol: obj.symbol,
       network: obj.network,
       amount: obj.amount?.toString(),
-      decimalFactor: Number("1e" + obj.decimals),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
         tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
@@ -670,7 +670,6 @@ export const getUpdatedFungibleAssets = (
     symbol: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
     amount: ALPHABalance,
-    decimalFactor: AlphaDecimalFactor,
     decimals: AlphaDecimals,
     UIAmount: separateDigits(addDecimal(ALPHABalance || "0", AlphaDecimals)),
     typeId: AlphaType,
