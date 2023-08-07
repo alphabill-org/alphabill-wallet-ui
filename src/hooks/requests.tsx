@@ -253,8 +253,8 @@ export const getProof = async (
   const decoded = response?.data && decode(Buffer.from(response?.data));
 
   const proofObj = {
-    txRecord: decoded[0],
-    txProof: decoded[1],
+    txRecord: decoded?.[0],
+    txProof: decoded?.[1],
   };
 
   return proofObj;
