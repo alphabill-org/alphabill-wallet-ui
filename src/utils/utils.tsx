@@ -396,7 +396,7 @@ export function handleBillSelection(
     BigInt(convertedAmount) -
     (optimalBills.length < 1 || !feeAmount
       ? 0n
-      : BigInt(optimalBills.length) * feeAmount * 2n);
+      : BigInt(optimalBills.length) * feeAmount);
 
   const billToSplit =
     billsSumDifference !== 0n

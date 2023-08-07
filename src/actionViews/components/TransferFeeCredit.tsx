@@ -522,7 +522,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
             )
             .test(
               "test less than",
-              "Amount exceeds available assets",
+              "Amount with fees exceeds available assets",
               (value: string | undefined) => {
                 setTransferredBillsCount(0);
                 let convertedAmount: bigint;
@@ -558,6 +558,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       feeAmount <=
                     convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
                   : true;
+
                 setTransferredBillsCount(
                   selectedTransferKey ? 1 : optimalBills.length
                 );
