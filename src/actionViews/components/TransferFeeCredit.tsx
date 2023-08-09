@@ -420,7 +420,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
               const billToTransfer = transferrableBills.current?.[0];
               initialRoundNumber.current = null;
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
-              queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
 
               if (transferFeePollingProofProps.current) {
                 getProof(
@@ -430,21 +429,23 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   )
                 )
                   .then(async (data) => {
-                    transferrableBills.current =
-                      (billToTransfer &&
-                        transferrableBills.current?.filter(
-                          (item) =>
-                            item.payload.unitId !==
-                            billToTransfer.payload.unitId
-                        )) ||
-                      null;
+                    if (data?.txProof) {
+                      transferrableBills.current =
+                        (billToTransfer &&
+                          transferrableBills.current?.filter(
+                            (item) =>
+                              item.payload.unitId !==
+                              billToTransfer.payload.unitId
+                          )) ||
+                        null;
 
-                    isAllFeesAdded.current = !Boolean(
-                      transferrableBills.current?.[0]?.payload?.unitId
-                    );
+                      isAllFeesAdded.current = !Boolean(
+                        transferrableBills.current?.[0]?.payload?.unitId
+                      );
 
-                    transferBillProof.current = data;
-                    addFeeCredit();
+                      transferBillProof.current = data;
+                      addFeeCredit();
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }

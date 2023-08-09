@@ -170,7 +170,9 @@ export default function ReclaimFeeCredit({
                 payload: {
                   systemId: isAlpha ? AlphaSystemId : TokensSystemId,
                   type: isClose ? FeeCreditCloseType : FeeCreditReclaimType,
-                  unitId: Buffer.from(bill.id, "base64"),
+                  unitId: isClose
+                    ? Buffer.from(bill.id, "base64")
+                    : Buffer.from(billsList[0].id, "base64"),
                   ...attr,
                 },
               };
@@ -180,8 +182,8 @@ export default function ReclaimFeeCredit({
               return {
                 attributes: {
                   amount: BigInt(bill.value),
-                  targetUnitID: pubKeyHash,
-                  nonce: Buffer.from(billsList[0].txHash, "hex"),
+                  targetUnitID: Buffer.from(billsList[0].id, "base64"),
+                  nonce: Buffer.from(billsList[0].txHash, "base64"),
                 },
               };
             };
@@ -191,7 +193,7 @@ export default function ReclaimFeeCredit({
                 attributes: {
                   closeFeeCreditTransfer: proof.txRecord,
                   closeFeeCreditProof: proof.txProof,
-                  backlink: Buffer.from(billsList[0].txHash, "hex"),
+                  backlink: Buffer.from(billsList[0].txHash, "base64"),
                 },
               };
             };
