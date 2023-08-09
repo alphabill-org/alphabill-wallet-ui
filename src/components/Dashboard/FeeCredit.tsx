@@ -48,9 +48,11 @@ export default function FeeCredit(): JSX.Element | null {
                   value?.value > 0 ? "assets-list__item-hover-btn" : ""
                 }
               >
-                {value?.value > 0 && (
-                  <ReclaimFeeCredit isAlpha={key === AlphaType} />
-                )}
+                <ReclaimFeeCredit
+                  isHidden={Boolean(Number(value?.value || 0) === 0)}
+                  isAlpha={key === AlphaType}
+                />
+
                 <div
                   className={classNames("assets-list__item", {
                     "no-hover": true,

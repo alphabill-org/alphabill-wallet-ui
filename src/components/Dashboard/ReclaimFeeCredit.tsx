@@ -52,16 +52,12 @@ import Popup from "../Popup/Popup";
 
 export default function ReclaimFeeCredit({
   isAlpha,
+  isHidden,
 }: {
   isAlpha: boolean;
+  isHidden: boolean;
 }): JSX.Element | null {
-  const {
-    account,
-    billsList,
-    setSelectedTransferKey,
-    setPreviousView,
-    feeCreditBills,
-  } = useApp();
+  const { account, billsList, setPreviousView, feeCreditBills } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
   const billsArr = billsList
@@ -95,11 +91,10 @@ export default function ReclaimFeeCredit({
     ) {
       pollingInterval.current && clearInterval(pollingInterval.current);
       setIsSending(false);
-      setSelectedTransferKey(null);
       resetRefs();
+      setIsReclaimPopupVisible(false);
     }
-  }, [feeCreditBills, setSelectedTransferKey, balance]);
-
+  }, [billsList, account, feeCreditBills, balance]);
   const buttonLabel =
     "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
 
@@ -111,7 +106,7 @@ export default function ReclaimFeeCredit({
         type="button"
         variant="primary"
         working={isSending}
-        className="reclaim"
+        className={isHidden ? "reclaim hidden" : "reclaim"}
         disabled={isSending || !billsArr?.[0]?.txHash}
         onClick={() => {
           setActiveAssetLocal(
@@ -122,7 +117,6 @@ export default function ReclaimFeeCredit({
             )
           );
           setIsReclaimPopupVisible(!isReclaimPopupVisible);
-          console.log(isReclaimPopupVisible);
         }}
       >
         {!billsArr?.[0]?.txHash ? "ALPHAs needed to reclaim fees" : buttonLabel}
@@ -154,10 +148,6 @@ export default function ReclaimFeeCredit({
 
             setIsSending(true);
 
-            const pubKeyHash = (await publicKeyHash(
-              activeAccountId
-            )) as Uint8Array;
-
             const baseObj = (
               bill: IBill,
               isClose: boolean,
@@ -168,7 +158,8 @@ export default function ReclaimFeeCredit({
                 : baseReclaimAttr(proof!);
               return {
                 payload: {
-                  systemId: isAlpha ? AlphaSystemId : TokensSystemId,
+                  systemId:
+                    !isAlpha && isClose ? TokensSystemId : AlphaSystemId,
                   type: isClose ? FeeCreditCloseType : FeeCreditReclaimType,
                   unitId: isClose
                     ? Buffer.from(bill.id, "base64")
@@ -242,7 +233,6 @@ export default function ReclaimFeeCredit({
                           clearInterval(pollingInterval.current);
                         resetRefs();
                         setIsSending(false);
-                        setSelectedTransferKey(null);
                       })
                       .finally(async () => {
                         const txHash = await transferOrderTxHash(
@@ -272,7 +262,7 @@ export default function ReclaimFeeCredit({
             balanceAfterReclaim.current =
               BigInt(balance) +
               BigInt(currentCreditBill?.value || "0") -
-              MaxTransactionFee;
+              MaxTransactionFee * 2n;
 
             const addPollingInterval = () => {
               pollingInterval.current = setInterval(async () => {
@@ -284,7 +274,8 @@ export default function ReclaimFeeCredit({
                 if (closePollingProofProps.current) {
                   getProof(
                     closePollingProofProps.current.id,
-                    base64ToHexPrefixed(closePollingProofProps.current.txHash)
+                    base64ToHexPrefixed(closePollingProofProps.current.txHash),
+                    !isAlpha
                   )
                     .then(async (data) => {
                       if (data?.txRecord) {

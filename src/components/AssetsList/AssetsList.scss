@@ -12,6 +12,10 @@
     padding: 2px 16px;
   }
 
+  .reclaim.hidden {
+    display: none;
+  }
+
   &__item {
     display: flex;
     align-items: center;
@@ -45,6 +49,8 @@
         z-index: $z-index-reclaim;
         height: 36px;
         transition: opacity .3s;
+
+
       }
 
       ;
