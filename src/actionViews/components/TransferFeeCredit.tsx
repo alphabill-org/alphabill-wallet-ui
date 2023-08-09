@@ -430,21 +430,23 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   )
                 )
                   .then(async (data) => {
-                    transferrableBills.current =
-                      (billToTransfer &&
-                        transferrableBills.current?.filter(
-                          (item) =>
-                            item.payload.unitId !==
-                            billToTransfer.payload.unitId
-                        )) ||
-                      null;
+                    if (data?.txProof) {
+                      transferrableBills.current =
+                        (billToTransfer &&
+                          transferrableBills.current?.filter(
+                            (item) =>
+                              item.payload.unitId !==
+                              billToTransfer.payload.unitId
+                          )) ||
+                        null;
 
-                    isAllFeesAdded.current = !Boolean(
-                      transferrableBills.current?.[0]?.payload?.unitId
-                    );
+                      isAllFeesAdded.current = !Boolean(
+                        transferrableBills.current?.[0]?.payload?.unitId
+                      );
 
-                    transferBillProof.current = data;
-                    addFeeCredit();
+                      transferBillProof.current = data;
+                      addFeeCredit();
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }
@@ -455,10 +457,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   base64ToHexPrefixed(addFeePollingProofProps.current.txHash),
                   addFeePollingProofProps.current.isTokensRequest
                 )
-                  .then(async () => {
-                    transferBillProof.current = null;
-                    billToTransfer &&
-                      initTransaction(billToTransfer, true, false);
+                  .then(async (data) => {
+                    if (data?.txProof) {
+                      transferBillProof.current = null;
+                      billToTransfer &&
+                        initTransaction(billToTransfer, true, false);
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }
