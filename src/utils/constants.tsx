@@ -19,7 +19,6 @@ export const SwapTimeout = 40n;
 export const FeeTimeoutBlocks = 20n;
 export const DCTransfersLimit = 100;
 export const AlphaDecimals = 8;
-export const AlphaDecimalFactor = Number("1e" + AlphaDecimals);
 export const MaxTransactionFee = 1n;
 
 export const AlphaSplitType = "split";

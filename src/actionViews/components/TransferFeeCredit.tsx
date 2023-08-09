@@ -29,8 +29,6 @@ import {
   extractFormikError,
   getKeys,
   createOwnerProof,
-  findClosestBigger,
-  getOptimalBills,
   getBillsSum,
   invalidateAllLists,
   convertToWholeNumberBigInt,
@@ -39,6 +37,7 @@ import {
   unit8ToHexPrefixed,
   FeeCostEl,
   addDecimal,
+  handleBillSelection,
 } from "../../utils/utils";
 import {
   FeeTimeoutBlocks,
@@ -108,6 +107,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     type: "ALPHA" | "UTP";
   } | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [transferredBillsCount, setTransferredBillsCount] = useState<number>(0);
 
   const getAvailableAmount = useCallback(
     (decimals: number) =>
@@ -144,6 +144,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
         setSelectedTransferKey(null);
         setIsActionsViewVisible(false);
         resetRefs();
+        setTransferredBillsCount(0);
       }
     }
   }, [
@@ -192,26 +193,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
             });
           }
 
-          const selectedBills = getOptimalBills(
-            convertedAmount.toString(),
-            billsArr as IBill[]
-          );
-
-          const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount;
-
-          const billToSplit =
-            billsSumDifference !== 0n
-              ? findClosestBigger(selectedBills, billsSumDifference.toString())
-              : null;
-
-          const billsToTransfer = billToSplit
-            ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
-            : selectedBills;
-
-          const splitBillAmount = billToSplit
-            ? BigInt(billToSplit.value) - billsSumDifference
-            : null;
+          const { splitBillAmount, billsToTransfer, billToSplit } =
+            handleBillSelection(
+              convertedAmount.toString(),
+              billsArr,
+              MaxTransactionFee * 2n
+            );
 
           setIsSending(true);
 
@@ -405,15 +392,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const firstBillToTransfer = transferrableBills!.current![0];
 
           if (
-            creditBill?.tx_hash &&
+            creditBill?.lastAddFcTxHash &&
             firstBillToTransfer.payload.type !== FeeCreditAddType
           ) {
             (
               firstBillToTransfer.payload.attributes as ITransactionAttributes
-            ).nonce =
-              creditBill && creditBill.tx_hash
-                ? Buffer.from(creditBill.tx_hash, "base64")
-                : null;
+            ).nonce = Buffer.from(creditBill.lastAddFcTxHash, "base64");
           }
 
           await initTransaction(
@@ -446,20 +430,23 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   )
                 )
                   .then(async (data) => {
-                    transferrableBills.current =
-                      (billToTransfer &&
-                        transferrableBills.current?.filter(
-                          (item) =>
-                            item.payload.unitId !==
-                            billToTransfer.payload.unitId
-                        )) ||
-                      null;
+                    if (data?.txProof) {
+                      transferrableBills.current =
+                        (billToTransfer &&
+                          transferrableBills.current?.filter(
+                            (item) =>
+                              item.payload.unitId !==
+                              billToTransfer.payload.unitId
+                          )) ||
+                        null;
 
-                    isAllFeesAdded.current = !Boolean(
-                      transferrableBills.current?.[0]?.payload?.unitId
-                    );
-                    transferBillProof.current = data;
-                    addFeeCredit();
+                      isAllFeesAdded.current = !Boolean(
+                        transferrableBills.current?.[0]?.payload?.unitId
+                      );
+
+                      transferBillProof.current = data;
+                      addFeeCredit();
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }
@@ -470,10 +457,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   base64ToHexPrefixed(addFeePollingProofProps.current.txHash),
                   addFeePollingProofProps.current.isTokensRequest
                 )
-                  .then(async () => {
-                    transferBillProof.current = null;
-                    billToTransfer &&
-                      initTransaction(billToTransfer, true, false);
+                  .then(async (data) => {
+                    if (data?.txProof) {
+                      transferBillProof.current = null;
+                      billToTransfer &&
+                        initTransaction(billToTransfer, true, false);
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }
@@ -526,19 +515,60 @@ export default function TransferFeeCredit(): JSX.Element | null {
             .required("Amount is required")
             .test(
               "test more than",
-              "Value must be greater than 0",
-              (value: string | undefined) => Number(value || "") > 0n
+              "Value must be greater than 0.00000002",
+              (value: string | undefined) => {
+                const convertedAmount = convertToWholeNumberBigInt(
+                  value || "0",
+                  AlphaDecimals
+                );
+
+                return convertedAmount > 2n;
+              }
             )
             .test(
               "test less than",
-              "Amount exceeds available assets",
-              (value: string | undefined) =>
-                selectedTransferKey
+              "Amount with fees exceeds available assets",
+              (value: string | undefined) => {
+                setTransferredBillsCount(0);
+                let convertedAmount: bigint;
+                if (!value) return false;
+
+                try {
+                  convertedAmount = convertToWholeNumberBigInt(
+                    value,
+                    AlphaDecimals
+                  );
+                } catch (error) {
+                  return false;
+                }
+
+                const { billsToTransfer, billToSplit, optimalBills } =
+                  handleBillSelection(
+                    convertedAmount.toString(),
+                    billsArr,
+                    MaxTransactionFee * 2n
+                  );
+
+                if (optimalBills.length < 1) return false;
+
+                const splitBillCount = billToSplit ? 1 : 0;
+                const feeAmount =
+                  BigInt(billsToTransfer.length + splitBillCount) *
+                  MaxTransactionFee *
+                  2n;
+                const isAmountEnough = selectedTransferKey
                   ? true
                   : value
-                  ? convertToWholeNumberBigInt(value || "", AlphaDecimals) <=
+                  ? convertToWholeNumberBigInt(value || "", AlphaDecimals) +
+                      feeAmount <=
                     convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
-                  : true
+                  : true;
+
+                setTransferredBillsCount(
+                  selectedTransferKey ? 1 : optimalBills.length
+                );
+                return isAmountEnough;
+              }
             ),
         })}
       >
@@ -561,7 +591,18 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     id="amount"
                     name="amount"
                     label="Amount"
-                    desc={availableAmount + " ALPHA available"}
+                    desc={
+                      availableAmount +
+                      " ALPHA available" +
+                      (transferredBillsCount >= 1
+                        ? " - fee for transfer " +
+                          addDecimal(
+                            (transferredBillsCount * 2).toString(),
+                            AlphaDecimals
+                          ).toString() +
+                          " ALPHA"
+                        : "")
+                    }
                     type="text"
                     floatingFixedPoint={AlphaDecimals}
                     error={extractFormikError(errors, touched, ["amount"])}

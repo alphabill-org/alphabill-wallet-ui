@@ -32,9 +32,6 @@ import {
   base64ToHexPrefixed,
   createOwnerProof,
   createNewBearer,
-  findClosestBigger,
-  getOptimalBills,
-  getBillsSum,
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
@@ -44,6 +41,7 @@ import {
   FeeCostEl,
   getFungibleAssetsAmount,
   isValidAddress,
+  handleBillSelection,
   createEllipsisString,
 } from "../../utils/utils";
 import {
@@ -226,28 +224,10 @@ export default function TransferFungible(): JSX.Element | null {
             ? [directlySelectedAsset]
             : billsList?.filter((bill: IBill) => !Boolean(bill.dcNonce));
 
-          const selectedBills = getOptimalBills(
-            convertedAmount.toString(),
-            billsArr as IBill[]
-          );
+          const { billsToTransfer, billToSplit, splitBillAmount } =
+            handleBillSelection(convertedAmount.toString(), billsArr);
 
           const newBearer = createNewBearer(values.address);
-
-          const billsSumDifference =
-            getBillsSum(selectedBills) - convertedAmount;
-
-          const billToSplit =
-            billsSumDifference !== 0n
-              ? findClosestBigger(selectedBills, billsSumDifference.toString())
-              : null;
-
-          const billsToTransfer = billToSplit
-            ? selectedBills?.filter((bill) => bill.id !== billToSplit?.id)
-            : selectedBills;
-
-          const splitBillAmount = billToSplit
-            ? BigInt(billToSplit.value) - billsSumDifference
-            : null;
 
           setIsSending(true);
 

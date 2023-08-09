@@ -58,65 +58,67 @@ export const handleSwapRequest = async (
       base64ToHexPrefixed(bill.id),
       base64ToHexPrefixed(bill.txHash)
     ).then(async (data) => {
-      const tx_proof = data! as ITxProof;
+      if (data?.txProof) {
+        const tx_proof = data! as ITxProof;
 
-      tx_proof && tx_proofs.push(tx_proof);
-      if (tx_proofs?.length === DCBills.length) {
-        let dcTransfers: Uint8Array[] = [];
-        let proofs: Uint8Array[] = [];
+        tx_proof && tx_proofs.push(tx_proof);
+        if (tx_proofs?.length === DCBills.length) {
+          let dcTransfers: Uint8Array[] = [];
+          let proofs: Uint8Array[] = [];
 
-        sortTx_ProofsByID(tx_proofs).forEach((proof) => {
-          dcTransfers.push(proof.txRecord);
-          proofs.push(proof.txProof);
-        });
+          sortTx_ProofsByID(tx_proofs).forEach((proof) => {
+            dcTransfers.push(proof.txRecord);
+            proofs.push(proof.txProof);
+          });
 
-        if (!hashingPublicKey || !hashingPrivateKey) return;
+          if (!hashingPublicKey || !hashingPrivateKey) return;
 
-        if (!billIdentifiers.length) return;
-        const nonceHash = await secp.utils.sha256(
-          Buffer.concat(billIdentifiers)
-        );
+          if (!billIdentifiers.length) return;
+          const nonceHash = await secp.utils.sha256(
+            Buffer.concat(billIdentifiers)
+          );
 
-        getRoundNumber(activeAsset?.typeId === AlphaType).then(
-          async (roundNumber) => {
-            const transferData: ITransactionPayload = {
-              payload: {
-                systemId: AlphaSystemId,
-                type: AlphaSwapType,
-                unitId: Buffer.from(nonceHash),
-                attributes: {
-                  ownerCondition: getNewBearer(account),
-                  billIdentifiers: billIdentifiers,
-                  dcTransfers: dcTransfers,
-                  proofs: proofs,
-                  targetValue: DCBills?.reduce((acc, obj: any) => {
-                    return acc + BigInt(obj.value);
-                  }, 0n),
+          getRoundNumber(activeAsset?.typeId === AlphaType).then(
+            async (roundNumber) => {
+              const transferData: ITransactionPayload = {
+                payload: {
+                  systemId: AlphaSystemId,
+                  type: AlphaSwapType,
+                  unitId: Buffer.from(nonceHash),
+                  attributes: {
+                    ownerCondition: getNewBearer(account),
+                    billIdentifiers: billIdentifiers,
+                    dcTransfers: dcTransfers,
+                    proofs: proofs,
+                    targetValue: DCBills?.reduce((acc, obj: any) => {
+                      return acc + BigInt(obj.value);
+                    }, 0n),
+                  },
+                  clientMetadata: {
+                    timeout: roundNumber + SwapTimeout,
+                    MaxTransactionFee: MaxTransactionFee,
+                    feeCreditRecordID: (await publicKeyHash(
+                      activeAccountId
+                    )) as Uint8Array,
+                  },
                 },
-                clientMetadata: {
-                  timeout: roundNumber + SwapTimeout,
-                  MaxTransactionFee: MaxTransactionFee,
-                  feeCreditRecordID: (await publicKeyHash(
-                    activeAccountId
-                  )) as Uint8Array,
-                },
-              },
-            };
+              };
 
-            const proof = await createOwnerProof(
-              transferData.payload as ITransactionPayloadObj,
-              hashingPrivateKey,
-              hashingPublicKey
-            );
-
-            proof.isSignatureValid &&
-              makeTransaction(
-                prepTransactionRequestData(transferData, proof.ownerProof),
-                activeAccountId,
-                true
+              const proof = await createOwnerProof(
+                transferData.payload as ITransactionPayloadObj,
+                hashingPrivateKey,
+                hashingPublicKey
               );
-          }
-        );
+
+              proof.isSignatureValid &&
+                makeTransaction(
+                  prepTransactionRequestData(transferData, proof.ownerProof),
+                  activeAccountId,
+                  true
+                );
+            }
+          );
+        }
       }
     })
   );
