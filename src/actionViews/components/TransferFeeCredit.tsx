@@ -392,12 +392,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const firstBillToTransfer = transferrableBills!.current![0];
 
           if (
-            creditBill?.txHash &&
+            creditBill?.lastAddFcTxHash &&
             firstBillToTransfer.payload.type !== FeeCreditAddType
           ) {
             (
               firstBillToTransfer.payload.attributes as ITransactionAttributes
-            ).nonce = Buffer.from(creditBill.txHash, "base64");
+            ).nonce = Buffer.from(creditBill.lastAddFcTxHash, "base64");
           }
 
           await initTransaction(

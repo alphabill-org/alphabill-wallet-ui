@@ -14,6 +14,7 @@ import { useApp } from "../../hooks/appProvider";
 import { IFungibleAsset } from "../../types/Types";
 import Spacer from "../Spacer/Spacer";
 import { separateDigits, addDecimal } from "../../utils/utils";
+import ReclaimFeeCredit from "./ReclaimFeeCredit";
 
 export default function FeeCredit(): JSX.Element | null {
   const { setActiveAssetLocal } = useAuth();
@@ -43,21 +44,30 @@ export default function FeeCredit(): JSX.Element | null {
             return (
               <div
                 key={idx}
-                className={classNames("assets-list__item", {
-                  "no-hover": true,
-                })}
+                className={
+                  value?.value > 0 ? "assets-list__item-hover-btn" : ""
+                }
               >
-                <div className="assets-list__item-clicker"></div>
-                <div className={classNames("assets-list__item-icon")}>
-                  {<ABLogo />}
-                </div>
-                <div className="assets-list__item-title">
-                  {key === AlphaType ? AlphaType : TokenType} credits
-                </div>
-                <div className="assets-list__item-amount">
-                  {separateDigits(
-                    addDecimal(value?.value || "0", AlphaDecimals)
-                  )}{" "}
+                {value?.value > 0 && (
+                  <ReclaimFeeCredit isAlpha={key === AlphaType} />
+                )}
+                <div
+                  className={classNames("assets-list__item", {
+                    "no-hover": true,
+                  })}
+                >
+                  <div className="assets-list__item-clicker"></div>
+                  <div className={classNames("assets-list__item-icon")}>
+                    {<ABLogo />}
+                  </div>
+                  <div className="assets-list__item-title">
+                    {key === AlphaType ? AlphaType : TokenType} credits
+                  </div>
+                  <div className="assets-list__item-amount">
+                    {separateDigits(
+                      addDecimal(value?.value || "0", AlphaDecimals)
+                    )}{" "}
+                  </div>
                 </div>
               </div>
             );
