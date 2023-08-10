@@ -86,7 +86,7 @@ export default function ReclaimFeeCredit({
 
   useEffect(() => {
     if (
-      BigInt(balance || "0") &&
+      BigInt(balance || "0") && balanceAfterReclaim.current &&
       BigInt(balance || "0") >= BigInt(balanceAfterReclaim.current || "0")
     ) {
       pollingInterval.current && clearInterval(pollingInterval.current);
@@ -130,7 +130,7 @@ export default function ReclaimFeeCredit({
           initialValues={{
             password: "",
           }}
-          onSubmit={async (values, { setErrors }) => {
+          onSubmit={async (values, { setErrors, resetForm }) => {
             resetRefs();
             isFeeReclaimed.current = false;
 
@@ -199,7 +199,6 @@ export default function ReclaimFeeCredit({
               billData: ITransactionPayload,
               isClose: boolean
             ) => {
-              pollingInterval.current && clearInterval(pollingInterval.current);
               getRoundNumber(isAlpha).then(async (variableRoundNumber) => {
                 const id = billData.payload.unitId;
 
@@ -243,8 +242,7 @@ export default function ReclaimFeeCredit({
                           id: unit8ToHexPrefixed(id),
                           txHash: txHash,
                         };
-
-                        addPollingInterval();
+                        isClose && addPollingInterval();
                       });
                 };
 
@@ -285,6 +283,7 @@ export default function ReclaimFeeCredit({
                             baseObj(currentCreditBill, false, data),
                             false
                           );
+                          resetForm();
                       }
                     })
                     .finally(() => setIntervalCancel());
