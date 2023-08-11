@@ -12,6 +12,7 @@ import {
   hexToBase64,
   getUpdatedNFTAssets,
   getUpdatedFungibleAssets,
+  handleBillSelection,
   createEllipsisString,
 } from "../utils/utils";
 
@@ -21,6 +22,7 @@ import {
   PushBoolTrue,
   StartByte,
 } from "../utils/constants";
+
 import {
   activeAccountId,
   NFTsList_1,
@@ -37,6 +39,9 @@ import {
   NFTIsSendableFalseResult,
   NFTSameTypeResult,
   TestBills,
+  ExpectedBill1000,
+  ExpectedBill200,
+  ExpectedBill500,
 } from "./constants";
 
 describe("Function that counts decimal length", () => {
@@ -120,7 +125,7 @@ describe("Function that finds an object that has a value greater than or equal t
     expect(result).toEqual({
       id: "3",
       value: "500",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT="
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzT=",
     });
   });
 
@@ -142,7 +147,7 @@ describe("Function that gets closest value to the target value", () => {
     expect(result).toEqual({
       id: "2",
       value: "200",
-      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY="
+      txHash: "BzD2YH9Wy1aoUTiJZCHA5JbHUgc94b5rzdxAvheSfzY=",
     });
   });
 });
@@ -453,19 +458,79 @@ describe("Get updated fungible assets with is sendable & sum of same type", () =
   });
 });
 
-describe('createEllipsisString', () => {
-  it('should add ellipsis when the length of id is greater than the sum of firstCount and lastCount', () => {
-    const id = 'abcdefghijklmnopqrstuvwxyz';
+describe("handleBillSelection function", () => {
+  it("should split the bill without fee", () => {
+    const convertedAmount = "1200";
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills);
+
+    // Assert the results based on your expectations
+    expect(optimalBills.length).toBe(2);
+    expect(billsToTransfer.length).toBe(2);
+    expect(billToSplit).toEqual(null); // Since billsSumDifference === 0n
+    expect(splitBillAmount).toEqual(null); // Since billToSplit is null
+  });
+
+  it("should split the bill with a fee of 50", () => {
+    const convertedAmount = "1200";
+    const feeAmount = 50n;
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills, feeAmount);
+
+    // Assert the results based on your expectations
+    expect(optimalBills.length).toBe(2);
+    expect(billsToTransfer.length).toBe(1);
+    expect(billToSplit).toEqual(ExpectedBill500);
+    // Fee amount is deducted on every transfer
+    expect(splitBillAmount).toEqual(
+      200n + BigInt(optimalBills.length) * feeAmount
+    );
+  });
+
+  it("should select specific bills in optimalBills array", () => {
+    const convertedAmount = "1200";
+    const { optimalBills } = handleBillSelection(convertedAmount, TestBills);
+
+    // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
+    expect(optimalBills).toEqual([ExpectedBill1000, ExpectedBill200]);
+  });
+
+  // Add more test cases with expectedBills
+  it("should select specific bills and split the bill", () => {
+    const convertedAmount = "300"; // Less than the total value of bills
+    const feeAmount = 50n;
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
+      handleBillSelection(convertedAmount, TestBills, feeAmount);
+
+    // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
+    expect(optimalBills).toEqual([ExpectedBill1000]);
+
+    // Ensure that the actual billsToTransfer and billToSplit match the ExpectedBills
+    expect(billsToTransfer).toEqual([]);
+    expect(billToSplit).toEqual(ExpectedBill1000);
+
+    // Fee amount is deducted on every transfer
+    const expectedSplitBillAmount =
+      300n + BigInt(optimalBills.length) * feeAmount;
+
+    // Ensure that the actual splitBillAmount matches the expected splitBillAmount
+    expect(splitBillAmount).toEqual(expectedSplitBillAmount);
+  });
+});
+
+describe("createEllipsisString", () => {
+  it("should add ellipsis when the length of id is greater than the sum of firstCount and lastCount", () => {
+    const id = "abcdefghijklmnopqrstuvwxyz";
     const firstCount = 5;
     const lastCount = 5;
 
     const result = createEllipsisString(id, firstCount, lastCount);
 
-    expect(result).toBe('abcde...vwxyz');
+    expect(result).toBe("abcde...vwxyz");
   });
 
-  it('should return the original id when firstCount and lastCount are greater than or equal to the length of id', () => {
-    const id = 'small';
+  it("should return the original id when firstCount and lastCount are greater than or equal to the length of id", () => {
+    const id = "small";
     const firstCount = 10;
     const lastCount = 10;
 

@@ -14,7 +14,6 @@ import {
   ITxProof,
 } from "../types/Types";
 import {
-  AlphaDecimalFactor,
   AlphaDecimals,
   AlphaType,
   DownloadableTypes,
@@ -89,7 +88,6 @@ export const getBillsList = async (
           typeId: AlphaType,
           name: AlphaType,
           network: import.meta.env.VITE_NETWORK_NAME,
-          decimalFactor: AlphaDecimalFactor,
           decimals: AlphaDecimals,
           UIAmount:
             bill?.value &&

@@ -19,7 +19,6 @@ import {
   ITransactionPayloadObj,
 } from "../types/Types";
 import {
-  AlphaDecimalFactor,
   AlphaDecimals,
   AlphaType,
   localStorageKeys,
@@ -320,19 +319,23 @@ export const getClosestSmaller = (bills: IBill[], target: string) => {
   });
 };
 
-export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
+export const getOptimalBills = (
+  amount: string,
+  billsArr: IBill[],
+  feeAmount: bigint = 0n
+): IBill[] => {
   if (!billsArr) {
     return [];
   }
   const selectedBills: IBill[] = [];
-  const amountBigInt = BigInt(amount);
+  const amountBigInt = BigInt(amount) + feeAmount;
   const zeroBigInt = 0n;
 
-  const closestBigger = findClosestBigger(billsArr, amount);
+  const closestBigger = findClosestBigger(billsArr, amount + feeAmount);
   if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
     selectedBills.push(closestBigger);
   } else {
-    const initialBill = getClosestSmaller(billsArr, amount);
+    const initialBill = getClosestSmaller(billsArr, amount + feeAmount);
     if (initialBill === null) {
       return [];
     } else {
@@ -348,7 +351,7 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
         let addedSum;
         const closestBigger = findClosestBigger(
           filteredBills,
-          missingSum.toString()
+          (feeAmount ? missingSum + feeAmount : missingSum).toString()
         );
         if (closestBigger && BigInt(closestBigger.value) > zeroBigInt) {
           selectedBills.push(closestBigger);
@@ -356,7 +359,7 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
         } else {
           const currentBill = getClosestSmaller(
             filteredBills,
-            missingSum.toString()
+            (feeAmount ? missingSum + feeAmount : missingSum).toString()
           );
           if (currentBill === null) {
             return [];
@@ -375,6 +378,41 @@ export const getOptimalBills = (amount: string, billsArr: IBill[]): IBill[] => {
 
   return selectedBills;
 };
+
+export function handleBillSelection(
+  convertedAmount: string,
+  billsArr: IBill[],
+  feeAmount?: bigint
+): {
+  optimalBills: IBill[];
+  billsToTransfer: IBill[];
+  billToSplit: IBill | null | undefined;
+  splitBillAmount: bigint | null;
+} {
+  const optimalBills = getOptimalBills(convertedAmount, billsArr, feeAmount);
+
+  const billsSumDifference =
+    getBillsSum(optimalBills) -
+    BigInt(convertedAmount) -
+    (optimalBills.length < 1 || !feeAmount
+      ? 0n
+      : BigInt(optimalBills.length) * feeAmount);
+
+  const billToSplit =
+    billsSumDifference !== 0n
+      ? findClosestBigger(optimalBills, billsSumDifference.toString())
+      : null;
+
+  const billsToTransfer = billToSplit
+    ? optimalBills?.filter((bill) => bill.id !== billToSplit?.id)
+    : optimalBills;
+
+  const splitBillAmount = billToSplit
+    ? BigInt(billToSplit.value) - billsSumDifference
+    : null;
+
+  return { optimalBills, billsToTransfer, billToSplit, splitBillAmount };
+}
 
 export const getBillsSum = (bills: IBill[]) =>
   bills?.reduce((acc, obj: IBill) => {
@@ -595,7 +633,6 @@ const getUpdatesUTPFungibleTokens = (
       symbol: obj.symbol,
       network: obj.network,
       amount: obj.amount?.toString(),
-      decimalFactor: Number("1e" + obj.decimals),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
         tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
@@ -632,7 +669,6 @@ export const getUpdatedFungibleAssets = (
     symbol: AlphaType,
     network: import.meta.env.VITE_NETWORK_NAME,
     amount: ALPHABalance,
-    decimalFactor: AlphaDecimalFactor,
     decimals: AlphaDecimals,
     UIAmount: separateDigits(addDecimal(ALPHABalance || "0", AlphaDecimals)),
     typeId: AlphaType,
