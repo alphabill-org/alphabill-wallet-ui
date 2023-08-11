@@ -420,7 +420,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
               const billToTransfer = transferrableBills.current?.[0];
               initialRoundNumber.current = null;
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
-              queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
 
               if (transferFeePollingProofProps.current) {
                 getProof(
