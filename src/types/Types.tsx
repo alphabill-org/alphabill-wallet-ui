@@ -252,8 +252,18 @@ export interface IBalance {
 }
 
 export interface IFeeCreditBills {
-  [AlphaType]: any;
-  [TokenType]: any;
+  [AlphaType]: {
+    id: string;
+    value: string;
+    txHash: string;
+    lastAddFcTxHash: string;
+  } | null;
+  [TokenType]: {
+    id: string;
+    value: string;
+    txHash: string;
+    lastAddFcTxHash: string;
+  } | null;
 }
 
 export type IActionVies =
