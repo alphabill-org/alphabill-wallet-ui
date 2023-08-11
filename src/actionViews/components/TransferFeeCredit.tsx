@@ -456,10 +456,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   base64ToHexPrefixed(addFeePollingProofProps.current.txHash),
                   addFeePollingProofProps.current.isTokensRequest
                 )
-                  .then(async () => {
-                    transferBillProof.current = null;
-                    billToTransfer &&
-                      initTransaction(billToTransfer, true, false);
+                  .then(async (data) => {
+                    if (data?.txProof) {
+                      transferBillProof.current = null;
+                      billToTransfer &&
+                        initTransaction(billToTransfer, true, false);
+                    }
                   })
                   .finally(() => setIntervalCancel());
               }
