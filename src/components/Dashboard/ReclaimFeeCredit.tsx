@@ -104,7 +104,7 @@ export default function ReclaimFeeCredit({
         small={true}
         block={true}
         type="button"
-        variant="primary"
+        variant="secondary"
         working={isSending}
         className={isHidden ? "reclaim hidden" : "reclaim"}
         disabled={isSending || !billsArr?.[0]?.txHash}

@@ -52,13 +52,14 @@
         margin: auto;
         z-index: $z-index-reclaim;
         height: 36px;
-        transition: opacity .3s;
+        transition: opacity .2s;
       }
 
       &:hover {
         .reclaim {
           opacity: 1;
           pointer-events: all;
+          background-color: $color-secondary;
         }
       }
     }
