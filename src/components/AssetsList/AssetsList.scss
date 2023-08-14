@@ -30,6 +30,10 @@
     &-hover-btn {
       cursor: pointer;
 
+      &.no-pointer {
+        cursor: inherit;
+      }
+
       &:first-child {
         .reclaim {
           top: -128px

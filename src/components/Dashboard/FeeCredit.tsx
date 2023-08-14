@@ -44,9 +44,10 @@ export default function FeeCredit(): JSX.Element | null {
             return (
               <div
                 key={idx}
-                className={
-                  value?.value > 0 ? "assets-list__item-hover-btn" : ""
-                }
+                className={classNames({
+                  "assets-list__item-hover-btn": value?.value > 0 ,
+                  "no-pointer": !Boolean(alphaBalance > 0)
+                })}
               >
                 <ReclaimFeeCredit
                   isHidden={Boolean(Number(value?.value || 0) === 0)}

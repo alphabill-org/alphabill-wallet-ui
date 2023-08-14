@@ -25,6 +25,7 @@
         circle:first-child {
           fill: $color-white;
         }
+
         circle {
           fill: $color-secondary-op;
         }
@@ -41,8 +42,8 @@
   }
 
   &:disabled {
-    opacity: 0.5;
-    pointer-events: none;
+    pointer-events: none !important;
+    cursor: unset !important;
   }
 
   &.button--small {
