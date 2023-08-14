@@ -125,6 +125,8 @@ export default function ReclaimFeeCredit({
         isPopupVisible={isReclaimPopupVisible}
         setIsPopupVisible={setIsReclaimPopupVisible}
         title="Reclaim fee credit"
+        isCloseOnDocumentClickDisabled
+        isCloseBtnHidden
       >
         <Formik
           initialValues={{
@@ -336,6 +338,7 @@ export default function ReclaimFeeCredit({
                         onClick={() => setIsReclaimPopupVisible(false)}
                         big={true}
                         block={true}
+                        disabled={isSending}
                         variant="secondary"
                       >
                         Cancel
