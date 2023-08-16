@@ -61,7 +61,7 @@ export default function ReclaimFeeCredit({
   const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
   const billsArr = billsList
-    .filter((bill: any) => bill.value > 1)
+    .filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.dcNonce));
   const balance: string =
     account?.assets?.fungible?.find(
@@ -86,7 +86,8 @@ export default function ReclaimFeeCredit({
 
   useEffect(() => {
     if (
-      BigInt(balance || "0") && balanceAfterReclaim.current &&
+      BigInt(balance || "0") &&
+      balanceAfterReclaim.current &&
       BigInt(balance || "0") >= BigInt(balanceAfterReclaim.current || "0")
     ) {
       pollingInterval.current && clearInterval(pollingInterval.current);
@@ -285,7 +286,7 @@ export default function ReclaimFeeCredit({
                             baseObj(currentCreditBill, false, data),
                             false
                           );
-                          resetForm();
+                        resetForm();
                       }
                     })
                     .finally(() => setIntervalCancel());

@@ -86,7 +86,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     label: string;
   } = feeAssets[0];
   const billsArr = billsList
-    .filter((bill: any) => bill.value > 1)
+    .filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.dcNonce));
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
@@ -512,18 +512,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
           password: Yup.string().required("Password is required"),
           amount: Yup.string()
             .required("Amount is required")
-            .test(
-              "test more than",
-              "Value must be greater than 0.00000002",
-              (value: string | undefined) => {
-                const convertedAmount = convertToWholeNumberBigInt(
-                  value || "0",
-                  AlphaDecimals
-                );
-
-                return convertedAmount > 2n;
-              }
-            )
             .test(
               "test less than",
               "Amount with fees exceeds available assets",
