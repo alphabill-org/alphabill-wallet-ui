@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 
-import { FeeCostEl, getTokensLabel } from "../../../utils/utils";
+import {
+  FeeCostEl,
+  getBillsAndTargetUnitToConsolidate,
+  getTokensLabel,
+} from "../../../utils/utils";
 import {
   DCTransfersLimit,
   SwapTimeout,
@@ -38,17 +42,8 @@ function BillsList(): JSX.Element | null {
     [sortedListByValue]
   );
 
-  const collectableBills =
-    billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
-
-  const targetIds = DCBills?.map((item) => item.targetUnitId);
-  const consolidationTargetUnit =
-    collectableBills?.find((bill: IBill) => targetIds.includes(bill.id)) ||
-    collectableBills?.[0];
-
-  const billsToConsolidate = collectableBills?.filter(
-    (b: IBill) => b.id !== consolidationTargetUnit.id
-  );
+  const { billsToConsolidate, consolidationTargetUnit } =
+    getBillsAndTargetUnitToConsolidate(billsList);
 
   const isFeeCredit = Number(feeCreditBills?.ALPHA?.value) >= DCBills.length;
 
@@ -98,7 +93,12 @@ function BillsList(): JSX.Element | null {
         vault
       );
 
-      if (error || !hashingPublicKey || !hashingPrivateKey) {
+      if (
+        error ||
+        !hashingPublicKey ||
+        !hashingPrivateKey ||
+        !consolidationTargetUnit
+      ) {
         return;
       }
 
@@ -110,7 +110,7 @@ function BillsList(): JSX.Element | null {
         DCBills,
         account,
         activeAccountId,
-        consolidationTargetUnit
+        consolidationTargetUnit as IBill
       );
     },
     [
@@ -197,7 +197,7 @@ function BillsList(): JSX.Element | null {
                           billsToConsolidate,
                           DCBills,
                           activeAccountId,
-                          consolidationTargetUnit
+                          consolidationTargetUnit as IBill
                         );
                       } else {
                         setIsPasswordFormVisible("handleDC");
@@ -253,7 +253,7 @@ function BillsList(): JSX.Element | null {
               billsToConsolidate,
               DCBills,
               activeAccountId,
-              consolidationTargetUnit
+              consolidationTargetUnit as IBill
             )
           }
           account={account}

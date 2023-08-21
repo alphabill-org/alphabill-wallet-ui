@@ -40,7 +40,7 @@ export const handleSwapRequest = async (
   DCBills: IBill[],
   account: IAccount,
   activeAccountId: string,
-  targetUnit: IActiveAsset
+  targetUnit: IBill
 ) => {
   const sortedBills = DCBills.sort((a: any, b: any) =>
     a.targetUnitId.localeCompare(b.targetUnitId)
@@ -145,7 +145,7 @@ export const handleDC = async (
   billsList: IBill[],
   DCBills: IBill[],
   activeAccountId: string,
-  targetUnit: IActiveAsset
+  targetUnit: IBill
 ) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,

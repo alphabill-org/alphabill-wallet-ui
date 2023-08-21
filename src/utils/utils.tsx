@@ -841,3 +841,29 @@ export const unlockedBills = (bills: IBill[]) => {
   const targetIds = DCBills?.map((item) => item.targetUnitId);
   return collectableBills.filter((item) => !targetIds.includes(item.id));
 };
+
+export const getBillsAndTargetUnitToConsolidate = (
+  billsList: IBill[] | undefined
+): {
+  billsToConsolidate: IBill[];
+  consolidationTargetUnit: IBill | undefined;
+} => {
+  const collectableBills =
+    billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+  const DCBills =
+    billsList?.filter((b: IBill) => Boolean(b.targetUnitId)) || [];
+
+  const targetIds = DCBills?.map((item) => item.targetUnitId);
+  const consolidationTargetUnit =
+    collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
+    collectableBills?.[0];
+
+  const billsToConsolidate = collectableBills?.filter(
+    (b: IBill) => b.id !== consolidationTargetUnit?.id
+  );
+
+  return {
+    billsToConsolidate: billsToConsolidate || [],
+    consolidationTargetUnit,
+  };
+};
