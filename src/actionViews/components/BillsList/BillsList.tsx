@@ -41,7 +41,10 @@ function BillsList(): JSX.Element | null {
   const collectableBills =
     billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
 
-  const consolidationTargetUnit = collectableBills?.[0];
+  const targetIds = DCBills?.map((item) => item.targetUnitId);
+  const consolidationTargetUnit =
+    collectableBills?.find((bill: IBill) => targetIds.includes(bill.id)) ||
+    collectableBills?.[0];
 
   const billsToConsolidate = collectableBills?.filter(
     (b: IBill) => b.id !== consolidationTargetUnit.id

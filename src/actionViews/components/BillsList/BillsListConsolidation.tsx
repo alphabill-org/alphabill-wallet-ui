@@ -42,8 +42,6 @@ export const handleSwapRequest = async (
   activeAccountId: string,
   targetUnit: IActiveAsset
 ) => {
-  console.log('swap');
-
   const sortedBills = DCBills.sort((a: any, b: any) =>
     a.targetUnitId.localeCompare(b.targetUnitId)
   );
