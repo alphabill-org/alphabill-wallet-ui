@@ -67,7 +67,7 @@ export default function TransferFungible(): JSX.Element | null {
     isActionsViewVisible,
     actionsView,
     account,
-    billsList,
+    unlockedBillsList,
     selectedTransferKey,
     setActionsView,
     setSelectedTransferKey,
@@ -78,7 +78,8 @@ export default function TransferFungible(): JSX.Element | null {
   const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
     useAuth();
   const queryClient = useQueryClient();
-  const directlySelectedAsset = billsList?.find(
+
+  const directlySelectedAsset = unlockedBillsList?.find(
     (bill: IBill) => bill.id === selectedTransferKey
   );
   const fungibleAssets = account?.assets?.fungible?.filter(
@@ -222,10 +223,13 @@ export default function TransferFungible(): JSX.Element | null {
 
           const billsArr = selectedTransferKey
             ? [directlySelectedAsset]
-            : billsList?.filter((bill: IBill) => !Boolean(bill.dcNonce));
+            : unlockedBillsList || [];
 
           const { billsToTransfer, billToSplit, splitBillAmount } =
-            handleBillSelection(convertedAmount.toString(), billsArr);
+            handleBillSelection(
+              convertedAmount.toString(),
+              billsArr as IBill[]
+            );
 
           const newBearer = createNewBearer(values.address);
 

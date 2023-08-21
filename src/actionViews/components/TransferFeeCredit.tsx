@@ -62,7 +62,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     setIsActionsViewVisible,
     isActionsViewVisible,
     account,
-    billsList,
+    unlockedBillsList,
     selectedTransferKey,
     setSelectedTransferKey,
     setPreviousView,
@@ -85,9 +85,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
     value: string;
     label: string;
   } = feeAssets[0];
-  const billsArr = billsList
+  const billsArr = unlockedBillsList
     .filter((bill: any) => Number(bill.value) >= 1)
-    ?.filter((bill: IBill) => !Boolean(bill.dcNonce));
+    ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const transferBillProof = useRef<any>(null);

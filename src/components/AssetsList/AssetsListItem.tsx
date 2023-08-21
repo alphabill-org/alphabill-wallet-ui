@@ -1,3 +1,6 @@
+import { useRef, useState } from "react";
+import { useEffect } from "react";
+
 import {
   AlphaType,
   FungibleTokenKind,
@@ -11,11 +14,11 @@ import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
 import { IActiveAsset } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
-import { useRef, useState } from "react";
-import { useEffect } from "react";
+import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
 
 export interface IAssetsListProps {
   asset: any;
+  isLocked?: boolean;
   isTypeListItem?: boolean;
   onSendClick?: (e: IActiveAsset) => void;
   handleClick: (e: IActiveAsset) => void | undefined;
@@ -24,6 +27,7 @@ export interface IAssetsListProps {
 
 export default function AssetsListItem({
   asset,
+  isLocked,
   isTypeListItem,
   isTransferButton,
   handleClick,
@@ -75,7 +79,7 @@ export default function AssetsListItem({
         {amount && <div className="assets-list__item-amount">{amount}</div>}
         {isButtons && (
           <div className="assets-list__item-actions">
-            {isTransferButton && (
+            {isTransferButton && !isLocked && (
               <Button
                 onClick={() => {
                   setActionsView(
@@ -91,6 +95,12 @@ export default function AssetsListItem({
               >
                 <Send />
               </Button>
+            )}
+
+            {isLocked && (
+              <div className="assets-list__item-lock">
+                <LockIco /> Locked for consolidation
+              </div>
             )}
           </div>
         )}

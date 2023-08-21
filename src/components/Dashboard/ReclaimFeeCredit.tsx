@@ -62,7 +62,7 @@ export default function ReclaimFeeCredit({
   const queryClient = useQueryClient();
   const billsArr = billsList
     .filter((bill: any) => Number(bill.value) >= 1)
-    ?.filter((bill: IBill) => !Boolean(bill.dcNonce));
+    ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
   const balance: string =
     account?.assets?.fungible?.find(
       (asset: IFungibleAsset) => asset.typeId === AlphaType
@@ -267,10 +267,9 @@ export default function ReclaimFeeCredit({
 
             const addPollingInterval = () => {
               pollingInterval.current = setInterval(async () => {
-                const pubKeyHash = await publicKeyHash(activeAccountId, true);
                 initialRoundNumber.current = null;
                 invalidateAllLists(activeAccountId, AlphaType, queryClient);
-                queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
+
 
                 if (closePollingProofProps.current) {
                   getProof(

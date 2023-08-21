@@ -34,6 +34,7 @@ import {
   SigScheme,
   StartByte,
 } from "./constants";
+import { publicKeyHash } from "./hashers";
 
 export const extractFormikError = (
   errors: unknown,
@@ -519,11 +520,13 @@ export const separateDigits = (numStr: string) => {
   return formattedIntegerPart;
 };
 
-export const invalidateAllLists = (
+export const invalidateAllLists = async (
   pubKey: string,
   assetTypeId: string,
   queryClient: QueryClient
 ) => {
+  const pubKeyHash = await publicKeyHash(pubKey, true);
+
   queryClient.invalidateQueries(["fungibleTokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["fungibleTokensList", pubKey]);
   queryClient.invalidateQueries(["NFTList", pubKey, assetTypeId]);
@@ -531,6 +534,7 @@ export const invalidateAllLists = (
   queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
+  queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
@@ -809,4 +813,60 @@ export const createEllipsisString = (
   }
 
   return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
+};
+
+// Will be updated with lock transactions in v0.3
+export const isBillLocked = (
+  consolidationTargetUnit: IBill,
+  asset: IBill,
+  DCBills: IBill[]
+) => {
+  return (
+    (consolidationTargetUnit?.id === asset.id &&
+      DCBills?.length >= 1 &&
+      Boolean(
+        DCBills?.find(
+          (cb: IBill) => cb.targetUnitId === consolidationTargetUnit?.id
+        )
+      )) ||
+    (DCBills?.length >= 1 &&
+      consolidationTargetUnit &&
+      Boolean(DCBills?.find((cb: IBill) => cb.targetUnitId === asset.id)))
+  );
+};
+
+// Will be updated with lock transactions in v0.3
+export const unlockedBills = (bills: IBill[]) => {
+  const DCBills = bills?.filter((b: IBill) => Boolean(b.targetUnitId));
+  const collectableBills =
+    bills?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+  const targetIds = DCBills?.map((item) => item.targetUnitId);
+  return collectableBills.filter((item) => !targetIds.includes(item.id));
+};
+
+// Will be updated with lock transactions in v0.3
+export const getBillsAndTargetUnitToConsolidate = (
+  billsList: IBill[] | undefined
+): {
+  billsToConsolidate: IBill[];
+  consolidationTargetUnit: IBill | undefined;
+} => {
+  const collectableBills =
+    billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+  const DCBills =
+    billsList?.filter((b: IBill) => Boolean(b.targetUnitId)) || [];
+
+  const targetIds = DCBills?.map((item) => item.targetUnitId);
+  const consolidationTargetUnit =
+    collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
+    collectableBills?.[0];
+
+  const billsToConsolidate = collectableBills?.filter(
+    (b: IBill) => b.id !== consolidationTargetUnit?.id
+  );
+
+  return {
+    billsToConsolidate: billsToConsolidate || [],
+    consolidationTargetUnit,
+  };
 };
