@@ -1,3 +1,6 @@
+import { useRef, useState } from "react";
+import { useEffect } from "react";
+
 import {
   AlphaType,
   FungibleTokenKind,
@@ -9,10 +12,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IActiveAsset, IBill } from "../../types/Types";
+import { IActiveAsset } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
-import { useRef, useState } from "react";
-import { useEffect } from "react";
+import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
 
 export interface IAssetsListProps {
   asset: any;
@@ -93,6 +95,12 @@ export default function AssetsListItem({
               >
                 <Send />
               </Button>
+            )}
+
+            {isLocked && (
+              <div className="assets-list__item-lock">
+                <LockIco /> Locked for consolidation
+              </div>
             )}
           </div>
         )}

@@ -16,7 +16,6 @@ import {
 } from "../../../utils/constants";
 import {
   IAccount,
-  IActiveAsset,
   IBill,
   IPayloadClientMetadata,
   ITransactionPayload,
@@ -57,7 +56,6 @@ export const handleSwapRequest = async (
 
   const zeroBigInt = 0n;
 
-  // Create a function to calculate the sum of BigInt values
   const calculateTargetValue = (bills: IBill[]) => {
     return bills.reduce((acc, obj) => acc + BigInt(obj.value), zeroBigInt);
   };
