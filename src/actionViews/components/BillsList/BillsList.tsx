@@ -208,7 +208,7 @@ function BillsList(): JSX.Element | null {
                     (isFeeCredit && DCBills.length >= 1)
                       ? "Consolidate Bills"
                       : billsToConsolidate?.length <= 1 && isFeeCredit
-                      ? "At lest three bills needed for consolidation"
+                      ? "At lest 3 bills needed for consolidation"
                       : "Not enough fee credit for consolidation"}
                   </Button>
                   <FeeCostEl />
