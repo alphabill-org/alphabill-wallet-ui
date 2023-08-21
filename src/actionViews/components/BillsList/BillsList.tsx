@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
-import { isString } from "lodash";
 
 import { FeeCostEl, getTokensLabel } from "../../../utils/utils";
 import {
@@ -8,7 +7,6 @@ import {
   SwapTimeout,
   AlphaType,
   FungibleListView,
-  LocalKeyLastNonce,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -16,7 +14,6 @@ import { useAuth } from "../../../hooks/useAuth";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
 import { getRoundNumber } from "../../../hooks/requests";
-import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import BillsListPopups from "./BillsListPopups";
 import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
@@ -35,10 +32,19 @@ function BillsList(): JSX.Element | null {
     () =>
       sortedListByValue
         ? sortBillsByID(sortedListByValue)?.filter((b: IBill) =>
-            Boolean(b.dcNonce)
+            Boolean(b.targetUnitId)
           )
         : [],
     [sortedListByValue]
+  );
+
+  const collectableBills =
+    billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+
+  const consolidationTargetUnit = collectableBills?.[0];
+
+  const billsToConsolidate = collectableBills?.filter(
+    (b: IBill) => b.id !== consolidationTargetUnit.id
   );
 
   const isFeeCredit = Number(feeCreditBills?.ALPHA?.value) >= DCBills.length;
@@ -53,19 +59,6 @@ function BillsList(): JSX.Element | null {
   const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
-  const [lastNonceIDsLocal, setLastNonceIDsLocal] = useLocalStorage(
-    LocalKeyLastNonce,
-    null
-  );
-  const lastNonceIDs = useMemo(
-    () =>
-      lastNonceIDsLocal
-        ? isString(lastNonceIDsLocal)
-          ? JSON.parse(lastNonceIDsLocal)
-          : lastNonceIDsLocal
-        : {},
-    [lastNonceIDsLocal]
-  );
   const queryClient = useQueryClient();
   const tokenLabel = getTokensLabel(activeAsset.typeId);
 
@@ -114,29 +107,22 @@ function BillsList(): JSX.Element | null {
         DCBills,
         account,
         activeAccountId,
-        lastNonceIDs,
-        activeAsset
+        consolidationTargetUnit
       );
     },
     [
       DCBills,
       account,
-      lastNonceIDs,
       password,
       vault,
       activeAccountId,
-      activeAsset,
+      consolidationTargetUnit,
     ]
   );
 
   // Effects
   useEffect(() => {
-    if (
-      Number(DCBills?.length) >= 1 &&
-      DCBills?.length === lastNonceIDs?.[activeAccountId]?.length &&
-      password &&
-      !hasSwapBegun
-    ) {
+    if (Number(DCBills?.length) >= 1 && password && !hasSwapBegun) {
       handleSwap(password);
     }
   }, [
@@ -144,7 +130,6 @@ function BillsList(): JSX.Element | null {
     hasSwapBegun,
     isConsolidationLoading,
     DCBills,
-    lastNonceIDs,
     password,
     account?.idx,
     vault,
@@ -162,19 +147,8 @@ function BillsList(): JSX.Element | null {
       swapTimer.current && clearTimeout(swapTimer.current);
       setIsConsolidationLoading(false);
       setHasSwapBegun(false);
-
-      let remainingNonce = lastNonceIDs;
-      delete remainingNonce?.[activeAccountId];
-      setLastNonceIDsLocal(JSON.stringify(remainingNonce));
     }
-  }, [
-    isConsolidationLoading,
-    DCBills,
-    lastNonceIDs,
-    hasSwapBegun,
-    setLastNonceIDsLocal,
-    activeAccountId,
-  ]);
+  }, [isConsolidationLoading, DCBills, hasSwapBegun, activeAccountId]);
 
   return (
     <>
@@ -202,33 +176,36 @@ function BillsList(): JSX.Element | null {
                     variant="primary"
                     working={isConsolidationLoading}
                     disabled={
-                      (billsList?.length <= 1 && DCBills.length <= 0) ||
-                      isConsolidationLoading || !isFeeCredit
+                      (billsToConsolidate?.length <= 1 &&
+                        DCBills.length <= 0) ||
+                      isConsolidationLoading ||
+                      !isFeeCredit
                     }
                     onClick={() => {
                       if (password) {
                         handleDC(
                           addInterval,
                           setIsConsolidationLoading,
-                          setLastNonceIDsLocal,
                           setHasSwapBegun,
                           handleSwap,
                           account,
                           password,
                           vault,
-                          billsList,
+                          billsToConsolidate,
                           DCBills,
-                          lastNonceIDs,
                           activeAccountId,
-                          activeAsset
+                          consolidationTargetUnit
                         );
                       } else {
                         setIsPasswordFormVisible("handleDC");
                       }
                     }}
                   >
-                    {isFeeCredit
+                    {(isFeeCredit && billsToConsolidate?.length > 1) ||
+                    (isFeeCredit && DCBills.length >= 1)
                       ? "Consolidate Bills"
+                      : billsToConsolidate?.length <= 1 && isFeeCredit
+                      ? "At lest three bills needed for consolidation"
                       : "Not enough fee credit for consolidation"}
                   </Button>
                   <FeeCostEl />
@@ -240,12 +217,15 @@ function BillsList(): JSX.Element | null {
         )}
         <Spacer mt={24} />
         {Number(
-          sortedListByValue?.filter((b: IBill) => !Boolean(b.dcNonce))?.length
+          sortedListByValue?.filter((b: IBill) => !Boolean(b.targetUnitId))
+            ?.length
         ) >= 1 && (
           <AssetsList
             assetList={sortedListByValue?.filter(
-              (b: IBill) => !Boolean(b.dcNonce)
+              (b: IBill) => !Boolean(b.targetUnitId)
             )}
+            DCBills={DCBills}
+            consolidationTargetUnit={consolidationTargetUnit}
             isTypeListItem
             isTransferButton
             isHoverDisabled
@@ -262,17 +242,15 @@ function BillsList(): JSX.Element | null {
             handleDC(
               addInterval,
               setIsConsolidationLoading,
-              setLastNonceIDsLocal,
               setHasSwapBegun,
               handleSwap,
               account,
               formPassword,
               vault,
-              billsList,
+              billsToConsolidate,
               DCBills,
-              lastNonceIDs,
               activeAccountId,
-              activeAsset
+              consolidationTargetUnit
             )
           }
           account={account}

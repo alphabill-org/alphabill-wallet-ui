@@ -9,13 +9,14 @@ import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
-import { IActiveAsset } from "../../types/Types";
+import { IActiveAsset, IBill } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
 import { useRef, useState } from "react";
 import { useEffect } from "react";
 
 export interface IAssetsListProps {
   asset: any;
+  isLocked?: boolean;
   isTypeListItem?: boolean;
   onSendClick?: (e: IActiveAsset) => void;
   handleClick: (e: IActiveAsset) => void | undefined;
@@ -24,6 +25,7 @@ export interface IAssetsListProps {
 
 export default function AssetsListItem({
   asset,
+  isLocked,
   isTypeListItem,
   isTransferButton,
   handleClick,
@@ -75,7 +77,7 @@ export default function AssetsListItem({
         {amount && <div className="assets-list__item-amount">{amount}</div>}
         {isButtons && (
           <div className="assets-list__item-actions">
-            {isTransferButton && (
+            {isTransferButton && !isLocked && (
               <Button
                 onClick={() => {
                   setActionsView(

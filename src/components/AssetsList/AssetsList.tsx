@@ -3,12 +3,14 @@ import { useQueryClient } from "react-query";
 
 import { AlphaType, FungibleTokenKind } from "../../utils/constants";
 import { useAuth } from "../../hooks/useAuth";
-import { invalidateAllLists } from "../../utils/utils";
-import { IActiveAsset } from "../../types/Types";
+import { invalidateAllLists, isBillLocked } from "../../utils/utils";
+import { IActiveAsset, IBill } from "../../types/Types";
 import AssetsListItem from "./AssetsListItem";
 
 export interface IAssetsListProps {
   assetList: any;
+  consolidationTargetUnit?: IBill;
+  DCBills?: any;
   isTypeListItem?: boolean;
   onItemClick?: () => void;
   onSendClick?: (e: IActiveAsset) => void;
@@ -18,6 +20,8 @@ export interface IAssetsListProps {
 
 export default function AssetsList({
   assetList,
+  consolidationTargetUnit,
+  DCBills,
   isTypeListItem,
   onItemClick,
   isTransferButton,
@@ -47,6 +51,9 @@ export default function AssetsList({
       {assetList?.map((asset: any) => {
         const isFungibleKind =
           asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
+        const isLocked =
+          consolidationTargetUnit &&
+          isBillLocked(consolidationTargetUnit, asset, DCBills);
 
         return (
           <div
@@ -69,6 +76,7 @@ export default function AssetsList({
               isTransferButton={isTransferButton}
               handleClick={handleClick}
               onSendClick={onSendClick}
+              isLocked={isLocked}
             />
           </div>
         );

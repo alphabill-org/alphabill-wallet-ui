@@ -1,10 +1,7 @@
-import * as secp from "@noble/secp256k1";
-
 import {
   base64ToHexPrefixed,
   createOwnerProof,
   getNewBearer,
-  sortIDBySize,
   sortTx_ProofsByID,
 } from "../../../utils/utils";
 import {
@@ -21,6 +18,7 @@ import {
   IAccount,
   IActiveAsset,
   IBill,
+  IPayloadClientMetadata,
   ITransactionPayload,
   ITransactionPayloadObj,
   ITxProof,
@@ -42,92 +40,105 @@ export const handleSwapRequest = async (
   DCBills: IBill[],
   account: IAccount,
   activeAccountId: string,
-  lastNonceIDs: { [key: string]: string[] },
-  activeAsset: IActiveAsset
+  targetUnit: IActiveAsset
 ) => {
-  let tx_proofs: ITxProof[] = [];
-  let billIdentifiers: Buffer[] = [];
+  console.log('swap');
 
-  sortIDBySize(lastNonceIDs?.[activeAccountId]).forEach((id: string) => {
-    const idBuffer = Buffer.from(id, "base64");
-    billIdentifiers.push(idBuffer);
-  });
+  const sortedBills = DCBills.sort((a: any, b: any) =>
+    a.targetUnitId.localeCompare(b.targetUnitId)
+  );
 
-  DCBills?.map((bill: IBill) =>
-    getProof(
-      base64ToHexPrefixed(bill.id),
-      base64ToHexPrefixed(bill.txHash)
-    ).then(async (data) => {
-      if (data?.txProof) {
-        const tx_proof = data! as ITxProof;
+  const groupedBillsByTargetId = new Map();
 
-        tx_proof && tx_proofs.push(tx_proof);
-        if (tx_proofs?.length === DCBills.length) {
-          let dcTransfers: Uint8Array[] = [];
-          let proofs: Uint8Array[] = [];
+  for (const obj of sortedBills) {
+    if (!groupedBillsByTargetId.has(obj.targetUnitId)) {
+      groupedBillsByTargetId.set(obj.targetUnitId, []);
+    }
+    groupedBillsByTargetId.get(obj.targetUnitId).push(obj);
+  }
 
-          sortTx_ProofsByID(tx_proofs).forEach((proof) => {
-            dcTransfers.push(proof.txRecord);
-            proofs.push(proof.txProof);
-          });
+  const zeroBigInt = 0n;
 
-          if (!hashingPublicKey || !hashingPrivateKey) return;
+  // Create a function to calculate the sum of BigInt values
+  const calculateTargetValue = (bills: IBill[]) => {
+    return bills.reduce((acc, obj) => acc + BigInt(obj.value), zeroBigInt);
+  };
 
-          if (!billIdentifiers.length) return;
-          const nonceHash = await secp.utils.sha256(
-            Buffer.concat(billIdentifiers)
-          );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  for (const [_targetUnitId, bills] of groupedBillsByTargetId) {
+    let tx_proofs: ITxProof[] = [];
+    const sortedBills = sortBillsByID(bills);
 
-          getRoundNumber(activeAsset?.typeId === AlphaType).then(
-            async (roundNumber) => {
-              const transferData: ITransactionPayload = {
-                payload: {
-                  systemId: AlphaSystemId,
-                  type: AlphaSwapType,
-                  unitId: Buffer.from(nonceHash),
-                  attributes: {
-                    ownerCondition: getNewBearer(account),
-                    billIdentifiers: billIdentifiers,
-                    dcTransfers: dcTransfers,
-                    proofs: proofs,
-                    targetValue: DCBills?.reduce((acc, obj: any) => {
-                      return acc + BigInt(obj.value);
-                    }, 0n),
-                  },
-                  clientMetadata: {
-                    timeout: roundNumber + SwapTimeout,
-                    MaxTransactionFee: MaxTransactionFee,
-                    feeCreditRecordID: (await publicKeyHash(
-                      activeAccountId
-                    )) as Uint8Array,
-                  },
-                },
-              };
+    await Promise.all(
+      sortedBills.map(async (bill: IBill) => {
+        const data = await getProof(
+          base64ToHexPrefixed(bill.id),
+          base64ToHexPrefixed(bill.txHash)
+        );
 
-              const proof = await createOwnerProof(
-                transferData.payload as ITransactionPayloadObj,
-                hashingPrivateKey,
-                hashingPublicKey
-              );
+        if (data?.txProof) {
+          const tx_proof = data! as ITxProof;
+          tx_proof && tx_proofs.push(tx_proof);
+        }
+      })
+    );
 
-              proof.isSignatureValid &&
-                makeTransaction(
-                  prepTransactionRequestData(transferData, proof.ownerProof),
-                  activeAccountId,
-                  true
-                );
-            }
+    if (tx_proofs.length === sortedBills.length) {
+      const dcTransfers: Uint8Array[] = [];
+      const proofs: Uint8Array[] = [];
+
+      sortTx_ProofsByID(tx_proofs).forEach((proof) => {
+        dcTransfers.push(proof.txRecord);
+        proofs.push(proof.txProof);
+      });
+
+      if (!hashingPublicKey || !hashingPrivateKey) return;
+
+      if (sortedBills.length === tx_proofs.length) {
+        const roundNumber = await getRoundNumber(
+          targetUnit?.typeId === AlphaType
+        );
+
+        const transferData: ITransactionPayload = {
+          payload: {
+            systemId: AlphaSystemId,
+            type: AlphaSwapType,
+            unitId: Buffer.from(targetUnit.id!, "base64"),
+            attributes: {
+              ownerCondition: getNewBearer(account),
+              dcTransfers: dcTransfers,
+              proofs: proofs,
+              targetValue: calculateTargetValue(sortedBills),
+            },
+            clientMetadata: {
+              timeout: roundNumber + SwapTimeout,
+              MaxTransactionFee: MaxTransactionFee,
+              feeCreditRecordID: await publicKeyHash(activeAccountId),
+            } as IPayloadClientMetadata,
+          },
+        };
+
+        const proof = await createOwnerProof(
+          transferData.payload as ITransactionPayloadObj,
+          hashingPrivateKey,
+          hashingPublicKey
+        );
+
+        if (proof.isSignatureValid) {
+          await makeTransaction(
+            prepTransactionRequestData(transferData, proof.ownerProof),
+            activeAccountId,
+            true
           );
         }
       }
-    })
-  );
+    }
+  }
 };
 
 export const handleDC = async (
   addInterval: () => void,
   setIsConsolidationLoading: (e: boolean) => void,
-  setLastNonceIDsLocal: (e: string) => void,
   setHasSwapBegun: (e: boolean) => void,
   handleSwapCallBack: (e?: string) => void,
   account: IAccount,
@@ -135,9 +146,8 @@ export const handleDC = async (
   vault: any,
   billsList: IBill[],
   DCBills: IBill[],
-  lastNonceIDs: { [key: string]: string[] },
   activeAccountId: string,
-  activeAsset: IActiveAsset
+  targetUnit: IActiveAsset
 ) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,
@@ -150,31 +160,14 @@ export const handleDC = async (
   }
 
   const limitedBillsList = billsList.slice(0, DCTransfersLimit);
-
   const sortedListByID = sortBillsByID(limitedBillsList);
-  let nonce: Buffer[] = [];
-  let IDs: string[] = [];
-
   setIsConsolidationLoading(true);
 
-  if (
-    DCBills?.length >= 1 &&
-    Number(lastNonceIDs?.[activeAccountId]?.length) >= 1
-  ) {
-    DCBills?.map((bill: IBill) => nonce.push(Buffer.from(bill.id, "base64")));
+  if (DCBills?.length >= 1) {
     handleSwapCallBack(password);
     addInterval();
   } else {
-    sortedListByID.forEach((bill: IBill) => {
-      nonce.push(Buffer.from(bill.id, "base64"));
-      IDs.push(bill.id);
-    });
-
-    if (!nonce.length) return;
-
-    const nonceHash = await secp.utils.sha256(Buffer.concat(nonce));
-
-    getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) =>
+    getRoundNumber(targetUnit?.typeId === AlphaType).then((roundNumber) =>
       sortedListByID?.map(async (bill: IBill, idx) => {
         const transferData: ITransactionPayload = {
           payload: {
@@ -182,9 +175,9 @@ export const handleDC = async (
             type: AlphaDcType,
             unitId: Buffer.from(bill.id, "base64"),
             attributes: {
-              nonce: nonceHash,
-              targetBearer: getNewBearer(account),
-              targetValue: BigInt(bill.value),
+              value: BigInt(bill.value),
+              targetUnitID: Buffer.from(targetUnit.id!, "base64"),
+              targetUnitBacklink: Buffer.from(targetUnit.txHash!, "base64"),
               backlink: Buffer.from(bill.txHash, "base64"),
             },
             clientMetadata: {
@@ -214,14 +207,6 @@ export const handleDC = async (
           .catch(() => handleTransactionEnd());
 
         const handleTransactionEnd = () => {
-          setLastNonceIDsLocal(
-            JSON.stringify(
-              Object.assign(lastNonceIDs, {
-                [activeAccountId]: IDs,
-              })
-            )
-          );
-
           if (sortedListByID?.length === idx + 1) {
             addInterval();
             setHasSwapBegun(false);

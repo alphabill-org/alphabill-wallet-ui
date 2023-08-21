@@ -34,6 +34,7 @@ import {
   SigScheme,
   StartByte,
 } from "./constants";
+import { publicKeyHash } from "./hashers";
 
 export const extractFormikError = (
   errors: unknown,
@@ -519,11 +520,13 @@ export const separateDigits = (numStr: string) => {
   return formattedIntegerPart;
 };
 
-export const invalidateAllLists = (
+export const invalidateAllLists = async (
   pubKey: string,
   assetTypeId: string,
   queryClient: QueryClient
 ) => {
+  const pubKeyHash = await publicKeyHash(pubKey, true);
+
   queryClient.invalidateQueries(["fungibleTokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["fungibleTokensList", pubKey]);
   queryClient.invalidateQueries(["NFTList", pubKey, assetTypeId]);
@@ -531,6 +534,7 @@ export const invalidateAllLists = (
   queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
+  queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
@@ -809,4 +813,31 @@ export const createEllipsisString = (
   }
 
   return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
+};
+
+export const isBillLocked = (
+  consolidationTargetUnit: IBill,
+  asset: IBill,
+  DCBills: IBill[]
+) => {
+  return (
+    (consolidationTargetUnit?.id === asset.id &&
+      DCBills?.length >= 1 &&
+      Boolean(
+        DCBills?.find(
+          (cb: IBill) => cb.targetUnitId === consolidationTargetUnit?.id
+        )
+      )) ||
+    (DCBills?.length >= 1 &&
+      consolidationTargetUnit &&
+      Boolean(DCBills?.find((cb: IBill) => cb.targetUnitId === asset.id)))
+  );
+};
+
+export const unlockedBills = (bills: IBill[]) => {
+  const DCBills = bills?.filter((b: IBill) => Boolean(b.targetUnitId));
+  const collectableBills =
+    bills?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+  const targetIds = DCBills?.map((item) => item.targetUnitId);
+  return collectableBills.filter((item) => !targetIds.includes(item.id));
 };

@@ -11,6 +11,7 @@ import { isEqual, sortBy } from "lodash";
 import {
   IAccount,
   IActionVies,
+  IBill,
   IFeeCreditBills,
   IListTokensResponse,
   INFTAsset,
@@ -36,12 +37,14 @@ import {
   getUpdatedFungibleAssets,
   getUpdatedNFTAssets,
   removeConnectTransferData,
+  unlockedBills,
 } from "../utils/utils";
 import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
   balances: any;
   billsList: any;
+  unlockedBillsList: any;
   NFTList: IListTokensResponse[] | undefined;
   NFTsList: IListTokensResponse[] | undefined;
   accounts: IAccount[];
@@ -112,6 +115,10 @@ export const AppProvider: FunctionComponent<{
     useGetAllTokenTypes(activeAccountId);
   const billsList =
     activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
+  const unlockedBillsList =
+    activeAsset.typeId === AlphaType
+      ? unlockedBills(billsList as IBill[])
+      : fungibleTokenList;
   const [accounts, setAccounts] = useState<IAccount[] | []>([]);
   const account = useMemo(
     () =>
@@ -238,6 +245,7 @@ export const AppProvider: FunctionComponent<{
         NFTList,
         NFTsList,
         billsList,
+        unlockedBillsList,
         balances,
         accounts,
         setAccounts,
