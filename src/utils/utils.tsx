@@ -815,6 +815,7 @@ export const createEllipsisString = (
   return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
 };
 
+// Will be updated with lock transactions in v0.3
 export const isBillLocked = (
   consolidationTargetUnit: IBill,
   asset: IBill,
@@ -834,6 +835,7 @@ export const isBillLocked = (
   );
 };
 
+// Will be updated with lock transactions in v0.3
 export const unlockedBills = (bills: IBill[]) => {
   const DCBills = bills?.filter((b: IBill) => Boolean(b.targetUnitId));
   const collectableBills =
@@ -842,6 +844,7 @@ export const unlockedBills = (bills: IBill[]) => {
   return collectableBills.filter((item) => !targetIds.includes(item.id));
 };
 
+// Will be updated with lock transactions in v0.3
 export const getBillsAndTargetUnitToConsolidate = (
   billsList: IBill[] | undefined
 ): {
