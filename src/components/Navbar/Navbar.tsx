@@ -25,7 +25,6 @@ export default function Navbar({
   const handleChange = (v: INavbarViews) => {
     onChange(v);
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-    queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
   };
 
   return (

@@ -76,6 +76,21 @@
       background-color: $color-primary--hover;
     }
 
+    &-lock {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding-left: 14px;
+      background: rgba(0, 0, 0, 0.6);
+      position: absolute;
+      left: 0px;
+      height: 60px;
+      width: 100%;
+      border: 1px solid;
+      border-radius: 8px;
+    }
+
     &-clicker {
       z-index: 1;
       position: absolute;

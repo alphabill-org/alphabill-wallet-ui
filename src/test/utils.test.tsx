@@ -14,6 +14,9 @@ import {
   getUpdatedFungibleAssets,
   handleBillSelection,
   createEllipsisString,
+  getBillsAndTargetUnitToConsolidate,
+  isBillLocked,
+  unlockedBills,
 } from "../utils/utils";
 
 import {
@@ -43,6 +46,7 @@ import {
   ExpectedBill200,
   ExpectedBill500,
 } from "./constants";
+import { IBill } from "../types/Types";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -537,5 +541,83 @@ describe("createEllipsisString", () => {
     const result = createEllipsisString(id, firstCount, lastCount);
 
     expect(result).toBe(id);
+  });
+});
+
+describe("isBillLocked", () => {
+  const consolidationTargetUnit = { id: "123" } as IBill;
+  const asset = { id: "123" } as IBill;
+  const DCBills = [{ targetUnitId: "123" }] as IBill[];
+
+  it("returns true when consolidation target unit and DCBills match", () => {
+    const result = isBillLocked(consolidationTargetUnit, asset, DCBills);
+    expect(result).toBe(true);
+  });
+
+  it("returns false when consolidation target unit and DCBills do not match", () => {
+    const result = isBillLocked(
+      consolidationTargetUnit,
+      { id: "456" } as IBill,
+      DCBills
+    );
+    expect(result).toBe(false);
+  });
+
+  it("returns false when DCBills is empty", () => {
+    const result = isBillLocked(consolidationTargetUnit, asset, []);
+    expect(result).toBe(false);
+  });
+});
+
+describe("unlockedBills", () => {
+  const bills = [
+    { id: "123", targetUnitId: "456" },
+    { id: "789", targetUnitId: null },
+  ] as IBill[];
+
+  it("returns unlocked bills", () => {
+    const result = unlockedBills(bills);
+    expect(result).toEqual([{ id: "789", targetUnitId: null }]);
+  });
+
+  it("returns an empty array when all bills are locked", () => {
+    const bills = [
+      { id: "123", targetUnitId: "456" },
+      { id: "789", targetUnitId: "456" },
+    ];
+    const result = unlockedBills(bills as IBill[]);
+    expect(result).toEqual([]);
+  });
+});
+
+describe("getBillsAndTargetUnitToConsolidate", () => {
+  const billsList = [
+    { id: "123", targetUnitId: null },
+    { id: "456", targetUnitId: "789" },
+  ] as IBill[];
+  const DCBills = [{ targetUnitId: "789" }];
+
+  it("returns bills to consolidate and target unit", () => {
+    const result = getBillsAndTargetUnitToConsolidate(billsList);
+    expect(result).toEqual({
+      billsToConsolidate: [],
+      consolidationTargetUnit: { id: "123", targetUnitId: null },
+    });
+  });
+
+  it("returns an empty array of bills to consolidate when all bills are locked", () => {
+    const billsList = [
+      { id: "123", targetUnitId: "456" },
+      { id: "789", targetUnitId: "456" },
+    ] as IBill[];
+    const result = getBillsAndTargetUnitToConsolidate(billsList);
+    expect(result.billsToConsolidate).toEqual([]);
+  });
+
+  it("returns undefined target unit when no collectable bills", () => {
+    const billsList = [{ id: "123", targetUnitId: "456" }] as IBill[];
+    const DCBills = [{ targetUnitId: "789" }];
+    const result = getBillsAndTargetUnitToConsolidate(billsList);
+    expect(result.consolidationTargetUnit).toBeUndefined();
   });
 });

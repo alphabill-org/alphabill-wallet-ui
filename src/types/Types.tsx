@@ -103,7 +103,7 @@ export interface IActiveAsset {
   value?: string;
   txHash?: string;
   kind?: number;
-  dcNonce?: boolean;
+  targetUnitId?: string;
   nftUri?: string;
   nftData?: string;
   nftName?: string;
@@ -141,7 +141,7 @@ export interface IBill {
   typeId?: string;
   kind?: number;
   decimals?: number;
-  dcNonce?: boolean;
+  targetUnitId?: string;
 }
 
 export interface IBillsList {
@@ -188,6 +188,8 @@ export interface ITransactionAttributes {
   feeCreditTransfer?: Uint8Array;
   feeCreditTransferProof?: Uint8Array;
   typeID?: Uint8Array;
+  targetUnitID?: Uint8Array;
+  targetUnitBacklink?: Uint8Array;
 }
 
 export interface ITransactionRequestPayload {

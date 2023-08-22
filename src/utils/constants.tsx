@@ -105,7 +105,6 @@ export const DownloadableTypes = [
 
 export const MaxImageSize = 5 * 1024 * 1024; // 5MB in bytes (average phone image ~3MB)
 
-export const LocalKeyLastNonce = "ab_last_nonce";
 export const LocalKeyNFTAsset = "ab_nft_asset";
 export const LocalKeyActiveAccount = "ab_active_account";
 export const LocalKeyActiveAsset = "ab_active_asset";
@@ -114,7 +113,6 @@ export const LocalKeyPubKeys = "ab_wallet_pub_keys";
 export const LocalKeyAccountNames = "ab_wallet_account_names";
 
 export const localStorageKeys = [
-  LocalKeyLastNonce,
   LocalKeyNFTAsset,
   LocalKeyActiveAccount,
   LocalKeyActiveAsset,
