@@ -41,12 +41,16 @@ export default function FeeCredit(): JSX.Element | null {
       <>
         {feeCreditBills &&
           Object.entries(feeCreditBills).map(([key, value]: any, idx) => {
+            const currentCreditBill =
+              key === AlphaType ? feeCreditBills?.ALPHA : feeCreditBills?.UTP;
+            const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
+
             return (
               <div
                 key={idx}
                 className={classNames({
-                  "assets-list__item-hover-btn": value?.value > 0 ,
-                  "no-pointer": !Boolean(alphaBalance > 0)
+                  "assets-list__item-hover-btn": value?.value > 0,
+                  "no-pointer": !Boolean(alphaBalance > 0) || !isMinReclaimAmount,
                 })}
               >
                 <ReclaimFeeCredit

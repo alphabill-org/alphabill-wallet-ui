@@ -45,7 +45,6 @@ import {
 
 import {
   prepTransactionRequestData,
-  publicKeyHash,
   transferOrderTxHash,
 } from "../../utils/hashers";
 import Popup from "../Popup/Popup";
@@ -76,6 +75,11 @@ export default function ReclaimFeeCredit({
   } | null>(null);
   const balanceAfterReclaim = useRef<bigint | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+
+  const currentCreditBill = isAlpha
+    ? feeCreditBills?.ALPHA
+    : feeCreditBills?.UTP;
+  const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
 
   const resetRefs = () => {
     balanceAfterReclaim.current = null;
@@ -108,7 +112,7 @@ export default function ReclaimFeeCredit({
         variant="secondary"
         working={isSending}
         className={isHidden ? "reclaim hidden" : "reclaim"}
-        disabled={isSending || !billsArr?.[0]?.txHash}
+        disabled={isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
         onClick={() => {
           setActiveAssetLocal(
             JSON.stringify(
@@ -120,7 +124,11 @@ export default function ReclaimFeeCredit({
           setIsReclaimPopupVisible(!isReclaimPopupVisible);
         }}
       >
-        {!billsArr?.[0]?.txHash ? "ALPHAs needed to reclaim fees" : buttonLabel}
+        {!billsArr?.[0]?.txHash
+          ? "ALPHAs needed to reclaim fees"
+          : !isMinReclaimAmount
+          ? "Not enough credit to reclaim"
+          : buttonLabel}
       </Button>
       <Popup
         isPopupVisible={isReclaimPopupVisible}
@@ -253,10 +261,6 @@ export default function ReclaimFeeCredit({
               });
             };
 
-            const currentCreditBill = isAlpha
-              ? feeCreditBills?.ALPHA
-              : feeCreditBills?.UTP;
-
             currentCreditBill &&
               (await initTransaction(baseObj(currentCreditBill, true), true));
 
@@ -269,7 +273,6 @@ export default function ReclaimFeeCredit({
               pollingInterval.current = setInterval(async () => {
                 initialRoundNumber.current = null;
                 invalidateAllLists(activeAccountId, AlphaType, queryClient);
-
 
                 if (closePollingProofProps.current) {
                   getProof(
