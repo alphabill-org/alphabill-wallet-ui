@@ -115,7 +115,9 @@ export const fetchAllTypes = async (
   while (nextOffsetKey !== null) {
     const response: AxiosResponse = await axios.get(
       TOKENS_BACKEND_URL +
-        (nextOffsetKey ? nextOffsetKey : `/kinds/${kind}/types?limit=${limit}`)
+        (nextOffsetKey
+          ? nextOffsetKey.replace("/api/v1", "") // TOKENS_BACKEND_URL includes /api/v1
+          : `/kinds/${kind}/types?limit=${limit}`)
     );
 
     const data = response.data;
@@ -172,7 +174,7 @@ export const getUserTokens = async (
     const response: AxiosResponse = await axios.get(
       TOKENS_BACKEND_URL +
         (nextOffsetKey
-          ? nextOffsetKey
+          ? nextOffsetKey.replace("/api/v1", "") // TOKENS_BACKEND_URL includes /api/v1
           : `/kinds/${kind}/owners/${owner}/tokens?limit=${limit}`)
     );
 
