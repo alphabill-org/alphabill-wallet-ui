@@ -222,7 +222,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const baseAttr = (bill: IBill, amount: string) => {
             return {
               attributes: {
-                amount: BigInt(amount) - MaxTransactionFee,
+                amount: BigInt(amount),
                 targetSystemIdentifier: isAlpha
                   ? AlphaSystemId
                   : TokensSystemId,
@@ -298,7 +298,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   const deductedWithFee =
                     amount &&
                     (billData.payload.attributes as ITransactionAttributes)
-                      .amount! - MaxTransactionFee;
+                      .amount! - MaxTransactionFee * 2n;
 
                   if (deductedWithFee) {
                     const feeBillsValue =
