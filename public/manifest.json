@@ -19,7 +19,9 @@
   "permissions": [
     "storage",
     "idle",
-    "windows"
+    "windows",
+    "activeTab",
+    "scripting"
   ],
   "externally_connectable": {
     "matches": [
@@ -28,5 +30,17 @@
   },
   "host_permissions": [
     "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["alphabill-object.js"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
