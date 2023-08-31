@@ -8,6 +8,7 @@ export interface IPopupProps {
   setIsPopupVisible?: (e: boolean) => void;
   isPopupVisible: boolean;
   isCloseBtnHidden?: boolean;
+  isFixed?: boolean;
   isCloseOnDocumentClickDisabled?: boolean;
   title: string;
   children: React.ReactNode;
@@ -18,6 +19,7 @@ function Popup({
   isCloseOnDocumentClickDisabled,
   isCloseBtnHidden,
   isPopupVisible,
+  isFixed,
   title,
   children,
 }: IPopupProps): JSX.Element | null {
@@ -39,6 +41,7 @@ function Popup({
     <div
       className={classNames("popup__wrap", {
         "is-visible": Boolean(isPopupVisible),
+        "fixed": isFixed
       })}
     >
       <div className="popup" ref={popupRef}>
