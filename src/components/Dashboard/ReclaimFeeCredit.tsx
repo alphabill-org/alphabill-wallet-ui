@@ -320,7 +320,7 @@ export default function ReclaimFeeCredit({
           })}
         >
           {(formikProps) => {
-            const { handleSubmit, errors, touched } = formikProps;
+            const { handleSubmit, errors, touched, resetForm } = formikProps;
             const id = "Reclaim" + (isAlpha ? AlphaType : TokenType);
             return (
               <form onSubmit={handleSubmit}>
@@ -341,7 +341,10 @@ export default function ReclaimFeeCredit({
                     <div className="button__group">
                       <Button
                         type="reset"
-                        onClick={() => setIsReclaimPopupVisible(false)}
+                        onClick={() => {
+                          setIsReclaimPopupVisible(false);
+                          resetForm();
+                        }}
                         big={true}
                         block={true}
                         disabled={isSending}
