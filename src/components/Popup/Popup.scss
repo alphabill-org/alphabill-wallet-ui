@@ -46,7 +46,7 @@
     min-width: 375px;
     max-width: 375px;
     max-height: 600px;
-    background: #0c0a3eb7;
+    background: $color-overlay;
     display: flex;
     z-index: 100;
     overflow: auto;
@@ -57,6 +57,11 @@
     align-items: center;
     justify-content: center;
     user-select: none;
+
+    &.fixed {
+      position: fixed;
+      cursor: default;
+    }
 
     &.is-visible {
       pointer-events: all;
