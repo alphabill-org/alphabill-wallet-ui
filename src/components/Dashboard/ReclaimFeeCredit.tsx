@@ -354,6 +354,7 @@ export default function ReclaimFeeCredit({
                         block={true}
                         type="submit"
                         variant="primary"
+                        disabled={isSending}
                         working={isSending}
                       >
                         Reclaim fees
