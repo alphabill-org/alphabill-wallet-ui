@@ -105,37 +105,40 @@ export default function ReclaimFeeCredit({
 
   return (
     <>
-      <Button
-        small={true}
-        block={true}
-        type="button"
-        variant="secondary"
-        working={isSending}
-        className={isHidden ? "reclaim hidden" : "reclaim"}
-        disabled={isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
-        onClick={() => {
-          setActiveAssetLocal(
-            JSON.stringify(
-              account?.assets?.fungible.find(
-                (asset) => asset.typeId === AlphaType
+      <div style={{ display: isReclaimPopupVisible ? "none" : "unset" }}>
+        <Button
+          small={true}
+          block={true}
+          type="button"
+          variant="secondary"
+          working={isSending}
+          className={isHidden ? "reclaim hidden" : "reclaim"}
+          disabled={isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
+          onClick={() => {
+            setActiveAssetLocal(
+              JSON.stringify(
+                account?.assets?.fungible.find(
+                  (asset) => asset.typeId === AlphaType
+                )
               )
-            )
-          );
-          setIsReclaimPopupVisible(!isReclaimPopupVisible);
-        }}
-      >
-        {!billsArr?.[0]?.txHash
-          ? "ALPHAs needed to reclaim fees"
-          : !isMinReclaimAmount
-          ? "Not enough credit to reclaim"
-          : buttonLabel}
-      </Button>
+            );
+            setIsReclaimPopupVisible(!isReclaimPopupVisible);
+          }}
+        >
+          {!billsArr?.[0]?.txHash
+            ? "ALPHAs needed to reclaim fees"
+            : !isMinReclaimAmount
+            ? "Not enough credit to reclaim"
+            : buttonLabel}
+        </Button>
+      </div>
       <Popup
         isPopupVisible={isReclaimPopupVisible}
         setIsPopupVisible={setIsReclaimPopupVisible}
         title="Reclaim fee credit"
         isCloseOnDocumentClickDisabled
         isCloseBtnHidden
+        isFixed
       >
         <Formik
           initialValues={{
@@ -317,7 +320,7 @@ export default function ReclaimFeeCredit({
           })}
         >
           {(formikProps) => {
-            const { handleSubmit, errors, touched } = formikProps;
+            const { handleSubmit, errors, touched, resetForm } = formikProps;
             const id = "Reclaim" + (isAlpha ? AlphaType : TokenType);
             return (
               <form onSubmit={handleSubmit}>
@@ -338,7 +341,10 @@ export default function ReclaimFeeCredit({
                     <div className="button__group">
                       <Button
                         type="reset"
-                        onClick={() => setIsReclaimPopupVisible(false)}
+                        onClick={() => {
+                          setIsReclaimPopupVisible(false);
+                          resetForm();
+                        }}
                         big={true}
                         block={true}
                         disabled={isSending}
@@ -351,6 +357,7 @@ export default function ReclaimFeeCredit({
                         block={true}
                         type="submit"
                         variant="primary"
+                        disabled={isSending}
                         working={isSending}
                       >
                         Reclaim fees
