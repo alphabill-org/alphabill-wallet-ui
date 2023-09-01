@@ -14,6 +14,9 @@ export const SigScheme = "01";
 export const PushBoolTrue = StartByte + PushBool + BoolTrue;
 export const PushBoolFalse = StartByte + PushBool + BoolFalse;
 
+export const tokenFeeCreditRecordUnitType = "2f";
+export const moneyFeeCreditRecordUnitType = "0f";
+
 export const TimeoutBlocks = 10n;
 export const SwapTimeout = 40n;
 export const FeeTimeoutBlocks = 20n;
