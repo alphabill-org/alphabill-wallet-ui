@@ -17,8 +17,7 @@ export default function Navbar({
   activeBar,
   isFees,
 }: INavbarProps): JSX.Element | null {
-  const { activeAsset, activeAccountId, pubKeyHash, setActiveAssetLocal } =
-    useAuth();
+  const { activeAsset, activeAccountId, setActiveAssetLocal } = useAuth();
   const { account } = useApp();
   const queryClient = useQueryClient();
 

@@ -3,7 +3,6 @@ import { encodeCanonical } from "cbor";
 import { decode } from "cbor";
 
 import {
-  IBillsList,
   ITransactionPayload,
   IBill,
   IListTokensResponse,
@@ -61,7 +60,8 @@ export const getBalance = async (
 };
 
 export const getBillsList = async (
-  pubKey: string
+  pubKey: string,
+  offsetKey: string = ""
 ): Promise<IBill[] | undefined> => {
   if (
     !pubKey ||
@@ -73,17 +73,19 @@ export const getBillsList = async (
 
   const limit = 100;
   let billsList: IBill[] = [];
-  let offset = 0;
-  let totalBills = null;
+  let nextOffsetKey: string | null = offsetKey;
 
-  while (totalBills === null || Number(billsList?.length) < totalBills) {
-    const response = await axios.get<IBillsList>(
-      `${MONEY_BACKEND_URL}/list-bills?pubkey=${pubKey}&limit=${limit}&offset=${offset}`
+  while (nextOffsetKey !== null) {
+    const response: AxiosResponse = await axios.get(
+      MONEY_BACKEND_URL +
+        (nextOffsetKey
+          ? nextOffsetKey.replace("/api/v1", "") // MONEY_BACKEND_URL includes /api/v1
+          : `/list-bills?pubkey=${pubKey}&limit=${limit}`)
     );
 
-    const { bills, total } = response.data;
+    const { bills } = response.data;
     const billsWithType =
-      bills?.map((bill) =>
+      bills?.map((bill: IBill) =>
         Object.assign(bill, {
           typeId: AlphaType,
           name: AlphaType,
@@ -96,9 +98,22 @@ export const getBillsList = async (
         })
       ) || [];
 
-    totalBills = total;
     billsList = billsList.concat(billsWithType);
-    offset += limit;
+
+    // Check if there is a "next" link in the response header
+    const linkHeader = response.headers.link;
+
+    if (linkHeader) {
+      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
+      if (nextLinkMatch) {
+        // Extract the next offset key from the link header
+        nextOffsetKey = nextLinkMatch[1];
+      } else {
+        nextOffsetKey = null;
+      }
+    } else {
+      nextOffsetKey = null;
+    }
   }
 
   return billsList;
