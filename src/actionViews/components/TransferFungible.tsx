@@ -462,7 +462,6 @@ export default function TransferFungible(): JSX.Element | null {
               "Value must be greater than 0",
               (value: string | undefined) => Number(value || "") > 0n
             )
-
             .test(
               "test less than",
               "Amount exceeds available assets",
