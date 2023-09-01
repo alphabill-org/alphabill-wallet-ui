@@ -443,14 +443,7 @@ export default function TransferFungible(): JSX.Element | null {
               `Address in not in valid format`,
               (value) => isValidAddress(value)
             ),
-          password: Yup.string().required("Password is required"),
-          amount: Yup.string()
-            .required("Amount is required")
-            .test(
-              "test more than",
-              "Value must be greater than 0",
-              (value: string | undefined) => Number(value || "") > 0n
-            )
+          password: Yup.string()
             .test(
               "test less than",
               "Add fee credits",
@@ -460,6 +453,14 @@ export default function TransferFungible(): JSX.Element | null {
                     selectedAsset?.typeId === AlphaType ? AlphaType : TokenType
                   ]?.value || "0"
                 ) >= BigInt("1")
+            )
+            .required("Password is required"),
+          amount: Yup.string()
+            .required("Amount is required")
+            .test(
+              "test more than",
+              "Value must be greater than 0",
+              (value: string | undefined) => Number(value || "") > 0n
             )
             .test(
               "test less than",
