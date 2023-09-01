@@ -71,7 +71,7 @@ export const getBillsList = async (
     return;
   }
 
-  const limit = 1;
+  const limit = 100;
   let billsList: IBill[] = [];
   let nextOffsetKey: string | null = offsetKey;
 
