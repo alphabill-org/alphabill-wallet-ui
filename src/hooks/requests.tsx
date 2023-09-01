@@ -240,9 +240,11 @@ export const getProof = async (
   txHash: string,
   isTokens?: boolean
 ): Promise<ITxProof | undefined> => {
-  if (!Boolean(billID.match(/^0x[0-9A-Fa-f]{64}$/))) {
+
+  if (!billID) {
     return;
   }
+
   const url = isTokens ? TOKENS_BACKEND_URL : MONEY_BACKEND_URL;
   const response = await axios
     .get<any>(`${url}/units/${billID}/transactions/${txHash}/proof`, {
