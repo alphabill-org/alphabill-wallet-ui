@@ -102,7 +102,6 @@ export const getBillsList = async (
 
     // Check if there is a "next" link in the response header
     const linkHeader = response.headers.link;
-      console.log(response.headers);
 
     if (linkHeader) {
       const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
