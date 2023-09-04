@@ -60,7 +60,7 @@ export default function ReclaimFeeCredit({
   const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
   const billsArr = billsList
-    .filter((bill: any) => Number(bill.value) >= 1)
+    ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
   const balance: string =
     account?.assets?.fungible?.find(

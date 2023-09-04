@@ -54,7 +54,7 @@ export default function Navbar({
           onClick={() => {
             const alphaAsset = account?.assets?.fungible
               ?.filter((asset) => account?.activeNetwork === asset.network)
-              .find((asset) => asset.typeId === AlphaType)!;
+              ?.find((asset) => asset.typeId === AlphaType)!;
             setActiveAssetLocal(JSON.stringify(alphaAsset));
             handleChange("fees");
           }}

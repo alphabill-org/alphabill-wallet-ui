@@ -586,7 +586,7 @@ export const getUpdatedNFTAssets = (
           (type: ITokensListTypes) => type.id === nft.typeId
         )?.icon,
         amountOfSameType:
-          NFTsList.filter(
+          NFTsList?.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
           )?.length || "0",
       });
@@ -841,7 +841,7 @@ export const unlockedBills = (bills: IBill[]) => {
   const collectableBills =
     bills?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
   const targetIds = DCBills?.map((item) => item.targetUnitId);
-  return collectableBills.filter((item) => !targetIds.includes(item.id));
+  return collectableBills?.filter((item) => !targetIds.includes(item.id));
 };
 
 // Will be updated with lock transactions in v0.3
