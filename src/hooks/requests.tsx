@@ -408,7 +408,9 @@ export const getImageUrlAndDownloadType = async (
 
 export const getFeeCreditBills = async (
   id: string
-): Promise<IFeeCreditBills> => {
+): Promise<IFeeCreditBills | undefined> => {
+  if (!id) return;
+
   const moneyDataPromise = axios
     .get<any>(
       `${MONEY_BACKEND_URL}/fee-credit-bills/${

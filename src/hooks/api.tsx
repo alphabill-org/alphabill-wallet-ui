@@ -94,7 +94,7 @@ export function useGetImageUrl(
 export function useGetFeeCreditBills(
   id: string
 ): QueryObserverResult<IFeeCreditBills, AxiosError> {
-  return useQuery<IFeeCreditBills, AxiosError>(
+  return useQuery<IFeeCreditBills | any, AxiosError>(
     ["feeBillsList", id],
     () => getFeeCreditBills(id),
     {

@@ -88,7 +88,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     label: string;
   } = feeAssets[0];
   const billsArr = unlockedBillsList
-    .filter((bill: any) => Number(bill.value) >= 1)
+    ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null | undefined>(null);
