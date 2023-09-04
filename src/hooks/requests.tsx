@@ -17,6 +17,8 @@ import {
   AlphaType,
   DownloadableTypes,
   MaxImageSize,
+  moneyFeeCreditRecordUnitType,
+  tokenFeeCreditRecordUnitType,
   TokenType,
 } from "../utils/constants";
 import {
@@ -255,7 +257,6 @@ export const getProof = async (
   txHash: string,
   isTokens?: boolean
 ): Promise<ITxProof | undefined> => {
-
   if (!billID) {
     return;
   }
@@ -409,11 +410,19 @@ export const getFeeCreditBills = async (
   id: string
 ): Promise<IFeeCreditBills> => {
   const moneyDataPromise = axios
-    .get<any>(`${MONEY_BACKEND_URL}/fee-credit-bills/${id}`)
+    .get<any>(
+      `${MONEY_BACKEND_URL}/fee-credit-bills/${
+        id + moneyFeeCreditRecordUnitType
+      }`
+    )
     .catch(handleError);
 
   const tokensDataPromise = axios
-    .get<any>(`${TOKENS_BACKEND_URL}/fee-credit-bills/${id}`)
+    .get<any>(
+      `${TOKENS_BACKEND_URL}/fee-credit-bills/${
+        id + tokenFeeCreditRecordUnitType
+      }`
+    )
     .catch(handleError);
 
   let moneyData = null;
