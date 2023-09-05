@@ -51,7 +51,7 @@ import {
 
 import {
   prepTransactionRequestData,
-  publicKeyHash,
+  publicKeyHashWithFeeType,
   transferOrderTxHash,
 } from "../../utils/hashers";
 
@@ -160,6 +160,11 @@ export default function TransferNFTs(): JSX.Element | null {
           getRoundNumber(false).then(async (roundNumber) => {
             await getTypeHierarchy(selectedNFT.typeId || "")
               .then(async (hierarchy: ITypeHierarchy[]) => {
+                const feeCreditRecordID = (await publicKeyHashWithFeeType({
+                  key: activeAccountId,
+                  isAlpha: false,
+                })) as Uint8Array;
+
                 const tokenData: ITransactionPayload = {
                   payload: {
                     systemId: TokensSystemId,
@@ -175,9 +180,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     clientMetadata: {
                       timeout: roundNumber + TimeoutBlocks,
                       MaxTransactionFee: MaxTransactionFee,
-                      feeCreditRecordID: (await publicKeyHash(
-                        activeAccountId
-                      )) as Uint8Array,
+                      feeCreditRecordID: feeCreditRecordID,
                     },
                   },
                 };
