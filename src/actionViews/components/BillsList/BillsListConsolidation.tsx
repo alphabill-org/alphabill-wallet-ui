@@ -30,7 +30,7 @@ import {
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
   prepTransactionRequestData,
-  publicKeyHash,
+  publicKeyHashWithFeeType,
 } from "../../../utils/hashers";
 
 export const handleSwapRequest = async (
@@ -109,7 +109,10 @@ export const handleSwapRequest = async (
             clientMetadata: {
               timeout: roundNumber + SwapTimeout,
               MaxTransactionFee: MaxTransactionFee,
-              feeCreditRecordID: await publicKeyHash(activeAccountId),
+              feeCreditRecordID: await publicKeyHashWithFeeType({
+                key: activeAccountId,
+                isAlpha: true,
+              }),
             } as IPayloadClientMetadata,
           },
         };
@@ -179,9 +182,10 @@ export const handleDC = async (
             clientMetadata: {
               timeout: roundNumber + TimeoutBlocks,
               MaxTransactionFee: MaxTransactionFee,
-              feeCreditRecordID: (await publicKeyHash(
-                activeAccountId
-              )) as Uint8Array,
+              feeCreditRecordID: await publicKeyHashWithFeeType({
+                key: activeAccountId,
+                isAlpha: true,
+              }) as Uint8Array,
             },
           },
         };

@@ -59,7 +59,10 @@ import {
   TokenType,
 } from "../../utils/constants";
 
-import { prepTransactionRequestData, publicKeyHash } from "../../utils/hashers";
+import {
+  prepTransactionRequestData,
+  publicKeyHashWithFeeType,
+} from "../../utils/hashers";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -247,9 +250,10 @@ export default function TransferFungible(): JSX.Element | null {
                 systemId = AlphaSystemId;
               }
 
-              const targetRecord = (await publicKeyHash(
-                activeAccountId
-              )) as Uint8Array;
+              const targetRecord = (await publicKeyHashWithFeeType({
+                key: activeAccountId,
+                isAlpha: Boolean(selectedAsset?.typeId === AlphaType),
+              })) as Uint8Array;
 
               const baseObj = (bill: IBill, transferType: string) => {
                 return {

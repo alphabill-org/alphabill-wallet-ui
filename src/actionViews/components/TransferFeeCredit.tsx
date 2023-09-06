@@ -49,13 +49,12 @@ import {
   MaxTransactionFee,
   FeeCreditAddType,
   TokenType,
-  moneyFeeCreditRecordUnitType,
-  tokenFeeCreditRecordUnitType,
 } from "../../utils/constants";
 
 import {
   prepTransactionRequestData,
   publicKeyHash,
+  publicKeyHashWithFeeType,
   transferOrderTxHash,
 } from "../../utils/hashers";
 
@@ -204,11 +203,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           setIsSending(true);
 
-          const pubKeyHash = (await publicKeyHash(
-            activeAccountId
-          )) as Uint8Array;
-
           const isAlpha = values.assets.value === AlphaType;
+          const pubKeyHashWithType = (await publicKeyHashWithFeeType({
+            key: activeAccountId,
+            isAlpha: isAlpha,
+          })) as Uint8Array;
+          const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
 
           const baseObj = (bill: IBill, amount: string) => {
             return {
@@ -228,13 +228,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 targetSystemIdentifier: isAlpha
                   ? AlphaSystemId
                   : TokensSystemId,
-                targetRecordID: Buffer.from(
-                  Buffer.from(pubKeyHash).toString("hex") +
-                    (Boolean(values.assets.value === AlphaType)
-                      ? moneyFeeCreditRecordUnitType
-                      : tokenFeeCreditRecordUnitType),
-                  "hex"
-                ),
+                targetRecordID: pubKeyHashWithType,
                 nonce: null,
                 backlink: Buffer.from(bill.txHash, "base64"),
               },
@@ -395,7 +389,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
               );
             });
           };
-          const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
+
           const creditBills = await getFeeCreditBills(pubKeyHashHex as string);
           const creditBill = creditBills?.[isAlpha ? AlphaType : TokenType];
           const firstBillToTransfer = transferrableBills!.current![0];
@@ -416,8 +410,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           const addPollingInterval = () => {
             pollingInterval.current = setInterval(async () => {
-              const pubKeyHash = await publicKeyHash(activeAccountId, true);
-              queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
+              queryClient.invalidateQueries(["feeBillsList", pubKeyHashHex]);
 
               if (
                 !transferrableBills.current?.[0]?.payload?.unitId &&
@@ -498,13 +491,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
               payload: {
                 systemId: isAlphaType ? AlphaSystemId : TokensSystemId,
                 type: FeeCreditAddType,
-                unitId: Buffer.from(
-                  Buffer.from(pubKeyHash).toString("hex") +
-                    (isAlphaType
-                      ? moneyFeeCreditRecordUnitType
-                      : tokenFeeCreditRecordUnitType),
-                  "hex"
-                ) as Uint8Array,
+                unitId: pubKeyHashWithType as Uint8Array,
                 attributes: {
                   feeCreditOwnerCondition: getNewBearer(account),
                   feeCreditTransfer: transferBillProof.current.txRecord,
