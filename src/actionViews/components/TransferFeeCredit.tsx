@@ -64,8 +64,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
     isActionsViewVisible,
     account,
     unlockedBillsList,
-    selectedTransferKey,
-    setSelectedTransferKey,
     setPreviousView,
     feeCreditBills,
   } = useApp();
@@ -108,6 +106,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
     type: "ALPHA" | "UTP";
   } | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [minFeeTransferAmount, setMinFeeTransferAmount] = useState<
+    string | null
+  >(null);
   const [transferredBillsCount, setTransferredBillsCount] = useState<number>(0);
 
   const getAvailableAmount = useCallback(
@@ -142,7 +143,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
       if (isAllFeesAdded.current === true) {
         pollingInterval.current && clearInterval(pollingInterval.current);
         setIsSending(false);
-        setSelectedTransferKey(null);
         setIsActionsViewVisible(false);
         resetRefs();
         setTransferredBillsCount(0);
@@ -153,7 +153,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
     getAvailableAmount,
     isActionsViewVisible,
     setIsActionsViewVisible,
-    setSelectedTransferKey,
   ]);
 
   if (!isActionsViewVisible) return <div></div>;
@@ -195,11 +194,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           }
 
           const { splitBillAmount, billsToTransfer, billToSplit } =
-            handleBillSelection(
-              convertedAmount.toString(),
-              billsArr,
-              MaxTransactionFee * 2n
-            );
+            handleBillSelection(convertedAmount.toString(), billsArr);
 
           setIsSending(true);
 
@@ -356,7 +351,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
                             clearInterval(pollingInterval.current);
                           resetRefs();
                           setIsSending(false);
-                          setSelectedTransferKey(null);
                           setIsActionsViewVisible(false);
                         })
                         .finally(async () => {
@@ -514,7 +508,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           amount: Yup.string()
             .required("Amount is required")
             .test(
-              "test less than",
+              "test exceeds assets",
               "Amount with fees exceeds available assets",
               (value: string | undefined) => {
                 setTransferredBillsCount(0);
@@ -530,32 +524,52 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   return false;
                 }
 
-                const { billsToTransfer, billToSplit, optimalBills } =
-                  handleBillSelection(
-                    convertedAmount.toString(),
-                    billsArr,
-                    MaxTransactionFee * 2n
-                  );
+                const { optimalBills } = handleBillSelection(
+                  convertedAmount.toString(),
+                  billsArr
+                );
 
                 if (optimalBills.length < 1) return false;
 
-                const splitBillCount = billToSplit ? 1 : 0;
-                const feeAmount =
-                  BigInt(billsToTransfer.length + splitBillCount) *
-                  MaxTransactionFee *
-                  2n;
-                const isAmountEnough = selectedTransferKey
-                  ? true
-                  : value
-                  ? convertToWholeNumberBigInt(value || "", AlphaDecimals) +
-                      feeAmount <=
-                    convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
-                  : true;
+                setTransferredBillsCount(optimalBills.length);
 
-                setTransferredBillsCount(
-                  selectedTransferKey ? 1 : optimalBills.length
+                return (
+                  convertToWholeNumberBigInt(value || "", AlphaDecimals) <=
+                  convertToWholeNumberBigInt(availableAmount, AlphaDecimals)
                 );
-                return isAmountEnough;
+              }
+            )
+            .test(
+              "test less than",
+              "Min amount with fees is " + minFeeTransferAmount + " ALPHA",
+              (value: string | undefined) => {
+                let convertedAmount: bigint;
+                if (!value) return false;
+
+                try {
+                  convertedAmount = convertToWholeNumberBigInt(
+                    value,
+                    AlphaDecimals
+                  );
+                } catch (error) {
+                  return false;
+                }
+
+                const { optimalBills } = handleBillSelection(
+                  convertedAmount.toString(),
+                  billsArr
+                );
+
+                if (optimalBills.length < 1) return false;
+
+                const minAmount =
+                  MaxTransactionFee * 3n * BigInt(optimalBills.length);
+
+                setMinFeeTransferAmount(
+                  addDecimal(minAmount.toString(), Number(AlphaDecimals))
+                );
+
+                return convertedAmount >= minAmount;
               }
             ),
         })}
