@@ -873,12 +873,13 @@ export const findBillWithLargestValue = (bills: IBill[]) => {
   }
 
   let largestValueBill = bills[0]; // Initialize with the first object
-  let largestValue = largestValueBill.value; // Initialize with the value of the first object
+  let largestValue = BigInt(largestValueBill?.value || ''); // Convert to BigInt
 
   for (const obj of bills) {
-    if (obj.value > largestValue) {
+    const objValue = BigInt(obj?.value || ''); // Convert to BigInt
+    if (objValue > largestValue) {
       largestValueBill = obj; // Update the largest object
-      largestValue = obj.value; // Update the largest value
+      largestValue = objValue; // Update the largest value
     }
   }
 
