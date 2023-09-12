@@ -109,8 +109,7 @@ function BillsList(): JSX.Element | null {
         hashingPrivateKey,
         DCBills,
         account,
-        activeAccountId,
-        consolidationTargetUnit as IBill
+        activeAccountId
       );
     },
     [
@@ -179,7 +178,7 @@ function BillsList(): JSX.Element | null {
                     variant="primary"
                     working={isConsolidationLoading}
                     disabled={
-                      (billsToConsolidate?.length <= 1 &&
+                      (billsToConsolidate?.length < 1 &&
                         DCBills.length <= 0) ||
                       isConsolidationLoading ||
                       !isFeeCredit
@@ -204,11 +203,11 @@ function BillsList(): JSX.Element | null {
                       }
                     }}
                   >
-                    {(isFeeCredit && billsToConsolidate?.length > 1) ||
+                    {(isFeeCredit && billsToConsolidate?.length >= 1) ||
                     (isFeeCredit && DCBills.length >= 1)
                       ? "Consolidate Bills"
-                      : billsToConsolidate?.length <= 1 && isFeeCredit
-                      ? "At lest 3 bills needed for consolidation"
+                      : billsToConsolidate?.length < 1 && isFeeCredit
+                      ? "At least 2 bills needed for consolidation"
                       : "Not enough fee credit for consolidation"}
                   </Button>
                   <FeeCostEl />
