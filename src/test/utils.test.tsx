@@ -17,6 +17,7 @@ import {
   getBillsAndTargetUnitToConsolidate,
   isBillLocked,
   unlockedBills,
+  findBillWithLargestValue,
 } from "../utils/utils";
 
 import {
@@ -618,6 +619,50 @@ describe("getBillsAndTargetUnitToConsolidate", () => {
     const billsList = [{ id: "123", targetUnitId: "456" }] as IBill[];
     const DCBills = [{ targetUnitId: "789" }];
     const result = getBillsAndTargetUnitToConsolidate(billsList);
-    expect(result.consolidationTargetUnit).toBeUndefined();
+    expect(result.consolidationTargetUnit).toBeNull();
+  });
+});
+
+const bills = [
+  {
+    id: "It6cBuKffVzE5dgM6zbqvZ9dKDu+UIX/t6DIOcQRbs8V8A",
+    value: "198900000000",
+    txHash: "QzIbi6oYuI6agSOdRth8L7pru/eN+ZCrds+wD2UbPM4=",
+    typeId: "ALPHA",
+    name: "ALPHA",
+    network: "AB Devnet",
+    decimals: 8,
+    isSendable: true,
+  },
+  {
+    id: "It6sscBuKVzE5dgM6zbqvZ9dKDu+UIX/t6DIOcQRbs8V8A",
+    value: "98900000000",
+    txHash: "QzIbi6oYuI6agSOdRth8L7pru/eN+ZCrds+wD2UbPM4=",
+    typeId: "ALPHA",
+    name: "ALPHA",
+    network: "AB Devnet",
+    decimals: 8,
+    isSendable: true,
+  }
+];
+
+describe("findBillWithLargestValue", () => {
+  it("should return null for an empty array", () => {
+    const result = findBillWithLargestValue([]);
+    expect(result).toBeNull();
+  });
+
+  it("should return the bill with the largest value when values are numeric strings", () => {
+    const result = findBillWithLargestValue(bills);
+    expect(result).toEqual({
+      id: "It6cBuKffVzE5dgM6zbqvZ9dKDu+UIX/t6DIOcQRbs8V8A",
+      value: "198900000000",
+      txHash: "QzIbi6oYuI6agSOdRth8L7pru/eN+ZCrds+wD2UbPM4=",
+      typeId: "ALPHA",
+      name: "ALPHA",
+      network: "AB Devnet",
+      decimals: 8,
+      isSendable: true,
+    });
   });
 });

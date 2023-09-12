@@ -100,15 +100,11 @@ export const sortTx_ProofsByID = (proofs: any[]) => {
     const aTxUnitId = a.txRecord[0][0][2];
     const bTxUnitId = b.txRecord[0][0][2];
 
-    if (aTxUnitId < bTxUnitId) {
-      return -1;
-    } else if (aTxUnitId > bTxUnitId) {
-      return 1;
-    } else {
-      return 0;
-    }
+    // Compare the buffer values using the compare method
+    return Buffer.compare(aTxUnitId, bTxUnitId);
   });
 };
+
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
     BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
@@ -859,7 +855,7 @@ export const getBillsAndTargetUnitToConsolidate = (
   const targetIds = DCBills?.map((item) => item.targetUnitId);
   const consolidationTargetUnit =
     collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
-    collectableBills?.[0];
+    findBillWithLargestValue(collectableBills)!;
 
   const billsToConsolidate = collectableBills?.filter(
     (b: IBill) => b.id !== consolidationTargetUnit?.id
@@ -869,4 +865,23 @@ export const getBillsAndTargetUnitToConsolidate = (
     billsToConsolidate: billsToConsolidate || [],
     consolidationTargetUnit,
   };
+};
+
+export const findBillWithLargestValue = (bills: IBill[]) => {
+  if (bills.length === 0) {
+    return null; // Return null if the array is empty
+  }
+
+  let largestValueBill = bills[0]; // Initialize with the first object
+  let largestValue = BigInt(largestValueBill?.value || ''); // Convert to BigInt
+
+  for (const obj of bills) {
+    const objValue = BigInt(obj?.value || ''); // Convert to BigInt
+    if (objValue > largestValue) {
+      largestValueBill = obj; // Update the largest object
+      largestValue = objValue; // Update the largest value
+    }
+  }
+
+  return largestValueBill;
 };

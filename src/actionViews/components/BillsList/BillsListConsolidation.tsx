@@ -39,7 +39,6 @@ export const handleSwapRequest = async (
   DCBills: IBill[],
   account: IAccount,
   activeAccountId: string,
-  targetUnit: IBill
 ) => {
   const sortedBills = DCBills.sort((a: any, b: any) =>
     a.targetUnitId.localeCompare(b.targetUnitId)
@@ -82,6 +81,7 @@ export const handleSwapRequest = async (
     if (tx_proofs.length === sortedBills.length) {
       const dcTransfers: Uint8Array[] = [];
       const proofs: Uint8Array[] = [];
+      const firstBill = sortedBills[0];
 
       sortTx_ProofsByID(tx_proofs).forEach((proof) => {
         dcTransfers.push(proof.txRecord);
@@ -92,14 +92,14 @@ export const handleSwapRequest = async (
 
       if (sortedBills.length === tx_proofs.length) {
         const roundNumber = await getRoundNumber(
-          targetUnit?.typeId === AlphaType
+          firstBill?.typeId === AlphaType
         );
 
         const transferData: ITransactionPayload = {
           payload: {
             systemId: AlphaSystemId,
             type: AlphaSwapType,
-            unitId: Buffer.from(targetUnit.id!, "base64"),
+            unitId: Buffer.from(firstBill.targetUnitId!, "base64"),
             attributes: {
               ownerCondition: getNewBearer(account),
               dcTransfers: dcTransfers,

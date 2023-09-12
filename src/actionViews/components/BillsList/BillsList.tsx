@@ -11,6 +11,7 @@ import {
   SwapTimeout,
   AlphaType,
   FungibleListView,
+  MaxTransactionFee,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -45,7 +46,14 @@ function BillsList(): JSX.Element | null {
   const { billsToConsolidate, consolidationTargetUnit } =
     getBillsAndTargetUnitToConsolidate(billsList);
 
-  const isFeeCredit = Number(feeCreditBills?.ALPHA?.value) >= DCBills.length;
+  const isFeeForSwap =
+    DCBills.length >= 1 && BigInt(feeCreditBills?.ALPHA?.value || "") >= 1n;
+
+  const isFeeCredit =
+    DCBills.length >= 1
+      ? isFeeForSwap
+      : BigInt(feeCreditBills?.ALPHA?.value || "") >=
+        BigInt(billsToConsolidate?.length) + 1n;
 
   //Popup hooks
   const [isPasswordFormVisible, setIsPasswordFormVisible] = useState<
@@ -109,8 +117,7 @@ function BillsList(): JSX.Element | null {
         hashingPrivateKey,
         DCBills,
         account,
-        activeAccountId,
-        consolidationTargetUnit as IBill
+        activeAccountId
       );
     },
     [
@@ -179,8 +186,7 @@ function BillsList(): JSX.Element | null {
                     variant="primary"
                     working={isConsolidationLoading}
                     disabled={
-                      (billsToConsolidate?.length <= 1 &&
-                        DCBills.length <= 0) ||
+                      (billsToConsolidate?.length < 1 && DCBills.length <= 0) ||
                       isConsolidationLoading ||
                       !isFeeCredit
                     }
@@ -204,11 +210,11 @@ function BillsList(): JSX.Element | null {
                       }
                     }}
                   >
-                    {(isFeeCredit && billsToConsolidate?.length > 1) ||
+                    {(isFeeCredit && billsToConsolidate?.length >= 1) ||
                     (isFeeCredit && DCBills.length >= 1)
                       ? "Consolidate Bills"
-                      : billsToConsolidate?.length <= 1 && isFeeCredit
-                      ? "At lest 3 bills needed for consolidation"
+                      : billsToConsolidate?.length < 1 && isFeeCredit
+                      ? "At least 2 bills needed for consolidation"
                       : "Not enough fee credit for consolidation"}
                   </Button>
                   <FeeCostEl />
