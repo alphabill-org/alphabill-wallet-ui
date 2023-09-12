@@ -100,15 +100,11 @@ export const sortTx_ProofsByID = (proofs: any[]) => {
     const aTxUnitId = a.txRecord[0][0][2];
     const bTxUnitId = b.txRecord[0][0][2];
 
-    if (aTxUnitId < bTxUnitId) {
-      return -1;
-    } else if (aTxUnitId > bTxUnitId) {
-      return 1;
-    } else {
-      return 0;
-    }
+    // Compare the buffer values using the compare method
+    return Buffer.compare(aTxUnitId, bTxUnitId);
   });
 };
+
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
     BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
