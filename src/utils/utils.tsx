@@ -855,7 +855,7 @@ export const getBillsAndTargetUnitToConsolidate = (
   const targetIds = DCBills?.map((item) => item.targetUnitId);
   const consolidationTargetUnit =
     collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
-    collectableBills?.[0];
+    findBillWithLargestValue(collectableBills)!;
 
   const billsToConsolidate = collectableBills?.filter(
     (b: IBill) => b.id !== consolidationTargetUnit?.id
@@ -865,4 +865,22 @@ export const getBillsAndTargetUnitToConsolidate = (
     billsToConsolidate: billsToConsolidate || [],
     consolidationTargetUnit,
   };
+};
+
+export const findBillWithLargestValue = (bills: IBill[]) => {
+  if (bills.length === 0) {
+    return null; // Return null if the array is empty
+  }
+
+  let largestValueBill = bills[0]; // Initialize with the first object
+  let largestValue = largestValueBill.value; // Initialize with the value of the first object
+
+  for (const obj of bills) {
+    if (obj.value > largestValue) {
+      largestValueBill = obj; // Update the largest object
+      largestValue = obj.value; // Update the largest value
+    }
+  }
+
+  return largestValueBill;
 };
