@@ -6,7 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
-import { encodeCanonical } from "cbor";
+import { encodeAsync } from "cbor";
 
 import {
   IAccount,
@@ -258,7 +258,7 @@ export const createOwnerProof = async (
     modifiedPayload.clientMetadata
   );
   const payloadHash = await secp.utils.sha256(
-    encodeCanonical(Object.values(modifiedPayload))
+    await encodeAsync(Object.values(modifiedPayload), {canonical: true})
   );
   const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,
@@ -873,10 +873,10 @@ export const findBillWithLargestValue = (bills: IBill[]) => {
   }
 
   let largestValueBill = bills[0]; // Initialize with the first object
-  let largestValue = BigInt(largestValueBill?.value || ''); // Convert to BigInt
+  let largestValue = BigInt(largestValueBill?.value || ""); // Convert to BigInt
 
   for (const obj of bills) {
-    const objValue = BigInt(obj?.value || ''); // Convert to BigInt
+    const objValue = BigInt(obj?.value || ""); // Convert to BigInt
     if (objValue > largestValue) {
       largestValueBill = obj; // Update the largest object
       largestValue = objValue; // Update the largest value

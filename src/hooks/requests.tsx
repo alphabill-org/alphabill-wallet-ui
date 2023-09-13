@@ -1,6 +1,5 @@
 import axios, { AxiosError, AxiosResponse, isCancel } from "axios";
-import { encodeCanonical } from "cbor";
-import { decode } from "cbor";
+import { encodeAsync, decode } from "cbor";
 
 import {
   ITransactionPayload,
@@ -293,10 +292,10 @@ export const makeTransaction = async (
   data: ITransactionPayload;
 }> => {
   const url = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const body = encodeCanonical(Object.values({ transactions: [data] }));
+  const encodedData = await encodeAsync([[data]], {canonical: true});
   const response = await axios.post<{
     data: ITransactionPayload;
-  }>(`${url}/transactions/${pubKey}`, body, {
+  }>(`${url}/transactions/${pubKey}`, encodedData, {
     headers: {
       "Content-Type": "application/cbor",
     },
