@@ -21,6 +21,7 @@ import {
 import {
   AlphaDecimals,
   AlphaType,
+  DCTransfersLimit,
   localStorageKeys,
   OpCheckSig,
   OpDup,
@@ -859,7 +860,7 @@ export const getBillsAndTargetUnitToConsolidate = (
 
   const billsToConsolidate = collectableBills?.filter(
     (b: IBill) => b.id !== consolidationTargetUnit?.id
-  );
+  ).slice(0, DCTransfersLimit);
 
   return {
     billsToConsolidate: billsToConsolidate || [],
