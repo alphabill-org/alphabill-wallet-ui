@@ -138,7 +138,6 @@ export const handleSwapRequest = async (
 export const handleDC = async (
   addInterval: () => void,
   setIsConsolidationLoading: (e: boolean) => void,
-  setHasSwapBegun: (e: boolean) => void,
   handleSwapCallBack: (e?: string) => void,
   account: IAccount,
   password: string,
@@ -209,7 +208,6 @@ export const handleDC = async (
         const handleTransactionEnd = () => {
           if (sortedListByID?.length === idx + 1) {
             addInterval();
-            setHasSwapBegun(false);
           }
         };
       })

@@ -11,7 +11,6 @@ import {
   SwapTimeout,
   AlphaType,
   FungibleListView,
-  MaxTransactionFee,
 } from "../../../utils/constants";
 import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
@@ -62,7 +61,10 @@ function BillsList(): JSX.Element | null {
   // Swap related hooks
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
-  const [hasSwapBegun, setHasSwapBegun] = useState<boolean>(false);
+  const [haveDCBillsUpdated, setHaveDCBillsUpdated] = useState<boolean>(false);
+  const [collectorBillsCount, setCollectorBillsCount] = useState<number | null>(
+    null
+  );
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const queryClient = useQueryClient();
@@ -87,7 +89,7 @@ function BillsList(): JSX.Element | null {
         if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
           setIsConsolidationLoading(false);
-          setHasSwapBegun(false);
+          setHaveDCBillsUpdated(false);
         }
       });
     }, 1000);
@@ -110,8 +112,6 @@ function BillsList(): JSX.Element | null {
         return;
       }
 
-      setHasSwapBegun(true);
-
       handleSwapRequest(
         hashingPublicKey,
         hashingPrivateKey,
@@ -132,12 +132,33 @@ function BillsList(): JSX.Element | null {
 
   // Effects
   useEffect(() => {
-    if (Number(DCBills?.length) >= 1 && password && !hasSwapBegun) {
+    if (DCBills?.length >= 1 && isConsolidationLoading) {
+      setHaveDCBillsUpdated(true);
+    }
+
+    if (
+      password &&
+      collectorBillsCount === DCBills?.length &&
+      isConsolidationLoading &&
+      haveDCBillsUpdated
+    ) {
       handleSwap(password);
+      setCollectorBillsCount(null);
+    }
+
+    if (
+      DCBills?.length < 1 &&
+      isConsolidationLoading === true &&
+      haveDCBillsUpdated
+    ) {
+      swapInterval.current && clearInterval(swapInterval.current);
+      swapTimer.current && clearTimeout(swapTimer.current);
+      setIsConsolidationLoading(false);
+      setHaveDCBillsUpdated(false);
     }
   }, [
     handleSwap,
-    hasSwapBegun,
+    haveDCBillsUpdated,
     isConsolidationLoading,
     DCBills,
     password,
@@ -145,20 +166,8 @@ function BillsList(): JSX.Element | null {
     vault,
     activeAccountId,
     account,
+    collectorBillsCount,
   ]);
-
-  useEffect(() => {
-    if (
-      Number(DCBills?.length) < 1 &&
-      isConsolidationLoading === true &&
-      hasSwapBegun === true
-    ) {
-      swapInterval.current && clearInterval(swapInterval.current);
-      swapTimer.current && clearTimeout(swapTimer.current);
-      setIsConsolidationLoading(false);
-      setHasSwapBegun(false);
-    }
-  }, [isConsolidationLoading, DCBills, hasSwapBegun, activeAccountId]);
 
   return (
     <>
@@ -191,11 +200,12 @@ function BillsList(): JSX.Element | null {
                       !isFeeCredit
                     }
                     onClick={() => {
+                      setCollectorBillsCount(billsToConsolidate.length);
+
                       if (password) {
                         handleDC(
                           addInterval,
                           setIsConsolidationLoading,
-                          setHasSwapBegun,
                           handleSwap,
                           account,
                           password,
@@ -251,7 +261,6 @@ function BillsList(): JSX.Element | null {
             handleDC(
               addInterval,
               setIsConsolidationLoading,
-              setHasSwapBegun,
               handleSwap,
               account,
               formPassword,
