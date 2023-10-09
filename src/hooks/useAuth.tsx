@@ -20,11 +20,17 @@ interface IUseLocalStorageProps {
 
 interface IUserContext {
   userKeys: string | null;
-  login: (
-    activeAccountId: string,
-    keys: string | null,
-    vaultData?: string
-  ) => void;
+  login: ({
+    activeAccountId,
+    keys,
+    vaultData,
+    consolidationPassword,
+  }: {
+    activeAccountId: string;
+    keys: string | null;
+    vaultData?: string;
+    consolidationPassword?: string;
+  }) => void;
   logout: () => void;
   vault: string | null;
   setUserKeys: (e: any) => void;
@@ -38,10 +44,15 @@ interface IUserContext {
   isConnectWalletPopup: boolean;
   setIsConnectWalletPopup: (e: boolean) => void;
   pubKeyHash: string;
+  isInitConsolidatePassword: string | null;
+  setIsInitConsolidatePassword: (e: string | null) => void;
+  isAppLoading: boolean;
+  setIsAppLoading: (e: boolean) => void;
 }
 
 const keysData = localStorage.getItem(LocalKeyPubKeys) || null;
 const vaultData = localStorage.getItem(LocalKeyVault) || null;
+
 const keysArr = keysData?.split(" ") || [];
 const activeAccountLocal =
   localStorage.getItem(LocalKeyActiveAccount) || keysArr[0] || "";
@@ -71,6 +82,10 @@ const AuthContext = createContext<IUserContext>({
   isConnectWalletPopup: false,
   setIsConnectWalletPopup: () => {},
   pubKeyHash: "",
+  isInitConsolidatePassword: null,
+  setIsInitConsolidatePassword: () => null,
+  isAppLoading: false,
+  setIsAppLoading: () => {},
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
@@ -82,6 +97,10 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     LocalKeyActiveAccount,
     initialActiveAccount
   );
+  const [isInitConsolidatePassword, setIsInitConsolidatePassword] = useState<string | null>(
+    null
+  );
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
 
   const [activeAssetLocal, setActiveAssetLocal] = useLocalStorage(
     LocalKeyActiveAsset,
@@ -123,16 +142,27 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     getPubKeyHash();
   }, [activeAccountId]);
 
-  const login = async (
-    activeAccountId: string,
-    keys: string | null,
-    vaultData?: string
-  ) => {
+  const login = async ({
+    activeAccountId,
+    keys,
+    vaultData,
+    consolidationPassword,
+  }: {
+    activeAccountId: string;
+    keys: string | null;
+    vaultData?: string;
+    consolidationPassword?: string;
+  }) => {
     const initiateLogin = () => {
       vaultData && setVault(vaultData);
       keys && setUserKeys(keys);
       setActiveAccountId(activeAccountId);
       navigate("/", { replace: true });
+      console.log('init');
+
+      if (consolidationPassword) {
+        setIsInitConsolidatePassword(consolidationPassword);
+      }
     };
 
     if (chrome?.storage) {
@@ -165,6 +195,10 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     isConnectWalletPopup,
     setIsConnectWalletPopup,
     pubKeyHash,
+    isInitConsolidatePassword,
+    setIsInitConsolidatePassword,
+    isAppLoading,
+    setIsAppLoading,
   };
 
   return (

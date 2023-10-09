@@ -65,8 +65,13 @@ function Login(): JSX.Element | null {
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
+          console.log('login');
 
-          login(unit8ToHexPrefixed(hashingPublicKey!), decryptedVault.pub_keys);
+          login({
+            activeAccountId: unit8ToHexPrefixed(hashingPublicKey!),
+            consolidationPassword: values.password,
+            keys: decryptedVault.pub_keys,
+          });
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().required("Password is required"),

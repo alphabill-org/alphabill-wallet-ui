@@ -66,7 +66,14 @@ function BillsList(): JSX.Element | null {
     null
   );
   // Global hooks
-  const { vault, activeAccountId, activeAsset } = useAuth();
+  const {
+    vault,
+    activeAccountId,
+    activeAsset,
+    isInitConsolidatePassword,
+    setIsInitConsolidatePassword,
+    setIsAppLoading,
+  } = useAuth();
   const queryClient = useQueryClient();
   const tokenLabel = getTokensLabel(activeAsset.typeId);
 
@@ -74,9 +81,16 @@ function BillsList(): JSX.Element | null {
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
   const swapTimer = useRef<NodeJS.Timeout | null>(null);
   const initialRoundNumber = useRef<bigint | null>(null);
+  const initConsolidatePassword = useRef<string | null>(null);
+
+  const setLoadingStates = useCallback(() => {
+    setIsConsolidationLoading(false);
+    setHaveDCBillsUpdated(false);
+    setIsAppLoading(false);
+  }, [setIsConsolidationLoading, setHaveDCBillsUpdated, setIsAppLoading]);
 
   // Bills list functions
-  const addInterval = () => {
+  const addInterval = useCallback(() => {
     initialRoundNumber.current = null;
     swapInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
@@ -88,12 +102,11 @@ function BillsList(): JSX.Element | null {
 
         if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
           swapInterval.current && clearInterval(swapInterval.current);
-          setIsConsolidationLoading(false);
-          setHaveDCBillsUpdated(false);
+          setLoadingStates();
         }
       });
     }, 1000);
-  };
+  }, [activeAccountId, activeAsset, queryClient, setLoadingStates]);
 
   const handleSwap = useCallback(
     (formPassword?: string) => {
@@ -137,7 +150,7 @@ function BillsList(): JSX.Element | null {
     }
 
     if (
-      password &&
+      (password || initConsolidatePassword.current) &&
       collectorBillsCount === DCBills?.length &&
       isConsolidationLoading &&
       haveDCBillsUpdated
@@ -145,6 +158,14 @@ function BillsList(): JSX.Element | null {
       handleSwap(password);
       setCollectorBillsCount(null);
     }
+    console.log(
+      "SWAT",
+      password,
+      initConsolidatePassword.current,
+      collectorBillsCount === DCBills?.length,
+      isConsolidationLoading,
+      haveDCBillsUpdated
+    );
 
     if (
       DCBills?.length < 1 &&
@@ -167,6 +188,55 @@ function BillsList(): JSX.Element | null {
     activeAccountId,
     account,
     collectorBillsCount,
+    initConsolidatePassword,
+  ]);
+
+  useEffect(() => {
+    console.log(
+      "DC",
+      billsToConsolidate,
+      DCBills,
+      isInitConsolidatePassword,
+      account,
+      activeAccountId
+    );
+
+    if (
+      (billsToConsolidate.length >= 1 || DCBills.length >= 1) &&
+      isInitConsolidatePassword &&
+      account &&
+      activeAccountId
+    ) {
+      setIsAppLoading(true);
+      setPassword(isInitConsolidatePassword);
+      initConsolidatePassword.current = isInitConsolidatePassword;
+      setIsInitConsolidatePassword(null);
+
+      handleDC({
+        addInterval: addInterval,
+        setIsConsolidationLoading: setIsConsolidationLoading,
+        account: account,
+        password: isInitConsolidatePassword,
+        vault: vault,
+        billsList: billsToConsolidate,
+        DCBills: DCBills,
+        activeAccountId: activeAccountId,
+        targetUnit: consolidationTargetUnit as IBill,
+      });
+    }
+  }, [
+    isConsolidationLoading,
+    DCBills,
+    vault,
+    activeAccountId,
+    account,
+    setIsInitConsolidatePassword,
+    addInterval,
+    billsToConsolidate,
+    consolidationTargetUnit,
+    isInitConsolidatePassword,
+
+    setIsAppLoading,
   ]);
 
   return (
@@ -203,18 +273,17 @@ function BillsList(): JSX.Element | null {
                       setCollectorBillsCount(billsToConsolidate.length);
 
                       if (password) {
-                        handleDC(
-                          addInterval,
-                          setIsConsolidationLoading,
-                          handleSwap,
-                          account,
-                          password,
-                          vault,
-                          billsToConsolidate,
-                          DCBills,
-                          activeAccountId,
-                          consolidationTargetUnit as IBill
-                        );
+                        handleDC({
+                          addInterval: addInterval,
+                          setIsConsolidationLoading: setIsConsolidationLoading,
+                          account: account,
+                          password: password,
+                          vault: vault,
+                          billsList: billsToConsolidate,
+                          DCBills: DCBills,
+                          activeAccountId: activeAccountId,
+                          targetUnit: consolidationTargetUnit as IBill,
+                        });
                       } else {
                         setIsPasswordFormVisible("handleDC");
                       }
@@ -258,18 +327,17 @@ function BillsList(): JSX.Element | null {
           setIsPasswordFormVisible={setIsPasswordFormVisible}
           setPassword={setPassword}
           handleDC={(formPassword) =>
-            handleDC(
-              addInterval,
-              setIsConsolidationLoading,
-              handleSwap,
-              account,
-              formPassword,
-              vault,
-              billsToConsolidate,
-              DCBills,
-              activeAccountId,
-              consolidationTargetUnit as IBill
-            )
+            handleDC({
+              addInterval: addInterval,
+              setIsConsolidationLoading: setIsConsolidationLoading,
+              account: account,
+              password: formPassword,
+              vault: vault,
+              billsList: billsToConsolidate,
+              DCBills: DCBills,
+              activeAccountId: activeAccountId,
+              targetUnit: consolidationTargetUnit as IBill,
+            })
           }
           account={account}
           activeBill={activeAsset}

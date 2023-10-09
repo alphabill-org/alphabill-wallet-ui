@@ -24,6 +24,7 @@ import {
 import NFTDetails from "./components/NFTDetails";
 import { IActionVies, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
+import LoadingView from "./components/LoadingView";
 
 function Actions(): JSX.Element | null {
   const {
@@ -37,11 +38,13 @@ function Actions(): JSX.Element | null {
     setPreviousView,
     previousView,
   } = useApp();
-  const { activeAsset } = useAuth();
+  const { activeAsset, isAppLoading } = useAuth();
   const isTransferView =
     actionsView === TransferFungibleView || actionsView === TransferNFTView;
 
-  return (
+  return isAppLoading ? (
+    <LoadingView />
+  ) : (
     <div
       className={classNames("actions", { "is-visible": isActionsViewVisible })}
     >
@@ -97,6 +100,10 @@ function Actions(): JSX.Element | null {
             />
           </>
         )}
+        <div className={actionsView === FungibleListView ? "" : "d-none"}>
+          <BillsList />
+        </div>
+
         {actionsView === TransferFungibleView && isActionsViewVisible ? (
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (
@@ -105,8 +112,6 @@ function Actions(): JSX.Element | null {
           <TransferFeeCredit />
         ) : actionsView === NFTDetailsView ? (
           <NFTDetails />
-        ) : actionsView === FungibleListView ? (
-          <BillsList />
         ) : actionsView === NFTListView ? (
           <>
             <Spacer mt={24} />

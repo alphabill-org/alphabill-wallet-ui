@@ -20,6 +20,22 @@
   user-select: none;
   opacity: 0;
 
+  &--loading {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $color-body-background;
+
+    svg {
+      animation: pulsate 3s infinite;
+    }
+  }
+
   &.is-visible {
     transform: translateX(0);
     pointer-events: all;
@@ -285,5 +301,20 @@
         }
       }
     }
+  }
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }

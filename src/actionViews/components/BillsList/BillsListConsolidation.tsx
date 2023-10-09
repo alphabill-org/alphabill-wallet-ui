@@ -38,7 +38,7 @@ export const handleSwapRequest = async (
   hashingPrivateKey: Uint8Array,
   DCBills: IBill[],
   account: IAccount,
-  activeAccountId: string,
+  activeAccountId: string
 ) => {
   const sortedBills = DCBills.sort((a: any, b: any) =>
     a.targetUnitId.localeCompare(b.targetUnitId)
@@ -135,31 +135,43 @@ export const handleSwapRequest = async (
   }
 };
 
-export const handleDC = async (
-  addInterval: () => void,
-  setIsConsolidationLoading: (e: boolean) => void,
-  handleSwapCallBack: (e?: string) => void,
-  account: IAccount,
-  password: string,
-  vault: any,
-  billsList: IBill[],
-  DCBills: IBill[],
-  activeAccountId: string,
-  targetUnit: IBill
-) => {
+export const handleDC = async ({
+  addInterval,
+  setIsConsolidationLoading,
+  handleSwapCallBack,
+  account,
+  password,
+  vault,
+  billsList,
+  DCBills,
+  activeAccountId,
+  targetUnit,
+}: {
+  addInterval: () => void;
+  setIsConsolidationLoading?: (e: boolean) => void;
+  handleSwapCallBack: (e?: string) => void;
+  account: IAccount;
+  password: string;
+  vault: any;
+  billsList: IBill[];
+  DCBills: IBill[];
+  activeAccountId: string;
+  targetUnit: IBill;
+}) => {
   const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
     password,
-    Number(account?.idx),
+    Number(account?.idx) || 0,
     vault
   );
 
   if (error || !hashingPublicKey || !hashingPrivateKey) {
     return;
   }
+  console.log(billsList, DCBills);
 
   const limitedBillsList = billsList.slice(0, DCTransfersLimit);
   const sortedListByID = sortBillsByID(limitedBillsList);
-  setIsConsolidationLoading(true);
+  setIsConsolidationLoading && setIsConsolidationLoading(true);
 
   if (DCBills?.length >= 1) {
     handleSwapCallBack(password);
@@ -181,10 +193,10 @@ export const handleDC = async (
             clientMetadata: {
               timeout: roundNumber + TimeoutBlocks,
               MaxTransactionFee: MaxTransactionFee,
-              feeCreditRecordID: await publicKeyHashWithFeeType({
+              feeCreditRecordID: (await publicKeyHashWithFeeType({
                 key: activeAccountId,
                 isAlpha: true,
-              }) as Uint8Array,
+              })) as Uint8Array,
             },
           },
         };

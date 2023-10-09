@@ -100,14 +100,14 @@ function RecoverAccount(): JSX.Element | null {
                   };
 
                   clearStorage();
-                  login(
-                    prefixedPubKey,
-                    prefixedPubKey,
-                    CryptoJS.AES.encrypt(
+                  login({
+                    activeAccountId: prefixedPubKey,
+                    vaultData: CryptoJS.AES.encrypt(
                       JSON.stringify(vaultData),
                       values.password
-                    ).toString()
-                  );
+                    ).toString(),
+                    keys: prefixedPubKey,
+                  });
                 }
               })
               .catch((e) => setErrors({ passwordConfirm: e.message }));

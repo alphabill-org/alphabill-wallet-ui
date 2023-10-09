@@ -84,14 +84,14 @@ function CreateAccount(): JSX.Element | null {
               };
 
               clearStorage();
-              login(
-                prefixedHashingPubKey,
-                prefixedHashingPubKey,
-                CryptoJS.AES.encrypt(
+              login({
+                activeAccountId: prefixedHashingPubKey,
+                vaultData: CryptoJS.AES.encrypt(
                   JSON.stringify(vaultData),
                   values.password
-                ).toString()
-              );
+                ).toString(),
+                keys: prefixedHashingPubKey,
+              });
             } else {
               return setErrors({
                 passwordConfirm: "Public key creation failed",
