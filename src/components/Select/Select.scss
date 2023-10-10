@@ -1,7 +1,6 @@
 .select__inner {
   border: 0;
   width: 100%;
-  border-radius: 0;
   background: transparent;
   display: block;
   -moz-appearance: none;
@@ -14,7 +13,6 @@
   color: #EEEDFC;
   padding: 12px;
   background-color: #4E3EB6;
-  border-radius: 4px;
 }
 
 
@@ -92,7 +90,6 @@
 
 .select__menu-list {
   padding: 0 !important;
-  border-radius: 4px;
   overflow: hidden;
 }
 

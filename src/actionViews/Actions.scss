@@ -189,7 +189,6 @@
 
   &__info {
     background: $color-secondary;
-    border-radius: 4px;
     font-weight: 600;
     font-size: 12px;
     line-height: 18px;
@@ -219,7 +218,6 @@
     button.button--icon {
       background-color: $color-primary;
       padding: 6px;
-      border-radius: 4px;
       height: 24px;
       width: 24px;
       display: flex;
@@ -253,7 +251,6 @@
       background-color: $color-white;
       width: 200px;
       height: 200px;
-      border-radius: 8px;
       overflow: hidden;
       padding: 0 24px;
       margin: 0 auto 32px;
@@ -264,7 +261,6 @@
       height: 100%;
       object-fit: contain;
       box-sizing: border-box;
-      border-radius: 8px;
       overflow: hidden;
     }
   }

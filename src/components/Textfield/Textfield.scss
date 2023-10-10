@@ -40,7 +40,6 @@
 .textfield__input {
   width: 100%;
   border: 0;
-  border-radius: 0;
   background: transparent;
   display: block;
   -moz-appearance: none;
@@ -53,7 +52,6 @@
   color: $color-light;
   padding: 12px;
   background-color: $color-secondary;
-  border-radius: 4px;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 100%;

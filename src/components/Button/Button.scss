@@ -9,7 +9,6 @@
   white-space: nowrap;
   border: none;
   cursor: pointer;
-  border-radius: 6px;
 
   &:active {
     transform: scale(.9);
@@ -57,7 +56,6 @@
   }
 
   &.is--bordered {
-    border-radius: 4px;
     padding: 8px 16px;
   }
 }
@@ -183,10 +181,8 @@
     color: #0C0A3E;
     padding: 2px 8px;
     font-family: $font-family-base;
-    border-radius: 0;
     font-weight: 600;
     box-shadow: 0 0 10px 0 #0000007a;
-    border-radius: 4px;
     white-space: break-spaces;
     word-break: break-all;
     max-width: 335px;

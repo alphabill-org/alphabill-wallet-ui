@@ -13,7 +13,6 @@
 
 .form-header {
   align-items: center;
-  border-radius: 0.625em 0.625em 0 0;
   display: flex;
   justify-content: space-between;
   min-height: 4em;
@@ -37,7 +36,6 @@
 
   .select__inner {
     padding: 9px 12px;
-    border-radius: 4px 0 0 4px;
     min-width: 180px;
 
     &::after {
@@ -48,9 +46,5 @@
       background-color: $color-blue;
       content: '';
     }
-  }
-
-  .textfield__input {
-    border-radius: 0 4px 4px 0;
   }
 }
