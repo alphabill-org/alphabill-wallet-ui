@@ -3,8 +3,15 @@ import { useQueryClient } from "react-query";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";
-import { AlphaType } from "../../utils/constants";
+import { AlphaType, TransferFungibleView } from "../../utils/constants";
 import { invalidateAllLists } from "../../utils/utils";
+import Button from "../Button/Button";
+
+import { ReactComponent as FungibleIco } from "../../images/fungible-ico.svg";
+import { ReactComponent as NonFungibleIco } from "../../images/non-fungible-ico.svg";
+import { ReactComponent as CreditIco } from "../../images/credit-ico.svg";
+import { ReactComponent as HomeIco } from "../../images/home-ico.svg";
+import { ReactComponent as Send } from "../../images/send-ico.svg";
 
 export interface INavbarProps {
   onChange: (v: INavbarViews) => void;
@@ -18,7 +25,7 @@ export default function Navbar({
   isFees,
 }: INavbarProps): JSX.Element | null {
   const { activeAsset, activeAccountId, setActiveAssetLocal } = useAuth();
-  const { account } = useApp();
+  const { account, setIsActionsViewVisible, setActionsView } = useApp();
   const queryClient = useQueryClient();
 
   const handleChange = (v: INavbarViews) => {
@@ -29,6 +36,15 @@ export default function Navbar({
   return (
     <div className="navbar">
       <div
+        onClick={() =>
+          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient)
+        }
+        className="navbar-item"
+      >
+        <HomeIco height="24" width="24" />
+        <span>Home</span>
+      </div>
+      <div
         onClick={() => {
           handleChange("fungible");
         }}
@@ -36,9 +52,26 @@ export default function Navbar({
           active: activeBar === "fungible",
         })}
       >
-        Fungible
+        <FungibleIco />
+        <span>Fungible</span>
       </div>
-
+      <Button
+        variant="primary"
+        onClick={() => {
+          setActionsView(TransferFungibleView);
+          setActiveAssetLocal(
+            JSON.stringify(
+              account?.assets?.fungible.find(
+                (asset) => asset.typeId === AlphaType
+              )
+            )
+          );
+          setIsActionsViewVisible(true);
+          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+        }}
+      >
+        <Send height="20" width="20" />
+      </Button>
       <div
         onClick={() => {
           handleChange("nonFungible");
@@ -47,7 +80,8 @@ export default function Navbar({
           active: activeBar === "nonFungible",
         })}
       >
-        Non Fungible
+        <NonFungibleIco />
+        <span>Non fungible</span>
       </div>
       {isFees && (
         <div
@@ -62,7 +96,8 @@ export default function Navbar({
             active: activeBar === "fees",
           })}
         >
-          Fee Credit
+          <CreditIco />
+          <span>Fee Credit</span>
         </div>
       )}
     </div>

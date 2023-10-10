@@ -1,13 +1,10 @@
 import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { useQueryClient } from "react-query";
 import { Tooltip } from "react-tooltip";
 
 import { IFungibleAsset, INavbarViews } from "../../types/Types";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
-import { ReactComponent as Sync } from "../../images/sync-ico.svg";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 
 import Button from "../Button/Button";
@@ -16,8 +13,7 @@ import { useApp } from "../../hooks/appProvider";
 import Spinner from "../Spinner/Spinner";
 import { useAuth } from "../../hooks/useAuth";
 
-import { invalidateAllLists } from "../../utils/utils";
-import { AlphaType, TransferFungibleView } from "../../utils/constants";
+import { AlphaType } from "../../utils/constants";
 import FungibleAssetsCol from "./assetsCol/FungibleAssetsCol";
 import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
@@ -30,8 +26,8 @@ import {
 } from "../../test/constants";
 
 function Dashboard(): JSX.Element | null {
-  const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
-  const { setIsActionsViewVisible, setActionsView, account, accounts } =
+  const { activeAccountId } = useAuth();
+  const { account, accounts } =
     useApp();
   const balance: string =
     account?.assets?.fungible?.find(
@@ -49,8 +45,6 @@ function Dashboard(): JSX.Element | null {
   const [isKeySelectOpen, setIsKeySelectOpen] = useState(false);
   const keyNameRef = useRef<HTMLSpanElement>(null);
   const [keyNameWidth, setKeyNameWidth] = useState(0);
-
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     keyNameRef.current && setKeyNameWidth(keyNameRef.current.offsetWidth);
@@ -141,46 +135,7 @@ function Dashboard(): JSX.Element | null {
         </div>
       </div>
       <Spacer mb={8} />
-      <div className="dashboard__buttons">
-        <Button
-          onClick={() =>
-            invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient)
-          }
-          variant="primary"
-        >
-          <Sync height="16" width="16" />
-          <div className="pad-8-l">Refresh</div>
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setActionsView(TransferFungibleView);
-            setActiveAssetLocal(
-              JSON.stringify(
-                account?.assets?.fungible.find(
-                  (asset) => asset.typeId === AlphaType
-                )
-              )
-            );
-            setIsActionsViewVisible(true);
-            invalidateAllLists(
-              activeAccountId,
-              activeAsset.typeId,
-              queryClient
-            );
-          }}
-        >
-          <Send height="16" width="16" />
-          <div className="pad-8-l">Transfer</div>
-        </Button>
-      </div>
-      <Spacer mb={32} />
       <div className="dashboard__footer">
-        <Navbar
-          isFees
-          activeBar={navbarView}
-          onChange={(v: INavbarViews) => setNavarView(v)}
-        />
         <div className="dashboard__info">
           {navbarView === "fungible" ? (
             <FungibleAssetsCol />
@@ -190,6 +145,11 @@ function Dashboard(): JSX.Element | null {
             <FeeCredit />
           )}
         </div>
+        <Navbar
+          isFees
+          activeBar={navbarView}
+          onChange={(v: INavbarViews) => setNavarView(v)}
+        />
       </div>
       <Popovers
         isKeySelectOpen={isKeySelectOpen}

@@ -310,35 +310,3 @@
     padding: 12px 24px;
   }
 }
-
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid $color-secondary;
-
-  &-item {
-    font-weight: 600;
-    font-size: 15px;
-    line-height: 22px;
-    color: $color-underpants;
-    width: 50%;
-    text-align: center;
-    padding-bottom: 8px;
-    padding-top: 4px;
-    cursor: pointer;
-    transition: all .3;
-    border-right: 1px solid $color-secondary;
-
-    &:last-child {
-      border-right: none;
-    }
-
-
-    &.active,
-    &:hover {
-      color: $color-light;
-      border-bottom: 2px solid $color-link;
-    }
-  }
-}

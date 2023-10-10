@@ -1,39 +1,34 @@
-.header {
-  display: block;
+.navbar {
   display: flex;
-  height: 72px;
-  padding: 24px;
-  align-items: center;
-  width: 100%;
-  background-color: $color-body-background;
   justify-content: space-between;
+  border-bottom: 1px solid $color-secondary;
+  background: linear-gradient(180deg, rgba(12, 10, 62, 0) 0%, #0C0A3E 64.29%);
 
-  &__ico {
-    display: flex;
-    width: 40px;
-    height: 40px;
-    transition: all .2s;
-
-    a.button.button--icon:hover {
-      path {
-        fill: white;
-      }
-    }
+  .button--primary {
+    padding: 16px;
   }
 
-  &__select {
-    width: 100%;
-    padding: 0 32px;
+  &-item {
+    font-size: 10px;
+    line-height: 16px;
+    color: $color-underpants;
+    width: 50%;
+    text-align: center;
+    padding-bottom: 8px;
+    padding-top: 4px;
+    cursor: pointer;
+    transition: all .3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .select__button {
-      width: 100%;
-      justify-content: space-between;
-      background: $color-secondary;
-      padding: 4px 12px;
-      color: $color-white;
-      font-weight: 600;
-      font-size: 12px;
-      line-height: 18px;
+    &.active,
+    &:hover {
+      color: $color-primary;
+
+      svg, path {
+        fill: $color-primary
+      }
     }
   }
 }
