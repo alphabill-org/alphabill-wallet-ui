@@ -96,7 +96,7 @@ export default function Navbar({
             active: activeBar === "fees",
           })}
         >
-          <CreditIco />
+          <CreditIco height="24" width="24" />
           <span>Fee Credit</span>
         </div>
       )}

@@ -22,8 +22,92 @@
     }
   }
 
+  &__account {
+    min-width: 228px;
+    justify-content: space-between;
+    background: $bg-op-dark;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 18px;
+    margin: 0 24px;
+    max-width: calc(100% - 98px);
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    &-id {
+      display: flex;
+      align-items: center;
+      max-width: 227px;
+      white-space: pre;
+      cursor: pointer;
+      width: 100%;
+
+      &:hover {
+        opacity: .7;
+      }
+
+      &-item {
+        max-width: 196px;
+        display: flex;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        flex: 1 0 0;
+      }
+    }
+
+    &-name {
+      max-width: 178px;
+      display: flex;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 4px;
+    }
+
+    &-buttons {
+      button {
+        padding: 4px;
+      }
+    }
+
+    &-options {
+      position: absolute;
+      top: 24px;
+      right: -24px;
+      background-color: $color-body-background;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+
+      &.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+    }
+
+    &-option {
+      cursor: pointer;
+      border-bottom: 1px solid $color-light;
+      padding: 8px 12px;
+      color: $color-light;
+      transition: all $main-transition-duration;
+      text-align: center;
+      white-space: nowrap;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: $color-secondary;
+      }
+    }
+  }
+
   &__select {
-    width: 100%;
+    width: 92%;
     padding: 0 32px;
 
     .select__button {
@@ -35,6 +119,84 @@
       font-weight: 600;
       font-size: 12px;
       line-height: 18px;
+    }
+
+    .account__item.account__item-name {
+      max-width: 265px;
+      padding-left: 16px;
+      margin-right: auto;
+    }
+
+    .account__item-id {
+      max-width: 248px;
+      display: flex;
+    }
+
+    .select__option-wrap {
+      display: flex;
+      position: relative;
+      align-items: center;
+
+      .select__option {
+        max-height: unset;
+      }
+
+      .edit-ico {
+        position: absolute;
+        right: 20px;
+        cursor: pointer;
+        z-index: 1;
+
+        &:hover {
+          opacity: .7;
+        }
+      }
+
+      &.selected {
+        background-color: $color-secondary;
+        color: $color-white;
+
+        &:hover {
+          color: $color-white;
+
+          .edit-ico path {
+            stroke: $color-white;
+          }
+        }
+
+        .select__option:hover {
+          background-color: $color-secondary;
+          color: $color-white;
+        }
+
+        .edit-ico path {
+          stroke: $color-white;
+        }
+      }
+
+      .edit-ico path {
+        stroke: $color-blue;
+      }
+    }
+
+    .add-key {
+      display: flex;
+      padding: 16px 24px;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+      transition: all .3 ease;
+
+      &:hover {
+        opacity: .7;
+      }
+
+      path {
+        fill: $color-secondary;
+      }
     }
   }
 }
