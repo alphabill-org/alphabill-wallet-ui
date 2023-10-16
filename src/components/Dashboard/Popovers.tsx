@@ -64,7 +64,7 @@ export default function Popovers({
           setRenamePopupAccountIndex(null);
         }}
         isPopoverVisible={isKeySelectOpen}
-        title=""
+        title="Your keys"
       >
         <>
           <div className="select__options accounts">
@@ -98,14 +98,6 @@ export default function Popovers({
                       );
                     }}
                   >
-                    <div className="account__item">
-                      <img
-                        height="32"
-                        width="32px"
-                        src={Profile}
-                        alt="Profile"
-                      />
-                    </div>
                     <div className="account__item account__item-name">
                       {renamePopupAccountIndex === Number(account?.idx) ? (
                         <Formik
@@ -257,7 +249,7 @@ export default function Popovers({
                 setIsKeySelectOpen(false);
               }}
             >
-              <span>ADD KEY</span>
+              <span>Add new key</span>
               <AddIco width="18" height="18" />
             </div>
           </div>

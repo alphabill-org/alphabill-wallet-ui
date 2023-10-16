@@ -36,12 +36,15 @@ function SelectPopover({
     >
       <div className="select__popover" ref={popupRef}>
         <div className="select__popover-header">
-          <div>{title}</div>
-          <Close
+          {title}
+          <div
             onClick={() => {
               onClose();
             }}
-          />
+            className="select__popover--close"
+          >
+            <Close />
+          </div>
         </div>
         {children}
       </div>

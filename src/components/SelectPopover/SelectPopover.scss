@@ -82,21 +82,42 @@
 }
 
 .select__popover-header {
-  padding: 16px 24px 8px;
+  padding: 24px 24px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   font-weight: 700;
   font-size: 16px;
   line-height: 26px;
   border-bottom: 1px solid $color-secondary;
+  position: relative;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 26px;
+  text-align: center;
+  width: 100%;
 
-  svg {
-    cursor: pointer;
+  .select__popover--close {
+    background-color: $color-light;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 8px;
+    box-sizing: border-box;
     transition: all $main-transition-duration;
+    cursor: pointer;
 
     &:hover {
-      opacity: .7;
+      background-color: $color-primary;
+    }
+  }
+
+  svg {
+    transition: all $main-transition-duration;
+
+    * {
+      fill: $color-blue;
     }
   }
 }
