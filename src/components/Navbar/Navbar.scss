@@ -3,6 +3,12 @@
   justify-content: space-between;
   border-bottom: 1px solid $color-secondary;
   background: linear-gradient(180deg, rgba(12, 10, 62, 0) 0%, #0C0A3E 64.29%);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-top: 24px;
+  z-index: $z-index-navbar;
 
   .button--primary {
     padding: 16px;

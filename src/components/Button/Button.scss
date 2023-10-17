@@ -17,6 +17,11 @@
   &--icon {
     padding: 0;
 
+    &.is--ico-bg {
+      padding: 12px;
+      background-color: $bg-op-dark;
+    }
+
     &:hover {
       opacity: .7;
 

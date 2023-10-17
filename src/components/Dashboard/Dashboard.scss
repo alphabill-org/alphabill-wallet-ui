@@ -1,10 +1,10 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  align-items: center;
   height: 100%;
   width: 100%;
   background-color: $color-blue;
+  padding-bottom: 80px;
 
   &__buttons {
     width: 100%;
@@ -33,17 +33,6 @@
     }
   }
 
-  &__footer {
-    margin-top: auto;
-    width: 100%;
-  }
-
-  &__info {
-    background-color: $color-body-background;
-    min-height: 230px;
-    position: relative;
-  }
-
   .select__options {
     overflow: auto;
     max-height: 560px;
@@ -55,5 +44,14 @@
 
   .select__popover-header {
     padding: 12px 24px;
+  }
+
+  .fee-credit-button {
+    color: $color-primary;
+    margin-left: auto;
+
+    * {
+      fill: $color-primary;
+    }
   }
 }

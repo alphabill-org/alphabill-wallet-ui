@@ -278,7 +278,7 @@ export type IActionVies =
   | "NFT details view"
   | "";
 
-export type INavbarViews = "fungible" | "nonFungible" | "fees";
+export type INavbarViews = "fungible" | "nonFungible" | "history" | "home";
 
 export interface ITxOrder {
   Payload: {
@@ -334,4 +334,8 @@ export interface ITxProofObj {
       signatures: string[];
     };
   };
+}
+
+export interface IAssetsColProps {
+  isTitle?: boolean;
 }

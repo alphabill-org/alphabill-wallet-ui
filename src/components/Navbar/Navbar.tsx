@@ -9,7 +9,7 @@ import Button from "../Button/Button";
 
 import { ReactComponent as FungibleIco } from "../../images/fungible-ico.svg";
 import { ReactComponent as NonFungibleIco } from "../../images/non-fungible-ico.svg";
-import { ReactComponent as CreditIco } from "../../images/credit-ico.svg";
+import { ReactComponent as HistoryIco } from "../../images/history-ico.svg";
 import { ReactComponent as HomeIco } from "../../images/home-ico.svg";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 
@@ -36,10 +36,13 @@ export default function Navbar({
   return (
     <div className="navbar">
       <div
-        onClick={() =>
-          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient)
-        }
-        className="navbar-item"
+        onClick={() => {
+          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+          handleChange("home");
+        }}
+        className={classNames("navbar-item", {
+          active: activeBar === "home",
+        })}
       >
         <HomeIco height="24" width="24" />
         <span>Home</span>
@@ -90,14 +93,14 @@ export default function Navbar({
               ?.filter((asset) => account?.activeNetwork === asset.network)
               ?.find((asset) => asset.typeId === AlphaType)!;
             setActiveAssetLocal(JSON.stringify(alphaAsset));
-            handleChange("fees");
+            handleChange("history");
           }}
           className={classNames("navbar-item", {
-            active: activeBar === "fees",
+            active: activeBar === "history",
           })}
         >
-          <CreditIco height="24" width="24" />
-          <span>Fee Credit</span>
+          <HistoryIco height="24" width="24" />
+          <span>History</span>
         </div>
       )}
     </div>

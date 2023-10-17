@@ -27,6 +27,7 @@ export interface IButtonProps {
   id?: string;
   tooltipContent?: string;
   tooltipPlacement?: "top" | "left" | "right" | "bottom";
+  isIcoBg?: boolean;
 }
 
 export default function Button(props: IButtonProps): JSX.Element {
@@ -42,6 +43,7 @@ export default function Button(props: IButtonProps): JSX.Element {
       "is--bordered": props.isBordered,
       "is--active": props.isActive,
       [`button--${props.brand}`]: props.brand,
+      "is--ico-bg": props.isIcoBg
     },
     props.className
   );

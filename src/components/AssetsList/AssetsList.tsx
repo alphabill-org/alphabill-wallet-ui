@@ -6,6 +6,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { invalidateAllLists, isBillLocked } from "../../utils/utils";
 import { IActiveAsset, IBill } from "../../types/Types";
 import AssetsListItem from "./AssetsListItem";
+import Button from "../Button/Button";
+import { ReactComponent as Arrow } from "../../images/arrow-ico.svg";
 
 export interface IAssetsListProps {
   assetList: any;
@@ -44,7 +46,7 @@ export default function AssetsList({
   return (
     <div
       className={classNames("assets-list", {
-        single: isTypeListItem === true,
+        "assets-list__items-big": isTypeListItem !== true,
         "no-hover": isHoverDisabled === true,
       })}
     >
@@ -67,8 +69,8 @@ export default function AssetsList({
             }}
           >
             <div
-              onClick={() => onItemClick && onItemClick()}
               className="assets-list__item-clicker"
+              onClick={() => onItemClick && onItemClick()}
             ></div>
             <AssetsListItem
               asset={asset}
@@ -78,6 +80,17 @@ export default function AssetsList({
               onSendClick={onSendClick}
               isLocked={isLocked}
             />
+            {isTypeListItem !== true && (
+              <Button
+                onClick={() => onItemClick && onItemClick()}
+                type="button"
+                variant="icon"
+                className="assets-list__item-button"
+                isIcoBg
+              >
+                <Arrow />
+              </Button>
+            )}
           </div>
         );
       })}

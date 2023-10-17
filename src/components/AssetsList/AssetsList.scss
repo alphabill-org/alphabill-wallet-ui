@@ -6,10 +6,35 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 24px 16px;
+  padding: 2px 16px;
 
-  &.single {
-    padding: 2px 16px;
+  &__items-big {
+    padding: 24px 16px;
+
+    .dashboard__home & {
+      display: flex;
+      flex-direction: row;
+      overflow: auto;
+    }
+
+    .assets-list__item {
+      flex-direction: column;
+      align-items: baseline;
+
+      .dashboard__home & {
+        max-width: 150px;
+        min-width: 150px;
+        width: 100%;
+      }
+
+      &-title {
+        padding: 12px 0 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: pre;
+        margin-right: auto;
+      }
+    }
   }
 
   .reclaim.hidden {
@@ -25,6 +50,14 @@
     transition: background-color .3s ease;
     cursor: pointer;
     position: relative;
+
+    &-button {
+      position: relative;
+      margin-bottom: -14px;
+      margin-right: -16px;
+      right: 0;
+      margin-left: auto;
+    }
 
     &-hover-btn {
       cursor: pointer;

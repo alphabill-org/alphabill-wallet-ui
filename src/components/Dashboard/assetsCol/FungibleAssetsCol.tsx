@@ -1,9 +1,11 @@
-import { IFungibleAsset } from "../../../types/Types";
+import { IFungibleAsset, IAssetsColProps } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { AlphaType, FungibleListView } from "../../../utils/constants";
 import AssetsList from "../../AssetsList/AssetsList";
 
-function FungibleAssetsCol(): JSX.Element | null {
+export default function FungibleAssetsCol({
+  isTitle,
+}: IAssetsColProps): JSX.Element | null {
   const { setIsActionsViewVisible, setActionsView, account } = useApp();
   const sortedFungibleAssets = account?.assets?.fungible
     ?.filter((asset) => asset.network === account?.activeNetwork)
@@ -24,14 +26,17 @@ function FungibleAssetsCol(): JSX.Element | null {
     });
 
   return (
-    <AssetsList
-      assetList={sortedFungibleAssets}
-      onItemClick={() => {
-        setActionsView(FungibleListView);
-        setIsActionsViewVisible(true);
-      }}
-    />
+    <>
+      {isTitle && sortedFungibleAssets.length >= 1 && (
+        <div className="pad-16-l">Fungible assets</div>
+      )}
+      <AssetsList
+        assetList={sortedFungibleAssets}
+        onItemClick={() => {
+          setActionsView(FungibleListView);
+          setIsActionsViewVisible(true);
+        }}
+      />
+    </>
   );
 }
-
-export default FungibleAssetsCol;
