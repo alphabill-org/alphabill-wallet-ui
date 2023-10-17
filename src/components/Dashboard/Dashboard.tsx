@@ -11,7 +11,7 @@ import FeeCredit from "./FeeCredit";
 
 function Dashboard(): JSX.Element | null {
   const { accounts } = useApp();
-  const [navbarView, setNavarView] = useState<INavbarViews>("fungible");
+  const [navbarView, setNavarView] = useState<INavbarViews>("home");
   const isHomeView = navbarView === "home";
   if (!accounts) {
     return (

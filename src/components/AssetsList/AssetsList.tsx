@@ -46,7 +46,7 @@ export default function AssetsList({
   return (
     <div
       className={classNames("assets-list", {
-        "assets-list__items-big": isTypeListItem !== true,
+        "assets-list__items-big": isTypeListItem !== true && assetList?.length >= 1,
         "no-hover": isHoverDisabled === true,
       })}
     >

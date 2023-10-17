@@ -93,7 +93,7 @@ export default function FeeCredit({
                   />
 
                   <div
-                    className={classNames("assets-list__item", {
+                    className={classNames("assets-list__item assets-list__item-credit", {
                       "no-hover": true,
                     })}
                   >
@@ -113,7 +113,6 @@ export default function FeeCredit({
                 </div>
               );
             })}
-          <Spacer mb={12} />
         </>
       </div>
     </>

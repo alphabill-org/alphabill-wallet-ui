@@ -25,6 +25,11 @@
         max-width: 150px;
         min-width: 150px;
         width: 100%;
+
+        &.assets-list__item-credit {
+          max-width: 170px;
+          min-width: 170px;
+        }
       }
 
       &-title {
@@ -50,6 +55,8 @@
     transition: background-color .3s ease;
     cursor: pointer;
     position: relative;
+
+
 
     &-button {
       position: relative;
