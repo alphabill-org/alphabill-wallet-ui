@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
-import Logo from "../../images/ab-logo.svg";
+import Logo from "../../images/ab-logo-ico.svg";
 import Spacer from "../../components/Spacer/Spacer";
 import {
   extractFormikError,
@@ -34,13 +34,13 @@ function Login(): JSX.Element | null {
 
   return (
     <div className="login pad-24">
-      <Spacer mb={56} />
+      <Spacer mb={36} />
       <div className="login__header">
-        <img height="32" src={Logo} alt="Alphabill" />
-        <Spacer mb={32} />
-        <div>Welcome back to Alphabill Wallet!</div>
+        <img height="46" src={Logo} alt="Alphabill" />
+        <Spacer mb={72} />
+        <div>Log in to your wallet</div>
       </div>
-      <Spacer mb={60} />
+      <Spacer mb={24} />
       <Formik
         initialValues={{
           password: "",
@@ -105,13 +105,11 @@ function Login(): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <Link to="/recover-wallet">
-          {"Recover wallet from recovery phrase"}
-        </Link>
+        <Link to="/recover-wallet">{"Forgot password?"}</Link>
         <Spacer mb={16} />
-        <Link to="/create-wallet">
-          {"Don't have a wallet? Create a wallet"}
-        </Link>
+        <div>
+          Don't have a wallet? <Link to="/create-wallet">{" Create"}</Link>
+        </div>
       </div>
     </div>
   );
