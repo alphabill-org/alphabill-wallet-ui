@@ -19,7 +19,7 @@ export default function NFTAssetsCol({
 
   return (
     <>
-      {isTitle && allNFTs.length >= 1 && (
+      {isTitle && allNFTs?.length >= 1 && (
         <div className="pad-16-l">Non Fungible assets</div>
       )}
       <AssetsList

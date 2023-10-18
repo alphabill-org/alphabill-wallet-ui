@@ -58,11 +58,7 @@ export default function FeeCredit({
             className="fee-credit-button"
           >
             <CreditIco height="24" width="24" />
-            <span className="pad-8-l">
-              {alphaBalance > 0
-                ? "Add fee credit"
-                : "Insufficient funds to add fee credits"}
-            </span>
+            <span className="pad-8-l">Add fee credit</span>
           </Button>
         </div>
       )}
@@ -93,9 +89,12 @@ export default function FeeCredit({
                   />
 
                   <div
-                    className={classNames("assets-list__item assets-list__item-credit", {
-                      "no-hover": true,
-                    })}
+                    className={classNames(
+                      "assets-list__item assets-list__item-credit",
+                      {
+                        "no-hover": true,
+                      }
+                    )}
                   >
                     <div className="assets-list__item-clicker"></div>
                     <div className={classNames("assets-list__item-icon")}>

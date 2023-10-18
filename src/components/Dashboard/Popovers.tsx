@@ -11,7 +11,6 @@ import { IAccount } from "../../types/Types";
 import { ReactComponent as Edit } from "../../images/edit.svg";
 import { ReactComponent as CheckIco } from "../../images/check-ico.svg";
 import { ReactComponent as Close } from "../../images/close.svg";
-import Profile from "../../images/profile.svg";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";

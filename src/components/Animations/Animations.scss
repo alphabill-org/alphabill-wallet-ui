@@ -29,22 +29,22 @@
   &__gradient {
     content: '';
     background-image: url('../images/gradient.svg');
-    height: 200px;
-    width: 200px;
+    height: 400px;
+    width: 400px;
     display: block;
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
     position: absolute;
     bottom: -10%;
-    left: 0;
+    left: -50%;
     animation: pulsateMore 10s ease-in-out infinite;
-    opacity: .5;
+    opacity: 1;
     user-select: none;
 
     &.top {
       top: -10%;
-      right: 0;
+      right: -50%;
       left: unset;
       bottom: unset;
     }

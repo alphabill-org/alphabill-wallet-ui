@@ -3,7 +3,6 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background-color: $color-blue;
   padding-bottom: 80px;
 
   &__buttons {
@@ -52,6 +51,14 @@
 
     * {
       fill: $color-primary;
+    }
+
+    &:disabled {
+      color: $color-light;
+
+      * {
+        fill: $color-light;
+      }
     }
   }
 }

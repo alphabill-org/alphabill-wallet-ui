@@ -15,7 +15,8 @@ $color-border: #EEEDFC;
 $color-body-background: $color-blue;
 $color-overlay: rgba($color-blue, .4);
 
-$bg-gradient: linear-gradient(20deg, #302F64  10%, $color-primary 360%);
+$bg-gradient: linear-gradient(20deg, #302F64 10%, $color-primary 360%);
+$bg-radial-gradient: radial-gradient(circle, rgb(41, 32, 120) 14%, rgb(10 9 39) 100%);
 $bg-op-dark: rgba(255, 255, 255, 0.15);
 
 // Typography

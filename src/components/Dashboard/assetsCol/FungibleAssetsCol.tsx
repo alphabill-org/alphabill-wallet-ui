@@ -27,7 +27,7 @@ export default function FungibleAssetsCol({
 
   return (
     <>
-      {isTitle && sortedFungibleAssets.length >= 1 && (
+      {isTitle && sortedFungibleAssets?.length >= 1 && (
         <div className="pad-16-l">Fungible assets</div>
       )}
       <AssetsList

@@ -46,10 +46,10 @@ function BillsList(): JSX.Element | null {
     getBillsAndTargetUnitToConsolidate(billsList);
 
   const isFeeForSwap =
-    DCBills.length >= 1 && BigInt(feeCreditBills?.ALPHA?.value || "") >= 1n;
+    DCBills?.length >= 1 && BigInt(feeCreditBills?.ALPHA?.value || "") >= 1n;
 
   const isFeeCredit =
-    DCBills.length >= 1
+    DCBills?.length >= 1
       ? isFeeForSwap
       : BigInt(feeCreditBills?.ALPHA?.value || "") >=
         BigInt(billsToConsolidate?.length) + 1n;
@@ -221,7 +221,7 @@ function BillsList(): JSX.Element | null {
                     }}
                   >
                     {(isFeeCredit && billsToConsolidate?.length >= 1) ||
-                    (isFeeCredit && DCBills.length >= 1)
+                    (isFeeCredit && DCBills?.length >= 1)
                       ? "Consolidate Bills"
                       : billsToConsolidate?.length < 1 && isFeeCredit
                       ? "At least 2 bills needed for consolidation"
