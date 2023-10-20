@@ -6,7 +6,7 @@ cache:
   paths:
     - node_modules/
 
-image: node:latest
+image: node:20.8.1
 
 before_script:
   - npm ci --openssl-legacy-provider
