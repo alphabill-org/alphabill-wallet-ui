@@ -33,7 +33,7 @@ function Dashboard(): JSX.Element | null {
       )}
 
       {(navbarView === "nonFungible" || isHomeView) && (
-        <NFTAssetsCol isTitle={isHomeView} />
+        <NFTAssetsCol />
       )}
 
       {(navbarView === "history" || isHomeView) && <div></div>}

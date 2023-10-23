@@ -72,22 +72,11 @@ export default function FeeCredit({
             Object.entries(feeCreditBills).map(([key, value]: any, idx) => {
               const currentCreditBill =
                 key === AlphaType ? feeCreditBills?.ALPHA : feeCreditBills?.UTP;
-              const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
 
               return (
                 <div
                   key={idx}
-                  className={classNames({
-                    "assets-list__item-hover-btn": value?.value > 0,
-                    "no-pointer":
-                      !Boolean(alphaBalance > 0) || !isMinReclaimAmount,
-                  })}
                 >
-                  <ReclaimFeeCredit
-                    isHidden={Boolean(Number(value?.value || 0) === 0)}
-                    isAlpha={key === AlphaType}
-                  />
-
                   <div
                     className={classNames(
                       "assets-list__item assets-list__item-credit",
@@ -96,7 +85,6 @@ export default function FeeCredit({
                       }
                     )}
                   >
-                    <div className="assets-list__item-clicker"></div>
                     <div className={classNames("assets-list__item-icon")}>
                       {<ABLogo />}
                     </div>
@@ -108,6 +96,10 @@ export default function FeeCredit({
                         addDecimal(value?.value || "0", AlphaDecimals)
                       )}{" "}
                     </div>
+                    <ReclaimFeeCredit
+                      isHidden={Boolean(Number(value?.value || 0) === 0)}
+                      isAlpha={key === AlphaType}
+                    />
                   </div>
                 </div>
               );

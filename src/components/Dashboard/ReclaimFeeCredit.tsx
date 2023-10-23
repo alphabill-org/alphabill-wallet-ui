@@ -7,6 +7,7 @@ import { useQueryClient } from "react-query";
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
 import Textfield from "../Textfield/Textfield";
+import { ReactComponent as Send } from "../../images/send-ico.svg";
 
 import {
   IBill,
@@ -100,38 +101,33 @@ export default function ReclaimFeeCredit({
       setIsReclaimPopupVisible(false);
     }
   }, [billsList, account, feeCreditBills, balance]);
-  const buttonLabel =
-    "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
+  const buttonLabel = "Reclaim credits";
 
   return (
     <>
-      <div style={{ display: isReclaimPopupVisible ? "none" : "unset" }}>
-        <Button
-          small={true}
-          block={true}
-          type="button"
-          variant="secondary"
-          working={isSending}
-          className={isHidden ? "reclaim hidden" : "reclaim"}
-          disabled={isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
-          onClick={() => {
-            setActiveAssetLocal(
-              JSON.stringify(
-                account?.assets?.fungible.find(
-                  (asset) => asset.typeId === AlphaType
-                )
+      <Spacer mt={16} />
+      <Button
+        small={true}
+        block={true}
+        type="button"
+        variant="icon"
+        isIcoBg
+        working={isSending}
+        className="reclaim"
+        disabled={isHidden || isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
+        onClick={() => {
+          setActiveAssetLocal(
+            JSON.stringify(
+              account?.assets?.fungible.find(
+                (asset) => asset.typeId === AlphaType
               )
-            );
-            setIsReclaimPopupVisible(!isReclaimPopupVisible);
-          }}
-        >
-          {!billsArr?.[0]?.txHash
-            ? "ALPHAs needed to reclaim fees"
-            : !isMinReclaimAmount
-            ? "Not enough credit to reclaim"
-            : buttonLabel}
-        </Button>
-      </div>
+            )
+          );
+          setIsReclaimPopupVisible(!isReclaimPopupVisible);
+        }}
+      >
+        {buttonLabel} <Send />
+      </Button>
       <Popup
         isPopupVisible={isReclaimPopupVisible}
         setIsPopupVisible={setIsReclaimPopupVisible}
