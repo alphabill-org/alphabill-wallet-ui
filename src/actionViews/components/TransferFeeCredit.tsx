@@ -284,7 +284,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
             }
 
             getRoundNumber(true).then((alphaRoundNumber) => {
-              getRoundNumber(!isTokensRequest).then(
+              getRoundNumber(Boolean(values.assets.value === AlphaType)).then(
                 async (variableRoundNumber) => {
                   const id = billData.payload.unitId;
                   const amount = (
@@ -316,8 +316,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       amount: attr.amount,
                       targetSystemIdentifier: attr.targetSystemIdentifier,
                       targetRecordID: attr.targetRecordID,
-                      earliestAdditionTime: alphaRoundNumber - FeeTimeoutBlocks,
-                      latestAdditionTime: alphaRoundNumber + FeeTimeoutBlocks,
+                      earliestAdditionTime:
+                        variableRoundNumber - FeeTimeoutBlocks,
+                      latestAdditionTime:
+                        variableRoundNumber + FeeTimeoutBlocks,
                       nonce: attr.nonce,
                       backlink: attr.backlink,
                     };
@@ -325,7 +327,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
                   (billData.payload.clientMetadata as IPayloadClientMetadata) =
                     {
-                      timeout: variableRoundNumber + FeeTimeoutBlocks,
+                      timeout: alphaRoundNumber + FeeTimeoutBlocks,
                       MaxTransactionFee: MaxTransactionFee,
                       feeCreditRecordID: null,
                     };
@@ -455,8 +457,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   .then(async (data) => {
                     if (data?.txProof) {
                       transferBillProof.current = null;
-                      billToTransfer &&
-                        initTransaction(billToTransfer, true, false);
+                      billToTransfer && initTransaction(billToTransfer, true);
                     }
                   })
                   .finally(() => setIntervalCancel());
