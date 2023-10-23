@@ -8,13 +8,14 @@ import FormFooter from './components/FormFooter';
 
 export interface IFormProps {
   children: React.ReactNode;
+  onSubmit: () => void;
   light?: boolean;
 }
 
 function Form(props: IFormProps): JSX.Element {
   const className = classNames('form', { 'form--light': props.light });
 
-  return <div className={className}>{props.children}</div>;
+  return <form onSubmit={props.onSubmit} className={className}>{props.children}</form>;
 }
 
 export { FormContent, FormHeader, FormFooter, Form };

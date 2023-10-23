@@ -323,10 +323,9 @@ export default function ReclaimFeeCredit({
             const { handleSubmit, errors, touched, resetForm } = formikProps;
             const id = "Reclaim" + (isAlpha ? AlphaType : TokenType);
             return (
-              <form onSubmit={handleSubmit}>
+              <>
                 <Spacer mb={16} />
-
-                <Form>
+                <Form onSubmit={handleSubmit}>
                   <FormContent>
                     <Textfield
                       focusInput={isReclaimPopupVisible}
@@ -365,7 +364,7 @@ export default function ReclaimFeeCredit({
                     </div>
                   </FormFooter>
                 </Form>
-              </form>
+              </>
             );
           }}
         </Formik>

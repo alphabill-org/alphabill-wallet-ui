@@ -486,8 +486,8 @@ export default function TransferFungible(): JSX.Element | null {
             ? base64ToHexPrefixed(selectedTransferKey)
             : "";
           return (
-            <form className="pad-24" onSubmit={handleSubmit}>
-              <Form light>
+            <div className="pad-24">
+              <Form light onSubmit={handleSubmit}>
                 <FormContent>
                   {selectedTransferKey && (
                     <>
@@ -650,7 +650,7 @@ export default function TransferFungible(): JSX.Element | null {
                   <FeeCostEl />
                 </FormFooter>
               </Form>
-            </form>
+            </div>
           );
         }}
       </Formik>

@@ -157,54 +157,50 @@ export default function Popovers({
                               formikProps;
 
                             return (
-                              <form onSubmit={handleSubmit}>
-                                <Form>
-                                  <FormContent>
-                                    <Textfield
-                                      focusInput
-                                      selectInput
-                                      id="accountName"
-                                      name="accountName"
-                                      label=""
-                                      type="accountName"
-                                      error={extractFormikError(
-                                        errors,
-                                        touched,
-                                        ["accountName"]
-                                      )}
-                                      maxLength={26}
-                                    />
-                                  </FormContent>
-                                  <FormFooter>
-                                    <div className="button__group">
-                                      <Button
-                                        type="reset"
-                                        onClick={() =>
-                                          setRenamePopupAccountIndex(null)
-                                        }
-                                        big={true}
-                                        block={true}
-                                        variant="icon"
-                                      >
-                                        <Close
-                                          className="cancel"
-                                          width="16"
-                                          height="16"
-                                        />
-                                      </Button>
-                                      <Button
-                                        className="submit"
-                                        big={true}
-                                        block={true}
-                                        type="submit"
-                                        variant="icon"
-                                      >
-                                        <CheckIco width="16" height="16" />
-                                      </Button>
-                                    </div>
-                                  </FormFooter>
-                                </Form>
-                              </form>
+                              <Form onSubmit={handleSubmit}>
+                                <FormContent>
+                                  <Textfield
+                                    focusInput
+                                    selectInput
+                                    id="accountName"
+                                    name="accountName"
+                                    label=""
+                                    type="accountName"
+                                    error={extractFormikError(errors, touched, [
+                                      "accountName",
+                                    ])}
+                                    maxLength={26}
+                                  />
+                                </FormContent>
+                                <FormFooter>
+                                  <div className="button__group">
+                                    <Button
+                                      type="reset"
+                                      onClick={() =>
+                                        setRenamePopupAccountIndex(null)
+                                      }
+                                      big={true}
+                                      block={true}
+                                      variant="icon"
+                                    >
+                                      <Close
+                                        className="cancel"
+                                        width="16"
+                                        height="16"
+                                      />
+                                    </Button>
+                                    <Button
+                                      className="submit"
+                                      big={true}
+                                      block={true}
+                                      type="submit"
+                                      variant="icon"
+                                    >
+                                      <CheckIco width="16" height="16" />
+                                    </Button>
+                                  </div>
+                                </FormFooter>
+                              </Form>
                             );
                           }}
                         </Formik>
@@ -349,10 +345,10 @@ export default function Popovers({
             const { handleSubmit, errors, touched } = formikProps;
 
             return (
-              <form onSubmit={handleSubmit}>
+              <>
                 <Spacer mb={16} />
 
-                <Form>
+                <Form onSubmit={handleSubmit}>
                   <FormContent>
                     <Textfield
                       focusInput={isAddPopupVisible}
@@ -396,7 +392,7 @@ export default function Popovers({
                     </div>
                   </FormFooter>
                 </Form>
-              </form>
+              </>
             );
           }}
         </Formik>

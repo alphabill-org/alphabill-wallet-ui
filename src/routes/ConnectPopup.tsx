@@ -55,32 +55,30 @@ function ConnectPopup(): JSX.Element {
             const { handleSubmit, errors, touched } = formikProps;
 
             return (
-              <form onSubmit={handleSubmit}>
-                <Form>
-                  <FormContent>
-                    <Spacer mb={16} />
-                    <Select
-                      label=""
-                      name="keys"
-                      options={keysArr?.map((key: string) => ({
-                        value: key,
-                        label: key,
-                      }))}
-                      error={extractFormikError(errors, touched, ["keys"])}
-                    />
-                  </FormContent>
-                  <FormFooter>
-                    <Button
-                      big={true}
-                      block={true}
-                      type="submit"
-                      variant="primary"
-                    >
-                      Connect wallet
-                    </Button>
-                  </FormFooter>
-                </Form>
-              </form>
+              <Form onSubmit={handleSubmit}>
+                <FormContent>
+                  <Spacer mb={16} />
+                  <Select
+                    label=""
+                    name="keys"
+                    options={keysArr?.map((key: string) => ({
+                      value: key,
+                      label: key,
+                    }))}
+                    error={extractFormikError(errors, touched, ["keys"])}
+                  />
+                </FormContent>
+                <FormFooter>
+                  <Button
+                    big={true}
+                    block={true}
+                    type="submit"
+                    variant="primary"
+                  >
+                    Connect wallet
+                  </Button>
+                </FormFooter>
+              </Form>
             );
           }}
         </Formik>

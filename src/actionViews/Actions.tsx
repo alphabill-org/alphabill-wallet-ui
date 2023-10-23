@@ -1,7 +1,7 @@
 import classNames from "classnames";
 
 import Button from "../components/Button/Button";
-import { ReactComponent as Arrow } from "./../images/arrow.svg";
+import { ReactComponent as Arrow } from "./../images/arrow-ico.svg";
 import { ReactComponent as Close } from "./../images/close.svg";
 
 import { useApp } from "../hooks/appProvider";
@@ -75,7 +75,7 @@ function Actions(): JSX.Element | null {
           {isTransferView ? (
             <Close height="16" width="16" />
           ) : (
-            <Arrow height="20" width="20" />
+            <Arrow height="24" width="24" />
           )}
         </Button>
         <div className="actions__title">

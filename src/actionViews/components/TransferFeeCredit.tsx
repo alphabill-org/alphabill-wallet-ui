@@ -578,8 +578,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const { handleSubmit, errors, touched } = formikProps;
 
           return (
-            <form className="pad-24" onSubmit={handleSubmit}>
-              <Form light>
+            <div className="pad-24">
+              <Form light onSubmit={handleSubmit}>
                 <FormContent>
                   <Select
                     label=""
@@ -635,7 +635,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                   <FeeCostEl />
                 </FormFooter>
               </Form>
-            </form>
+            </div>
           );
         }}
       </Formik>

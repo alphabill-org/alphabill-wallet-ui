@@ -126,10 +126,9 @@ function AccountView(): JSX.Element | null {
             const { handleSubmit, errors, touched } = formikProps;
 
             return (
-              <form onSubmit={handleSubmit}>
+              <>
                 <Spacer mb={16} />
-
-                <Form>
+                <Form onSubmit={handleSubmit}>
                   <FormContent>
                     <Textfield
                       focusInput={isChangePasswordPopupVisible}
@@ -181,7 +180,7 @@ function AccountView(): JSX.Element | null {
                     </div>
                   </FormFooter>
                 </Form>
-              </form>
+              </>
             );
           }}
         </Formik>

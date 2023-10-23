@@ -76,30 +76,23 @@ function Login(): JSX.Element | null {
           const { handleSubmit, errors, touched } = formikProps;
 
           return (
-            <form onSubmit={handleSubmit}>
-              <Form>
-                <FormContent>
-                  <Textfield
-                    id="passwordLogin"
-                    name="password"
-                    label="password"
-                    type="password"
-                    error={extractFormikError(errors, touched, ["password"])}
-                    focusInput
-                  />
-                </FormContent>
-                <FormFooter>
-                  <Button
-                    big={true}
-                    block={true}
-                    type="submit"
-                    variant="primary"
-                  >
-                    Unlock
-                  </Button>
-                </FormFooter>
-              </Form>
-            </form>
+            <Form onSubmit={handleSubmit}>
+              <FormContent>
+                <Textfield
+                  id="passwordLogin"
+                  name="password"
+                  label="password"
+                  type="password"
+                  error={extractFormikError(errors, touched, ["password"])}
+                  focusInput
+                />
+              </FormContent>
+              <FormFooter>
+                <Button big={true} block={true} type="submit" variant="primary">
+                  Unlock
+                </Button>
+              </FormFooter>
+            </Form>
           );
         }}
       </Formik>

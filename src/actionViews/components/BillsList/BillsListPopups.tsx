@@ -3,17 +3,10 @@ import * as Yup from "yup";
 
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import Textfield from "../../../components/Textfield/Textfield";
-import {
-  IAccount,
-  IActiveAsset,
-  IBill,
-} from "../../../types/Types";
+import { IAccount, IActiveAsset, IBill } from "../../../types/Types";
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import {
-  extractFormikError,
-  getKeys,
-} from "../../../utils/utils";
+import { extractFormikError, getKeys } from "../../../utils/utils";
 
 import { useAuth } from "../../../hooks/useAuth";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
@@ -80,32 +73,28 @@ function BillsListPopups({
 
             return (
               <div className="pad-24-h">
-                <form onSubmit={handleSubmit}>
-                  <Form>
-                    <FormContent>
-                      <Textfield
-                        focusInput={Boolean(isPasswordFormVisible)}
-                        id="password"
-                        name="password"
-                        label=""
-                        type="password"
-                        error={extractFormikError(errors, touched, [
-                          "password",
-                        ])}
-                      />
-                    </FormContent>
-                    <FormFooter>
-                      <Button
-                        big={true}
-                        block={true}
-                        type="submit"
-                        variant="primary"
-                      >
-                        Submit
-                      </Button>
-                    </FormFooter>
-                  </Form>
-                </form>
+                <Form onSubmit={handleSubmit}>
+                  <FormContent>
+                    <Textfield
+                      focusInput={Boolean(isPasswordFormVisible)}
+                      id="password"
+                      name="password"
+                      label=""
+                      type="password"
+                      error={extractFormikError(errors, touched, ["password"])}
+                    />
+                  </FormContent>
+                  <FormFooter>
+                    <Button
+                      big={true}
+                      block={true}
+                      type="submit"
+                      variant="primary"
+                    >
+                      Submit
+                    </Button>
+                  </FormFooter>
+                </Form>
               </div>
             );
           }}

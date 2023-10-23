@@ -116,50 +116,48 @@ function RecoverAccount(): JSX.Element | null {
           {(formikProps) => {
             const { handleSubmit, errors, touched } = formikProps;
             return (
-              <form onSubmit={handleSubmit}>
-                <Form>
-                  <FormContent>
-                    <Spacer mb={8} />
-                    <Textfield
-                      id="mnemonicRecovery"
-                      name="mnemonicRecovery"
-                      label="Secret Recovery Phrase"
-                      error={extractFormikError(errors, touched, [
-                        "mnemonicRecovery",
-                      ])}
-                      type="password"
-                      focusInput
-                    />
-                    <Spacer mb={8} />
-                    <Textfield
-                      id="passwordRecoverAccount"
-                      name="password"
-                      label="New password (8 characters min)"
-                      type="password"
-                      error={extractFormikError(errors, touched, ["password"])}
-                    />
-                    <Textfield
-                      id="passwordRecoverAccountConfirm"
-                      name="passwordConfirm"
-                      label="Confirm password"
-                      type="password"
-                      error={extractFormikError(errors, touched, [
-                        "passwordConfirm",
-                      ])}
-                    />
-                  </FormContent>
-                  <FormFooter>
-                    <Button
-                      big={true}
-                      block={true}
-                      type="submit"
-                      variant="primary"
-                    >
-                      Next
-                    </Button>
-                  </FormFooter>
-                </Form>
-              </form>
+              <Form onSubmit={handleSubmit}>
+                <FormContent>
+                  <Spacer mb={8} />
+                  <Textfield
+                    id="mnemonicRecovery"
+                    name="mnemonicRecovery"
+                    label="Secret Recovery Phrase"
+                    error={extractFormikError(errors, touched, [
+                      "mnemonicRecovery",
+                    ])}
+                    type="password"
+                    focusInput
+                  />
+                  <Spacer mb={8} />
+                  <Textfield
+                    id="passwordRecoverAccount"
+                    name="password"
+                    label="New password (8 characters min)"
+                    type="password"
+                    error={extractFormikError(errors, touched, ["password"])}
+                  />
+                  <Textfield
+                    id="passwordRecoverAccountConfirm"
+                    name="passwordConfirm"
+                    label="Confirm password"
+                    type="password"
+                    error={extractFormikError(errors, touched, [
+                      "passwordConfirm",
+                    ])}
+                  />
+                </FormContent>
+                <FormFooter>
+                  <Button
+                    big={true}
+                    block={true}
+                    type="submit"
+                    variant="primary"
+                  >
+                    Next
+                  </Button>
+                </FormFooter>
+              </Form>
             );
           }}
         </Formik>

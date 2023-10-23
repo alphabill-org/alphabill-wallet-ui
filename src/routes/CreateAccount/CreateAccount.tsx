@@ -103,49 +103,47 @@ function CreateAccount(): JSX.Element | null {
             const { handleSubmit, errors, touched } = formikProps;
 
             return (
-              <form onSubmit={handleSubmit}>
-                <Form>
-                  <FormContent>
-                    <TextAreaField
-                      id="mnemonic"
-                      name="mnemonic"
-                      type="mnemonic"
-                      label="Secret Recovery Phrase"
-                      error={extractFormikError(errors, touched, ["mnemonic"])}
-                      className="center"
-                      value={mnemonic}
-                      disabled
-                    />
-                    <Textfield
-                      id="passwordCreateAccount"
-                      name="password"
-                      label="New password (8 characters min)"
-                      type="password"
-                      error={extractFormikError(errors, touched, ["password"])}
-                      focusInput
-                    />
-                    <Textfield
-                      id="passwordCreateAccountConfirm"
-                      name="passwordConfirm"
-                      label="Confirm password"
-                      type="password"
-                      error={extractFormikError(errors, touched, [
-                        "passwordConfirm",
-                      ])}
-                    />
-                  </FormContent>
-                  <FormFooter>
-                    <Button
-                      big={true}
-                      block={true}
-                      type="submit"
-                      variant="primary"
-                    >
-                      Next
-                    </Button>
-                  </FormFooter>
-                </Form>
-              </form>
+              <Form onSubmit={handleSubmit}>
+                <FormContent>
+                  <TextAreaField
+                    id="mnemonic"
+                    name="mnemonic"
+                    type="mnemonic"
+                    label="Secret Recovery Phrase"
+                    error={extractFormikError(errors, touched, ["mnemonic"])}
+                    className="center"
+                    value={mnemonic}
+                    disabled
+                  />
+                  <Textfield
+                    id="passwordCreateAccount"
+                    name="password"
+                    label="New password (8 characters min)"
+                    type="password"
+                    error={extractFormikError(errors, touched, ["password"])}
+                    focusInput
+                  />
+                  <Textfield
+                    id="passwordCreateAccountConfirm"
+                    name="passwordConfirm"
+                    label="Confirm password"
+                    type="password"
+                    error={extractFormikError(errors, touched, [
+                      "passwordConfirm",
+                    ])}
+                  />
+                </FormContent>
+                <FormFooter>
+                  <Button
+                    big={true}
+                    block={true}
+                    type="submit"
+                    variant="primary"
+                  >
+                    Next
+                  </Button>
+                </FormFooter>
+              </Form>
             );
           }}
         </Formik>

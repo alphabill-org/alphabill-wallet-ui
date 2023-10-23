@@ -304,8 +304,8 @@ export default function TransferNFTs(): JSX.Element | null {
             : "";
 
           return (
-            <form className="pad-24" onSubmit={handleSubmit}>
-              <Form light>
+            <div className="pad-24">
+              <Form light onSubmit={handleSubmit}>
                 <FormContent>
                   {selectedTransferKey && (
                     <>
@@ -438,7 +438,7 @@ export default function TransferNFTs(): JSX.Element | null {
                   <FeeCostEl />
                 </FormFooter>
               </Form>
-            </form>
+            </div>
           );
         }}
       </Formik>
