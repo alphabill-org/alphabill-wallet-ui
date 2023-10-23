@@ -27,7 +27,7 @@
     "react-router-dom": "^6.4.2",
     "react-select": "^5.4.0",
     "react-tooltip": "^5.4.0",
-    "sass": "^1.53.0",
+    "sass": "^1.69.4",
     "sha.js": "^2.4.11",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
