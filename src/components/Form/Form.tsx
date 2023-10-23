@@ -8,11 +8,11 @@ import FormFooter from './components/FormFooter';
 
 export interface IFormProps {
   children: React.ReactNode;
-  dark?: boolean;
+  light?: boolean;
 }
 
 function Form(props: IFormProps): JSX.Element {
-  const className = classNames('form', { 'form--dark': props.dark });
+  const className = classNames('form', { 'form--light': props.light });
 
   return <div className={className}>{props.children}</div>;
 }

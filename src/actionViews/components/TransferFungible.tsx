@@ -487,12 +487,12 @@ export default function TransferFungible(): JSX.Element | null {
             : "";
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
-              <Form>
+              <Form light>
                 <FormContent>
                   {selectedTransferKey && (
                     <>
                       {selectedTransferKey && (
-                        <div className="t-medium-small">
+                        <div className="t-medium-small c-blue">
                           You have selected a {tokenLabel} with a value of{" "}
                           {selectedBillValue &&
                             selectedAsset &&
@@ -596,6 +596,7 @@ export default function TransferFungible(): JSX.Element | null {
                     type="address"
                     error={extractFormikError(errors, touched, ["address"])}
                     value={selectedTransferAccountKey || ""}
+                    placeholder="Receiver address"
                   />
                   <Spacer mb={8} />
                   <div className={selectedTransferKey ? "d-none" : ""}>
@@ -653,30 +654,6 @@ export default function TransferFungible(): JSX.Element | null {
           );
         }}
       </Formik>
-      {!selectedTransferKey && (
-        <div className="t-medium-small pad-24-h pad-24-b">
-          To select a specific {tokenLabel} open your{" "}
-          <Button
-            small
-            onClick={() => {
-              setPreviousView(null);
-              setActiveAssetLocal(JSON.stringify(fungibleActiveAsset));
-              setActionsView(FungibleListView);
-              setIsActionsViewVisible(true);
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
-            }}
-            variant="link"
-            type="button"
-          >
-            {tokenLabel.toUpperCase()}S LIST
-          </Button>{" "}
-          and select it from {tokenLabel}s options.
-        </div>
-      )}
     </div>
   );
 }

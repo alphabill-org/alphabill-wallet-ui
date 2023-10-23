@@ -7,7 +7,6 @@ import { ReactComponent as Logo } from "../../images/ab-logo-ico.svg";
 import { ReactComponent as Settings } from "../../images/settings-ico.svg";
 import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
-import { useAuth } from "../../hooks/useAuth";
 
 import { useApp } from "../../hooks/appProvider";
 import { ProfileView } from "../../utils/constants";

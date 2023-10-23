@@ -305,12 +305,12 @@ export default function TransferNFTs(): JSX.Element | null {
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
-              <Form>
+              <Form light>
                 <FormContent>
                   {selectedTransferKey && (
                     <>
                       {selectedTransferKey && (
-                        <div className="t-medium-small">
+                        <div className="t-medium-small c-blue">
                           You have selected a specific NFT. You can deselect it
                           by clicking{" "}
                           <Button

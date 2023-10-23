@@ -2,66 +2,76 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
+  margin-top: auto;
   width: 100%;
   min-width: 375px;
   max-width: 375px;
   max-height: 600px;
-  background-color: $color-blue;
   position: absolute;
-  top: 0;
   right: 0;
   left: 0;
   bottom: 0;
-  transform: translateX(100%);
+  top: 0;
   pointer-events: none;
-  transition: transform $main-transition-duration 0s, opacity 0s $main-transition-duration;
   z-index: 2;
   user-select: none;
   opacity: 0;
+  z-index: $z-index-actions;
+  background: $bg-radial-gradient;
+
+  &.actions--transfer  {
+    background: $color-white;
+  }
+
+  &.actions--transfer  {
+    top: unset;
+  }
 
   &.is-visible {
-    transform: translateX(0);
     pointer-events: all;
     user-select: initial;
     opacity: 1;
-    transition: transform $main-transition-duration 0s, opacity 0s 0s;
   }
 
   &__header {
-    padding: 23px 48px;
-    background: $color-body-background;
+    padding: 24px 48px 0;
     width: 100%;
     display: flex;
     align-items: center;
     position: relative;
-    border-bottom: 1px solid $color-secondary;
+
 
     svg {
       transform: rotate(90deg);
-      width: 20px;
-      height: 20px;
-    }
-
-    .back-btn {
-      position: absolute;
-      left: 24px;
-
-      svg {
-        transform: rotate(0deg);
-        fill: $color-primary;
-      }
-
-      &:hover {
-        svg {
-          fill: $color-white;
-        }
-      }
     }
 
     .btn__back {
+      background: $color-white;
       position: absolute;
-      left: 24px;
+      left: 0;
+      top: 0;
+      padding: 8px;
+      box-sizing: border-box;
+      transition: all $main-transition-duration;
+      cursor: pointer;
+
+      .actions--transfer & {
+        background-color: $color-light;
+        right: 0;
+        left: unset;
+      }
+
+      &:hover {
+        background-color: $color-primary;
+      }
+
+      svg {
+        transition: all $main-transition-duration;
+
+        * {
+          fill: $color-blue;
+        }
+      }
     }
   }
 
@@ -72,6 +82,10 @@
     text-align: center;
     width: 100%;
     word-break: break-word;
+
+    .actions--transfer & {
+      color: $color-blue;
+    }
   }
 
   &__view {

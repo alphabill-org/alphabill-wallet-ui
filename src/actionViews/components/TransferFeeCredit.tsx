@@ -579,7 +579,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
-              <Form>
+              <Form light>
                 <FormContent>
                   <Select
                     label=""

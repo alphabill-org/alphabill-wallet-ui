@@ -29,22 +29,3 @@
   align-items: flex-start;
   padding-top: 16px;
 }
-
-.select-input-group {
-  display: flex;
-  align-items: flex-start;
-
-  .select__inner {
-    padding: 9px 12px;
-    min-width: 180px;
-
-    &::after {
-      position: absolute;
-      right: 0;
-      height: 70%;
-      width: 2px;
-      background-color: $color-blue;
-      content: '';
-    }
-  }
-}

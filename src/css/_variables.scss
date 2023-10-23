@@ -14,6 +14,7 @@ $color-link: #08E8DE;
 $color-border: #EEEDFC;
 $color-body-background: $color-blue;
 $color-overlay: rgba($color-blue, .4);
+$bg-input: #3c386b;
 
 $bg-gradient: linear-gradient(20deg, #302F64 10%, $color-primary 360%);
 $bg-radial-gradient: radial-gradient(circle, rgb(41, 32, 120) 14%, rgb(10 9 39) 100%);
@@ -41,6 +42,7 @@ $navbar-height: 68px;
 $main-transition-duration: .2s;
 
 // z-indexes
+$z-index-actions: 1000;
 $z-index-tooltip: 100;
 $z-index-reclaim: 99;
 $z-index-navbar: 98;

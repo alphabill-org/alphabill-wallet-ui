@@ -17,6 +17,14 @@
       &:hover {
         opacity: 1;
       }
+
+      svg,
+      path {
+        .form--light & {
+          fill: $color-blue;
+        }
+      }
+
     }
   }
 
@@ -24,7 +32,7 @@
     border-bottom: none;
   }
 
-  .form--dark & {
+  .form--light & {
     border-bottom: none;
   }
 }
@@ -40,18 +48,17 @@
 .textfield__input {
   width: 100%;
   border: 0;
-  background: transparent;
   display: block;
   -moz-appearance: none;
   -webkit-appearance: none;
   font-weight: 600;
   font-size: 14px;
   line-height: 18px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
-  color: $color-light;
-  padding: 12px;
-  background-color: $color-secondary;
+  color: $color-white;
+  background-color: $bg-input;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 100%;
@@ -69,13 +76,9 @@
     opacity: 0;
   }
 
-  .form--dark & {
-    color: $color-primary;
-    text-align: right;
-
-    &:read-only {
-      color: $color-white;
-    }
+  .form--light & {
+    color: $color-blue;
+    background-color: $color-light;
   }
 
   .center & {
@@ -99,13 +102,19 @@
   text-align: left;
   padding: 4px 0 8px;
   text-transform: capitalize;
+
+  .form--light & {
+    color: $color-blue;
+  }
 }
 
 .textfield__error {
   padding: 8px 0;
   color: $color-yellow;
+}
 
-  .form--dark & {
-    align-self: flex-end;
+.textfield__inner {
+  .form--light & {
+    color: $color-blue;
   }
 }

@@ -2,6 +2,8 @@ import classNames from "classnames";
 
 import Button from "../components/Button/Button";
 import { ReactComponent as Arrow } from "./../images/arrow.svg";
+import { ReactComponent as Close } from "./../images/close.svg";
+
 import { useApp } from "../hooks/appProvider";
 import TransferFungible from "./components/TransferFungible";
 import TransferFeeCredit from "./components/TransferFeeCredit";
@@ -9,7 +11,6 @@ import BillsList from "./components/BillsList/BillsList";
 import AccountView from "./components/AccountView";
 import { useAuth } from "../hooks/useAuth";
 import TransferNFTs from "./components/TransferNFTs";
-import Navbar from "../components/Navbar/Navbar";
 import Spacer from "../components/Spacer/Spacer";
 import AssetsList from "../components/AssetsList/AssetsList";
 import {
@@ -22,7 +23,7 @@ import {
   TransferNFTView,
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
-import { IActionVies, INavbarViews } from "../types/Types";
+import { IActionVies } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
 
 function Actions(): JSX.Element | null {
@@ -39,11 +40,16 @@ function Actions(): JSX.Element | null {
   } = useApp();
   const { activeAsset } = useAuth();
   const isTransferView =
-    actionsView === TransferFungibleView || actionsView === TransferNFTView;
+    actionsView === TransferFungibleView ||
+    actionsView === TransferNFTView ||
+    actionsView === TransferFeeCreditView;
 
   return (
     <div
-      className={classNames("actions", { "is-visible": isActionsViewVisible })}
+      className={classNames("actions", {
+        "is-visible": isActionsViewVisible,
+        "actions--transfer": isTransferView,
+      })}
     >
       <div className="actions__header">
         <Button
@@ -66,7 +72,11 @@ function Actions(): JSX.Element | null {
           className="btn__back"
           variant="icon"
         >
-          <Arrow />
+          {isTransferView ? (
+            <Close height="16" width="16" />
+          ) : (
+            <Arrow height="20" width="20" />
+          )}
         </Button>
         <div className="actions__title">
           {actionsView === NFTListView || actionsView === FungibleListView
@@ -75,28 +85,6 @@ function Actions(): JSX.Element | null {
         </div>
       </div>
       <div className="actions__view">
-        {isTransferView && (
-          <>
-            <Spacer mt={8} />
-            <Navbar
-              activeBar={
-                actionsView === TransferFungibleView
-                  ? "fungible"
-                  : "nonFungible"
-              }
-              onChange={(isFungibleView: INavbarViews) => {
-                setActionsView(
-                  isFungibleView === "fungible"
-                    ? TransferFungibleView
-                    : TransferNFTView
-                );
-                setSelectedTransferKey(null);
-                setPreviousView(null);
-                removeConnectTransferData();
-              }}
-            />
-          </>
-        )}
         {actionsView === TransferFungibleView && isActionsViewVisible ? (
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (

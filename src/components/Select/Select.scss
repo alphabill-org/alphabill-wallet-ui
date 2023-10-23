@@ -8,11 +8,16 @@
   font-weight: 600;
   font-size: 14px;
   line-height: 18px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
-  color: #EEEDFC;
-  padding: 12px;
-  background-color: #4E3EB6;
+  color: $color-white;
+  background-color: $bg-input;
+
+  .form--light & {
+    color: $color-blue;
+    background-color: $color-light;
+  }
 }
 
 
@@ -21,11 +26,15 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #EEEDFC;
+  color: $color-white;
   white-space: nowrap;
   margin-right: auto;
   text-align: left;
   padding: 4px 0 8px;
+
+  .form--light & {
+    color: $color-blue;
+  }
 }
 
 .select__control {
@@ -47,10 +56,20 @@
   font-size: 16px;
   line-height: 22px;
   color: $color-light !important;
+
+  .form--light & {
+    color: $color-blue !important;
+    ;
+  }
 }
 
 .select__menu {
   color: $color-light !important;
+
+  .form--light & {
+    color: $color-blue !important;
+    ;
+  }
 }
 
 .select__indicator {
@@ -59,6 +78,11 @@
 
   svg {
     fill: $color-light !important;
+
+    .form--light & {
+      fill: $color-blue !important;
+      ;
+    }
   }
 
   .select__control--is-disabled & {
@@ -68,7 +92,7 @@
 
 .form .select__option {
   cursor: pointer;
-  background-color: $color-secondary-op;
+  background-color: $bg-input;
   border-bottom: 1px solid $color-light;
   padding: 20px 12px 16px;
   transition: all $main-transition-duration;
@@ -80,7 +104,25 @@
   }
 
   &:hover {
-    background-color: $color-secondary;
+    opacity: .7;
+    background-color: $bg-input;
+  }
+
+  .form--light & {
+    color: $color-blue;
+    background-color: $color-light;
+  }
+}
+
+.form.form--light .select__option {
+  color: $color-blue;
+  background-color: $color-light;
+  border-bottom: 1px solid $bg-input;
+
+  &:hover {
+    opacity: 1;
+    background-color: $bg-input;
+    color: $color-light;
   }
 }
 

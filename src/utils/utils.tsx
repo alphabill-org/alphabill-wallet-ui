@@ -751,7 +751,7 @@ export const removeConnectTransferData = () =>
   chrome?.storage?.local.remove("ab_connect_transfer");
 
 export const FeeCostEl = () => (
-  <span className="t-small pad-8-t m-auto w-100p flex flex-justify-c op-06">
+  <span className="t-small pad-8-t m-auto w-100p flex flex-justify-c op-06 c-blue">
     Transaction fee per transaction 0.000'000'01 ALPHA
   </span>
 );
