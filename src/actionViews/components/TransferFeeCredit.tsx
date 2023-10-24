@@ -322,7 +322,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                       targetSystemIdentifier: attr.targetSystemIdentifier,
                       targetRecordID: attr.targetRecordID,
                       earliestAdditionTime:
-                        variableRoundNumber - FeeTimeoutBlocks,
+                        variableRoundNumber,
                       latestAdditionTime:
                         variableRoundNumber + FeeTimeoutBlocks,
                       nonce: attr.nonce,
