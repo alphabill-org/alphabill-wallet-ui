@@ -38,7 +38,7 @@ export const handleSwapRequest = async (
   hashingPrivateKey: Uint8Array,
   DCBills: IBill[],
   account: IAccount,
-  activeAccountId: string,
+  activeAccountId: string
 ) => {
   const sortedBills = DCBills.sort((a: any, b: any) =>
     a.targetUnitId.localeCompare(b.targetUnitId)
@@ -181,10 +181,10 @@ export const handleDC = async (
             clientMetadata: {
               timeout: roundNumber + TimeoutBlocks,
               MaxTransactionFee: MaxTransactionFee,
-              feeCreditRecordID: await publicKeyHashWithFeeType({
+              feeCreditRecordID: (await publicKeyHashWithFeeType({
                 key: activeAccountId,
                 isAlpha: true,
-              }) as Uint8Array,
+              })) as Uint8Array,
             },
           },
         };
@@ -213,4 +213,61 @@ export const handleDC = async (
       })
     );
   }
+};
+
+export const handleLocking = async (
+  addInterval: () => void,
+  setIsConsolidationLoading: (e: boolean) => void,
+  account: IAccount,
+  password: string,
+  vault: any,
+  activeAccountId: string,
+  targetUnit: IBill
+) => {
+  const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+    password,
+    Number(account?.idx),
+    vault
+  );
+
+  if (error || !hashingPublicKey || !hashingPrivateKey) {
+    return;
+  }
+
+  setIsConsolidationLoading(true);
+  getRoundNumber(true).then(async (roundNumber) => {
+    const transferData: ITransactionPayload = {
+      payload: {
+        systemId: AlphaSystemId,
+        type: AlphaDcType,
+        unitId: Buffer.from(targetUnit.id, "base64"),
+        attributes: {
+          lockStatus: BigInt(1),
+          backlink: Buffer.from(targetUnit.txHash, "base64"),
+        },
+        clientMetadata: {
+          timeout: roundNumber + TimeoutBlocks,
+          MaxTransactionFee: MaxTransactionFee,
+          feeCreditRecordID: (await publicKeyHashWithFeeType({
+            key: activeAccountId,
+            isAlpha: true,
+          })) as Uint8Array,
+        },
+      },
+    };
+
+    const proof = await createOwnerProof(
+      transferData.payload as ITransactionPayloadObj,
+      hashingPrivateKey,
+      hashingPublicKey
+    );
+
+    if (proof.isSignatureValid !== true) return;
+
+    makeTransaction(
+      prepTransactionRequestData(transferData, proof.ownerProof),
+      activeAccountId,
+      true
+    ).then(() => addInterval());
+  });
 };

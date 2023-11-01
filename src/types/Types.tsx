@@ -190,6 +190,7 @@ export interface ITransactionAttributes {
   typeID?: Uint8Array;
   targetUnitID?: Uint8Array;
   targetUnitBacklink?: Uint8Array;
+  lockStatus?: bigint;
 }
 
 export interface ITransactionRequestPayload {
