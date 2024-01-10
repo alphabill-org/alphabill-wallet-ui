@@ -30,7 +30,7 @@ import {
   getKeys,
   base64ToHexPrefixed,
   createOwnerProof,
-  createNewBearer,
+  predicateP2PKH,
   invalidateAllLists,
   createInvariantPredicateSignatures,
   sendTransferMessage,
@@ -128,7 +128,7 @@ export default function TransferNFTs(): JSX.Element | null {
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={(values, { setErrors, resetForm }) => {
+        onSubmit={async (values, { setErrors, resetForm }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -153,7 +153,7 @@ export default function TransferNFTs(): JSX.Element | null {
             });
           }
 
-          const newBearer = createNewBearer(values.address);
+          const newBearer = await predicateP2PKH(values.address);
 
           setIsSending(true);
 

@@ -213,7 +213,7 @@ export default function ReclaimFeeCredit({
               billData: ITransactionPayload,
               isClose: boolean
             ) => {
-              getRoundNumber(isAlpha).then(async (variableRoundNumber) => {
+              getRoundNumber(true).then(async (variableRoundNumber) => {
                 const id = billData.payload.unitId;
 
                 (billData.payload.clientMetadata as IPayloadClientMetadata) = {

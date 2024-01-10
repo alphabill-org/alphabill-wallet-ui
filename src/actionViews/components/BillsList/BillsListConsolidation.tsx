@@ -1,7 +1,7 @@
 import {
   base64ToHexPrefixed,
   createOwnerProof,
-  getNewBearer,
+  predicateP2PKH,
   sortTx_ProofsByID,
 } from "../../../utils/utils";
 import {
@@ -101,7 +101,7 @@ export const handleSwapRequest = async (
             type: AlphaSwapType,
             unitId: Buffer.from(firstBill.targetUnitId!, "base64"),
             attributes: {
-              ownerCondition: getNewBearer(account),
+              ownerCondition: await predicateP2PKH(account.pubKey),
               dcTransfers: dcTransfers,
               proofs: proofs,
               targetValue: calculateTargetValue(sortedBills),

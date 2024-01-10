@@ -40,7 +40,7 @@ export interface IFungibleAsset {
 
 export interface INFTTransferPayload {
   payload: {
-    systemId: string;
+    systemId: bigint;
     unitId: string;
     type: string;
     attributes: {
@@ -175,7 +175,7 @@ export interface ITransactionAttributes {
   value?: bigint;
   targetValue?: bigint;
   invariantPredicateSignatures?: Uint8Array[] | null;
-  targetSystemIdentifier?: Uint8Array; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
+  targetSystemIdentifier?: bigint; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
   targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
   earliestAdditionTime?: bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
   latestAdditionTime?: bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
@@ -198,7 +198,7 @@ export interface ITransactionRequestPayload {
 
 export interface ITransactionPayload {
   payload: {
-    systemId: Uint8Array;
+    systemId: bigint;
     type: string;
     unitId: Uint8Array;
     attributes: Uint8Array | ITransactionAttributes;
@@ -214,7 +214,7 @@ export interface IPayloadClientMetadata {
   feeCreditRecordID?: Uint8Array | null;
 }
 export interface ITransactionPayloadObj {
-  systemId: Uint8Array;
+  systemId: bigint;
   unitId: Uint8Array;
   type: string;
   attributes: any | ITransactionAttributes;
@@ -282,7 +282,7 @@ export type INavbarViews = "fungible" | "nonFungible" | "fees";
 
 export interface ITxOrder {
   Payload: {
-    SystemID: string;
+    SystemID: bigint;
     Type: string;
     UnitID: string;
     Attributes: string;
