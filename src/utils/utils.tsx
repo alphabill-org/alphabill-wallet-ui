@@ -6,7 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
-import { encodeAsync } from "cbor";
+import { encodeAsync, encodeCanonical } from "cbor";
 
 import {
   IAccount,
@@ -21,21 +21,37 @@ import {
 import {
   AlphaDecimals,
   AlphaType,
+  alwaysTrueBase64,
   DCTransfersLimit,
   localStorageKeys,
-  OpCheckSig,
-  OpDup,
-  OpEqual,
-  OpHash,
-  OpPushHash,
-  OpPushPubKey,
-  OpPushSig,
-  OpVerify,
-  PushBoolTrue,
-  SigScheme,
-  StartByte,
 } from "./constants";
 import { publicKeyHash } from "./hashers";
+
+export const predicateP2PKH = async (address: string) => {
+  const checkedAddress = address.startsWith("0x")
+    ? address.substring(2)
+    : address;
+  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
+  const pubKeyHash = CryptoJS.SHA256(addressHash);
+  // Convert the hash to a hex string
+  const pubKeyHashHex = pubKeyHash.toString(CryptoJS.enc.Hex);
+
+  // Create a buffer from the hex string
+  const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
+
+  const predicate = {
+    tag: 0, // Single byte, 0x00
+    identifier: BigInt(2), // uint64, represented as BigInt
+    body: [pubKeyHashBuffer], // Encoded as a byte array
+  };
+
+  // Encode the entire Predicate as CBOR
+  const encodedPredicate = await encodeAsync(Object.values(predicate), {
+    canonical: true,
+  });
+
+  return encodedPredicate;
+};
 
 export const extractFormikError = (
   errors: unknown,
@@ -115,29 +131,6 @@ export const sortIDBySize = (arr: string[]) =>
       : 0
   );
 
-export const getNewBearer = (account: IAccount) => {
-  const address = account.pubKey.startsWith("0x")
-    ? account.pubKey.substring(2)
-    : account.pubKey;
-  const addressHash = CryptoJS.enc.Hex.parse(address);
-  const SHA256 = CryptoJS.SHA256(addressHash);
-
-  return Buffer.from(
-    StartByte +
-      OpDup +
-      OpHash +
-      SigScheme +
-      OpPushHash +
-      SigScheme +
-      SHA256.toString(CryptoJS.enc.Hex) +
-      OpEqual +
-      OpVerify +
-      OpCheckSig +
-      SigScheme,
-    "hex"
-  );
-};
-
 export const checkPassword = (password: string | undefined) => {
   if (!password) {
     return false;
@@ -212,40 +205,37 @@ export const getKeys = (
 export const checkOwnerPredicate = (key: string, predicate: string) => {
   if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
-  const removeScriptBefore =
-    StartByte + OpDup + OpHash + SigScheme + OpPushHash + SigScheme;
-  const removeScriptAfter = OpEqual + OpVerify + OpCheckSig + SigScheme;
-  const sha256KeyFromPredicate = hex
-    .replace(removeScriptBefore, "")
-    .replace(removeScriptAfter, "");
+  const tagAndIdentifierBytes = "830002";
+  const removeScriptBefore = tagAndIdentifierBytes;
+  const sha256KeyFromPredicate = hex.replace(removeScriptBefore, "");
 
   const checkedAddress = key.startsWith("0x") ? key.substring(2) : key;
   const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
-  const SHA256Key = CryptoJS.SHA256(addressHash);
+  const pubKeyHash = CryptoJS.SHA256(addressHash);
 
-  return sha256KeyFromPredicate === SHA256Key.toString(CryptoJS.enc.Hex);
+  const pubKeyHashHex = pubKeyHash.toString(CryptoJS.enc.Hex);
+
+  // Create a buffer from the hex string
+  const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
+
+  // Encode the entire Predicate as CBOR
+  const encodedKey = encodeCanonical([pubKeyHashBuffer]);
+
+  const encodedKeyHex = Buffer.from(encodedKey).toString("hex");
+
+  return sha256KeyFromPredicate === encodedKeyHex;
 };
 
-export const createNewBearer = (address: string) => {
-  const checkedAddress = address.startsWith("0x")
-    ? address.substring(2)
-    : address;
-  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
-  const SHA256 = CryptoJS.SHA256(addressHash);
-  return Buffer.from(
-    StartByte +
-      OpDup +
-      OpHash +
-      SigScheme +
-      OpPushHash +
-      SigScheme +
-      SHA256.toString(CryptoJS.enc.Hex) +
-      OpEqual +
-      OpVerify +
-      OpCheckSig +
-      SigScheme,
-    "hex"
-  );
+export const isTokenSendable = (invariantPredicate: string, key: string) => {
+  const isOwner = checkOwnerPredicate(key, invariantPredicate);
+
+  if (invariantPredicate === alwaysTrueBase64) {
+    return true;
+  } else if (isOwner) {
+    return isOwner;
+  }
+
+  return false;
 };
 
 export const createOwnerProof = async (
@@ -254,33 +244,34 @@ export const createOwnerProof = async (
   pubKey: Uint8Array
 ) => {
   const modifiedPayload = { ...payload };
+
   modifiedPayload.attributes = Object.values(modifiedPayload.attributes);
   modifiedPayload.clientMetadata = Object.values(
     modifiedPayload.clientMetadata
   );
   const payloadHash = await secp.utils.sha256(
-    await encodeAsync(Object.values(modifiedPayload), {canonical: true})
+    await encodeAsync(Object.values(modifiedPayload), { canonical: true })
   );
   const signature = await secp.sign(payloadHash, hashingPrivateKey, {
     der: false,
     recovered: true,
   });
+
   const isValid = secp.verify(signature[0], payloadHash, pubKey);
+  const P2pkh256Signature = {
+    sig: Buffer.from(
+      secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
+    ),
+    pubKey: pubKey,
+  };
+
+  const ownerProof = await encodeAsync(Object.values(P2pkh256Signature), {
+    canonical: true,
+  });
 
   return {
     isSignatureValid: isValid,
-    ownerProof: Buffer.from(
-      StartByte +
-        OpPushSig +
-        SigScheme +
-        Buffer.from(
-          secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
-        ).toString("hex") +
-        OpPushPubKey +
-        SigScheme +
-        unit8ToHexPrefixed(pubKey).substring(2),
-      "hex"
-    ),
+    ownerProof: ownerProof,
   };
 };
 
@@ -534,18 +525,6 @@ export const invalidateAllLists = async (
   queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
 };
 
-export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  const isOwner = checkOwnerPredicate(key, invariantPredicate);
-
-  if (invariantPredicate === hexToBase64(PushBoolTrue)) {
-    return true;
-  } else if (isOwner) {
-    return isOwner;
-  }
-
-  return false;
-};
-
 export const createInvariantPredicateSignatures = (
   hierarchy: ITypeHierarchy[],
   ownerProof: Uint8Array,
@@ -554,8 +533,8 @@ export const createInvariantPredicateSignatures = (
   return hierarchy?.map((parent: ITypeHierarchy) => {
     const predicate = parent.invariantPredicate;
 
-    if (predicate === hexToBase64(PushBoolTrue)) {
-      return Buffer.from(StartByte, "hex");
+    if (predicate === alwaysTrueBase64) {
+      return null;
     } else if (checkOwnerPredicate(key, predicate)) {
       return ownerProof;
     }
@@ -661,9 +640,9 @@ export const getUpdatedFungibleAssets = (
     tokenTypes,
     activeAccountId
   );
-  const ALPHABalance = balances?.find(
-    (balance: any) => balance?.data?.pubKey === activeAccountId
-  )?.data?.balance;
+  const ALPHABalance =
+    balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
+      ?.data?.balance || "0";
 
   const alphaAsset = {
     id: AlphaType,
@@ -858,9 +837,9 @@ export const getBillsAndTargetUnitToConsolidate = (
     collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
     findBillWithLargestValue(collectableBills)!;
 
-  const billsToConsolidate = collectableBills?.filter(
-    (b: IBill) => b.id !== consolidationTargetUnit?.id
-  ).slice(0, DCTransfersLimit);
+  const billsToConsolidate = collectableBills
+    ?.filter((b: IBill) => b.id !== consolidationTargetUnit?.id)
+    .slice(0, DCTransfersLimit);
 
   return {
     billsToConsolidate: billsToConsolidate || [],

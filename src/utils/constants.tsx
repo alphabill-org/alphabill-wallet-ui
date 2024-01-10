@@ -1,18 +1,5 @@
-export const PushBool = "51";
-export const StartByte = "53";
-export const OpPushSig = "54";
-export const OpPushPubKey = "55";
-export const OpDup = "76";
-export const OpHash = "a8";
-export const OpPushHash = "4f";
-export const OpCheckSig = "ac";
-export const OpEqual = "87";
-export const OpVerify = "69";
-export const BoolTrue = "01";
-export const BoolFalse = "00";
-export const SigScheme = "01";
-export const PushBoolTrue = StartByte + PushBool + BoolTrue;
-export const PushBoolFalse = StartByte + PushBool + BoolFalse;
+export const alwaysTrueBase64 = "gwAB9g==";
+export const alwaysFalseBase64 = "gwAA9g==";
 
 export const tokenFeeCreditRecordUnitType = "2f";
 export const moneyFeeCreditRecordUnitType = "0f";
@@ -38,9 +25,8 @@ export const FeeCreditTransferType = "transFC";
 export const FeeCreditCloseType = "closeFC";
 export const FeeCreditReclaimType = "reclFC";
 
-export const AlphaSystemId = Buffer.from("AAAAAA==", "base64");
-export const TokensSystemId = Buffer.from("AAAAAg==", "base64");
-export const FeeSystemId = Buffer.from("AAAAAw==", "base64");
+export const AlphaSystemId = BigInt(1);
+export const TokensSystemId = BigInt(2);
 
 export const AlphaType = "ALPHA";
 export const TokenType = "UTP";

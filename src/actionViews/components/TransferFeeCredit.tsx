@@ -33,7 +33,7 @@ import {
   invalidateAllLists,
   convertToWholeNumberBigInt,
   base64ToHexPrefixed,
-  getNewBearer,
+  predicateP2PKH,
   unit8ToHexPrefixed,
   FeeCostEl,
   addDecimal,
@@ -400,12 +400,12 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const firstBillToTransfer = transferrableBills!.current![0];
 
           if (
-            creditBill?.lastAddFcTxHash &&
+            creditBill?.txHash &&
             firstBillToTransfer.payload.type !== FeeCreditAddType
           ) {
             (
               firstBillToTransfer.payload.attributes as ITransactionAttributes
-            ).nonce = Buffer.from(creditBill.lastAddFcTxHash, "base64");
+            ).nonce = Buffer.from(creditBill.txHash, "base64");
           }
 
           await initTransaction({
@@ -493,14 +493,14 @@ export default function TransferFeeCredit(): JSX.Element | null {
             }, 1000);
           };
 
-          const addFeeCredit = () => {
+          const addFeeCredit = async () => {
             const transferData: ITransactionPayload = {
               payload: {
                 systemId: isAlphaTransaction ? AlphaSystemId : TokensSystemId,
                 type: FeeCreditAddType,
                 unitId: pubKeyHashWithType as Uint8Array,
                 attributes: {
-                  feeCreditOwnerCondition: getNewBearer(account),
+                  feeCreditOwnerCondition: await predicateP2PKH(account.pubKey),
                   feeCreditTransfer: transferBillProof.current.txRecord,
                   feeCreditTransferProof: transferBillProof.current.txProof,
                 },

@@ -1,14 +1,15 @@
 import { ITokensListTypes } from "../types/Types";
+import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
 
 export const TokenTypes: ITokensListTypes[] = [
   {
     id: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
     parentTypeId: "AA==",
     symbol: "TEST-FT",
-    subTypeCreationPredicate: "U1EA",
+    subTypeCreationPredicate: alwaysFalseBase64,
     tokenCreationPredicate:
-      "U3aoAU8BKvYVYjwpR738+Brs/MOHNC3KW5NI1oCeJ1h7h+TqdauHaawB",
-    invariantPredicate: "U1EA",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+    invariantPredicate: alwaysFalseBase64,
     decimals: 6,
     kind: 2,
     icon: {
@@ -22,11 +23,11 @@ export const TokenTypes: ITokensListTypes[] = [
     id: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
     parentTypeId: "AA==",
     symbol: "NFT NFT",
-    subTypeCreationPredicate: "U1EB",
+    subTypeCreationPredicate: alwaysTrueBase64,
     tokenCreationPredicate:
-      "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
-    invariantPredicate: "U1EB",
-    nftDataUpdatePredicate: "U1EB",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+    invariantPredicate: alwaysTrueBase64,
+    nftDataUpdatePredicate: alwaysTrueBase64,
     kind: 4,
     icon: {
       type: "image/svg+xml",
@@ -39,11 +40,11 @@ export const TokenTypes: ITokensListTypes[] = [
     id: "ba/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
     parentTypeId: "AA==",
     symbol: "NFT NFT",
-    subTypeCreationPredicate: "U1EB",
+    subTypeCreationPredicate: alwaysTrueBase64,
     tokenCreationPredicate:
-      "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
-    invariantPredicate: "U1EB",
-    nftDataUpdatePredicate: "U1EB",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+    invariantPredicate: alwaysTrueBase64,
+    nftDataUpdatePredicate: alwaysTrueBase64,
     kind: 4,
     icon: {
       type: "image/svg+xml",
@@ -58,24 +59,24 @@ export const NFTsList_1 = [
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "RSjmdnW6CEZ42cVbswBYLaFzRJgO1odj+cbm4jLBgTk=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
   },
 ];
 
@@ -83,24 +84,24 @@ export const NFTsList_2 = [
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
     typeId: "ba/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "RSjmdnW6CEZ42cVbswBYLaFzRJgO1odj+cbm4jLBgTk=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
   },
 ];
 
@@ -108,13 +109,13 @@ export const NFTsList_3 = [
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EA",
+    nftDataUpdatePredicate: alwaysFalseBase64,
   },
 ];
 
@@ -122,13 +123,13 @@ export const NFTSameTypeResult = [
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 2,
     iconImage: {
@@ -139,13 +140,13 @@ export const NFTSameTypeResult = [
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "RSjmdnW6CEZ42cVbswBYLaFzRJgO1odj+cbm4jLBgTk=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 2,
     iconImage: {
@@ -159,13 +160,13 @@ export const NFTIsSendableFalseResult = [
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EA",
+    nftDataUpdatePredicate: alwaysFalseBase64,
     isSendable: false,
     amountOfSameType: 1,
     iconImage: {
@@ -179,13 +180,13 @@ export const NFTDifferentTypeResult = [
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
     typeId: "ba/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "RSjmdnW6CEZ42cVbswBYLaFzRJgO1odj+cbm4jLBgTk=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 1,
     iconImage: {
@@ -196,13 +197,13 @@ export const NFTDifferentTypeResult = [
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
     typeId: "va/pJM1UPE8PuXPZ+IGyv/2Id479WaASOv5oAnOyhBw=",
-    owner: "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 4,
     txHash: "YWdlUMpGxRhxY1WJuCz4DBDQFDLeiHaA7Q0QfcU5DJI=",
     symbol: "NFT NFT",
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
-    nftDataUpdatePredicate: "U1EB",
+    nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 1,
     iconImage: {
@@ -213,17 +214,17 @@ export const NFTDifferentTypeResult = [
 ];
 
 export const activeAccountId =
-  "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
+  "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
 
 export const FungibleTokenTypes: ITokensListTypes[] = [
   {
     id: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
     parentTypeId: "AA==",
     symbol: "TEST-FT",
-    subTypeCreationPredicate: "U1EA",
+    subTypeCreationPredicate: alwaysFalseBase64,
     tokenCreationPredicate:
-      "U3aoAU8BKvYVYjwpR738+Brs/MOHNC3KW5NI1oCeJ1h7h+TqdauHaawB",
-    invariantPredicate: "U1EA",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+    invariantPredicate: alwaysFalseBase64,
     decimals: 6,
     kind: 2,
     icon: {
@@ -237,10 +238,10 @@ export const FungibleTokenTypes: ITokensListTypes[] = [
     id: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
     parentTypeId: "AA==",
     symbol: "TEST-FT",
-    subTypeCreationPredicate: "U1EA",
+    subTypeCreationPredicate: alwaysFalseBase64,
     tokenCreationPredicate:
-      "U3aoAU8BKvYVYjwpR738+Brs/MOHNC3KW5NI1oCeJ1h7h+TqdauHaawB",
-    invariantPredicate: "U1EB",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+    invariantPredicate: alwaysTrueBase64,
     decimals: 6,
     kind: 2,
     icon: {
@@ -256,7 +257,7 @@ export const FungibleTokensList_1 = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bct9gxyOvAuAUOY3KO9IKj6KJyXqSiy/qm0qFtv//0oiHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 2,
     txHash: "Rzrtxa2bDIsjcTrEQyTFPZaqRa1hWLnCIdoGXkRJUMU=",
     symbol: "TEST-FT",
@@ -267,7 +268,7 @@ export const FungibleTokensList_1 = [
   {
     id: "xaSMlH/lDPpGAXxG/ibAZkiRsAf6pvoIcgc2iJ8aFNk=",
     typeId: "Ykm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bct9gxyOvAuAUOY3KO9IKj6KJyXqSiy/qm0qFtv//0oiHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 2,
     txHash: "Bf59yzZ7d2bNNWywqsqQUEEU/xVdIENIa2NAHqTgM78=",
     symbol: "TEST-FT",
@@ -281,7 +282,7 @@ export const FungibleTokensList_2 = [
   {
     id: "QazXhGHFko6BvN/UdUpLLFcxJibd8ynSntEQo8IE15c=",
     typeId: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bct9gxyOvAuAUOY3KO9IKj6KJyXqSiy/qm0qFtv//0oiHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 2,
     txHash: "Rzrtxa2bDIsjcTrEQyTFPZaqRa1hWLnCIdoGXkRJUMU=",
     symbol: "TEST-FT",
@@ -292,7 +293,7 @@ export const FungibleTokensList_2 = [
   {
     id: "xaSMlH/lDPpGAXxG/ibAZkiRsAf6pvoIcgc2iJ8aFNk=",
     typeId: "Kkm9DiAi4SH05vKUpKDARhNRuS2K5dJzdUyMWRZ5QFk=",
-    owner: "U3aoAU8Bct9gxyOvAuAUOY3KO9IKj6KJyXqSiy/qm0qFtv//0oiHaawB",
+    owner: "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
     kind: 2,
     txHash: "Bf59yzZ7d2bNNWywqsqQUEEU/xVdIENIa2NAHqTgM78=",
     symbol: "TEST-FT",
