@@ -308,7 +308,12 @@ export default function TransferFungible(): JSX.Element | null {
                   payload: {
                     ...baseObj(billToSplit, splitType),
                     attributes: {
-                      targetUnits: [[splitBillAmount, newBearer]],
+                      targetUnits: [
+                        Object.values({
+                          targetValue: splitBillAmount,
+                          targetOwner: newBearer,
+                        }),
+                      ],
                       remainingValue:
                         BigInt(billToSplit.value) - splitBillAmount,
                       backlink: Buffer.from(billToSplit.txHash, "base64"),
@@ -354,9 +359,9 @@ export default function TransferFungible(): JSX.Element | null {
             const attributes = billData?.payload
               .attributes as ITransactionAttributes;
             const amount =
-              attributes?.amount ||
               attributes?.targetValue ||
               attributes?.value ||
+              splitBillAmount ||
               0n;
 
             const proof = await createOwnerProof(
