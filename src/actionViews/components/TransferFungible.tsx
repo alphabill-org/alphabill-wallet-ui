@@ -31,7 +31,7 @@ import {
   getKeys,
   base64ToHexPrefixed,
   createOwnerProof,
-  createNewBearer,
+  predicateP2PKH,
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
@@ -78,8 +78,12 @@ export default function TransferFungible(): JSX.Element | null {
     selectedTransferAccountKey,
     feeCreditBills,
   } = useApp();
-  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
-    useAuth();
+  const {
+    vault,
+    activeAccountId,
+    setActiveAssetLocal,
+    activeAsset,
+  } = useAuth();
   const queryClient = useQueryClient();
 
   const directlySelectedAsset = unlockedBillsList?.find(
@@ -199,7 +203,7 @@ export default function TransferFungible(): JSX.Element | null {
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={(values, { setErrors }) => {
+        onSubmit={async (values, { setErrors }) => {
           const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
             values.password,
             Number(account?.idx),
@@ -228,13 +232,16 @@ export default function TransferFungible(): JSX.Element | null {
             ? [directlySelectedAsset]
             : unlockedBillsList || [];
 
-          const { billsToTransfer, billToSplit, splitBillAmount } =
-            handleBillSelection(
-              convertedAmount.toString(),
-              billsArr as IBill[]
-            );
+          const {
+            billsToTransfer,
+            billToSplit,
+            splitBillAmount,
+          } = handleBillSelection(
+            convertedAmount.toString(),
+            billsArr as IBill[]
+          );
 
-          const newBearer = createNewBearer(values.address);
+          const newBearer = await predicateP2PKH(values.address);
 
           setIsSending(true);
 
@@ -297,12 +304,16 @@ export default function TransferFungible(): JSX.Element | null {
               });
 
               if (billToSplit && splitBillAmount) {
-                const splitData: ITransactionPayload = {
+                const splitData: ITransactionPayload = await {
                   payload: {
                     ...baseObj(billToSplit, splitType),
                     attributes: {
-                      amount: splitBillAmount,
-                      targetBearer: newBearer,
+                      targetUnits: [
+                        Object.values({
+                          targetValue: splitBillAmount,
+                          targetOwner: newBearer,
+                        }),
+                      ],
                       remainingValue:
                         BigInt(billToSplit.value) - splitBillAmount,
                       backlink: Buffer.from(billToSplit.txHash, "base64"),
@@ -328,10 +339,11 @@ export default function TransferFungible(): JSX.Element | null {
             if (billTypeId && billTypeId !== AlphaType) {
               const attr = billData.payload.attributes;
               billData.payload.attributes = {
-                bearer: Boolean(attr.newBearer)
-                  ? attr.newBearer
-                  : attr.targetBearer,
-                value: attr.amount > 0 ? attr.amount : attr.targetValue,
+                bearer: newBearer,
+                value:
+                  Number(splitBillAmount) > 0
+                    ? splitBillAmount
+                    : attr.targetValue,
                 nonce: null,
                 backlink: attr.backlink,
                 typeID: Buffer.from(billTypeId, "base64"),
@@ -347,9 +359,9 @@ export default function TransferFungible(): JSX.Element | null {
             const attributes = billData?.payload
               .attributes as ITransactionAttributes;
             const amount =
-              attributes?.amount ||
               attributes?.targetValue ||
               attributes?.value ||
+              splitBillAmount ||
               0n;
 
             const proof = await createOwnerProof(
@@ -374,7 +386,7 @@ export default function TransferFungible(): JSX.Element | null {
                     proof.ownerProof,
                     feeProof.ownerProof
                   ),
-                  values.address,
+                  account.pubKey,
                   selectedAsset?.typeId === AlphaType
                 )
                   .then(() => {
@@ -419,8 +431,8 @@ export default function TransferFungible(): JSX.Element | null {
                   proof.ownerProof,
                   activeAccountId
                 );
-                billData.payload.attributes.invariantPredicateSignatures =
-                  signatures;
+
+                billData.payload.attributes.invariantPredicateSignatures = signatures;
                 finishTransaction(billData);
               } catch (error) {
                 setIsSending(false);
@@ -480,8 +492,13 @@ export default function TransferFungible(): JSX.Element | null {
         })}
       >
         {(formikProps) => {
-          const { handleSubmit, setFieldValue, errors, touched, values } =
-            formikProps;
+          const {
+            handleSubmit,
+            setFieldValue,
+            errors,
+            touched,
+            values,
+          } = formikProps;
           const hexID = selectedTransferKey
             ? base64ToHexPrefixed(selectedTransferKey)
             : "";

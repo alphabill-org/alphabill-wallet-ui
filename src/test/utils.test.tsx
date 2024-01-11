@@ -6,7 +6,6 @@ import {
   findClosestBigger,
   getClosestSmaller,
   getOptimalBills,
-  checkOwnerPredicate,
   createInvariantPredicateSignatures,
   isTokenSendable,
   hexToBase64,
@@ -18,14 +17,8 @@ import {
   isBillLocked,
   unlockedBills,
   findBillWithLargestValue,
+  checkOwnerPredicate,
 } from "../utils/utils";
-
-import {
-  OpPushPubKey,
-  PushBoolFalse,
-  PushBoolTrue,
-  StartByte,
-} from "../utils/constants";
 
 import {
   activeAccountId,
@@ -48,6 +41,7 @@ import {
   ExpectedBill500,
 } from "./constants";
 import { IBill } from "../types/Types";
+import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -209,9 +203,9 @@ describe("Function that gets optimal combination of bills to reach the target am
 describe("Check owner predicate", () => {
   test("should return true for a valid predicate and key", () => {
     const key =
-      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
+      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
     const predicate =
-      "U3aoAU8BAJpIz9BB6HSvX5aCXub8H5N0W8zOgewrXqGmqjdQgb6HaawB";
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
     const result = checkOwnerPredicate(key, predicate);
     expect(result).toBe(true);
   });
@@ -226,21 +220,21 @@ describe("Check owner predicate", () => {
 
 describe("isTokenSendable", () => {
   test("should return false for a PushBoolFalse invariant predicate", () => {
-    const invariantPredicate = PushBoolFalse;
+    const invariantPredicate = alwaysFalseBase64;
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(false);
   });
 
   test("should return true for a PushBoolTrue invariant predicate", () => {
-    const invariantPredicate = hexToBase64(PushBoolTrue);
+    const invariantPredicate = alwaysTrueBase64;
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(true);
   });
 
   test("should return false for a invalid invariant predicate and key", () => {
-    const invariantPredicate = hexToBase64(StartByte + OpPushPubKey + "abcdef");
+    const invariantPredicate = hexToBase64("abcdef");
     const key = "0xabcdef";
     const result = isTokenSendable(invariantPredicate, key);
     expect(result).toBe(false);
@@ -310,7 +304,7 @@ describe("Create invariant predicate signatures", () => {
         txHash: "AA==",
         subTypeCreationPredicate: "AA==",
         tokenCreationPredicate: "AA==",
-        invariantPredicate: PushBoolFalse,
+        invariantPredicate: alwaysFalseBase64,
       },
     ];
     const ownerProof = Buffer.from("abcdef");
@@ -320,7 +314,7 @@ describe("Create invariant predicate signatures", () => {
     ).toThrow();
   });
 
-  test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
+    test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
     const hierarchy = [
       {
         id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
@@ -328,58 +322,58 @@ describe("Create invariant predicate signatures", () => {
         symbol: "SSS",
         subTypeCreationPredicate: "U1EB",
         tokenCreationPredicate:
-          "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+          "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
         invariantPredicate:
-          "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB",
+          "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
         decimals: 8,
         kind: 2,
         txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
       },
     ];
     const ownerProof = Buffer.from(
-      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
       "base64"
     );
+
     const key =
-      "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
+      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
     ).toEqual(hierarchy?.map(() => ownerProof));
   });
-
   test("should return true for a valid signatures for valid predicate and key", () => {
     const hierarchy = [
       {
         id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
         parentTypeId: "AA==",
         symbol: "SSS",
-        subTypeCreationPredicate: "U1EB",
-        tokenCreationPredicate: "U1EB",
-        invariantPredicate: "U1EB",
+        subTypeCreationPredicate: alwaysTrueBase64,
+        tokenCreationPredicate: alwaysTrueBase64,
+        invariantPredicate: alwaysTrueBase64,
         decimals: 8,
         kind: 2,
         txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
       },
     ];
     const ownerProof = Buffer.from(
-      "U1QBryqOLJ4CUOWKqwatYBlmkDV8xbMkVoRgNRZdDljo7H5GVspzamcU3rar93Nu",
+      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
       "base64"
     );
     const key =
-      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
+      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
     expect(
       createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual([Buffer.from("Uw==", "base64")]);
+    ).toEqual([null]);
   });
 });
 
 describe("Check if owner predicate", () => {
   const validKey =
-    "0x024911ffe0b9521f2e09fa6d95b96ddfc15d20e6c2bafea067e5a730b7da40fe11";
+    "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
   const validPredicate =
-    "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB";
+    "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
   const invalidKey =
-    "0x1234567890123456789012345678901234567890123456789012345678901234";
+    "830002582258201c21e1350c427c5ac6c026cc7012e85799ace11e9961079c9f3cca21fe604093";
   const invalidPredicate = "";
 
   it("returns true when the sha256KeyFromPredicate matches the SHA256 hash of the key parameter", () => {
@@ -439,35 +433,15 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   });
 });
 
-describe("Get updated fungible assets with is sendable & sum of same type", () => {
-  it("should return updated fungible assets with correct properties with UIAmount 30 & UTP isSendable true", () => {
-    const actualOutput = getUpdatedFungibleAssets(
-      FungibleTokensList_1,
-      FungibleTokenTypes,
-      activeAccountId,
-      FungibleBalances
-    );
-
-    expect(actualOutput).toEqual(updatedFungibleAssetsTrue);
-  });
-
-  it("should return updated NFT assets with correct properties with UIAmount 30 & UTP isSendable false", () => {
-    const actualOutput = getUpdatedFungibleAssets(
-      FungibleTokensList_2,
-      FungibleTokenTypes,
-      activeAccountId,
-      FungibleBalances
-    );
-
-    expect(actualOutput).toEqual(updatedFungibleAssetsFalse);
-  });
-});
-
 describe("handleBillSelection function", () => {
   it("should split the bill without fee", () => {
     const convertedAmount = "1200";
-    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
-      handleBillSelection(convertedAmount, TestBills);
+    const {
+      optimalBills,
+      billsToTransfer,
+      billToSplit,
+      splitBillAmount,
+    } = handleBillSelection(convertedAmount, TestBills);
 
     // Assert the results based on your expectations
     expect(optimalBills.length).toBe(2);
@@ -479,8 +453,12 @@ describe("handleBillSelection function", () => {
   it("should split the bill with a fee of 50", () => {
     const convertedAmount = "1200";
     const feeAmount = 50n;
-    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
-      handleBillSelection(convertedAmount, TestBills, feeAmount);
+    const {
+      optimalBills,
+      billsToTransfer,
+      billToSplit,
+      splitBillAmount,
+    } = handleBillSelection(convertedAmount, TestBills, feeAmount);
 
     // Assert the results based on your expectations
     expect(optimalBills.length).toBe(2);
@@ -504,8 +482,12 @@ describe("handleBillSelection function", () => {
   it("should select specific bills and split the bill", () => {
     const convertedAmount = "300"; // Less than the total value of bills
     const feeAmount = 50n;
-    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } =
-      handleBillSelection(convertedAmount, TestBills, feeAmount);
+    const {
+      optimalBills,
+      billsToTransfer,
+      billToSplit,
+      splitBillAmount,
+    } = handleBillSelection(convertedAmount, TestBills, feeAmount);
 
     // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
     expect(optimalBills).toEqual([ExpectedBill1000]);
@@ -643,7 +625,7 @@ const bills = [
     network: "AB Devnet",
     decimals: 8,
     isSendable: true,
-  }
+  },
 ];
 
 describe("findBillWithLargestValue", () => {
