@@ -22,6 +22,7 @@ import {
   AlphaDecimals,
   AlphaType,
   alwaysTrueBase64,
+  alwaysTrueTagAndIdentifierBytes,
   DCTransfersLimit,
   localStorageKeys,
 } from "./constants";
@@ -40,9 +41,9 @@ export const predicateP2PKH = async (address: string) => {
   const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
 
   const predicate = {
-    tag: 0, // Single byte, 0x00
-    identifier: BigInt(2), // uint64, represented as BigInt
-    body: [pubKeyHashBuffer], // Encoded as a byte array
+    tag: BigInt(0), // uint64, represented as BigInt
+    identifier: Buffer.from('02', 'hex'), // Single byte, 0x02
+    body: pubKeyHashBuffer, // Encoded as a byte array
   };
 
   // Encode the entire Predicate as CBOR
@@ -202,11 +203,10 @@ export const getKeys = (
   };
 };
 
-export const checkOwnerPredicate = (key: string, predicate: string) => {
+export const checkOwnerPredicate = async (key: string, predicate: string) => {
   if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
-  const tagAndIdentifierBytes = "830002";
-  const removeScriptBefore = tagAndIdentifierBytes;
+  const removeScriptBefore = alwaysTrueTagAndIdentifierBytes;
   const sha256KeyFromPredicate = hex.replace(removeScriptBefore, "");
 
   const checkedAddress = key.startsWith("0x") ? key.substring(2) : key;
