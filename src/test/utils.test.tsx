@@ -197,8 +197,7 @@ describe("Check owner predicate", () => {
   test("should return true for a valid predicate and key", () => {
     const key =
       "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-    const predicate =
-      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
+    const predicate = "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
     const result = checkOwnerPredicate(key, predicate);
     expect(result).toBe(true);
   });
@@ -307,7 +306,7 @@ describe("Create invariant predicate signatures", () => {
     ).toThrow();
   });
 
-    test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
+  test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
     const hierarchy = [
       {
         id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
@@ -315,9 +314,9 @@ describe("Create invariant predicate signatures", () => {
         symbol: "SSS",
         subTypeCreationPredicate: "U1EB",
         tokenCreationPredicate:
-          "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+          "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
         invariantPredicate:
-          "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
+          "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
         decimals: 8,
         kind: 2,
         txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
@@ -363,8 +362,7 @@ describe("Create invariant predicate signatures", () => {
 describe("Check if owner predicate", () => {
   const validKey =
     "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-  const validPredicate =
-    "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
+  const validPredicate = "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
   const invalidKey =
     "830002582258201c21e1350c427c5ac6c026cc7012e85799ace11e9961079c9f3cca21fe604093";
   const invalidPredicate = "";

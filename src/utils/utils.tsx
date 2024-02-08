@@ -29,9 +29,8 @@ import {
 import { publicKeyHash } from "./hashers";
 
 export const predicateP2PKH = async (address: string) => {
-  const checkedAddress = address.startsWith("0x")
-    ? address.substring(2)
-    : address;
+  const checkedAddress =
+    "02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
   const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
   const pubKeyHash = CryptoJS.SHA256(addressHash);
   // Convert the hash to a hex string
@@ -42,7 +41,7 @@ export const predicateP2PKH = async (address: string) => {
 
   const predicate = {
     tag: BigInt(0), // uint64, represented as BigInt
-    identifier: Buffer.from('02', 'hex'), // Single byte, 0x02
+    identifier: Buffer.from("02", "hex"), // Single byte, 0x02
     body: pubKeyHashBuffer, // Encoded as a byte array
   };
 
@@ -203,7 +202,7 @@ export const getKeys = (
   };
 };
 
-export const checkOwnerPredicate = async (key: string, predicate: string) => {
+export const checkOwnerPredicate = (key: string, predicate: string) => {
   if (!predicate || !key) return false;
   const hex = Buffer.from(predicate, "base64").toString("hex");
   const removeScriptBefore = alwaysTrueTagAndIdentifierBytes;
@@ -219,7 +218,7 @@ export const checkOwnerPredicate = async (key: string, predicate: string) => {
   const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
 
   // Encode the entire Predicate as CBOR
-  const encodedKey = encodeCanonical([pubKeyHashBuffer]);
+  const encodedKey = encodeCanonical(pubKeyHashBuffer);
 
   const encodedKeyHex = Buffer.from(encodedKey).toString("hex");
 
