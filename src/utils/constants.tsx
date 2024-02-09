@@ -1,5 +1,6 @@
-export const alwaysTrueBase64 = "gwAB9g==";
-export const alwaysFalseBase64 = "gwAA9g==";
+export const alwaysTrueBase64 = "gwBBAfY=";
+export const alwaysTrueTagAndIdentifierBytes = "83004102";
+export const alwaysFalseBase64 = "gwBBAPY=";
 
 export const tokenFeeCreditRecordUnitType = "2f";
 export const moneyFeeCreditRecordUnitType = "0f";
