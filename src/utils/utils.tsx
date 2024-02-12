@@ -29,8 +29,10 @@ import {
 import { publicKeyHash } from "./hashers";
 
 export const predicateP2PKH = async (address: string) => {
-  const checkedAddress =
-    "02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
+  const checkedAddress = address.startsWith("0x")
+    ? address.substring(2)
+    : address;
+
   const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
   const pubKeyHash = CryptoJS.SHA256(addressHash);
   // Convert the hash to a hex string
