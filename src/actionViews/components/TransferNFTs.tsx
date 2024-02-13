@@ -179,7 +179,8 @@ export default function TransferNFTs(): JSX.Element | null {
                       nftType: Buffer.from(selectedNFT.typeId, "base64"),
                       backlink: Buffer.from(selectedNFT.txHash, "base64"),
                       typeID: Buffer.from(selectedNFT.typeId, "base64"),
-                    },
+                      invariantPredicateSignatures: null,
+                    } as ITransactionAttributes,
                     clientMetadata: {
                       timeout: roundNumber + TimeoutBlocks,
                       MaxTransactionFee: MaxTransactionFee,
