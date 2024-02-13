@@ -68,8 +68,12 @@ export default function TransferNFTs(): JSX.Element | null {
     selectedTransferAccountKey,
     feeCreditBills,
   } = useApp();
-  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } =
-    useAuth();
+  const {
+    vault,
+    activeAccountId,
+    setActiveAssetLocal,
+    activeAsset,
+  } = useAuth();
   const queryClient = useQueryClient();
   const activeNFT = account?.assets.nft
     ?.filter((asset) => account?.activeNetwork === asset.network)
@@ -176,7 +180,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       backlink: Buffer.from(selectedNFT.txHash, "base64"),
                       typeID: Buffer.from(selectedNFT.typeId, "base64"),
                       invariantPredicateSignatures: null,
-                    },
+                    } as ITransactionAttributes,
                     clientMetadata: {
                       timeout: roundNumber + TimeoutBlocks,
                       MaxTransactionFee: MaxTransactionFee,
@@ -205,9 +209,8 @@ export default function TransferNFTs(): JSX.Element | null {
                   });
                 }
 
-                (
-                  tokenData.payload.attributes as ITransactionAttributes
-                ).invariantPredicateSignatures = signatures;
+                (tokenData.payload
+                  .attributes as ITransactionAttributes).invariantPredicateSignatures = signatures;
 
                 transferredToken.current = selectedNFT;
                 const feeProof = await createOwnerProof(
@@ -222,7 +225,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       proof.ownerProof,
                       feeProof.ownerProof
                     ),
-                    values.address
+                    account.pubKey
                   ).then(async () => {
                     const handleTransferEnd = () => {
                       addPollingInterval();
