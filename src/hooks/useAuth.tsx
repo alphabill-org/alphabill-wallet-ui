@@ -13,6 +13,7 @@ import {
   LocalKeyVault,
 } from "../utils/constants";
 import { publicKeyHash } from "../utils/hashers";
+import web3auth from "../utils/web3auth";
 
 interface IUseLocalStorageProps {
   children: React.ReactNode;
@@ -41,7 +42,8 @@ interface IUserContext {
 }
 
 const keysData = localStorage.getItem(LocalKeyPubKeys) || null;
-const vaultData = localStorage.getItem(LocalKeyVault) || null;
+const vaultData = localStorage.getItem(LocalKeyVault) || web3auth.getSecret()?{}:null;
+console.log("vaultData: "+JSON.stringify(vaultData, null, 4));
 const keysArr = keysData?.split(" ") || [];
 const activeAccountLocal =
   localStorage.getItem(LocalKeyActiveAccount) || keysArr[0] || "";
@@ -105,7 +107,9 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
       : activeAssetLocal
     : [];
 
-  const [vault, setVault] = useLocalStorage(LocalKeyVault, vaultData);
+  let [vault, setVault] = useLocalStorage(LocalKeyVault, vaultData);
+  if(vault == null)vault = {};
+  console.log("vault###: "+JSON.stringify(vault, null, 4));
   const navigate = useNavigate();
 
   useEffect(() => {

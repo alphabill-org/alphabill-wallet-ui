@@ -7,6 +7,7 @@ import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
 import { encodeAsync } from "cbor";
+import web3auth from "./web3auth";
 
 import {
   IAccount,
@@ -139,46 +140,62 @@ export const getNewBearer = (account: IAccount) => {
 };
 
 export const checkPassword = (password: string | undefined) => {
-  if (!password) {
+    return true;
+/*  if (!password) {
     return false;
   }
-  return Number(password?.length) >= 8;
+  return Number(password?.length) >= 8;*/
 };
+
+export const vaultFromEntropy = (entropy: string, accountIndex: number) => {
+  const mnemonic = entropyToMnemonic(entropy);
+  const seed = mnemonicToSeedSync(mnemonic);
+  const masterKey = HDKey.fromMasterSeed(seed);
+  const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
+  const hashingPublicKey = hashingKey.publicKey;
+
+  return {
+	entropy,
+	pub_keys: hashingPublicKey,
+    }
+}
 
 export const getKeys = (
   password: string,
   accountIndex: number,
   vault: string | null
 ) => {
-  if (!vault)
-    return {
-      hashingPublicKey: null,
-      hashingPrivateKey: null,
-      error: null,
-      decryptedVault: null,
-      masterKey: null,
-    };
+  let decryptedVaultJSON;
+    console.log("password: "+password);
+  if (password.length === 0 || password === 'web3auth' || !vault){
+/*    decryptedVaultJSON = {
+	entropy: web3auth.getSecret(),
+    }*/
+    decryptedVaultJSON = vaultFromEntropy(web3auth.getSecret(), accountIndex);
+    console.log("vault: "+JSON.stringify(decryptedVaultJSON, null, 4));
+  }else{
+    console.log("recovering from local vault");
+    const decryptedVault = CryptoJS.AES.decrypt(
+	vault.toString(),
+	password
+    ).toString(CryptoJS.enc.Latin1);
 
-  const decryptedVault = CryptoJS.AES.decrypt(
-    vault.toString(),
-    password
-  ).toString(CryptoJS.enc.Latin1);
+    try {
+	JSON.parse(decryptedVault);
+    } catch {
+	return {
+    	    hashingPublicKey: null,
+    	    hashingPrivateKey: null,
+    	    error: "Password is incorrect!",
+    	    decryptedVault: null,
+    	    masterKey: null,
+	};
+    }
 
-  try {
-    JSON.parse(decryptedVault);
-  } catch {
-    return {
-      hashingPublicKey: null,
-      hashingPrivateKey: null,
-      error: "Password is incorrect!",
-      decryptedVault: null,
-      masterKey: null,
-    };
+    decryptedVaultJSON = JSON.parse(decryptedVault);
   }
 
-  const decryptedVaultJSON = JSON.parse(decryptedVault);
-
-  if (
+/*  if (
     decryptedVaultJSON?.entropy?.length > 16 &&
     decryptedVaultJSON?.entropy?.length < 32 &&
     decryptedVaultJSON?.entropy?.length % 4 === 0
@@ -190,14 +207,29 @@ export const getKeys = (
       decryptedVault: null,
       masterKey: null,
     };
-  }
+  }*/
 
+    console.log("recovering mnemonic");
   const mnemonic = entropyToMnemonic(decryptedVaultJSON?.entropy);
+  console.log("mnemonic: "+mnemonic);
   const seed = mnemonicToSeedSync(mnemonic);
   const masterKey = HDKey.fromMasterSeed(seed);
   const hashingKey = masterKey.derive(`m/44'/634'/${accountIndex}'/0/0`);
   const hashingPrivateKey = hashingKey.privateKey;
   const hashingPublicKey = hashingKey.publicKey;
+
+    decryptedVaultJSON.pub_keys = unit8ToHexPrefixed(hashingPublicKey!);
+
+    console.log(JSON.stringify(
+	{
+    hashingPublicKey: hashingPublicKey,
+    hashingPrivateKey: hashingPrivateKey,
+    decryptedVault: decryptedVaultJSON,
+    error: null,
+    masterKey: masterKey,
+    hashingKey: hashingKey,
+  }
+    , null, 4));
 
   return {
     hashingPublicKey: hashingPublicKey,

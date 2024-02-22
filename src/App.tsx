@@ -8,6 +8,7 @@ import Home from "./routes/Home";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
 import Popup from "./components/Popup/Popup";
+import web3auth from "./utils/web3auth";
 
 function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -35,6 +36,10 @@ function App() {
           ab_extension_state: { is_popup_open: false },
         });
     };
+  }, []);
+
+  useEffect(() => {
+    web3auth.init();
   }, []);
 
   return (

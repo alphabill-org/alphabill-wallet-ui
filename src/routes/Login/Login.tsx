@@ -1,5 +1,6 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
+import CryptoJS from "crypto-js";
 import { Link, Navigate } from "react-router-dom";
 
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
@@ -15,6 +16,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
 import { LocalKeyPubKeys, LocalKeyVault } from "../../utils/constants";
+import web3auth from "../../utils/web3auth";
 
 function Login(): JSX.Element | null {
   const { login } = useAuth();
@@ -46,7 +48,7 @@ function Login(): JSX.Element | null {
           password: "",
         }}
         onSubmit={(values, { setErrors }) => {
-          if (!vault || vault === "null") {
+          if (!web3auth.getSecret() && (!vault || vault === "null")) {
             return setErrors({
               password: "No active wallet with this password",
             });
@@ -67,6 +69,13 @@ function Login(): JSX.Element | null {
           }
 
           login(unit8ToHexPrefixed(hashingPublicKey!), decryptedVault.pub_keys);
+	  if(web3auth.getSecret())
+	    localStorage.setItem(LocalKeyVault, CryptoJS.AES.encrypt(
+		JSON.stringify({
+		    pub_keys: decryptedVault.pub_keys
+		}),
+		values.password
+	    ).toString());
         }}
         validationSchema={Yup.object().shape({
           password: Yup.string().required("Password is required"),

@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
+import fs from 'fs';
 import react from "@vitejs/plugin-react";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import svgrPlugin from "vite-plugin-svgr";
-import eslint from 'vite-plugin-eslint'
+import eslint from 'vite-plugin-eslint';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,10 +17,16 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: true,
     open: true,
   },
   preview: {
-    port: 3001,
+//    port: 3001,
+    port: 443,
+    https: {
+      key: fs.readFileSync('/etc/letsencrypt/live/blocky.dyndns.org/privkey.pem'),
+      cert: fs.readFileSync('/etc/letsencrypt/live/blocky.dyndns.org/cert.pem'),
+    }
   },
   resolve: {
     alias: {
