@@ -2,7 +2,7 @@
   "short_name": "Alphabill Wallet",
   "name": "Alphabill Wallet",
   "description": "Alphabill Wallet",
-  "version": "0.3",
+  "version": "0.3.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html?popup=true",
