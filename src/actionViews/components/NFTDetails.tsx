@@ -7,7 +7,6 @@ import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Download } from "../../images/download.svg";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  base64ToHexPrefixed,
   downloadHexFile,
   invalidateAllLists,
 } from "../../utils/utils";
@@ -34,7 +33,7 @@ export default function NFTDetails({
     Boolean(data?.downloadType) && Boolean(data?.imageUrl);
   const isDownloadableImageWithError =
     isDownloadableImage && Boolean(data?.error);
-  const prefixedID = base64ToHexPrefixed(activeAsset?.id);
+  const prefixedID = activeAsset?.id!;
 
   const {
     setIsActionsViewVisible,
@@ -65,7 +64,7 @@ export default function NFTDetails({
       >
         {isImage ? (
           <LazyLoadImage
-            alt={base64ToHexPrefixed(activeAsset?.id)}
+            alt={activeAsset?.id}
             height={32}
             src={activeAsset?.nftUri}
             width={32}
@@ -129,7 +128,7 @@ export default function NFTDetails({
                     onClick={() => {
                       downloadFile(
                         data?.imageUrl!,
-                        base64ToHexPrefixed(activeAsset?.id)
+                        activeAsset?.id!
                       );
                     }}
                     small
@@ -148,7 +147,7 @@ export default function NFTDetails({
                     onClick={() => {
                       downloadHexFile(
                         activeAsset.nftData!,
-                        base64ToHexPrefixed(activeAsset?.id)
+                        activeAsset?.id!
                       );
                     }}
                     small

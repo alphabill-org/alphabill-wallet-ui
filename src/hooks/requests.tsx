@@ -22,7 +22,6 @@ import {
 } from "../utils/constants";
 import {
   addDecimal,
-  base64ToHexPrefixed,
   separateDigits,
 } from "../utils/utils";
 
@@ -162,7 +161,7 @@ export const fetchAllTypes = async (
 
 export const getTypeHierarchy = async (typeId: string) => {
   const response = await axios.get<ITypeHierarchy[]>(
-    `${TOKENS_BACKEND_URL}/types/${base64ToHexPrefixed(typeId)}/hierarchy`
+    `${TOKENS_BACKEND_URL}/types/${typeId}/hierarchy`
   );
 
   return response.data;
