@@ -97,8 +97,14 @@ export const hexToBase64 = (key: string) =>
 export const unit8ToHexPrefixed = (key: Uint8Array) =>
   "0x" + Buffer.from(key).toString("hex");
 
-export const base64ToHexPrefixed = (key: string = "") =>
-  "0x" + Buffer.from(key, "base64").toString("hex");
+export const base64ToHexPrefixed = (key: string = "") => {
+  const isHex = /^[0-9A-Fa-f]+$/g.test(key);
+  if (isHex) {
+    return key;
+  } else {
+    return "0x" + Buffer.from(key, "base64").toString("hex");
+  }
+};
 
 export const base64ToHex = (key: string = "") =>
   Buffer.from(key, "base64").toString("hex");
@@ -785,11 +791,11 @@ export const createEllipsisString = (
   firstCount: number,
   lastCount: number
 ): string => {
-  if (firstCount + lastCount >= id.length) {
+  if (firstCount + lastCount >= Number(id?.length)) {
     return id;
   }
 
-  return id.substr(0, firstCount) + "..." + id.substr(id.length - lastCount);
+  return id?.substr(0, firstCount) + "..." + id?.substr(id.length - lastCount);
 };
 
 // Will be updated with lock transactions in v0.3.1

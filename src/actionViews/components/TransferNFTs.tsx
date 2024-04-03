@@ -28,7 +28,6 @@ import {
 import {
   extractFormikError,
   getKeys,
-  base64ToHexPrefixed,
   createOwnerProof,
   predicateP2PKH,
   invalidateAllLists,
@@ -82,7 +81,7 @@ export default function TransferNFTs(): JSX.Element | null {
   const defaultAssetId = activeNFT?.id || account?.assets.nft[0]?.id;
   const defaultAsset: { value: INFTAsset | undefined; label: string } = {
     value: activeNFT || account?.assets.nft[0],
-    label: createEllipsisString(base64ToHexPrefixed(defaultAssetId), 16, 11),
+    label: createEllipsisString(defaultAssetId, 16, 11),
   };
   const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
     defaultAsset?.value
@@ -173,12 +172,12 @@ export default function TransferNFTs(): JSX.Element | null {
                   payload: {
                     systemId: TokensSystemId,
                     type: NFTTokensTransferType,
-                    unitId: Buffer.from(selectedNFT.id, "base64"),
+                    unitId: Buffer.from(selectedNFT.id.substring(2), "hex"),
                     attributes: {
                       newBearer: newBearer,
-                      nftType: Buffer.from(selectedNFT.typeId, "base64"),
+                      nftType: Buffer.from(selectedNFT.typeId.substring(2), "hex"),
                       backlink: Buffer.from(selectedNFT.txHash, "base64"),
-                      typeID: Buffer.from(selectedNFT.typeId, "base64"),
+                      typeID: Buffer.from(selectedNFT.typeId.substring(2), "hex"),
                       invariantPredicateSignatures: null,
                     } as ITransactionAttributes,
                     clientMetadata: {
@@ -303,7 +302,7 @@ export default function TransferNFTs(): JSX.Element | null {
         {(formikProps) => {
           const { handleSubmit, errors, touched, values } = formikProps;
           const hexID = selectedTransferKey
-            ? base64ToHexPrefixed(selectedTransferKey)
+            ? selectedTransferKey
             : "";
 
           return (
@@ -385,7 +384,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         return 1;
                       })
                       .map((asset: INFTAsset) => {
-                        const hexID = base64ToHexPrefixed(asset.id);
+                        const hexID = asset.id;
                         return {
                           value: asset,
                           label: createEllipsisString(hexID, 16, 11),

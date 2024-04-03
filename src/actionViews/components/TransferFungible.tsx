@@ -245,91 +245,92 @@ export default function TransferFungible(): JSX.Element | null {
 
           setIsSending(true);
 
-          getRoundNumber(selectedAsset?.typeId === AlphaType).then(
-            async (roundNumber) => {
-              let transferType = TokensTransferType;
-              let splitType = TokensSplitType;
-              let systemId = TokensSystemId;
+          const isAlpha = selectedAsset?.typeId === AlphaType;
 
-              if (selectedAsset?.typeId === AlphaType) {
-                transferType = AlphaTransferType;
-                splitType = AlphaSplitType;
-                systemId = AlphaSystemId;
-              }
+          getRoundNumber(isAlpha).then(async (roundNumber) => {
+            let transferType = TokensTransferType;
+            let splitType = TokensSplitType;
+            let systemId = TokensSystemId;
 
-              const targetRecord = (await publicKeyHashWithFeeType({
-                key: activeAccountId,
-                isAlpha: Boolean(selectedAsset?.typeId === AlphaType),
-              })) as Uint8Array;
+            if (isAlpha) {
+              transferType = AlphaTransferType;
+              splitType = AlphaSplitType;
+              systemId = AlphaSystemId;
+            }
 
-              const baseObj = (bill: IBill, transferType: string) => {
-                return {
-                  systemId: systemId,
-                  type: transferType,
-                  unitId: Buffer.from(bill.id, "base64"),
-                };
+            const targetRecord = (await publicKeyHashWithFeeType({
+              key: activeAccountId,
+              isAlpha: Boolean(isAlpha),
+            })) as Uint8Array;
+
+            const baseObj = (bill: IBill, transferType: string) => {
+              return {
+                systemId: systemId,
+                type: transferType,
+                unitId: isAlpha
+                  ? Buffer.from(bill.id, "base64")
+                  : Buffer.from(bill.id.substring(2), "hex"),
               };
+            };
 
-              const clientDataObj = {
-                clientMetadata: {
-                  timeout: roundNumber + TimeoutBlocks,
-                  MaxTransactionFee: MaxTransactionFee,
-                  feeCreditRecordID: targetRecord,
+            const clientDataObj = {
+              clientMetadata: {
+                timeout: roundNumber + TimeoutBlocks,
+                MaxTransactionFee: MaxTransactionFee,
+                feeCreditRecordID: targetRecord,
+              },
+            };
+
+            billsToTransfer?.map(async (bill, idx) => {
+              const transferData: ITransactionPayload = {
+                payload: {
+                  ...baseObj(bill, transferType),
+                  attributes: {
+                    newBearer: newBearer,
+                    targetValue: BigInt(bill.value),
+                    backlink: Buffer.from(bill.txHash, "base64"),
+                  } as ITransactionAttributes,
+                  ...clientDataObj,
                 },
               };
 
-              billsToTransfer?.map(async (bill, idx) => {
-                const transferData: ITransactionPayload = {
-                  payload: {
-                    ...baseObj(bill, transferType),
-                    attributes: {
-                      newBearer: newBearer,
-                      targetValue: BigInt(bill.value),
-                      backlink: Buffer.from(bill.txHash, "base64"),
-                    } as ITransactionAttributes,
-                    ...clientDataObj,
-                  },
-                };
+              const isLastTransaction =
+                Number(billsToTransfer?.length) === idx + 1 &&
+                !billToSplit &&
+                !splitBillAmount;
 
-                const isLastTransaction =
-                  Number(billsToTransfer?.length) === idx + 1 &&
-                  !billToSplit &&
-                  !splitBillAmount;
+              handleTransaction(
+                transferData as ITransactionPayload,
+                isLastTransaction,
+                bill.typeId
+              );
+            });
 
-                handleTransaction(
-                  transferData as ITransactionPayload,
-                  isLastTransaction,
-                  bill.typeId
-                );
-              });
+            if (billToSplit && splitBillAmount) {
+              const splitData: ITransactionPayload = await {
+                payload: {
+                  ...baseObj(billToSplit, splitType),
+                  attributes: {
+                    targetUnits: [
+                      Object.values({
+                        targetValue: splitBillAmount,
+                        targetOwner: newBearer,
+                      }),
+                    ],
+                    remainingValue: BigInt(billToSplit.value) - splitBillAmount,
+                    backlink: Buffer.from(billToSplit.txHash, "base64"),
+                  } as ITransactionAttributes,
+                  ...clientDataObj,
+                },
+              };
 
-              if (billToSplit && splitBillAmount) {
-                const splitData: ITransactionPayload = await {
-                  payload: {
-                    ...baseObj(billToSplit, splitType),
-                    attributes: {
-                      targetUnits: [
-                        Object.values({
-                          targetValue: splitBillAmount,
-                          targetOwner: newBearer,
-                        }),
-                      ],
-                      remainingValue:
-                        BigInt(billToSplit.value) - splitBillAmount,
-                      backlink: Buffer.from(billToSplit.txHash, "base64"),
-                    } as ITransactionAttributes,
-                    ...clientDataObj,
-                  },
-                };
-
-                handleTransaction(
-                  splitData as ITransactionPayload,
-                  true,
-                  billToSplit.typeId
-                );
-              }
+              handleTransaction(
+                splitData as ITransactionPayload,
+                true,
+                billToSplit.typeId
+              );
             }
-          );
+          });
 
           const handleTransaction = async (
             billData: any,
@@ -346,7 +347,7 @@ export default function TransferFungible(): JSX.Element | null {
                     : attr.targetValue,
                 nonce: null,
                 backlink: attr.backlink,
-                typeID: Buffer.from(billTypeId, "base64"),
+                typeID: Buffer.from(billTypeId.substring(2), "hex"),
               };
 
               if (billData.payload.type === TokensSplitType) {
