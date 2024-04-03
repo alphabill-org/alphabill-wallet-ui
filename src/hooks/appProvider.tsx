@@ -116,7 +116,7 @@ export const AppProvider: FunctionComponent<{
   const billsList =
     activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
 
-  // Will be updated with lock transactions in v0.3.1
+  // Will be updated with lock transactions in v0.5.0
   const unlockedBillsList =
     activeAsset.typeId === AlphaType
       ? unlockedBills(billsList as IBill[])
