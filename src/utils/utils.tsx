@@ -98,7 +98,8 @@ export const unit8ToHexPrefixed = (key: Uint8Array) =>
   "0x" + Buffer.from(key).toString("hex");
 
 export const base64ToHexPrefixed = (key: string = "") => {
-  const isHex = /^[0-9A-Fa-f]+$/g.test(key);
+  const isHex = /^(0x)?[0-9A-Fa-f]+$/i.test(key);
+
   if (isHex) {
     return key;
   } else {
