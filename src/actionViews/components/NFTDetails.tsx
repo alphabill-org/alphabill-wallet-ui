@@ -6,10 +6,7 @@ import { NFTListView, TransferNFTView } from "../../utils/constants";
 import { ReactComponent as Send } from "../../images/send-ico.svg";
 import { ReactComponent as Download } from "../../images/download.svg";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  downloadHexFile,
-  invalidateAllLists,
-} from "../../utils/utils";
+import { downloadHexFile, invalidateAllLists } from "../../utils/utils";
 import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
 import { downloadFile } from "../../hooks/requests";
@@ -46,6 +43,8 @@ export default function NFTDetails({
     onItemClick && onItemClick();
     invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
+
+  const isImageAndType = Boolean(data?.downloadType) && Boolean(data?.imageUrl);
 
   if (isLoading) {
     return (
@@ -118,46 +117,37 @@ export default function NFTDetails({
             </div>
           )}
 
-          {(Boolean(data?.downloadType) && Boolean(data?.imageUrl)) ||
-            (activeAsset?.nftData && (
-              <div className="asset-details__actions">
-                {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    onClick={() => {
-                      downloadFile(
-                        data?.imageUrl!,
-                        activeAsset?.id!
-                      );
-                    }}
-                    small
-                  >
-                    <Download />
-                    <div className="pad-8-l t-ellipsis">
-                      {data?.downloadType}
-                    </div>
-                  </Button>
-                )}
+          {(isImageAndType || activeAsset?.nftData) && (
+            <div className="asset-details__actions">
+              {Boolean(data?.downloadType) && Boolean(data?.imageUrl) && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => {
+                    downloadFile(data?.imageUrl!, activeAsset?.id!);
+                  }}
+                  small
+                >
+                  <Download />
+                  <div className="pad-8-l t-ellipsis">{data?.downloadType}</div>
+                </Button>
+              )}
 
-                {activeAsset?.nftData && (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    onClick={() => {
-                      downloadHexFile(
-                        activeAsset.nftData!,
-                        activeAsset?.id!
-                      );
-                    }}
-                    small
-                  >
-                    <Download />
-                    <div className="pad-8-l ">Data</div>
-                  </Button>
-                )}
-              </div>
-            ))}
+              {activeAsset?.nftData && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => {
+                    downloadHexFile(activeAsset.nftData!, activeAsset?.id!);
+                  }}
+                  small
+                >
+                  <Download />
+                  <div className="pad-8-l ">Data</div>
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
