@@ -194,6 +194,11 @@
     font-size: 12px;
     line-height: 18px;
     padding: 12px;
+    word-break: break-word;
+
+    div:first-child {
+      white-space: nowrap;
+    }
 
     .button {
       flex: 1 1 auto;
