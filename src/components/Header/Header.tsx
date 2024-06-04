@@ -1,38 +1,80 @@
-import { useRef, useState } from "react";
+import { createContext, FunctionComponent, ReactElement, useContext, useRef, useState } from "react";
 import classNames from "classnames";
-
 import Button from "../Button/Button";
-import { ReactComponent as Logo } from "../../images/ab-logo-ico.svg";
-import { ReactComponent as Profile } from "../../images/profile.svg";
-import { ReactComponent as Arrow } from "../../images/arrow.svg";
-import { ReactComponent as Check } from "../../images/check.svg";
-import { useApp } from "../../hooks/appProvider";
-import Checkbox from "../Checkbox/Checkbox";
+import Logo from "../../images/ab-logo-ico.svg?react";
+import Profile from "../../images/profile.svg?react";
+import Arrow from "../../images/arrow.svg?react";
 import { useDocumentClick } from "../../utils/utils";
 import SelectPopover from "../SelectPopover/SelectPopover";
-import { ProfileView } from "../../utils/constants";
+import { ActionView } from "../../types/Types";
+import Popup from "../Popup/Popup";
+import { useNavigate } from "react-router-dom";
 
-function Header(): JSX.Element | null {
-  const [showTestNetworks, setShowTestNetworks] = useState(false);
+interface IAppContext {
+  actionsView: ActionView | null;
+  setActionsView: (e: ActionView) => void;
+  isActionsViewVisible: boolean;
+  setIsActionsViewVisible: (e: boolean) => void;
+}
+
+export const AppContext = createContext<IAppContext>(
+  {} as IAppContext
+);
+
+export const AppProvider: FunctionComponent<{
+  children: ReactElement | null;
+}> = ({ children }) => {
+  const [error, setError] = useState<string | null>(null);
+  const [isActionsViewVisible, setIsActionsViewVisible] =
+    useState<boolean>(false);
+  const [actionsView, setActionsView] = useState<ActionView | null>(null);
+
+  return (
+    <AppContext.Provider
+      value={{
+        isActionsViewVisible,
+        setIsActionsViewVisible,
+        actionsView,
+        setActionsView,
+      }}
+    >
+      {children}
+      <Popup
+        isPopupVisible={Boolean(error)}
+        setIsPopupVisible={() => {
+          setError(null);
+        }}
+        title="Error"
+      >
+        <div className="pad-24-t w-100p">
+          <h2 className="c-error m-auto-r">{error}</h2>
+        </div>
+      </Popup>
+    </AppContext.Provider>
+  );
+};
+
+export const useApp = (): IAppContext => useContext(AppContext);
+
+function Header(): ReactElement | null {
+  const navigate = useNavigate();
+  // const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const {
     setIsActionsViewVisible,
     setActionsView,
-    account,
-    accounts,
-    setAccounts,
   } = useApp();
 
-  const testNetworks = account?.networks?.filter(
-    (network) => network.isTestNetwork === true
-  );
-  const isTestNetworkActive = account?.networks?.find(
-    (network) =>
-      network.isTestNetwork === true && account?.activeNetwork === network.id
-  );
-  const mainNetworks = account?.networks?.filter(
-    (network) => network.isTestNetwork !== true
-  );
+  // const testNetworks = account?.networks?.filter(
+  //   (network) => network.isTestNetwork === true
+  // );
+  // const isTestNetworkActive = account?.networks?.find(
+  //   (network) =>
+  //     network.isTestNetwork === true && account?.activeNetwork === network.id
+  // );
+  // const mainNetworks = account?.networks?.filter(
+  //   (network) => network.isTestNetwork !== true
+  // );
   const popupRef = useRef<HTMLDivElement>(null);
 
   useDocumentClick(() => {
@@ -48,7 +90,7 @@ function Header(): JSX.Element | null {
           variant="icon"
           url="https://alphabill.org/"
         >
-          <Logo height="40" width="40px" />
+          <Logo height="40" width="40" />
         </Button>
       </div>
       <div className="header__select">
@@ -57,7 +99,7 @@ function Header(): JSX.Element | null {
           className="select__button"
           onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
-          {account?.activeNetwork || "Select Network"}
+          {/*{account?.activeNetwork || "Select Network"}*/}
           <Arrow />
         </Button>
         <SelectPopover
@@ -68,7 +110,7 @@ function Header(): JSX.Element | null {
           title="SELECT NETWORK"
         >
           <>
-            {mainNetworks?.length >= 1 && (
+           {/* {mainNetworks?.length >= 1 && (
               <div className="select__popover-checkbox">
                 <Checkbox
                   label="Show test networks"
@@ -76,9 +118,9 @@ function Header(): JSX.Element | null {
                   onChange={() => setShowTestNetworks(!showTestNetworks)}
                 />
               </div>
-            )}
+            )}*/}
             <div className="select__options">
-              {mainNetworks?.map((network) => {
+              {/*mainNetworks?.map((network) => {
                 return (
                   <div
                     key={network.id}
@@ -98,38 +140,38 @@ function Header(): JSX.Element | null {
                     {network.id === account?.activeNetwork && <Check />}
                   </div>
                 );
-              })}
+              })}*/}
               <div
                 className={classNames("select__popover-test-networks", {
-                  "select__popover-test-networks--hidden":
-                    !showTestNetworks && !Boolean(isTestNetworkActive),
+                  "select__popover-test-networks--hidden": false
+                    // !showTestNetworks && !isTestNetworkActive,
                 })}
               >
                 Test networks
               </div>
-              {testNetworks?.map((network) => {
-                return (
-                  <div
-                    key={network.id}
-                    className={classNames("select__option", {
-                      "select__option--hidden":
-                        !showTestNetworks && !Boolean(isTestNetworkActive),
-                    })}
-                    onClick={() => {
-                      const updatedAccounts = accounts?.map((obj) => {
-                        if (account?.pubKey === obj?.pubKey) {
-                          return { ...obj, activeNetwork: network.id };
-                        } else return { ...obj };
-                      });
-                      setIsPopoverOpen(false);
-                      setAccounts(updatedAccounts);
-                    }}
-                  >
-                    {network.id}{" "}
-                    {network.id === account?.activeNetwork && <Check />}
-                  </div>
-                );
-              })}
+              {/*{testNetworks?.map((network) => {*/}
+              {/*  return (*/}
+              {/*    <div*/}
+              {/*      key={network.id}*/}
+              {/*      className={classNames("select__option", {*/}
+              {/*        "select__option--hidden":*/}
+              {/*          !showTestNetworks && !isTestNetworkActive,*/}
+              {/*      })}*/}
+              {/*      onClick={() => {*/}
+              {/*        const updatedAccounts = accounts?.map((obj) => {*/}
+              {/*          if (account?.pubKey === obj?.pubKey) {*/}
+              {/*            return { ...obj, activeNetwork: network.id };*/}
+              {/*          } else return { ...obj };*/}
+              {/*        });*/}
+              {/*        setIsPopoverOpen(false);*/}
+              {/*        setAccounts(updatedAccounts);*/}
+              {/*      }}*/}
+              {/*    >*/}
+              {/*      {network.id}{" "}*/}
+              {/*      {network.id === account?.activeNetwork && <Check />}*/}
+              {/*    </div>*/}
+              {/*  );*/}
+              {/*})}*/}
             </div>
           </>
         </SelectPopover>
@@ -137,8 +179,7 @@ function Header(): JSX.Element | null {
       <Button
         variant="icon"
         onClick={() => {
-          setActionsView(ProfileView);
-          setIsActionsViewVisible(true);
+          navigate('/profile');
         }}
       >
         <Profile className="profile-ico" height="32" width="32px" />

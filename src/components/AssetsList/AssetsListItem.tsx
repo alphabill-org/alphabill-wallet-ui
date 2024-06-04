@@ -7,14 +7,14 @@ import {
   TransferFungibleView,
   TransferNFTView,
 } from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
+import Send from "../../images/send-ico.svg?react";
 import { useAuth } from "../../hooks/useAuth";
 import { base64ToHexPrefixed } from "../../utils/utils";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";
 import { IActiveAsset } from "../../types/Types";
 import AssetsListItemIcon from "./AssetListItemIcon";
-import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
+import LockIco from "./../../images/lock-ico.svg?react";
 
 export interface IAssetsListProps {
   asset: any;

@@ -36,7 +36,6 @@ export const FungibleTokenKind = 2;
 
 export const NFTListView = "NFT list view";
 export const FungibleListView = "Fungible list view";
-export const ProfileView = "Profile view";
 export const TransferFungibleView = "Transfer fungible view";
 export const TransferNFTView = "Transfer NFT view";
 export const TransferFeeCreditView = "Transfer Fee Credit view";

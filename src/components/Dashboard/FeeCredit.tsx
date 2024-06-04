@@ -6,8 +6,8 @@ import {
   TokenType,
   TransferFeeCreditView,
 } from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
-import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
+import Send from "../../images/send-ico.svg?react";
+import ABLogo from "../../images/ab-logo-ico.svg?react";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../Button/Button";
 import { useApp } from "../../hooks/appProvider";

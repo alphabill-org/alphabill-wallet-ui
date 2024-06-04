@@ -1,36 +1,31 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { Navigate } from "react-router-dom";
 
-import CryptoJS from "crypto-js";
-
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import Textfield from "../../components/Textfield/Textfield";
-import { checkPassword, extractFormikError, getKeys } from "../../utils/utils";
+import { checkPassword, extractFormikError } from "../../utils/utils";
 import Button from "../../components/Button/Button";
-import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
-import { ReactComponent as PasswordIco } from "./../../images/password-ico.svg";
+import LockIco from "./../../images/lock-ico.svg?react";
+import PasswordIco from "./../../images/password-ico.svg?react";
 import Spacer from "../../components/Spacer/Spacer";
 import Popup from "../../components/Popup/Popup";
-import { useAuth } from "../../hooks/useAuth";
-import { useApp } from "../../hooks/appProvider";
 
-function AccountView(): JSX.Element | null {
+function AccountView(): ReactElement | null {
   const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] =
     useState(false);
-  const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
-  const { accounts, setIsActionsViewVisible } = useApp();
+  // const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
+  // const { accounts, setIsActionsViewVisible } = useApp();
 
-  if (
-    Number(userKeys?.length) <= 0 ||
-    !vault ||
-    vault === "null" ||
-    userKeys === "null"
-  ) {
-    return <Navigate to="/login" />;
-  }
+  // if (
+  //   Number(userKeys?.length) <= 0 ||
+  //   !vault ||
+  //   vault === "null" ||
+  //   userKeys === "null"
+  // ) {
+  //   return <Navigate to="/login" />;
+  // }
 
   return (
     <div className={classNames("account__view pad-24-h")}>
@@ -49,10 +44,10 @@ function AccountView(): JSX.Element | null {
         </div>
         <div
           onClick={() => {
-            setIsActionsViewVisible(false);
-            setUserKeys(null);
-            logout();
-            chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" });
+            console.log('lock');
+            // setUserKeys(null);
+            // logout();
+            // chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" });
           }}
           className="account__menu-item"
         >
@@ -74,38 +69,51 @@ function AccountView(): JSX.Element | null {
             passwordConfirm: "",
             password: "",
           }}
-          onSubmit={(values, { setErrors, resetForm }) => {
-            const { error, masterKey, decryptedVault } = getKeys(
-              values.currentPassword,
-              accounts.length,
-              vault
-            );
-
-            if (error || !masterKey) {
-              return setErrors({ currentPassword: "Password is incorrect!" });
-            }
-
-            if (values.currentPassword === values.passwordConfirm) {
-              return setErrors({
-                passwordConfirm:
-                  "New passwords is the same as current password",
-              });
-            }
-
-            if (values.password !== values.passwordConfirm) {
-              return setErrors({ passwordConfirm: "Passwords don't match" });
-            }
-
-            setVault(
-              CryptoJS.AES.encrypt(
-                JSON.stringify(decryptedVault),
-                values.password
-              ).toString()
-            );
-
-            setIsChangePasswordPopupVisible(false);
-
-            resetForm();
+          onSubmit={async (values, { setErrors, resetForm }) => {
+            // const { error, masterKey, decryptedVault } = getKeys(
+            //   values.currentPassword,
+            //   accounts.length,
+            //   vault
+            // );
+            //
+            // if (error || !masterKey) {
+            //   return setErrors({ currentPassword: "Password is incorrect!" });
+            // }
+            //
+            // if (values.currentPassword === values.passwordConfirm) {
+            //   return setErrors({
+            //     passwordConfirm:
+            //       "New passwords is the same as current password",
+            //   });
+            // }
+            //
+            // if (values.password !== values.passwordConfirm) {
+            //   return setErrors({ passwordConfirm: "Passwords don't match" });
+            // }
+            //
+            // const encoder = new TextEncoder();
+            //
+            // const key = await window.crypto.subtle.importKey(
+            //   "raw",
+            //   encoder.encode(values.password),
+            //   "AES-CBC",
+            //   false,
+            //   ["encrypt", "decrypt"],
+            // );
+            //
+            // setVault(
+            //   await crypto.subtle.encrypt(
+            //     {
+            //       name: "AES-CBC",
+            //       iv: crypto.getRandomValues(new Uint8Array(16))
+            //     },
+            //     key,
+            //     encoder.encode(JSON.stringify(decryptedVault)),
+            // ));
+            //
+            // setIsChangePasswordPopupVisible(false);
+            //
+            // resetForm();
           }}
           validateOnBlur={false}
           validationSchema={Yup.object().shape({

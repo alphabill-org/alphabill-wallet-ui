@@ -1,4 +1,4 @@
-const bgScope = this;
+const bgScope = globalThis;
 bgScope.isPopupOpen = undefined;
 bgScope.abPort = undefined;
 
@@ -34,12 +34,12 @@ const handleWindowCreation = (onCreate) => {
 // Set wallet popup state
 chrome?.runtime?.onMessage?.addListener((message) => {
   const abExtensionState = message?.ab_extension_state;
-  if (Boolean(abExtensionState?.is_popup_open)) {
+  if (abExtensionState?.is_popup_open) {
     bgScope.isPopupOpen = abExtensionState?.is_popup_open;
   }
   const abWalletMessage = message?.ab_wallet_extension_actions;
 
-  if (Boolean(abWalletMessage)) {
+  if (abWalletMessage) {
     if (abWalletMessage?.ab_connection_is_confirmed) {
       bgScope.abPort
         ?.postMessage({

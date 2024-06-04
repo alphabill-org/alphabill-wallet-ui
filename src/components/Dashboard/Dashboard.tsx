@@ -1,14 +1,14 @@
 import classNames from "classnames";
-import { useEffect, useRef, useState } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useQueryClient } from "react-query";
 import { Tooltip } from "react-tooltip";
 
 import { IFungibleAsset, INavbarViews } from "../../types/Types";
-import { ReactComponent as CopyIco } from "../../images/copy-ico.svg";
-import { ReactComponent as Sync } from "../../images/sync-ico.svg";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
-import { ReactComponent as Arrow } from "../../images/arrow.svg";
+import CopyIco from "../../images/copy-ico.svg?react";
+import Sync from "../../images/sync-ico.svg?react";
+import Send from "../../images/send-ico.svg?react";
+import Arrow from "../../images/arrow.svg?react";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
@@ -29,7 +29,7 @@ import {
   tooltipShowDelay,
 } from "../../test/constants";
 
-function Dashboard(): JSX.Element | null {
+function Dashboard(): ReactElement {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
   const { setIsActionsViewVisible, setActionsView, account, accounts } =
     useApp();
@@ -45,7 +45,7 @@ function Dashboard(): JSX.Element | null {
         : "small"
       : "";
 
-  const [navbarView, setNavarView] = useState<INavbarViews>("fungible");
+  const [navbarView, setNavbarView] = useState<INavbarViews>("fungible");
   const [isKeySelectOpen, setIsKeySelectOpen] = useState(false);
   const keyNameRef = useRef<HTMLSpanElement>(null);
   const [keyNameWidth, setKeyNameWidth] = useState(0);
@@ -117,7 +117,7 @@ function Dashboard(): JSX.Element | null {
                   {account?.pubKey}
                 </span>
                 <span>
-                  {account?.pubKey.substr(
+                  {account?.pubKey.substring(
                     account?.pubKey.length - 6,
                     account?.pubKey.length
                   )}
@@ -179,7 +179,7 @@ function Dashboard(): JSX.Element | null {
         <Navbar
           isFees
           activeBar={navbarView}
-          onChange={(v: INavbarViews) => setNavarView(v)}
+          onChange={(v: INavbarViews) => setNavbarView(v)}
         />
         <div className="dashboard__info">
           {navbarView === "fungible" ? (

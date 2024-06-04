@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-import { encodeCanonical } from "cbor";
+import { encodeCanonical } from "cbor-web";
 
 import { ITransactionPayload } from "../types/Types";
 import {

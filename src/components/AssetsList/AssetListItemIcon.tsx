@@ -1,7 +1,7 @@
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import { AlphaType } from "../../utils/constants";
-import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
+import ABLogo from "../../images/ab-logo-ico.svg?react";
 import { Base64imageComponent, base64ToHexPrefixed } from "../../utils/utils";
 import { useGetImageUrl } from "../../hooks/api";
 import Spinner from "../Spinner/Spinner";

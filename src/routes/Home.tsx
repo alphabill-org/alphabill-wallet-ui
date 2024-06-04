@@ -1,14 +1,19 @@
+import React, { ReactElement } from "react";
+import Header, { useApp } from "../components/Header/Header";
 import Dashboard from "../components/Dashboard/Dashboard";
-import Header from "../components/Header/Header";
-import Actions from "../actionViews/Actions";
+import { ProtectedRoute } from "./ProtectedRoute";
 
-function Home(): JSX.Element {
+function Home({children}: {children: ReactElement}): ReactElement {
+  const {
+    actionsView,
+  } = useApp();
+
   return (
-    <>
+    <ProtectedRoute>
       <Header />
       <Dashboard />
-      <Actions />
-    </>
+      { /* <Actions title={ActionViewTitle.get(actionsView as ActionView) || ''}/> */ }
+    </ProtectedRoute>
   );
 }
 

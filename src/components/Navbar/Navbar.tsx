@@ -1,7 +1,5 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
-import { useApp } from "../../hooks/appProvider";
-import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";
 import { AlphaType } from "../../utils/constants";
 import { invalidateAllLists } from "../../utils/utils";
@@ -17,13 +15,13 @@ export default function Navbar({
   activeBar,
   isFees,
 }: INavbarProps): JSX.Element | null {
-  const { activeAsset, activeAccountId, setActiveAssetLocal } = useAuth();
-  const { account } = useApp();
+  // const { activeAsset, activeAccountId, setActiveAssetLocal } = useAuth();
+  // const { account } = useApp();
   const queryClient = useQueryClient();
 
   const handleChange = (v: INavbarViews) => {
     onChange(v);
-    invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+    // invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
   };
 
   return (
@@ -52,10 +50,10 @@ export default function Navbar({
       {isFees && (
         <div
           onClick={() => {
-            const alphaAsset = account?.assets?.fungible
-              ?.filter((asset) => account?.activeNetwork === asset.network)
-              ?.find((asset) => asset.typeId === AlphaType)!;
-            setActiveAssetLocal(JSON.stringify(alphaAsset));
+            // const alphaAsset = account?.assets?.fungible
+            //   ?.filter((asset) => account?.activeNetwork === asset.network)
+            //   ?.find((asset) => asset.typeId === AlphaType)!;
+            // setActiveAssetLocal(JSON.stringify(alphaAsset));
             handleChange("fees");
           }}
           className={classNames("navbar-item", {

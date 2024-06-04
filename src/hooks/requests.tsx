@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse, isCancel } from "axios";
-import { encodeAsync, decode } from "cbor";
+import { encodeAsync, decode } from "cbor-web";
 
 import {
   ITransactionPayload,
@@ -44,7 +44,7 @@ export const getBalance = async (
   if (
     !pubKey ||
     Number(pubKey) === 0 ||
-    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+    !pubKey.match(/^0x[0-9A-Fa-f]{66}$/)
   ) {
     return;
   }
@@ -66,7 +66,7 @@ export const getBillsList = async (
   if (
     !pubKey ||
     Number(pubKey) === 0 ||
-    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
+    !pubKey.match(/^0x[0-9A-Fa-f]{66}$/)
   ) {
     return;
   }
@@ -177,7 +177,7 @@ export const getUserTokens = async (
   if (
     !owner ||
     Number(owner) === 0 ||
-    !Boolean(owner.match(/^0x[0-9A-Fa-f]{66}$/))
+    !owner.match(/^0x[0-9A-Fa-f]{66}$/)
   ) {
     return;
   }

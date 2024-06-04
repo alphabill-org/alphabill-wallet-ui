@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import classNames from "classnames";
 import * as Yup from "yup";
 import { Formik } from "formik";
-import CryptoJS from "crypto-js";
 import { useQueryClient } from "react-query";
 
 import { Form, FormFooter, FormContent } from "../Form/Form";
-import { ReactComponent as AddIco } from "../../images/add-ico.svg";
+import AddIco from "../../images/add-ico.svg?react";
 import { IAccount } from "../../types/Types";
-import { ReactComponent as Edit } from "../../images/edit.svg";
-import { ReactComponent as CheckIco } from "../../images/check-ico.svg";
-import { ReactComponent as Close } from "../../images/close.svg";
-import Profile from "../../images/profile.svg";
+import Edit from "../../images/edit.svg?react";
+import CheckIco from "../../images/check-ico.svg?react";
+import Close from "../../images/close.svg?react";
+import Profile from "../../images/profile.svg?react";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
@@ -37,7 +36,7 @@ export interface IPopoversProps {
 export default function Popovers({
   isKeySelectOpen,
   setIsKeySelectOpen,
-}: IPopoversProps): JSX.Element | null {
+}: IPopoversProps): ReactElement | null {
   const {
     activeAccountId,
     activeAsset,
@@ -45,7 +44,7 @@ export default function Popovers({
     setActiveAccountId,
     setUserKeys,
     userKeys,
-    setVault,
+    // setVault,
     vault,
   } = useAuth();
   const { setIsActionsViewVisible, accounts, setAccounts } = useApp();
@@ -147,13 +146,11 @@ export default function Popovers({
                                 `The public key name is taken`,
                                 function (value) {
                                   if (value) {
-                                    return !Boolean(
-                                      accounts?.find(
+                                    return !accounts?.find(
                                         (a) =>
                                           a.name === value &&
                                           a.idx !== account?.idx
-                                      )
-                                    );
+                                      );
                                   } else {
                                     return true;
                                   }
@@ -289,16 +286,16 @@ export default function Popovers({
             const controlHashingPubKey = controlHashingKey.publicKey;
 
             const addAccount = () => {
-              setVault(
-                CryptoJS.AES.encrypt(
-                  JSON.stringify(
-                    Object.assign(decryptedVault, {
-                      pub_keys: userKeys?.concat(" ", prefixedHashingPubKey),
-                    })
-                  ),
-                  values.password
-                ).toString()
-              );
+              // setVault(
+              //   CryptoJS.AES.encrypt(
+              //     JSON.stringify(
+              //       Object.assign(decryptedVault, {
+              //         pub_keys: userKeys?.concat(" ", prefixedHashingPubKey),
+              //       })
+              //     ),
+              //     values.password
+              //   ).toString()
+              // );
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
               const accountNames =
                 localStorage.getItem(LocalKeyAccountNames) || "";
@@ -345,7 +342,7 @@ export default function Popovers({
               `The public key name is taken`,
               function (value) {
                 if (value) {
-                  return !Boolean(accounts?.find((a) => a.name === value));
+                  return !accounts?.find((a) => a.name === value);
                 } else {
                   return true;
                 }

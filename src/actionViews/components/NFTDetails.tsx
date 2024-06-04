@@ -3,8 +3,8 @@ import { useQueryClient } from "react-query";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import { NFTListView, TransferNFTView } from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
-import { ReactComponent as Download } from "../../images/download.svg";
+import Send from "../../images/send-ico.svg?react";
+import Download from "../../images/download.svg?react";
 import { useAuth } from "../../hooks/useAuth";
 import { downloadHexFile, invalidateAllLists } from "../../utils/utils";
 import { useApp } from "../../hooks/appProvider";

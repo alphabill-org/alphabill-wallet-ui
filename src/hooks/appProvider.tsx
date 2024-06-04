@@ -1,10 +1,10 @@
 import {
   createContext,
-  FunctionComponent,
+  FunctionComponent, ReactElement,
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useState
 } from "react";
 import { isEqual, sortBy } from "lodash";
 
@@ -31,20 +31,18 @@ import { useAuth } from "./useAuth";
 import {
   AlphaType,
   LocalKeyAccountNames,
-  TransferNFTView,
 } from "../utils/constants";
 import {
   getUpdatedFungibleAssets,
   getUpdatedNFTAssets,
-  removeConnectTransferData,
   unlockedBills,
 } from "../utils/utils";
 import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
-  balances: any;
-  billsList: any;
-  unlockedBillsList: any;
+  balances: unknown;
+  billsList: unknown;
+  unlockedBillsList: unknown;
   NFTList: IListTokensResponse[] | undefined;
   NFTsList: IListTokensResponse[] | undefined;
   accounts: IAccount[];
@@ -71,7 +69,7 @@ export const AppContext = createContext<IAppContextShape>(
 export const useApp = (): IAppContextShape => useContext(AppContext);
 
 export const AppProvider: FunctionComponent<{
-  children: JSX.Element | null;
+  children: ReactElement | null;
 }> = ({ children }) => {
   const {
     userKeys,
@@ -96,7 +94,7 @@ export const AppProvider: FunctionComponent<{
     string | null | undefined
   >();
   const [previousView, setPreviousView] = useState<string | null>(null);
-  const balances: any = useGetBalances(keysArr);
+  const balances = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: feeCreditBills } = useGetFeeCreditBills(pubKeyHash);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
@@ -123,10 +121,11 @@ export const AppProvider: FunctionComponent<{
       : fungibleTokenList;
   const [accounts, setAccounts] = useState<IAccount[] | []>([]);
   const account = useMemo(
-    () =>
-      accounts?.find(
+    () => {
+      return accounts.find(
         (account: IAccount) => account?.pubKey === activeAccountId
-      )!,
+      ) as IAccount;
+    },
     [accounts, activeAccountId]
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =
@@ -151,42 +150,42 @@ export const AppProvider: FunctionComponent<{
         ) as INFTAsset[]) || [],
     };
 
-    chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
-      chrome?.storage?.local.get(
-        ["ab_connect_transfer"],
-        function (transferRes) {
-          const typeId = transferRes?.ab_connect_transfer?.token_type_id;
-
-          if (typeId) {
-            if (
-              keyRes?.ab_connected_key &&
-              activeAccountId !== keyRes?.ab_connected_key
-            ) {
-              setActiveAccountId(keyRes?.ab_connected_key);
-            }
-            const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
-
-            if (isNFT) {
-              setSelectedTransferAccountKey(
-                transferRes?.ab_connect_transfer?.receiver_pub_key
-              );
-              setActiveAssetLocal(JSON.stringify(activeAsset));
-              setActionsView(TransferNFTView);
-              setIsActionsViewVisible(true);
-              setSelectedTransferKey(isNFT.id);
-            } else if (
-              activeAccountId === keyRes?.ab_connected_key &&
-              !isLoadingNFTs &&
-              !isLoadingFungibleTokens &&
-              !isLoadingTokenTypes
-            ) {
-              setError("No token with given type ID");
-              removeConnectTransferData();
-            }
-          }
-        }
-      );
-    });
+    // chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
+    //   chrome?.storage?.local.get(
+    //     ["ab_connect_transfer"],
+    //     function (transferRes) {
+    //       const typeId = transferRes?.ab_connect_transfer?.token_type_id;
+    //
+    //       if (typeId) {
+    //         if (
+    //           keyRes?.ab_connected_key &&
+    //           activeAccountId !== keyRes?.ab_connected_key
+    //         ) {
+    //           setActiveAccountId(keyRes?.ab_connected_key);
+    //         }
+    //         const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
+    //
+    //         if (isNFT) {
+    //           setSelectedTransferAccountKey(
+    //             transferRes?.ab_connect_transfer?.receiver_pub_key
+    //           );
+    //           setActiveAssetLocal(JSON.stringify(activeAsset));
+    //           setActionsView(TransferNFTView);
+    //           setIsActionsViewVisible(true);
+    //           setSelectedTransferKey(isNFT.id);
+    //         } else if (
+    //           activeAccountId === keyRes?.ab_connected_key &&
+    //           !isLoadingNFTs &&
+    //           !isLoadingFungibleTokens &&
+    //           !isLoadingTokenTypes
+    //         ) {
+    //           setError("No token with given type ID");
+    //           removeConnectTransferData();
+    //         }
+    //       }
+    //     }
+    //   );
+    // });
 
     if (
       (hasKeys &&
@@ -269,7 +268,7 @@ export const AppProvider: FunctionComponent<{
       {children}
       <Popup
         isPopupVisible={Boolean(error)}
-        setIsPopupVisible={(v) => {
+        setIsPopupVisible={() => {
           setError(null);
         }}
         title="Error"

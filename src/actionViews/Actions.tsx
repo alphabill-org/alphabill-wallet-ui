@@ -1,67 +1,26 @@
 import classNames from "classnames";
 
 import Button from "../components/Button/Button";
-import { ReactComponent as Arrow } from "./../images/arrow.svg";
-import { useApp } from "../hooks/appProvider";
-import TransferFungible from "./components/TransferFungible";
-import TransferFeeCredit from "./components/TransferFeeCredit";
-import BillsList from "./components/BillsList/BillsList";
+import Arrow from "./../images/arrow.svg?react";
 import AccountView from "./components/AccountView";
-import { useAuth } from "../hooks/useAuth";
-import TransferNFTs from "./components/TransferNFTs";
-import Navbar from "../components/Navbar/Navbar";
-import Spacer from "../components/Spacer/Spacer";
-import AssetsList from "../components/AssetsList/AssetsList";
-import {
-  FungibleListView,
-  NFTDetailsView,
-  NFTListView,
-  ProfileView,
-  TransferFeeCreditView,
-  TransferFungibleView,
-  TransferNFTView,
-} from "../utils/constants";
-import NFTDetails from "./components/NFTDetails";
-import { IActionVies, INavbarViews } from "../types/Types";
-import { removeConnectTransferData } from "../utils/utils";
+// import { NFTDetailsView, TransferFungibleView } from "../utils/constants";
+// import { removeConnectTransferData } from "../utils/utils";
+import { ReactElement } from "react";
 
-function Actions(): JSX.Element | null {
-  const {
-    isActionsViewVisible,
-    setIsActionsViewVisible,
-    actionsView,
-    accounts,
-    setSelectedTransferKey,
-    NFTList,
-    setActionsView,
-    setPreviousView,
-    previousView,
-  } = useApp();
-  const { activeAsset } = useAuth();
-  const isTransferView =
-    actionsView === TransferFungibleView || actionsView === TransferNFTView;
+function Actions({title}: {title: string}): ReactElement | null {
+
+  // const { activeAsset } = useAuth();
+  // const isTransferView =
+  //   actionsView === TransferFungibleView || actionsView === TransferNFTView;
 
   return (
     <div
-      className={classNames("actions", { "is-visible": isActionsViewVisible })}
+      className={classNames("actions", { "is-visible": true })}
     >
       <div className="actions__header">
         <Button
           onClick={() => {
-            if (actionsView === NFTDetailsView) {
-              setActionsView(NFTListView);
-            } else if (previousView) {
-              setActionsView(previousView as IActionVies);
-            } else {
-              setIsActionsViewVisible(false);
-            }
 
-            if (isTransferView) {
-              setPreviousView(null);
-              setSelectedTransferKey(null);
-            }
-
-            removeConnectTransferData();
           }}
           className="btn__back"
           variant="icon"
@@ -69,13 +28,12 @@ function Actions(): JSX.Element | null {
           <Arrow />
         </Button>
         <div className="actions__title">
-          {actionsView === NFTListView || actionsView === FungibleListView
-            ? activeAsset?.symbol
-            : actionsView.replace("view", "")}
+         {/*actionsView === NFTListView || actionsView === FungibleListView ? activeAsset?.symbol :*/}
+          {title}
         </div>
       </div>
       <div className="actions__view">
-        {isTransferView && (
+        {/*isTransferView && (
           <>
             <Spacer mt={8} />
             <Navbar
@@ -85,18 +43,19 @@ function Actions(): JSX.Element | null {
                   : "nonFungible"
               }
               onChange={(isFungibleView: INavbarViews) => {
-                setActionsView(
-                  isFungibleView === "fungible"
-                    ? TransferFungibleView
-                    : TransferNFTView
-                );
-                setSelectedTransferKey(null);
-                setPreviousView(null);
+                // setActionsView(
+                //   isFungibleView === "fungible"
+                //     ? TransferFungibleView
+                //     : TransferNFTView
+                // );
+                // setSelectedTransferKey(null);
+                // setPreviousView(null);
                 removeConnectTransferData();
               }}
             />
           </>
-        )}
+        )*/}
+        {/*
         {actionsView === TransferFungibleView && isActionsViewVisible ? (
           <TransferFungible />
         ) : actionsView === TransferNFTView ? (
@@ -121,12 +80,12 @@ function Actions(): JSX.Element | null {
               onSendClick={() => setPreviousView(NFTListView)}
             />
           </>
-        ) : actionsView === ProfileView && accounts ? (
+        ) : actionsView === ProfileView ? ( // && accounts ? (
           <AccountView />
         ) : (
           <></>
         )}
-
+        */}
         <div className="actions__footer"></div>
       </div>
     </div>

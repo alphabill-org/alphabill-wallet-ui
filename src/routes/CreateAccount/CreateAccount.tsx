@@ -1,29 +1,33 @@
-import { useMemo } from "react";
+import { ReactElement, useContext, useEffect, useMemo, useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { Formik } from "formik";
 import { HDKey } from "@scure/bip32";
-import { generateMnemonic, mnemonicToSeedSync, mnemonicToEntropy } from "bip39";
+import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import * as Yup from "yup";
-import CryptoJS from "crypto-js";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import {
-  checkPassword,
-  clearStorage,
-  extractFormikError,
-  unit8ToHexPrefixed,
-} from "../../utils/utils";
+import { checkPassword, extractFormikError } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
-import { ReactComponent as Back } from "../../images/back-ico.svg";
-import { useAuth } from "../../hooks/useAuth";
+import Back from "../../images/back-ico.svg?react";
+import { PublicKey } from "../../App";
+import { VaultContext } from "../Login/Login";
 
-function CreateAccount(): JSX.Element | null {
-  const { login } = useAuth();
+function CreateAccount(): ReactElement | null {
+  const [redirect, setRedirect] = useState(false);
+  const { keys, addKey } = useContext(VaultContext);
+  const navigate = useNavigate();
   const mnemonic = useMemo(() => generateMnemonic(), []);
+
+  useEffect(() => {
+    if (redirect) {
+      navigate('/');
+      setRedirect(false);
+    }
+  }, [keys]);
 
   return (
     <div className="create-account">
@@ -65,38 +69,16 @@ function CreateAccount(): JSX.Element | null {
             const seed = mnemonicToSeedSync(mnemonic);
             const masterKey = HDKey.fromMasterSeed(seed);
             const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);
-            const hashingPubKey = hashingKey.publicKey;
-            const prefixedHashingPubKey = unit8ToHexPrefixed(hashingPubKey!);
-
-            const encrypted = CryptoJS.AES.encrypt(
-              prefixedHashingPubKey,
-              values.password
-            ).toString();
-
-            const decrypted = CryptoJS.AES.decrypt(encrypted, values.password);
-
-            if (
-              prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)
-            ) {
-              const vaultData = {
-                entropy: mnemonicToEntropy(mnemonic),
-                pub_keys: prefixedHashingPubKey,
-              };
-
-              clearStorage();
-              login(
-                prefixedHashingPubKey,
-                prefixedHashingPubKey,
-                CryptoJS.AES.encrypt(
-                  JSON.stringify(vaultData),
-                  values.password
-                ).toString()
-              );
-            } else {
+            if (!hashingKey.publicKey) {
               return setErrors({
                 passwordConfirm: "Public key creation failed",
               });
             }
+
+            // TODO: Remove previous state when creating new wallet
+
+            addKey(new PublicKey(hashingKey.publicKey));
+            setRedirect(true);
           }}
         >
           {(formikProps) => {

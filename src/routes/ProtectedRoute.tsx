@@ -1,57 +1,65 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { useApp } from "../hooks/appProvider";
-import { LocalKeyPubKeys, LocalKeyVault } from "../utils/constants";
 import ConnectPopup from "./ConnectPopup";
+import { Navigate } from "react-router-dom";
+import { ReactElement, useContext } from "react";
+import { VaultContext } from "./Login/Login";
 
 export interface IProtectedRouteProps {
   children: React.ReactNode;
 }
 
-function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
-  const { balances } = useApp();
-  const vault = localStorage.getItem(LocalKeyVault);
-  const userKeys = localStorage.getItem(LocalKeyPubKeys);
-  const [isLocked, setIsLocked] = useState<"locked" | "unlocked">();
+function ProtectedRoute({ children }: IProtectedRouteProps): ReactElement {
+  const { keys } = useContext(VaultContext);
+  // const { balances } = useApp();
+  // const vault = localStorage.getItem(LocalKeyVault);
+  // const userKeys = localStorage.getItem(LocalKeyPubKeys);
+  // const [isLocked, setIsLocked] = useState<WalletStatus>();
+  console.log(keys);
 
-  const isRedirect =
-    !Boolean(userKeys) ||
-    !Boolean(vault) ||
-    !Boolean(balances) ||
-    vault === "null" ||
-    userKeys === "null";
-
-  useEffect(() => {
-    chrome?.storage?.local
-      .get(["ab_is_wallet_locked"])
-      .then((result) => {
-        if (result.ab_is_wallet_locked !== "unlocked") {
-          localStorage.setItem(LocalKeyPubKeys, "");
-        }
-
-        setIsLocked(result.ab_is_wallet_locked || "locked");
-      })
-      .catch(() => {
-        setIsLocked("locked");
-        localStorage.setItem(LocalKeyPubKeys, "");
-      });
-  }, [isLocked]);
-
-  if (chrome?.storage && !isLocked) {
-    return <></>;
-  }
-
-  chrome?.runtime?.onMessage?.addListener((request) => {
-    if (request.isLocked === true) {
-      chrome?.storage?.local
-        .set({ ab_is_wallet_locked: "locked" })
-        .then(() => window.close());
-    }
-  });
-
-  if (isRedirect || (isLocked === "locked" && chrome?.storage)) {
+  if (!keys.length) {
     return <Navigate to="/login" />;
   }
+
+  // const isRedirect =
+  //   !userKeys ||
+  //   !vault ||
+  //   !balances ||
+  //   vault === "null" ||
+  //   userKeys === "null";
+
+  // useEffect(() => {
+  //   runtimeEnvironment?.storage.local
+  //     .get([AlphabillData.ALPHABILL_WALLET_LOCKED])
+  //     .then((result) => {
+  //       const data = result as AlphabillDataObject;
+  //       if (data[AlphabillData.ALPHABILL_WALLET_LOCKED] !== WalletStatus.UNLOCKED) {
+  //         localStorage.setItem(LocalKeyPubKeys, "");
+  //       }
+  //
+  //       setIsLocked(data[AlphabillData.ALPHABILL_WALLET_LOCKED] || WalletStatus.LOCKED);
+  //     })
+  //     .catch(() => {
+  //       setIsLocked(WalletStatus.LOCKED);
+  //       localStorage.setItem(LocalKeyPubKeys, "");
+  //     });
+  // }, [isLocked]);
+  //
+  // if (runtimeEnvironment && !isLocked) {
+  //   return <></>;
+  // }
+  //
+  // runtimeEnvironment?.runtime.onMessage.addListener((request) => {
+  //   const { isLocked } = request as { isLocked: boolean };
+  //   if (isLocked) {
+  //     runtimeEnvironment?.storage.local
+  //       .set({ [AlphabillData.ALPHABILL_WALLET_LOCKED] : WalletStatus.LOCKED })
+  //       .then(() => window.close());
+  //   }
+  //   return true;
+  // });
+  //
+  // if (isRedirect || isLocked === WalletStatus.LOCKED) {
+  //   return <Navigate to="/login" />;
+  // }
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isString } from "lodash";
 
@@ -28,7 +28,7 @@ interface IUserContext {
   logout: () => void;
   vault: string | null;
   setUserKeys: (e: any) => void;
-  setVault: (e: string) => void;
+  setVault: (e: ArrayBuffer) => void;
   activeAccountId: string;
   setActiveAccountId: (e: string) => void;
   activeAsset: IActiveAsset;
@@ -109,40 +109,38 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const navigate = useNavigate();
 
   useEffect(() => {
-    chrome?.storage?.local.get(["ab_is_connect_popup"], function (result) {
-      setIsConnectWalletPopup(result?.ab_is_connect_popup);
-    });
+    // chrome?.storage?.local.get(["ab_is_connect_popup"], function (result) {
+    //   setIsConnectWalletPopup(result?.ab_is_connect_popup);
+    // });
   }, [isConnectWalletPopup]);
 
-  useEffect(() => {
-    const getPubKeyHash = async () => {
-      const publicKey = await publicKeyHash(activeAccountId, true);
-      setPubKeyHash(publicKey as string);
-    };
+  // useEffect(() => {
+  //   const getPubKeyHash = async () => {
+  //     const publicKey = await publicKeyHash(activeAccountId, true);
+  //     setPubKeyHash(publicKey as string);
+  //   };
+  //
+  //   getPubKeyHash();
+  // }, [activeAccountId]);
 
-    getPubKeyHash();
-  }, [activeAccountId]);
-
-  const login = async (
+  const login = useCallback(async (
     activeAccountId: string,
     keys: string | null,
     vaultData?: string
   ) => {
-    const initiateLogin = () => {
-      vaultData && setVault(vaultData);
-      keys && setUserKeys(keys);
-      setActiveAccountId(activeAccountId);
-      navigate("/", { replace: true });
-    };
+    // vaultData && setVault(vaultData);
+    // keys && setUserKeys(keys);
+    setActiveAccountId(activeAccountId);
+    navigate("/", { replace: true });
 
-    if (chrome?.storage) {
-      chrome?.storage?.local
-        .set({ ab_is_wallet_locked: "unlocked" })
-        .then(() => initiateLogin());
-    } else {
-      initiateLogin();
-    }
-  };
+    // if (chrome?.storage) {
+    //   chrome?.storage?.local
+    //     .set({ ab_is_wallet_locked: "unlocked" })
+    //     .then(() => initiateLogin());
+    // } else {
+    //   initiateLogin();
+    // }
+  }, []);
 
   const logout = () => {
     setUserKeys(null);

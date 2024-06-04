@@ -20,7 +20,7 @@ function ConnectPopup(): JSX.Element {
         isPopupVisible={isConnectWalletPopup}
         setIsPopupVisible={(v) => {
           setIsConnectWalletPopup(v);
-          chrome?.storage?.local.set({ ab_is_connect_popup: v });
+          // chrome?.storage?.local.set({ ab_is_connect_popup: v });
         }}
         title="Select key to connect"
       >

@@ -2,33 +2,59 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { Link, Navigate } from "react-router-dom";
 
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
 import Textfield from "../../components/Textfield/Textfield";
 import Logo from "../../images/ab-logo.svg";
 import Spacer from "../../components/Spacer/Spacer";
-import {
-  extractFormikError,
-  getKeys,
-  unit8ToHexPrefixed,
-} from "../../utils/utils";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
 import { useAuth } from "../../hooks/useAuth";
-import { useApp } from "../../hooks/appProvider";
-import { LocalKeyPubKeys, LocalKeyVault } from "../../utils/constants";
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useEffect, useState } from "react";
+import { RuntimeEnvironmentContext } from "../../index";
+import { PublicKey } from "../../App";
 
-function Login(): JSX.Element | null {
+export const storageVaultKey = 'alphabill_vault';
+
+interface IVault {
+  readonly keys: PublicKey[];
+  addKey(key: PublicKey): void;
+}
+
+export const VaultContext = createContext<IVault>({ keys: [], addKey: () => {} });
+
+export function VaultContextProvider({ children, state }: PropsWithChildren<{state?: { keys: PublicKey[]}}>) {
+  const [keys, setKeys] = useState<PublicKey[]>(state?.keys || []);
+  const runtimeEnvironment = useContext(RuntimeEnvironmentContext);
+
+  useEffect(() => {
+    runtimeEnvironment?.storage.local.set(
+      {
+        [storageVaultKey]: {
+          keys: keys.map((key) => key.toString())
+        }
+      });
+  }, [keys]);
+
+  const addKey = useCallback((key: PublicKey) => {
+    setKeys((keys) => [...keys, key]);
+  }, [setKeys, keys]);
+
+  return (
+    <VaultContext.Provider value={{ keys, addKey }}>
+      {children}
+    </VaultContext.Provider>
+  );
+}
+
+
+function Login(): ReactElement | null {
+  const { keys } = useContext(VaultContext);
   const { login } = useAuth();
-  const { balances } = useApp();
-  const vault = localStorage.getItem(LocalKeyVault);
-  const userKeys = localStorage.getItem(LocalKeyPubKeys);
+  // const { balances } = useApp();
+  //const vault = localStorage.getItem(LocalKeyVault);
+  // const userKeys = localStorage.getItem(LocalKeyPubKeys);
 
-  if (
-    Boolean(balances) &&
-    Boolean(vault) &&
-    Boolean(userKeys) &&
-    vault !== "null" &&
-    userKeys !== "null"
-  ) {
+  if (keys.length > 0) {
     return <Navigate to="/" />;
   }
 
@@ -43,33 +69,34 @@ function Login(): JSX.Element | null {
       <Spacer mb={60} />
       <Formik
         initialValues={{
-          password: "",
+          password: ""
         }}
         onSubmit={(values, { setErrors }) => {
-          if (!vault || vault === "null") {
+          console.log(keys);
+          if (!vault) {
             return setErrors({
-              password: "No active wallet with this password",
+              password: "No active wallet with this password"
             });
           }
 
           const { error, hashingPublicKey, decryptedVault } = getKeys(
             values.password,
             0,
-            vault
+            keys
           );
 
           if (
             error ||
-            unit8ToHexPrefixed(hashingPublicKey!) !==
-              decryptedVault.pub_keys?.split(" ")[0]
+            unit8ToHexPrefixed(hashingPublicKey) !==
+            decryptedVault.pub_keys?.split(" ")[0]
           ) {
             return setErrors({ password: "Password is incorrect!" });
           }
 
-          login(unit8ToHexPrefixed(hashingPublicKey!), decryptedVault.pub_keys);
+          login(unit8ToHexPrefixed(hashingPublicKey), decryptedVault.pub_keys);
         }}
         validationSchema={Yup.object().shape({
-          password: Yup.string().required("Password is required"),
+          password: Yup.string().required("Password is required")
         })}
       >
         {(formikProps) => {

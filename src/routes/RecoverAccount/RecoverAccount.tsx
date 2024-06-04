@@ -15,7 +15,7 @@ import {
   unit8ToHexPrefixed,
 } from "../../utils/utils";
 import Textfield from "../../components/Textfield/Textfield";
-import { ReactComponent as Back } from "../../images/back-ico.svg";
+import Back from "../../images/back-ico.svg?react";
 import { useAuth } from "../../hooks/useAuth";
 
 function RecoverAccount(): JSX.Element | null {

@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { useField, useFormikContext } from "formik";
 
 import Button from "../Button/Button";
-import { ReactComponent as Show } from "../../images/show-ico.svg";
+import Show from "../../images/show-ico.svg?react";
 
 export interface ITextfieldProps {
   id: string;

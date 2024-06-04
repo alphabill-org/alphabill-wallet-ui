@@ -1,4 +1,3 @@
-import { string } from "yup/lib/locale";
 import { AlphaType, TokenType } from "../utils/constants";
 
 export interface IAccount {
@@ -166,7 +165,7 @@ export interface ISwap {
 export interface ITransactionAttributes {
   type?: Uint8Array;
   backlink?: Uint8Array;
-  newBearer?: Buffer | Uint8Array;
+  newBearer?: Uint8Array;
   remainingValue?: bigint;
   targetBearer?: Uint8Array;
   swapTimeout?: bigint;
@@ -174,7 +173,7 @@ export interface ITransactionAttributes {
   nonce?: Uint8Array | null;
   value?: bigint;
   targetValue?: bigint;
-  invariantPredicateSignatures?:  (Uint8Array | null)[] | null;
+  invariantPredicateSignatures?:  (Uint8Array | null)[] | null;
   targetSystemIdentifier?: bigint; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
   targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
   earliestAdditionTime?: bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
@@ -217,9 +216,9 @@ export interface ITransactionPayloadObj {
   systemId: bigint;
   unitId: Uint8Array;
   type: string;
-  attributes: any | ITransactionAttributes;
+  attributes: unknown | ITransactionAttributes;
   clientMetadata:
-    | any
+    | unknown
     | {
         timeout: bigint;
         MaxTransactionFee: bigint;
@@ -268,15 +267,25 @@ export interface IFeeCreditBills {
   } | null;
 }
 
-export type IActionVies =
-  | "Transfer fungible view"
-  | "Transfer NFT view"
-  | "Transfer Fee Credit view"
-  | "Fungible list view"
-  | "NFT list view"
-  | "Profile view"
-  | "NFT details view"
-  | "";
+export enum ActionView {
+  TRANSFER_FUNGIBLE_TOKEN = "TRANSFER_FUNGIBLE_TOKEN",
+  TRANSFER_NON_FUNGIBLE_TOKEN = "TRANSFER_NON_FUNGIBLE_TOKEN",
+  TRANSFER_FEE_CREDIT = "TRANSFER_FEE_CREDIT",
+  NON_FUNGIBLE_TOKEN_LIST = "NON_FUNGIBLE_TOKEN_LIST",
+  NON_FUNGIBLE_TOKEN_DETAILS = "NON_FUNGIBLE_TOKEN_DETAILS",
+}
+
+export const ActionViewTitle = new Map<ActionView, string>(
+  [
+    [ActionView.TRANSFER_FUNGIBLE_TOKEN, 'Transfer fungible token'],
+    [ActionView.TRANSFER_NON_FUNGIBLE_TOKEN, 'Transfer non-fungible token'],
+    [ActionView.TRANSFER_FEE_CREDIT, 'Transfer fee credit'],
+    [ActionView.NON_FUNGIBLE_TOKEN_LIST, 'Non-fungible token list'],
+    [ActionView.NON_FUNGIBLE_TOKEN_DETAILS, 'Non-fungible token details'],
+  ]
+)
+
+
 
 export type INavbarViews = "fungible" | "nonFungible" | "fees";
 

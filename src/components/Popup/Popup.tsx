@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useEffect, useRef } from "react";
 
-import { ReactComponent as Close } from "../../images/close.svg";
+import Close from "../../images/close.svg?react";
 import { useDocumentClick } from "../../utils/utils";
 
 export interface IPopupProps {

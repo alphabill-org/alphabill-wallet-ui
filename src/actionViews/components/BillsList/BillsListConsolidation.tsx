@@ -59,9 +59,8 @@ export const handleSwapRequest = async (
     return bills.reduce((acc, obj) => acc + BigInt(obj.value), zeroBigInt);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  for (const [_targetUnitId, bills] of groupedBillsByTargetId) {
-    let tx_proofs: ITxProof[] = [];
+  for (const [, bills] of groupedBillsByTargetId) {
+    const tx_proofs: ITxProof[] = [];
     const sortedBills = sortBillsByID(bills);
 
     await Promise.all(
@@ -72,7 +71,7 @@ export const handleSwapRequest = async (
         );
 
         if (data?.txProof) {
-          const tx_proof = data! as ITxProof;
+          const tx_proof = data as ITxProof;
           tx_proof && tx_proofs.push(tx_proof);
         }
       })

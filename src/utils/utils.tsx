@@ -6,7 +6,7 @@ import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
 import { uniq, isNumber, sortBy } from "lodash";
 import * as secp from "@noble/secp256k1";
 import { QueryClient } from "react-query";
-import { encodeAsync, encodeCanonical } from "cbor";
+import { encodeAsync, encodeCanonical } from "cbor-web";
 
 import {
   IAccount,
@@ -734,8 +734,10 @@ export const sendTransferMessage = async (
   });
 };
 
-export const removeConnectTransferData = () =>
+export const removeConnectTransferData = () => {
   chrome?.storage?.local.remove("ab_connect_transfer");
+}
+
 
 export const FeeCostEl = () => (
   <span className="t-small pad-8-t m-auto w-100p flex flex-justify-c op-06">
@@ -836,14 +838,14 @@ export const getBillsAndTargetUnitToConsolidate = (
   consolidationTargetUnit: IBill | undefined;
 } => {
   const collectableBills =
-    billsList?.filter((b: IBill) => !Boolean(b.targetUnitId)) || [];
+    billsList?.filter((b: IBill) => !b.targetUnitId) || [];
   const DCBills =
-    billsList?.filter((b: IBill) => Boolean(b.targetUnitId)) || [];
+    billsList?.filter((b: IBill) => b.targetUnitId) || [];
 
   const targetIds = DCBills?.map((item) => item.targetUnitId);
   const consolidationTargetUnit =
     collectableBills?.find((bill: IBill) => targetIds?.includes(bill.id)) ||
-    findBillWithLargestValue(collectableBills)!;
+    findBillWithLargestValue(collectableBills);
 
   const billsToConsolidate = collectableBills
     ?.filter((b: IBill) => b.id !== consolidationTargetUnit?.id)

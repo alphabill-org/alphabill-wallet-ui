@@ -236,12 +236,12 @@ function BillsList(): JSX.Element | null {
         )}
         <Spacer mt={24} />
         {Number(
-          sortedListByValue?.filter((b: IBill) => !Boolean(b.targetUnitId))
+          sortedListByValue?.filter((b: IBill) => !b.targetUnitId)
             ?.length
         ) >= 1 && (
           <AssetsList
             assetList={sortedListByValue?.filter(
-              (b: IBill) => !Boolean(b.targetUnitId)
+              (b: IBill) => !b.targetUnitId
             )}
             DCBills={DCBills}
             consolidationTargetUnit={consolidationTargetUnit}
