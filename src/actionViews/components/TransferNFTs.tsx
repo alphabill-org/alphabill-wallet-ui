@@ -21,8 +21,6 @@ import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
   getRoundNumber,
-  getTypeHierarchy,
-  makeTransaction,
 } from "../../hooks/requests";
 
 import {
