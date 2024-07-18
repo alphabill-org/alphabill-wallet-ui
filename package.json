@@ -3,9 +3,9 @@
   "version": "0.4.1",
   "private": true,
   "dependencies": {
+    "@alphabill/alphabill-js-sdk": "0.5.0-rc.ecd0bfd",
     "@noble/secp256k1": "^1.7.0",
     "@scure/bip32": "^1.1.1",
-    "axios": "^1.1.3",
     "bip39": "^3.0.4",
     "buffer": "^6.0.3",
     "cbor": "^9.0.0",

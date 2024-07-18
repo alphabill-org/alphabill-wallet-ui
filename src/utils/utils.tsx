@@ -27,6 +27,9 @@ import {
   localStorageKeys,
 } from "./constants";
 import { publicKeyHash } from "./hashers";
+import {TransactionRecordWithProof} from "@alphabill/alphabill-js-sdk/lib/TransactionRecordWithProof";
+import {TransactionPayload} from "@alphabill/alphabill-js-sdk/lib/transaction/TransactionPayload";
+import {ITransactionPayloadAttributes} from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes";
 
 export const predicateP2PKH = async (address: string) => {
   const checkedAddress = address.startsWith("0x")
@@ -120,16 +123,6 @@ export const sortBillsByID = (bills: IBill[]) =>
       ? 1
       : 0
   );
-
-export const sortTx_ProofsByID = (proofs: any[]) => {
-  return proofs.sort((a: any, b: any) => {
-    const aTxUnitId = a.txRecord[0][0][2];
-    const bTxUnitId = b.txRecord[0][0][2];
-
-    // Compare the buffer values using the compare method
-    return Buffer.compare(aTxUnitId, bTxUnitId);
-  });
-};
 
 export const sortIDBySize = (arr: string[]) =>
   arr.sort((a: string, b: string) =>
@@ -235,15 +228,7 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  const isOwner = checkOwnerPredicate(key, invariantPredicate);
-
-  if (invariantPredicate === alwaysTrueBase64) {
-    return true;
-  } else if (isOwner) {
-    return isOwner;
-  }
-
-  return false;
+  return invariantPredicate === alwaysTrueBase64 || checkOwnerPredicate(key, invariantPredicate);
 };
 
 export const createOwnerProof = async (
@@ -555,20 +540,22 @@ export const getTokensLabel = (typeId: string) =>
 
 export const getUpdatedNFTAssets = (
   NFTsList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   return (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
         isSendable: isTokenSendable(
-          tokenTypes?.find((type: ITokensListTypes) => type.id === nft.typeId)
-            ?.invariantPredicate!,
+            // TODO: FIX
+            "",
+          //tokenTypes?.find((type: ITokensListTypes) => type.id === nft.typeId)
+          //  ?.invariantPredicate!,
           activeAccountId
         ),
-        iconImage: tokenTypes?.find(
-          (type: ITokensListTypes) => type.id === nft.typeId
-        )?.icon,
+        iconImage: "",
+        // iconImage: tokenTypes?.find(
+        //   (type: ITokensListTypes) => type.id === nft.typeId
+        // )?.icon,
         amountOfSameType:
           NFTsList?.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -580,7 +567,6 @@ export const getUpdatedNFTAssets = (
 
 const getUpdatesUTPFungibleTokens = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   let userTokens: any = [];
@@ -623,13 +609,16 @@ const getUpdatesUTPFungibleTokens = (
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
-        tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
-          ?.invariantPredicate!,
+          // TODO: Fix
+          "",
+        // tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
+        //   ?.invariantPredicate!,
         activeAccountId
       ),
-      iconImage: tokenTypes?.find(
-        (type: ITokensListTypes) => type.id === obj.typeId
-      )?.icon,
+      iconImage: "",
+      // iconImage: tokenTypes?.find(
+      //   (type: ITokensListTypes) => type.id === obj.typeId
+      // )?.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
@@ -639,13 +628,11 @@ const getUpdatesUTPFungibleTokens = (
 
 export const getUpdatedFungibleAssets = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string,
   balances: any[]
 ) => {
   const fungibleUTPAssets = getUpdatesUTPFungibleTokens(
     fungibleTokensList,
-    tokenTypes,
     activeAccountId
   );
   const ALPHABalance =

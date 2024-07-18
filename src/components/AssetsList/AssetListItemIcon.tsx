@@ -19,7 +19,6 @@ export default function AssetsListItemIcon({
   isTypeListItem,
 }: IAssetsListItemIconProps): JSX.Element | null {
   const hexId = base64ToHexPrefixed(asset?.id);
-  const { tokenTypes } = useApp();
   const nftUri = asset?.nftUri || "";
   const { data: imageResponse, isLoading: isLoadingImage } = useGetImageUrl(
     nftUri,

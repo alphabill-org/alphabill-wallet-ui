@@ -1,24 +1,15 @@
-import { AxiosError } from "axios";
-import { QueryObserverResult, useQueries, useQuery } from "react-query";
-import {
-  IBillsList,
-  IListTokensResponse,
-  ITypeHierarchy,
-  ITokensListTypes,
-  IFeeCreditBills,
-  ITxProof,
-} from "../types/Types";
+import {QueryObserverResult, useQueries, useQuery} from "react-query";
+import {IBillsList, IFeeCreditBills, IListTokensResponse, ITxProof,} from "../types/Types";
 
 import {
-  fetchAllTypes,
-  getBalance,
-  getBillsList,
-  getFeeCreditBills,
-  getImageUrl,
-  getImageUrlAndDownloadType,
-  getProof,
-  getTypeHierarchy,
-  getUserTokens,
+    getBalance,
+    getBillsList,
+    getFeeCreditBills,
+    getImageUrl,
+    getImageUrlAndDownloadType,
+    getProof,
+    getUserTokens,
+    TokenUnitType,
 } from "./requests";
 
 export function useGetBalances(pubKeys: string[] | undefined) {
@@ -49,7 +40,7 @@ export function useGetAllNFTs(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTsList`, pubKey],
-    async () => getUserTokens(pubKey, "nft"),
+    async () => getUserTokens(pubKey, TokenUnitType.NON_FUNGIBLE),
     {
       enabled: true,
       keepPreviousData: true,
@@ -64,7 +55,7 @@ export function useGetNFTs(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTList`, pubKey, activeAsset],
-    async () => activeAsset && getUserTokens(pubKey, "nft", activeAsset),
+    async () => activeAsset && getUserTokens(pubKey, TokenUnitType.NON_FUNGIBLE, activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
@@ -129,7 +120,7 @@ export function useGetAllUserTokens(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`fungibleTokensList`, pubKey],
-    async () => getUserTokens(pubKey, "fungible"),
+    async () => getUserTokens(pubKey, TokenUnitType.FUNGIBLE),
     {
       enabled: true,
       keepPreviousData: true,
@@ -144,31 +135,7 @@ export function useGetUserTokens(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`fungibleTokenList`, pubKey, activeAsset],
-    async () => getUserTokens(pubKey, "fungible", activeAsset),
-    {
-      enabled: true,
-      keepPreviousData: true,
-      staleTime: Infinity,
-    }
-  );
-}
-
-export function useGetAllTokenTypes(
-  pubKey: string
-): QueryObserverResult<ITokensListTypes[], AxiosError> {
-  return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}
-
-export function useGeTypeHierarchy(
-  typeId: string
-): QueryObserverResult<ITypeHierarchy[], AxiosError> {
-  return useQuery(
-    [`typeHierarchy`, typeId],
-    async () => getTypeHierarchy(typeId),
+    async () => getUserTokens(pubKey, TokenUnitType.FUNGIBLE, activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
