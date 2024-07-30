@@ -1,18 +1,19 @@
-import axios, { AxiosError, AxiosResponse, isCancel } from "axios";
-import { encodeAsync, decode } from "cbor";
+import axios, { AxiosResponse, isCancel } from "axios";
+import { encodeAsync } from "cbor";
+import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory.js';
+import { CborCodecWeb } from '@alphabill/alphabill-js-sdk/lib/codec/cbor/CborCodecWeb.js';
+import { TransactionOrderFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/TransactionOrderFactory.js';
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 import {
   ITransactionPayload,
   IBill,
   IListTokensResponse,
   ITypeHierarchy,
-  IRoundNumber,
   IBalance,
   IFeeCreditBills,
-  ITxProof,
 } from "../types/Types";
 import {
-  AlphaDecimals,
   AlphaType,
   DownloadableTypes,
   MaxImageSize,
@@ -24,99 +25,94 @@ import {
   addDecimal,
   separateDigits,
 } from "../utils/utils";
+import { FeeCreditRecordUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/FeeCreditRecordUnitIdFactory";
+import { TokenUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenUnitIdFactory";
+import { UnitType } from "@alphabill/alphabill-js-sdk/lib/transaction/UnitType";
+import { Bill } from "@alphabill/alphabill-js-sdk/lib/Bill";
+import { IUnitId } from "@alphabill/alphabill-js-sdk/lib/IUnitId";
+import { TransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/TransactionRecordWithProof";
+import { TransactionPayload } from "@alphabill/alphabill-js-sdk/lib/transaction/TransactionPayload";
+import { ITransactionPayloadAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes";
 
-export const MONEY_NODE_URL = import.meta.env.VITE_MONEY_NODE_URL;
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
 
-const handleError = (error: AxiosError) => {
-  if (error.response?.status === 404) {
-    // If the status code is 404, return null to prevent the error from propagating
-    return null;
+const cborCodec = new CborCodecWeb();
+const moneyClient = createMoneyClient({
+  transport: http(MONEY_BACKEND_URL, cborCodec),
+  transactionOrderFactory: null as unknown as TransactionOrderFactory,
+  feeCreditRecordUnitIdFactory: new FeeCreditRecordUnitIdFactory()
+});
+
+const tokenClient = createTokenClient({
+  transport: http(TOKENS_BACKEND_URL, cborCodec),
+  transactionOrderFactory: null as unknown as TransactionOrderFactory,
+  tokenUnitIdFactory: new TokenUnitIdFactory(cborCodec)
+});
+
+const getUnitsIdListByType = async (
+  pubKey: string, 
+  type: UnitType
+): Promise<IUnitId[] | undefined> => {
+  try {
+    const units = await moneyClient.getUnitsByOwnerId(pubKey ? Base16Converter.decode(pubKey) : new Uint8Array());
+    const idList = units.filter((unit) => unit.type.toBase16() === type);
+    return idList;
+  } catch(error) {
+    console.log('Error fetching units:', error)
+    return undefined
   }
-  // For other errors, you can choose to handle them differently or re-throw them
-  throw error;
-};
+}
 
 export const getBalance = async (
   pubKey: string
 ): Promise<IBalance | undefined> => {
-  if (
-    !pubKey ||
-    Number(pubKey) === 0 ||
-    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
-  ) {
-    return;
+  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA);
+  if(!idList || idList.length <= 0){
+    return {balance: 0, pubKey};
   }
 
-  const response = await axios.get<{ balance: number; pubKey: string }>(
-    `${MONEY_BACKEND_URL}/balance?pubkey=${pubKey}`
-  );
+  let balance = 0;
 
-  let res = response.data;
-  res = { ...response.data, pubKey: pubKey };
-
-  return res;
+  try {
+    for(const id of idList){
+      const bill = await moneyClient.getUnit(id, false) as unknown as Bill | null;
+      balance += bill ? Number(bill?.value) : 0;
+    }
+    return {balance, pubKey};
+  } catch(error) {
+    console.log('Error fetching units values:', error);
+  }
 };
 
 export const getBillsList = async (
   pubKey: string,
-  offsetKey: string = ""
 ): Promise<IBill[] | undefined> => {
-  if (
-    !pubKey ||
-    Number(pubKey) === 0 ||
-    !Boolean(pubKey.match(/^0x[0-9A-Fa-f]{66}$/))
-  ) {
-    return;
+  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA);
+  if(!idList || idList.length <= 0){
+    return []
   }
 
-  const limit = 100;
-  let billsList: IBill[] = [];
-  let nextOffsetKey: string | null = offsetKey;
-
-  while (nextOffsetKey !== null) {
-    const response: AxiosResponse = await axios.get(
-      MONEY_BACKEND_URL +
-        (nextOffsetKey
-          ? nextOffsetKey.replace("/api/v1", "") // MONEY_BACKEND_URL includes /api/v1
-          : `/list-bills?pubkey=${pubKey}&limit=${limit}`)
-    );
-
-    const { bills } = response.data;
-    const billsWithType =
-      bills?.map((bill: IBill) =>
-        Object.assign(bill, {
+  const billsList: IBill[] = [];
+  
+  try {
+    for(const id of idList){
+      const bill = await moneyClient.getUnit(id, true) as unknown as Bill | null;
+      if(bill){
+        billsList.push({
+          id: Base16Converter.encode(id.bytes),
+          value: bill.value.toString(),
+          txHash: Base16Converter.encode(bill.stateProof?.unitLedgerHash ?? new Uint8Array()),
           typeId: AlphaType,
-          name: AlphaType,
-          network: import.meta.env.VITE_NETWORK_NAME,
-          decimals: AlphaDecimals,
-          UIAmount:
-            bill?.value &&
-            separateDigits(addDecimal(bill?.value || "0", AlphaDecimals)),
-          isSendable: true,
-        })
-      ) || [];
-
-    billsList = billsList.concat(billsWithType);
-
-    // Check if there is a "next" link in the response header
-    const linkHeader = response.headers.link;
-
-    if (linkHeader) {
-      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
-      if (nextLinkMatch) {
-        // Extract the next offset key from the link header
-        nextOffsetKey = nextLinkMatch[1];
-      } else {
-        nextOffsetKey = null;
+        });
       }
-    } else {
-      nextOffsetKey = null;
     }
+    return billsList;
+  } catch(error) {
+    console.log('Error fetching unit by id:', error);
+    return undefined;
   }
-
-  return billsList;
+  
 };
 
 export const fetchAllTypes = async (
@@ -251,36 +247,27 @@ export const getUserTokens = async (
 };
 
 export const getProof = async (
-  billID: string,
   txHash: string,
   isTokens?: boolean
-): Promise<ITxProof | undefined> => {
-  if (!billID) {
-    return;
+): Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>> | null> => {
+  try {
+    const decodedHash = Base16Converter.decode(txHash);
+    const client = isTokens ? tokenClient : tokenClient;
+    return client.getTransactionProof(decodedHash)
+  } catch(error) {
+    console.log('Error fetching transaction proof:', error)
+    return null
   }
-
-  const url = isTokens ? TOKENS_BACKEND_URL : MONEY_BACKEND_URL;
-  const response = await axios
-    .get<any>(`${url}/units/${billID}/transactions/${txHash}/proof`, {
-      responseType: "arraybuffer",
-    })
-    .catch(handleError);
-
-  const decoded = response?.data && decode(Buffer.from(response?.data));
-
-  const proofObj = {
-    txRecord: decoded?.[0],
-    txProof: decoded?.[1],
-  };
-
-  return proofObj;
 };
 
-export const getRoundNumber = async (isAlpha: boolean): Promise<bigint> => {
-  const backendUrl = isAlpha ? MONEY_BACKEND_URL : TOKENS_BACKEND_URL;
-  const response = await axios.get<IRoundNumber>(backendUrl + "/round-number");
-
-  return BigInt((response.data as IRoundNumber).roundNumber);
+export const getRoundNumber = async (isAlpha: boolean): Promise<bigint | null> => {
+  try {
+    const client = isAlpha ? moneyClient : tokenClient;
+    return client.getRoundNumber();
+  } catch(error) {
+    console.log('Error fetching round number:', error);
+    return null;
+  }
 };
 
 export const makeTransaction = async (
@@ -415,7 +402,7 @@ export const getFeeCreditBills = async (
         id + moneyFeeCreditRecordUnitType
       }`
     )
-    .catch(handleError);
+    .catch();
 
   const tokensDataPromise = axios
     .get<any>(
@@ -423,7 +410,7 @@ export const getFeeCreditBills = async (
         id + tokenFeeCreditRecordUnitType
       }`
     )
-    .catch(handleError);
+    .catch();
 
   let moneyData = null;
   let tokensData = null;
