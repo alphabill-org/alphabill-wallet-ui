@@ -32,6 +32,9 @@ import {
   prepTransactionRequestData,
   publicKeyHashWithFeeType,
 } from "../../../utils/hashers";
+import { TransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/TransactionRecordWithProof";
+import { TransactionPayload } from "@alphabill/alphabill-js-sdk/lib/transaction/TransactionPayload";
+import { ITransactionPayloadAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes";
 
 export const handleSwapRequest = async (
   hashingPublicKey: Uint8Array,
@@ -61,19 +64,17 @@ export const handleSwapRequest = async (
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for (const [_targetUnitId, bills] of groupedBillsByTargetId) {
-    let tx_proofs: ITxProof[] = [];
+    let tx_proofs: TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>>[] = [];
     const sortedBills = sortBillsByID(bills);
 
     await Promise.all(
       sortedBills.map(async (bill: IBill) => {
         const data = await getProof(
-          base64ToHexPrefixed(bill.id),
           base64ToHexPrefixed(bill.txHash)
         );
 
-        if (data?.txProof) {
-          const tx_proof = data! as ITxProof;
-          tx_proof && tx_proofs.push(tx_proof);
+        if (data?.transactionProof) {
+          tx_proofs.push(data);
         }
       })
     );

@@ -3,10 +3,10 @@ import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
   IListTokensResponse,
-  ITypeHierarchy,
+  // ITypeHierarchy,
   ITokensListTypes,
   IFeeCreditBills,
-  ITxProof,
+  // ITxProof,
 } from "../types/Types";
 
 import {
@@ -16,9 +16,10 @@ import {
   getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
-  getProof,
-  getTypeHierarchy,
+  // getProof,
+  // getTypeHierarchy,
   getUserTokens,
+  TokenUnitType,
 } from "./requests";
 
 export function useGetBalances(pubKeys: string[] | undefined) {
@@ -49,7 +50,7 @@ export function useGetAllNFTs(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTsList`, pubKey],
-    async () => getUserTokens(pubKey, "nft"),
+    async () => getUserTokens(pubKey, TokenUnitType.NON_FUNGIBLE),
     {
       enabled: true,
       keepPreviousData: true,
@@ -64,7 +65,7 @@ export function useGetNFTs(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`NFTList`, pubKey, activeAsset],
-    async () => activeAsset && getUserTokens(pubKey, "nft", activeAsset),
+    async () => activeAsset && getUserTokens(pubKey, TokenUnitType.NON_FUNGIBLE, activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
@@ -129,7 +130,7 @@ export function useGetAllUserTokens(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`fungibleTokensList`, pubKey],
-    async () => getUserTokens(pubKey, "fungible"),
+    async () => getUserTokens(pubKey, TokenUnitType.FUNGIBLE),
     {
       enabled: true,
       keepPreviousData: true,
@@ -144,7 +145,7 @@ export function useGetUserTokens(
 ): QueryObserverResult<IListTokensResponse[], AxiosError> {
   return useQuery(
     [`fungibleTokenList`, pubKey, activeAsset],
-    async () => getUserTokens(pubKey, "fungible", activeAsset),
+    async () => getUserTokens(pubKey, TokenUnitType.FUNGIBLE, activeAsset),
     {
       enabled: true,
       keepPreviousData: true,
@@ -163,27 +164,27 @@ export function useGetAllTokenTypes(
   });
 }
 
-export function useGeTypeHierarchy(
-  typeId: string
-): QueryObserverResult<ITypeHierarchy[], AxiosError> {
-  return useQuery(
-    [`typeHierarchy`, typeId],
-    async () => getTypeHierarchy(typeId),
-    {
-      enabled: true,
-      keepPreviousData: true,
-      staleTime: Infinity,
-    }
-  );
-}
+// export function useGeTypeHierarchy(
+//   typeId: string
+// ): QueryObserverResult<ITypeHierarchy[], AxiosError> {
+//   return useQuery(
+//     [`typeHierarchy`, typeId],
+//     async () => getTypeHierarchy(typeId),
+//     {
+//       enabled: true,
+//       keepPreviousData: true,
+//       staleTime: Infinity,
+//     }
+//   );
+// }
 
-export function useGetProof(
-  billID: string,
-  txHash: string
-): QueryObserverResult<ITxProof, AxiosError> {
-  return useQuery([`proof`, billID], async () => getProof(billID, txHash), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}
+// export function useGetProof(
+//   billID: string,
+//   txHash: string
+// ): QueryObserverResult<ITxProof, AxiosError> {
+//   return useQuery([`proof`, billID], async () => getProof(txHash), {
+//     enabled: true,
+//     keepPreviousData: true,
+//     staleTime: Infinity,
+//   });
+// }

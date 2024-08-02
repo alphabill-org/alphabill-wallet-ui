@@ -4,15 +4,12 @@ import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill
 import { CborCodecWeb } from '@alphabill/alphabill-js-sdk/lib/codec/cbor/CborCodecWeb.js';
 import { TransactionOrderFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/TransactionOrderFactory.js';
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
-
-import {
-  ITransactionPayload,
-  IBill,
-  IListTokensResponse,
-  ITypeHierarchy,
-  IBalance,
-  IFeeCreditBills,
-} from "../types/Types";
+import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
+import { FungibleToken } from "@alphabill/alphabill-js-sdk/lib/FungibleToken";
+import { FungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/FungibleTokenType";
+import { NonFungibleToken } from "@alphabill/alphabill-js-sdk/lib/NonFungibleToken";
+import { NonFungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/NonFungibleTokenType";
+import { ITransactionPayload, IBill, IListTokensResponse, ITypeHierarchy, IBalance,IFeeCreditBills } from "../types/Types";
 import {
   AlphaType,
   DownloadableTypes,
@@ -33,9 +30,18 @@ import { IUnitId } from "@alphabill/alphabill-js-sdk/lib/IUnitId";
 import { TransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/TransactionRecordWithProof";
 import { TransactionPayload } from "@alphabill/alphabill-js-sdk/lib/transaction/TransactionPayload";
 import { ITransactionPayloadAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes";
+import { StateApiMoneyClient } from "@alphabill/alphabill-js-sdk/lib/StateApiMoneyClient";
+import { StateApiTokenClient } from "@alphabill/alphabill-js-sdk/lib/StateApiTokenClient";
+import { IUnit } from "@alphabill/alphabill-js-sdk/lib/IUnit";
+import { FeeCreditRecord } from "@alphabill/alphabill-js-sdk/lib/FeeCreditRecord";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
+
+export enum TokenUnitType {
+  FUNGIBLE = "fungible",
+  NON_FUNGIBLE = "nft"
+}
 
 const cborCodec = new CborCodecWeb();
 const moneyClient = createMoneyClient({
@@ -50,30 +56,53 @@ const tokenClient = createTokenClient({
   tokenUnitIdFactory: new TokenUnitIdFactory(cborCodec)
 });
 
+
+// ADDITIONAL METHODS
+
 const getUnitsIdListByType = async (
   pubKey: string, 
-  type: UnitType
+  type: UnitType,
+  client: StateApiMoneyClient | StateApiTokenClient
 ): Promise<IUnitId[] | undefined> => {
+  if(!pubKey) return
   try {
-    const units = await moneyClient.getUnitsByOwnerId(pubKey ? Base16Converter.decode(pubKey) : new Uint8Array());
+    const units = await client.getUnitsByOwnerId(Base16Converter.decode(pubKey));
     const idList = units.filter((unit) => unit.type.toBase16() === type);
     return idList;
   } catch(error) {
-    console.log('Error fetching units:', error)
-    return undefined
+    console.log('Error fetching units:', error);
+    return;
   }
-}
+}       
+
+const fetchFeeCredit = async(
+  pubKey: string,
+  client: StateApiTokenClient | StateApiMoneyClient,
+  type: UnitType
+) : Promise<FeeCreditRecord | null> => {
+  try {
+    const units = await client.getUnitsByOwnerId(Base16Converter.decode(pubKey));
+    const unitId = units.find((unit) => unit.type.toBase16() === type);
+
+    if(!unitId) return null;
+
+    return client.getUnit(unitId, true) as Promise<FeeCreditRecord | null>
+  } catch(error) {
+    console.error('Error fetching fee credit: ', error);
+    return null;
+  }
+};
+
+
+// SDK IMPLEMENTATION 
 
 export const getBalance = async (
   pubKey: string
 ): Promise<IBalance | undefined> => {
-  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA);
-  if(!idList || idList.length <= 0){
-    return {balance: 0, pubKey};
-  }
+  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA, moneyClient);
+  if(!idList || idList.length <= 0) return;
 
   let balance = 0;
-
   try {
     for(const id of idList){
       const bill = await moneyClient.getUnit(id, false) as unknown as Bill | null;
@@ -82,19 +111,17 @@ export const getBalance = async (
     return {balance, pubKey};
   } catch(error) {
     console.log('Error fetching units values:', error);
+    return
   }
 };
 
 export const getBillsList = async (
   pubKey: string,
 ): Promise<IBill[] | undefined> => {
-  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA);
-  if(!idList || idList.length <= 0){
-    return []
-  }
-
-  const billsList: IBill[] = [];
+  const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA, moneyClient);
+  if(!idList || idList.length <= 0) return;
   
+  const billsList: IBill[] = [];
   try {
     for(const id of idList){
       const bill = await moneyClient.getUnit(id, true) as unknown as Bill | null;
@@ -110,7 +137,7 @@ export const getBillsList = async (
     return billsList;
   } catch(error) {
     console.log('Error fetching unit by id:', error);
-    return undefined;
+    return;
   }
   
 };
@@ -151,7 +178,6 @@ export const fetchAllTypes = async (
       nextOffsetKey = null;
     }
   }
-
   return types;
 };
 
@@ -164,95 +190,100 @@ export const getTypeHierarchy = async (typeId: string) => {
 };
 
 export const getUserTokens = async (
-  owner: string,
-  kind: string,
-  activeAsset?: string,
-  limit = 100,
-  offsetKey = ""
-) => {
-  if (
-    !owner ||
-    Number(owner) === 0 ||
-    !Boolean(owner.match(/^0x[0-9A-Fa-f]{66}$/))
-  ) {
-    return;
+  pubKey: string,
+  kind: TokenUnitType,
+  activeAsset?: string
+): Promise<IListTokensResponse[]> => {
+  let type: UnitType;
+  switch (kind) {
+      case TokenUnitType.FUNGIBLE:
+          type = UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN;
+          break;
+      case TokenUnitType.NON_FUNGIBLE:
+          type = UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN;
+          break;
+      default:
+          throw new Error("Unsupported token");
+  }
+  const list = await getUnitsIdListByType(pubKey, type, tokenClient);
+  if(!list || list.length <= 0){
+    return [];
   }
 
-  const tokens: any = [];
-  let nextOffsetKey: string | null = offsetKey;
-
-  while (nextOffsetKey !== null) {
-    const response: AxiosResponse = await axios.get(
-      TOKENS_BACKEND_URL +
-        (nextOffsetKey
-          ? nextOffsetKey.replace("/api/v1", "") // TOKENS_BACKEND_URL includes /api/v1
-          : `/kinds/${kind}/owners/${owner}/tokens?limit=${limit}`)
-    );
-
-    const data = response.data;
-
-    // Add tokens to the list
-    data && tokens?.push(...data);
-
-    // Check if there is a "next" link in the response header
-    const linkHeader = response.headers.link;
-
-    if (linkHeader) {
-      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
-      if (nextLinkMatch) {
-        // Extract the next offset key from the link header
-        nextOffsetKey = nextLinkMatch[1];
-      } else {
-        nextOffsetKey = null;
+  const tokens: IListTokensResponse[] = [];
+  const tokenTypes = new Map<string, IUnit>();
+  for (const id of list) {
+      const unit = await tokenClient.getUnit(id, true) as { tokenType: IUnitId } | null;
+      if (!unit) {
+          continue;
       }
-    } else {
-      nextOffsetKey = null;
-    }
+
+      const typeUnitKey = Base16Converter.encode(unit.tokenType.bytes)
+      let typeUnit: IUnit | null = tokenTypes.get(typeUnitKey) ?? null;
+      if (!typeUnit) {
+          typeUnit = await tokenClient.getUnit(unit.tokenType, false);
+          if (!typeUnit) {
+              throw new Error("Unknown token type");
+          }
+          tokenTypes.set(typeUnitKey, typeUnit);
+      }
+      let result: IListTokensResponse;
+      switch (kind) {
+          case TokenUnitType.FUNGIBLE: {
+              const token = unit as FungibleToken;
+              const tokenType = typeUnit as FungibleTokenType;
+              result = {
+                  id: Base16Converter.encode(token.unitId.bytes),
+                  typeId: Base64Converter.encode(token.tokenType.bytes),
+                  owner: Base64Converter.encode(token.ownerPredicate.bytes),
+                  kind: 2,
+                  txHash: Base16Converter.encode(token.stateProof?.unitLedgerHash ?? new Uint8Array()),
+                  symbol: tokenType.symbol,
+                  network: import.meta.env.VITE_NETWORK_NAME,
+                  decimals: tokenType.decimalPlaces,
+                  amount: token.value.toString(),
+                  UIAmount: separateDigits(addDecimal(token.value.toString(), tokenType.decimalPlaces)),
+              };
+              break;
+          }
+          case TokenUnitType.NON_FUNGIBLE: {
+              const token = unit as NonFungibleToken;
+              const tokenType = typeUnit as NonFungibleTokenType;
+              result = {
+                  id: Base16Converter.encode(token.unitId.bytes),
+                  typeId: Base64Converter.encode(token.tokenType.bytes),
+                  owner: Base64Converter.encode(token.ownerPredicate.bytes),
+                  kind: 4,
+                  txHash: Base16Converter.encode(token.stateProof?.unitLedgerHash ?? new Uint8Array()),
+                  symbol: tokenType.symbol,
+                  network: import.meta.env.VITE_NETWORK_NAME,
+                  nftName: tokenType.name,
+                  nftData: Base64Converter.encode(token.data),
+                  nftUri: token.uri,
+                  nftDataUpdatePredicate: Base64Converter.encode(token.dataUpdatePredicate.bytes),
+              };
+              break;
+          }
+          default:
+              throw new Error("Unsupported token");
+      }
+
+      if (!activeAsset || result.typeId === activeAsset) {
+          tokens.push(result);
+      }
   }
-
-  const updatedArray = await Promise.all(
-    tokens?.map(async (obj: IListTokensResponse) => {
-      const token: IListTokensResponse = {
-        id: obj.id,
-        typeId: obj.typeId,
-        owner: obj.owner,
-        kind: obj.kind,
-        txHash: obj.txHash,
-        symbol: obj.symbol,
-        network: import.meta.env.VITE_NETWORK_NAME,
-        nftName: obj.nftName,
-      };
-
-      if (kind === "fungible") {
-        token.decimals = obj.decimals;
-        token.value = obj.amount;
-        token.UIAmount =
-          obj?.amount &&
-          separateDigits(addDecimal(obj?.amount || "0", obj.decimals || 0));
-      } else {
-        token.nftData = obj.nftData;
-        token.nftUri = obj.nftUri;
-        token.nftDataUpdatePredicate = obj.nftDataUpdatePredicate;
-      }
-
-      return token;
-    })
-  );
-
-  const filteredTokens = await updatedArray?.filter(
-    (token: any) => token.typeId === activeAsset
-  );
-
-  return activeAsset ? filteredTokens : updatedArray;
+  return tokens;
 };
+
 
 export const getProof = async (
   txHash: string,
   isTokens?: boolean
 ): Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>> | null> => {
+  const decodedHash = Base16Converter.decode(txHash);
+  const client = isTokens ? tokenClient : moneyClient;
+
   try {
-    const decodedHash = Base16Converter.decode(txHash);
-    const client = isTokens ? tokenClient : tokenClient;
     return client.getTransactionProof(decodedHash)
   } catch(error) {
     console.log('Error fetching transaction proof:', error)
@@ -261,8 +292,9 @@ export const getProof = async (
 };
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint | null> => {
-  try {
-    const client = isAlpha ? moneyClient : tokenClient;
+  const client = isAlpha ? moneyClient : tokenClient;
+
+  try {  
     return client.getRoundNumber();
   } catch(error) {
     console.log('Error fetching round number:', error);
@@ -290,6 +322,32 @@ export const makeTransaction = async (
   return response.data;
 };
 
+export const getFeeCreditBills = async (
+  pubKey: string
+): Promise<IFeeCreditBills | undefined> => {
+  if (!pubKey) return;
+  
+  const [moneyFeeCredit, tokenFeeCredit] = await Promise.all([
+    fetchFeeCredit(pubKey, moneyClient, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD),
+    fetchFeeCredit(pubKey, tokenClient, UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD),
+  ]);
+
+  const formatFeeCredit = (feeCredit: FeeCreditRecord | null) => feeCredit ? {
+    id: Base64Converter.encode(feeCredit.unitId.bytes),
+    value: feeCredit.balance.toString(),
+    txHash: Base64Converter.encode(feeCredit.stateProof!.unitLedgerHash),
+    lastAddFcTxHash: Base64Converter.encode(feeCredit.stateProof!.unitTreeCert.transactionRecordHash)
+  } : null;
+
+  return {
+    [AlphaType] : formatFeeCredit(moneyFeeCredit),
+    [TokenType] : formatFeeCredit(tokenFeeCredit),
+  };
+};
+
+
+// IMG REQUESTS
+
 export const getImageUrl = async (
   url?: string
 ): Promise<{ error: string | null; imageUrl: string | null }> => {
@@ -297,29 +355,29 @@ export const getImageUrl = async (
     return { error: "Missing image URL", imageUrl: null };
   }
 
-  const source = axios.CancelToken.source();
+  const controller = new AbortController();
   const timeout = setTimeout(() => {
-    source.cancel("Timeout reached");
+    controller.abort("Timeout reached");
   }, 3000);
 
   try {
-    const response = await axios.head(url, {
-      timeout: 3000,
-      cancelToken: source.token,
+    const response = await fetch(url, {
+      method: "HEAD",
+      signal: controller.signal,
     });
 
-    if (response.status === 200) {
-      const contentLength = response.headers["content-length"];
+    if (response.ok) {
+      const contentLength = response.headers.get("content-length");
+      const contentType = response.headers.get("content-type");
+
       if (contentLength && Number(contentLength) > MaxImageSize) {
         return { error: "Image size exceeds 5MB limit", imageUrl: null };
       }
 
-      const contentType = response.headers["content-type"];
       if (contentType && contentType.startsWith("image/")) {
         return { imageUrl: url, error: null };
       }
     }
-
     return { error: "Invalid image URL", imageUrl: null };
   } catch (error) {
     if (isCancel(error)) {
@@ -336,119 +394,76 @@ export const getImageUrlAndDownloadType = async (
 ): Promise<{
   imageUrl: string | null;
   downloadType: string | null;
-  error?: string;
+  error?: string | null;
 } | null> => {
   if (!url) {
-    return null;
+    return {error: "Missing image URL", downloadType: null, imageUrl: null};
   }
 
-  const source = axios.CancelToken.source();
+  const controller = new AbortController();
   const timeout = setTimeout(() => {
-    source.cancel("Timeout reached");
+    controller.abort("Timeout reached");
   }, 3000);
 
   try {
-    const response = await axios.head(url, {
-      timeout: 3000,
-      cancelToken: source.token,
+    const response = await fetch(url, {
+      method: "HEAD",
+      signal: controller.signal,
     });
 
-    if (response.status === 200) {
-      const contentType = response.headers["content-type"];
-      const contentLength = response.headers["content-length"];
+    if (response.ok) {
+      const contentLength = response.headers.get("content-length");
+      const contentType = response.headers.get("content-type");
 
-      if (contentType && contentType.startsWith("image/")) {
-        if (contentLength && Number(contentLength) > MaxImageSize) {
-          return {
-            imageUrl: url,
-            downloadType: contentType,
-            error: "Image size exceeds 5MB",
-          };
-        }
-
-        return {
-          imageUrl: url,
-          downloadType: contentType,
+      if (contentLength && Number(contentLength) > MaxImageSize) {
+        return { 
+          imageUrl: null, 
+          downloadType: null, 
+          error: "Image size exceeds 5MB limit",
         };
       }
 
-      if (contentType && DownloadableTypes.includes(contentType)) {
+      if (contentType && !DownloadableTypes.includes(contentType)) {
         return {
           imageUrl: null,
-          downloadType: contentType,
+          downloadType: null,
+          error: "Unsupported image format",
         };
       }
-    }
 
-    return null;
-  } catch (error) {
-    if (isCancel(error)) {
-      console.error("Request cancelled:", error.message);
+      return { imageUrl: url, downloadType: contentType, error: null };
     }
-    return null;
+    return {error: "Invalid image URL", downloadType: null, imageUrl: null};
+  } catch (error) {
+    if(controller.signal.aborted) {
+      console.error("Request cancelled:", error);
+      return {error: "Request timeout", imageUrl: null, downloadType: null};
+    }
+    return {error: "Failed to fetch image", imageUrl: null, downloadType: null};
   } finally {
     clearTimeout(timeout);
   }
 };
 
-export const getFeeCreditBills = async (
-  id: string
-): Promise<IFeeCreditBills | undefined> => {
-  if (!id) return;
-
-  const moneyDataPromise = axios
-    .get<any>(
-      `${MONEY_BACKEND_URL}/fee-credit-bills/${
-        id + moneyFeeCreditRecordUnitType
-      }`
-    )
-    .catch();
-
-  const tokensDataPromise = axios
-    .get<any>(
-      `${TOKENS_BACKEND_URL}/fee-credit-bills/${
-        id + tokenFeeCreditRecordUnitType
-      }`
-    )
-    .catch();
-
-  let moneyData = null;
-  let tokensData = null;
-
-  try {
-    const moneyResponse = await moneyDataPromise;
-    moneyData = moneyResponse?.data ?? null;
-  } catch (_e) {
-    moneyData = null;
-  }
-
-  try {
-    const tokensResponse = await tokensDataPromise;
-    tokensData = tokensResponse?.data ?? null;
-  } catch (_e) {
-    tokensData = null;
-  }
-
-  const data: IFeeCreditBills = {
-    [AlphaType]: moneyData,
-    [TokenType]: tokensData,
-  };
-
-  return data;
-};
-
 export const downloadFile = async (url: string, filename: string) => {
-  const response = await axios({
-    url,
-    method: "GET",
-    responseType: "blob",
-  });
-  const objectUrl = URL.createObjectURL(response.data);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(objectUrl);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+    });
+
+    if(!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`)
+    }
+    const objectUrl = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
+  } catch(error) {
+    console.error("Error downloading file:", error);
+  }
 };
