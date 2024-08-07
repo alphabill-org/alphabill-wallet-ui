@@ -3,21 +3,18 @@ import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
   IListTokensResponse,
-  // ITypeHierarchy,
   ITokensListTypes,
   IFeeCreditBills,
-  // ITxProof,
+  ITxProof,
 } from "../types/Types";
 
 import {
-  fetchAllTypes,
   getBalance,
   getBillsList,
   getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
-  // getProof,
-  // getTypeHierarchy,
+  getProof,
   getUserTokens,
   TokenUnitType,
 } from "./requests";
@@ -154,37 +151,13 @@ export function useGetUserTokens(
   );
 }
 
-export function useGetAllTokenTypes(
-  pubKey: string
-): QueryObserverResult<ITokensListTypes[], AxiosError> {
-  return useQuery([`tokenTypesList`, pubKey], async () => fetchAllTypes(), {
+export function useGetProof(
+  billID: string,
+  txHash: string
+): QueryObserverResult<ITxProof, AxiosError> {
+  return useQuery([`proof`, billID], async () => getProof(txHash), {
     enabled: true,
     keepPreviousData: true,
     staleTime: Infinity,
   });
 }
-
-// export function useGeTypeHierarchy(
-//   typeId: string
-// ): QueryObserverResult<ITypeHierarchy[], AxiosError> {
-//   return useQuery(
-//     [`typeHierarchy`, typeId],
-//     async () => getTypeHierarchy(typeId),
-//     {
-//       enabled: true,
-//       keepPreviousData: true,
-//       staleTime: Infinity,
-//     }
-//   );
-// }
-
-// export function useGetProof(
-//   billID: string,
-//   txHash: string
-// ): QueryObserverResult<ITxProof, AxiosError> {
-//   return useQuery([`proof`, billID], async () => getProof(txHash), {
-//     enabled: true,
-//     keepPreviousData: true,
-//     staleTime: Infinity,
-//   });
-// }

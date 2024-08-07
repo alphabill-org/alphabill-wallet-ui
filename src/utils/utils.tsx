@@ -459,7 +459,6 @@ export const addDecimal = (str: string, pos: number) => {
   if (pos <= 0 || !str) {
     return str;
   }
-
   const convertedAmount = str.padStart(pos + 1, "0");
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
@@ -555,20 +554,16 @@ export const getTokensLabel = (typeId: string) =>
 
 export const getUpdatedNFTAssets = (
   NFTsList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   return (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
         isSendable: isTokenSendable(
-          tokenTypes?.find((type: ITokensListTypes) => type.id === nft.typeId)
-            ?.invariantPredicate!,
+          "",
           activeAccountId
         ),
-        iconImage: tokenTypes?.find(
-          (type: ITokensListTypes) => type.id === nft.typeId
-        )?.icon,
+        iconImage: "",
         amountOfSameType:
           NFTsList?.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -580,7 +575,6 @@ export const getUpdatedNFTAssets = (
 
 const getUpdatesUTPFungibleTokens = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   let userTokens: any = [];
@@ -623,13 +617,10 @@ const getUpdatesUTPFungibleTokens = (
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
-        tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
-          ?.invariantPredicate!,
+       "",
         activeAccountId
       ),
-      iconImage: tokenTypes?.find(
-        (type: ITokensListTypes) => type.id === obj.typeId
-      )?.icon,
+      iconImage: "",
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
@@ -639,18 +630,16 @@ const getUpdatesUTPFungibleTokens = (
 
 export const getUpdatedFungibleAssets = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string,
   balances: any[]
 ) => {
   const fungibleUTPAssets = getUpdatesUTPFungibleTokens(
     fungibleTokensList,
-    tokenTypes,
     activeAccountId
   );
   const ALPHABalance =
-    balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
-      ?.data?.balance || "0";
+    String(balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
+      ?.data?.balance || "0");
 
   const alphaAsset = {
     id: AlphaType,

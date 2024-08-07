@@ -22,7 +22,6 @@ import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
   getRoundNumber,
-  getTypeHierarchy,
   makeTransaction,
 } from "../../hooks/requests";
 
@@ -149,8 +148,8 @@ export default function TransferFungible(): JSX.Element | null {
           }
 
           if (
-            BigInt(initialRoundNumber?.current) + TimeoutBlocks <
-            roundNumber
+            BigInt(initialRoundNumber?.current ?? 0n) + TimeoutBlocks <
+            (roundNumber ?? 0n)
           ) {
             handleTransactionEnd();
           }
@@ -275,7 +274,7 @@ export default function TransferFungible(): JSX.Element | null {
 
             const clientDataObj = {
               clientMetadata: {
-                timeout: roundNumber + TimeoutBlocks,
+                timeout: roundNumber ?? 0n + TimeoutBlocks,
                 MaxTransactionFee: MaxTransactionFee,
                 feeCreditRecordID: targetRecord,
               },
@@ -424,7 +423,7 @@ export default function TransferFungible(): JSX.Element | null {
 
             if (selectedAsset?.typeId !== AlphaType) {
               try {
-                const hierarchy: ITypeHierarchy[] = await getTypeHierarchy(
+                const hierarchy: ITypeHierarchy[] = await Hierarchy(
                   billTypeId || ""
                 );
                 const signatures = createInvariantPredicateSignatures(

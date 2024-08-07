@@ -34,6 +34,11 @@ import { StateApiMoneyClient } from "@alphabill/alphabill-js-sdk/lib/StateApiMon
 import { StateApiTokenClient } from "@alphabill/alphabill-js-sdk/lib/StateApiTokenClient";
 import { IUnit } from "@alphabill/alphabill-js-sdk/lib/IUnit";
 import { FeeCreditRecord } from "@alphabill/alphabill-js-sdk/lib/FeeCreditRecord";
+import { DefaultSigningService } from '@alphabill/alphabill-js-sdk/lib/signing/DefaultSigningService.js';
+import { SystemIdentifier } from "@alphabill/alphabill-js-sdk/lib/SystemIdentifier";
+import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/PayToPublicKeyHashPredicate.js';
+import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
+import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -44,16 +49,19 @@ export enum TokenUnitType {
 }
 
 const cborCodec = new CborCodecWeb();
+const feeCreditRecordUnitIdFactory = new FeeCreditRecordUnitIdFactory();
+const tokenUnitIdFactory = new TokenUnitIdFactory(cborCodec);
+
 const moneyClient = createMoneyClient({
   transport: http(MONEY_BACKEND_URL, cborCodec),
   transactionOrderFactory: null as unknown as TransactionOrderFactory,
-  feeCreditRecordUnitIdFactory: new FeeCreditRecordUnitIdFactory()
+  feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
 });
 
 const tokenClient = createTokenClient({
   transport: http(TOKENS_BACKEND_URL, cborCodec),
   transactionOrderFactory: null as unknown as TransactionOrderFactory,
-  tokenUnitIdFactory: new TokenUnitIdFactory(cborCodec)
+  tokenUnitIdFactory: tokenUnitIdFactory
 });
 
 
@@ -93,6 +101,31 @@ const fetchFeeCredit = async(
   }
 };
 
+function waitTransactionProof (
+  client: StateApiMoneyClient | StateApiTokenClient, 
+  txHash: Uint8Array,
+  timeout = 10000,
+  interval = 1000
+):Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>>> {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const poller = async () => {
+      const proof = await client.getTransactionProof(txHash); 
+      if (proof !== null) {
+        return resolve(proof);
+      }
+
+      if (Date.now() > start + timeout) {
+        return reject('Timeout');
+      }
+
+      setTimeout(poller, interval);
+    };
+
+    poller();
+  });
+}
+
 
 // SDK IMPLEMENTATION 
 
@@ -120,7 +153,6 @@ export const getBillsList = async (
 ): Promise<IBill[] | undefined> => {
   const idList = await getUnitsIdListByType(pubKey, UnitType.MONEY_PARTITION_BILL_DATA, moneyClient);
   if(!idList || idList.length <= 0) return;
-  
   const billsList: IBill[] = [];
   try {
     for(const id of idList){
@@ -134,6 +166,7 @@ export const getBillsList = async (
         });
       }
     }
+    console.log(billsList)
     return billsList;
   } catch(error) {
     console.log('Error fetching unit by id:', error);
@@ -182,6 +215,13 @@ export const fetchAllTypes = async (
 };
 
 export const getTypeHierarchy = async (typeId: string) => {
+
+  if(!typeId) return;
+  
+  // const unit = await tokenClient.getUnit(typeId, false);
+
+  // tokenClient.
+  
   const response = await axios.get<ITypeHierarchy[]>(
     `${TOKENS_BACKEND_URL}/types/${typeId}/hierarchy`
   );
@@ -283,6 +323,10 @@ export const getProof = async (
   const decodedHash = Base16Converter.decode(txHash);
   const client = isTokens ? tokenClient : moneyClient;
 
+  console.log(decodedHash, "HASH FROM THE CALL!");
+  console.log(client);
+  console.log(await client.getTransactionProof(decodedHash))
+
   try {
     return client.getTransactionProof(decodedHash)
   } catch(error) {
@@ -344,6 +388,116 @@ export const getFeeCreditBills = async (
     [TokenType] : formatFeeCredit(tokenFeeCredit),
   };
 };
+
+export const addFeeCredit = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  
+  const moneyClientFee = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory,
+  })
+
+  const unitIds = await getUnitsIdListByType(
+    Base16Converter.encode(signingService.publicKey), 
+    UnitType.MONEY_PARTITION_BILL_DATA, 
+    moneyClientFee
+  );
+
+  if(!unitIds || unitIds.length === 0){
+    throw new Error('No bills available');
+  }
+
+  const bill = await moneyClientFee.getUnit(unitIds[0], false) as Bill;
+  const round = await moneyClientFee.getRoundNumber();
+  const ownerPredicate = await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey);
+
+  let transferToFeeCreditHash = await moneyClientFee.transferToFeeCredit(
+    {
+      bill ,
+      amount: 100n,
+      systemIdentifier: SystemIdentifier.MONEY_PARTITION,
+      feeCreditRecordParams: {
+        ownerPredicate: ownerPredicate,
+        unitType: UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD,
+      },
+      latestAdditionTime: round + 60n,
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId: null,
+      referenceNumber: null,
+    },
+  );
+
+  let proof;
+  let feeCreditRecordUnitId;
+  let feeCreditRecordId;
+
+  try{
+    proof = await waitTransactionProof(moneyClientFee, transferToFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<TransferFeeCreditAttributes>>;
+    feeCreditRecordUnitId = proof.transactionRecord.transactionOrder.payload.attributes.targetUnitId;
+    console.log(feeCreditRecordUnitId);
+    feeCreditRecordId = new UnitIdWithType(feeCreditRecordUnitId.bytes, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+    console.log(feeCreditRecordId)
+  }catch(error){
+    console.log(error)
+    console.log("Error occured here!")
+    return
+  }
+
+  let addFeeCreditHash = await moneyClientFee.addFeeCredit(
+    {
+      ownerPredicate: ownerPredicate,
+      proof,
+      feeCreditRecord: { unitId: feeCreditRecordId },
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId: null,
+      referenceNumber: null
+    },
+  );
+
+  console.log(await getBalance(Base16Converter.encode(signingService.publicKey)));
+  console.log(addFeeCreditHash, "FEE CREDIT ACTUAL HASH")
+  console.log((await waitTransactionProof(moneyClientFee, addFeeCreditHash)));
+}
+
+export const transferBill = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  const clientMoneyBill = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory,
+  });
+
+  const units = await clientMoneyBill.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
+  const billId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  if(!billId) {
+    throw new Error("No bills were found")
+  }
+
+  const round = await clientMoneyBill.getRoundNumber();
+  const bill = clientMoneyBill.getUnit(billId, false) as unknown as Bill;
+
+  const transferBillHash = await clientMoneyBill.transferBill({
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      bill,
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  );
+
+  console.log(await waitTransactionProof(clientMoneyBill, transferBillHash));
+}
 
 
 // IMG REQUESTS

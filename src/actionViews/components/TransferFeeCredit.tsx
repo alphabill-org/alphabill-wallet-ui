@@ -22,6 +22,7 @@ import {
   getFeeCreditBills,
   getProof,
   getRoundNumber,
+  addFeeCredit as addFeeCreditTest,
   makeTransaction,
 } from "../../hooks/requests";
 
@@ -348,10 +349,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
                   const finishTransaction = (billData: ITransactionPayload) => {
                     proof.isSignatureValid &&
-                      makeTransaction(
-                        prepTransactionRequestData(billData, proof.ownerProof),
-                        activeAccountId,
-                        isAlphaEndpoint
+                      addFeeCreditTest(
+                        hashingPrivateKey
                       )
                         .then(() => {
                           setPreviousView(null);
@@ -416,7 +415,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           const addPollingInterval = () => {
             pollingInterval.current = setInterval(async () => {
               queryClient.invalidateQueries(["feeBillsList", pubKeyHashHex]);
-
+              console.log("IM HERERE")
               if (
                 !transferrableBills.current?.[0]?.payload?.unitId &&
                 isAllFeesAdded.current === true
@@ -424,19 +423,21 @@ export default function TransferFeeCredit(): JSX.Element | null {
                 return;
               }
 
+          
               const billToTransfer = transferrableBills.current?.[0];
               initialRoundNumber.current = null;
               invalidateAllLists(activeAccountId, AlphaType, queryClient);
 
               if (transferFeePollingProofProps.current) {
+                console.log(transferFeePollingProofProps, "Transfer fee polling props")
                 getProof(
-                  transferFeePollingProofProps.current.id,
                   base64ToHexPrefixed(
                     transferFeePollingProofProps.current.txHash
                   )
                 )
                   .then(async (data) => {
-                    if (data?.txProof) {
+                    console.log(data);
+                    if (data?.transactionProof) {
                       transferrableBills.current =
                         (billToTransfer &&
                           transferrableBills.current?.filter(
@@ -459,12 +460,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
 
               if (addFeePollingProofProps.current) {
                 getProof(
-                  addFeePollingProofProps.current.id,
                   base64ToHexPrefixed(addFeePollingProofProps.current.txHash),
                   addFeePollingProofProps.current.isTokensRequest
                 )
                   .then(async (data) => {
-                    if (data?.txProof) {
+                    if (data?.transactionProof) {
                       transferBillProof.current = null;
                       billToTransfer &&
                         initTransaction({
@@ -482,8 +482,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     initialRoundNumber.current = roundNumber;
                   }
                   if (
-                    BigInt(initialRoundNumber?.current) + FeeTimeoutBlocks <
-                    roundNumber
+                    BigInt(initialRoundNumber?.current!) + FeeTimeoutBlocks <
+                    roundNumber!
                   ) {
                     pollingInterval.current &&
                       clearInterval(pollingInterval.current);
