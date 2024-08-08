@@ -96,7 +96,7 @@ export const AppProvider: FunctionComponent<{
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
-  const { data: feeCreditBills } = useGetFeeCreditBills(pubKeyHash);
+  const { data: feeCreditBills } = useGetFeeCreditBills(activeAccountId);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
     useGetAllUserTokens(activeAccountId);
   const { data: NFTsList, isLoading: isLoadingNFTs } =

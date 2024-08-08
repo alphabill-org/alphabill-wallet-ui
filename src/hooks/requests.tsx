@@ -166,7 +166,6 @@ export const getBillsList = async (
         });
       }
     }
-    console.log(billsList)
     return billsList;
   } catch(error) {
     console.log('Error fetching unit by id:', error);
@@ -323,10 +322,6 @@ export const getProof = async (
   const decodedHash = Base16Converter.decode(txHash);
   const client = isTokens ? tokenClient : moneyClient;
 
-  console.log(decodedHash, "HASH FROM THE CALL!");
-  console.log(client);
-  console.log(await client.getTransactionProof(decodedHash))
-
   try {
     return client.getTransactionProof(decodedHash)
   } catch(error) {
@@ -370,7 +365,7 @@ export const getFeeCreditBills = async (
   pubKey: string
 ): Promise<IFeeCreditBills | undefined> => {
   if (!pubKey) return;
-  
+
   const [moneyFeeCredit, tokenFeeCredit] = await Promise.all([
     fetchFeeCredit(pubKey, moneyClient, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD),
     fetchFeeCredit(pubKey, tokenClient, UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD),
@@ -431,21 +426,10 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
     },
   );
 
-  let proof;
-  let feeCreditRecordUnitId;
-  let feeCreditRecordId;
-
-  try{
-    proof = await waitTransactionProof(moneyClientFee, transferToFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<TransferFeeCreditAttributes>>;
-    feeCreditRecordUnitId = proof.transactionRecord.transactionOrder.payload.attributes.targetUnitId;
-    console.log(feeCreditRecordUnitId);
-    feeCreditRecordId = new UnitIdWithType(feeCreditRecordUnitId.bytes, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
-    console.log(feeCreditRecordId)
-  }catch(error){
-    console.log(error)
-    console.log("Error occured here!")
-    return
-  }
+    let proof = await waitTransactionProof(moneyClientFee, transferToFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<TransferFeeCreditAttributes>>;
+    const feeCreditRecordUnitId = proof.transactionRecord.transactionOrder.payload.attributes.targetUnitId;
+    const feeCreditRecordId = new UnitIdWithType(feeCreditRecordUnitId.bytes, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+  
 
   let addFeeCreditHash = await moneyClientFee.addFeeCredit(
     {
@@ -460,10 +444,7 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
       referenceNumber: null
     },
   );
-
-  console.log(await getBalance(Base16Converter.encode(signingService.publicKey)));
-  console.log(addFeeCreditHash, "FEE CREDIT ACTUAL HASH")
-  console.log((await waitTransactionProof(moneyClientFee, addFeeCreditHash)));
+  return addFeeCreditHash
 }
 
 export const transferBill = async(privateKey: Uint8Array) => {
