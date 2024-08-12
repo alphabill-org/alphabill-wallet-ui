@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Formik } from "formik";
+import { Formik, FormikErrors } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
@@ -7,58 +7,31 @@ import { useQueryClient } from "react-query";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
-
 import Select from "../../components/Select/Select";
-import {
-  IBill,
-  ITransactionPayload,
-  IPayloadClientMetadata,
-  ITransactionPayloadObj,
-  ITransactionAttributes,
-} from "../../types/Types";
+
+import { IBill } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  getFeeCreditBills,
-  getProof,
-  getRoundNumber,
-  addFeeCredit as addFeeCreditTest,
-  makeTransaction,
-} from "../../hooks/requests";
+import { getProof, addFeeCredit } from "../../hooks/requests";
+import { AlphaType, AlphaDecimals, MaxTransactionFee, TokenType } from "../../utils/constants";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 import {
   extractFormikError,
   getKeys,
-  createOwnerProof,
   getBillsSum,
   invalidateAllLists,
   convertToWholeNumberBigInt,
-  base64ToHexPrefixed,
-  predicateP2PKH,
-  unit8ToHexPrefixed,
   FeeCostEl,
   addDecimal,
   handleBillSelection,
-} from "../../utils/utils";
-import {
-  FeeTimeoutBlocks,
-  AlphaType,
-  AlphaDecimals,
-  FeeCreditTransferType,
-  AlphaSystemId,
-  TokensSystemId,
-  MaxTransactionFee,
-  FeeCreditAddType,
-  TokenType,
-} from "../../utils/constants";
+} from "../../utils/utils"
 
-import {
-  prepTransactionRequestData,
-  publicKeyHash,
-  publicKeyHashWithFeeType,
-  transferOrderTxHash,
-} from "../../utils/hashers";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+interface FormValues {
+  amount: string,
+  assets: {value: string, label: string},
+  password: string
+}
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -66,8 +39,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     isActionsViewVisible,
     account,
     unlockedBillsList,
-    setPreviousView,
-    feeCreditBills,
+    setPreviousView
   } = useApp();
   const { vault, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
@@ -90,27 +62,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
     ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null | undefined>(null);
-  const transferBillProof = useRef<any>(null);
-  const isAllFeesAdded = useRef<boolean>(false);
-  const transferFeePollingProofProps = useRef<{
-    id: string;
-    txHash: string;
-  } | null>(null);
-  const addFeePollingProofProps = useRef<{
-    id: string;
-    txHash: string;
-    isTokensRequest: boolean;
-  } | null>(null);
-  const transferrableBills = useRef<ITransactionPayload[] | null>(null);
-  const feeAfterSending = useRef<{
-    amount: bigint;
-    type: "ALPHA" | "UTP";
-  } | null>(null);
+  const isFeeCreditAdded = useRef<boolean>(false);
+
   const [isSending, setIsSending] = useState<boolean>(false);
-  const [minFeeTransferAmount, setMinFeeTransferAmount] = useState<
-    string | null
-  >(null);
+  const [minFeeTransferAmount, setMinFeeTransferAmount] = useState<string | null>(null);
   const [transferredBillsCount, setTransferredBillsCount] = useState<number>(0);
 
   const getAvailableAmount = useCallback(
@@ -118,14 +73,6 @@ export default function TransferFeeCredit(): JSX.Element | null {
       addDecimal(getBillsSum(billsArr).toString() || "0", Number(decimals)),
     [billsArr]
   );
-
-  const resetRefs = () => {
-    feeAfterSending.current = null;
-    transferrableBills.current = null;
-    transferFeePollingProofProps.current = null;
-    addFeePollingProofProps.current = null;
-    isAllFeesAdded.current = false;
-  };
 
   const [availableAmount, setAvailableAmount] = useState<string>(
     getAvailableAmount(AlphaDecimals || 0)
@@ -135,29 +82,83 @@ export default function TransferFeeCredit(): JSX.Element | null {
     setAvailableAmount(getAvailableAmount(AlphaDecimals || 0));
   }, [getAvailableAmount, isActionsViewVisible]);
 
-  useEffect(() => {
-    if (
-      BigInt(
-        feeCreditBills?.[feeAfterSending.current?.type || AlphaType]?.value ||
-          "0"
-      ) >= BigInt(feeAfterSending.current?.amount || "0")
-    ) {
-      if (isAllFeesAdded.current === true) {
-        pollingInterval.current && clearInterval(pollingInterval.current);
-        setIsSending(false);
-        setIsActionsViewVisible(false);
-        resetRefs();
-        setTransferredBillsCount(0);
-      }
-    }
-  }, [
-    feeCreditBills,
-    getAvailableAmount,
-    isActionsViewVisible,
-    setIsActionsViewVisible,
-  ]);
-
   if (!isActionsViewVisible) return <div></div>;
+
+  const addPollingInterval = (txHash: Uint8Array, isAlpha?: boolean) => {
+    pollingInterval.current = setInterval(() => {
+      queryClient.invalidateQueries(["feeBillsList", activeAccountId])
+      invalidateAllLists(activeAccountId, AlphaType, queryClient);
+      getProof(
+        Base16Converter.encode(txHash),
+        isAlpha
+      ).then((data) => {
+        if(!data?.transactionProof){
+          throw new Error("The proof for transaction is missing");
+        }
+        isFeeCreditAdded.current = true;
+      }).catch(() => {
+        throw new Error("Error validating the transaction")
+      }).finally(() => {
+        removePollingInterval();
+      })
+    }, 1000)
+  }
+
+  const removePollingInterval = () => {
+    pollingInterval.current 
+      && clearInterval(pollingInterval.current);
+    setIsSending(false);
+    isFeeCreditAdded.current 
+      && setIsActionsViewVisible(false)
+
+    isFeeCreditAdded.current = false;
+  }
+
+  const handleSubmit = async(
+    values: FormValues, 
+    setErrors: (errors: FormikErrors<FormValues>) => void
+  ) => {
+    const isAlphaTransaction = values.assets.value === AlphaType;
+    const {error, hashingPrivateKey, hashingPublicKey} = getKeys(
+      values.password,
+      Number(account?.idx),
+      vault
+    )
+    
+    pollingInterval.current && clearInterval(pollingInterval.current);
+
+    if(error || !hashingPrivateKey || !hashingPublicKey){
+      return setErrors({
+        password: error || "Hashing keys are missing"
+      })
+    }
+
+    setIsSending(true);
+
+    let convertedAmount: bigint;
+
+    try {
+      convertedAmount = convertToWholeNumberBigInt(
+        values.amount,
+        AlphaDecimals
+      )
+    } catch (error) {
+      return setErrors({
+        password: (error as Error).message
+      })
+    }
+
+    try {
+      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, isAlphaTransaction);
+      setPreviousView(null);
+      addPollingInterval(txHash, isAlphaTransaction);
+    } catch (error) {
+      removePollingInterval()
+      return setErrors({
+        password: (error as Error).message || "Error occured during the transaction"
+      })
+    }
+  }
 
   return (
     <div className="w-100p">
@@ -167,305 +168,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           assets: defaultAsset,
           password: "",
         }}
-        onSubmit={async (values, { setErrors }) => {
-          resetRefs();
-
-          const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-            values.password,
-            Number(account?.idx),
-            vault
-          );
-
-          if (error || !hashingPrivateKey || !hashingPublicKey) {
-            return setErrors({
-              password: error || "Hashing keys are missing!",
-            });
-          }
-
-          let convertedAmount: bigint;
-
-          try {
-            convertedAmount = convertToWholeNumberBigInt(
-              values.amount,
-              AlphaDecimals
-            );
-          } catch (error) {
-            return setErrors({
-              password: error.message,
-            });
-          }
-
-          const { splitBillAmount, billsToTransfer, billToSplit } =
-            handleBillSelection(convertedAmount.toString(), billsArr);
-
-          setIsSending(true);
-
-          const isAlphaTransaction = values.assets.value === AlphaType;
-
-          const pubKeyHashWithType = (await publicKeyHashWithFeeType({
-            key: activeAccountId,
-            isAlpha: isAlphaTransaction,
-          })) as Uint8Array;
-
-          const pubKeyHashHex = await publicKeyHash(activeAccountId, true);
-
-          const baseObj = (bill: IBill, amount: string) => {
-            return {
-              payload: {
-                systemId: AlphaSystemId,
-                type: FeeCreditTransferType,
-                unitId: Buffer.from(bill.id, "base64"),
-                ...baseAttr(bill, amount),
-              },
-            };
-          };
-
-          const baseAttr = (bill: IBill, amount: string) => {
-            return {
-              attributes: {
-                amount: BigInt(amount),
-                targetSystemIdentifier: isAlphaTransaction
-                  ? AlphaSystemId
-                  : TokensSystemId,
-                targetRecordID: pubKeyHashWithType,
-                nonce: null,
-                backlink: Buffer.from(bill.txHash, "base64"),
-              },
-            };
-          };
-
-          billsToTransfer?.map(async (bill) => {
-            const transferData: ITransactionPayload = {
-              ...baseObj(bill, bill.value),
-            };
-
-            transferrableBills.current = transferrableBills.current
-              ? [...transferrableBills.current, transferData]
-              : [transferData];
-          });
-
-          if (billToSplit && splitBillAmount) {
-            const splitData: ITransactionPayload = {
-              ...baseObj(billToSplit, splitBillAmount.toString()),
-            };
-
-            transferrableBills.current = transferrableBills.current
-              ? [...transferrableBills.current, splitData]
-              : [splitData];
-          }
-
-          if (
-            !transferrableBills?.current?.[0] ||
-            !transferrableBills?.current[0].payload
-          ) {
-            return setErrors({
-              password: "Error selecting suitable bills",
-            });
-          }
-
-          const initTransaction = async ({
-            billData,
-            addNonce,
-            isAddFee,
-          }: {
-            billData: ITransactionPayload;
-            addNonce: boolean;
-            isAddFee?: boolean;
-          }) => {
-            const isAlphaEndpoint = isAlphaTransaction || !isAddFee;
-            pollingInterval.current && clearInterval(pollingInterval.current);
-
-            // if (addNonce) {
-            //   (billData.payload.attributes as ITransactionAttributes).nonce =
-            //     (addFeePollingProofProps?.current?.txHash &&
-            //       Buffer.from(
-            //         addFeePollingProofProps?.current?.txHash,
-            //         "base64"
-            //       )) ||
-            //     null;
-            // }
-
-            // if (isAddFee) {
-            //   transferFeePollingProofProps.current = null;
-            // } else {
-            //   addFeePollingProofProps.current = null;
-            // }
-
-            getRoundNumber(true).then((alphaRoundNumber) => {
-              getRoundNumber(isAlphaTransaction).then(
-                async (variableRoundNumber) => {
-                  const id = billData.payload.unitId;
-                  const amount = (
-                    billData.payload.attributes as ITransactionAttributes
-                  ).amount;
-
-                  // const attr = billData.payload
-                  //   .attributes as ITransactionAttributes;
-                  // const deductedWithFee =
-                  //   amount &&
-                  //   (billData.payload.attributes as ITransactionAttributes)
-                  //     .amount! -
-                  //     MaxTransactionFee * 2n;
-
-                  // if (deductedWithFee) {
-                  //   const feeBillsValue =
-                  //     feeCreditBills?.[
-                  //       isAlphaTransaction ? AlphaType : TokenType
-                  //     ]?.value || 0n;
-                  //   feeAfterSending.current = {
-                  //     amount: feeAfterSending.current
-                  //       ? feeAfterSending.current.amount + deductedWithFee
-                  //       : BigInt(feeBillsValue) + deductedWithFee,
-                  //     type: isAlphaTransaction ? AlphaType : TokenType,
-                  //   };
-                  // }
-
-                  // if (!isAddFee) {
-                  //   billData.payload.attributes = {
-                  //     amount: attr.amount,
-                  //     targetSystemIdentifier: attr.targetSystemIdentifier,
-                  //     targetRecordID: attr.targetRecordID,
-                  //     earliestAdditionTime:
-                  //       variableRoundNumber,
-                  //     latestAdditionTime:
-                  //       variableRoundNumber + FeeTimeoutBlocks,
-                  //     nonce: attr.nonce,
-                  //     backlink: attr.backlink,
-                  //   };
-                  // }
-
-                  // (billData.payload.clientMetadata as IPayloadClientMetadata) =
-                  //   {
-                  //     timeout:
-                  //       (isAlphaEndpoint
-                  //         ? alphaRoundNumber
-                  //         : variableRoundNumber) + FeeTimeoutBlocks,
-                  //     MaxTransactionFee: MaxTransactionFee,
-                  //     feeCreditRecordID: null,
-                  //   };
-
-                  // const proof = await createOwnerProof(
-                  //   billData.payload as ITransactionPayloadObj,
-                  //   hashingPrivateKey,
-                  //   hashingPublicKey
-                  // );
-
-                  const finishTransaction = () => {
-
-                    let txHash: Uint8Array;
-                    //TODO IMPLEMENT NEW RECIEVE HASH LOGIC
-                    // proof.isSignatureValid &&
-                    addFeeCreditTest(hashingPrivateKey)
-                        .then((result) => {
-                          txHash = result!;
-                          setPreviousView(null);
-                        })
-                        .catch(() => {
-                          pollingInterval.current &&
-                            clearInterval(pollingInterval.current);
-                          resetRefs();
-                          setIsSending(false);
-                          setIsActionsViewVisible(false);
-                        })
-                        .finally(async () => {
-                          if (isAddFee) {
-                            addFeePollingProofProps.current = {
-                              id: unit8ToHexPrefixed(id),
-                              txHash: Base16Converter.encode(txHash!),
-                              isTokensRequest: !isAlphaTransaction,
-                            };
-                          } else {
-                            transferFeePollingProofProps.current = {
-                              id: unit8ToHexPrefixed(id),
-                              txHash: Base16Converter.encode(txHash!),
-                            };
-                          }
-                          addPollingInterval();
-                        });
-                  };
-
-                  finishTransaction();
-                }
-              );
-            });
-          };
-
-          const creditBills = await getFeeCreditBills(activeAccountId);
-          const creditBill =
-            creditBills?.[isAlphaTransaction ? AlphaType : TokenType];
-          const firstBillToTransfer = transferrableBills!.current![0];
-
-          if (
-            creditBill?.txHash &&
-            firstBillToTransfer.payload.type !== FeeCreditAddType
-          ) {
-            (
-              firstBillToTransfer.payload.attributes as ITransactionAttributes
-            ).nonce = Buffer.from(creditBill.txHash, "base64");
-          }
-
-          await initTransaction({
-            billData: firstBillToTransfer as ITransactionPayload,
-            addNonce: false,
-          });
-
-          const addPollingInterval = () => {
-            pollingInterval.current = setInterval(async () => {
-              queryClient.invalidateQueries(["feeBillsList", pubKeyHashHex]);
-              if (
-                !transferrableBills.current?.[0]?.payload?.unitId &&
-                isAllFeesAdded.current === true
-              ) {
-                return;
-              }
-
-          
-              const billToTransfer = transferrableBills.current?.[0];
-              initialRoundNumber.current = null;
-              invalidateAllLists(activeAccountId, AlphaType, queryClient);
-
-              if (transferFeePollingProofProps.current) {
-                getProof(
-                  transferFeePollingProofProps.current.txHash!
-                )
-                  .then(async (data) => {
-                    if (data?.transactionProof) {
-                      transferrableBills.current =
-                        (billToTransfer &&
-                          transferrableBills.current?.filter(
-                            (item) =>
-                              item.payload.unitId !==
-                              billToTransfer.payload.unitId
-                          )) ||
-                        null;
-
-                      isAllFeesAdded.current = !Boolean(
-                        transferrableBills.current?.[0]?.payload?.unitId
-                      );
-
-                      transferBillProof.current = data;
-                    }
-                  })
-                  .finally(() => setIntervalCancel());
-              }
-
-              const setIntervalCancel = () => {
-                // getRoundNumber(isAlphaTransaction).then((roundNumber) => {
-                //   if (!initialRoundNumber?.current) {
-                //     initialRoundNumber.current = roundNumber;
-                //   }
-                //   if (
-                //     BigInt(initialRoundNumber?.current!) + FeeTimeoutBlocks <
-                //     roundNumber!
-                //   ) {
-                    pollingInterval.current &&
-                      clearInterval(pollingInterval.current);
-                //   }
-                // });
-              };
-            }, 1000);
-          };
-        }}
+        onSubmit={async (values, { setErrors }) => handleSubmit(values, setErrors)}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
           password: Yup.string().required("Password is required"),

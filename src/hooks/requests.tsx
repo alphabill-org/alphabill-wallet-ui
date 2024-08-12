@@ -10,18 +10,8 @@ import { FungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/FungibleToken
 import { NonFungibleToken } from "@alphabill/alphabill-js-sdk/lib/NonFungibleToken";
 import { NonFungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/NonFungibleTokenType";
 import { ITransactionPayload, IBill, IListTokensResponse, ITypeHierarchy, IBalance,IFeeCreditBills } from "../types/Types";
-import {
-  AlphaType,
-  DownloadableTypes,
-  MaxImageSize,
-  moneyFeeCreditRecordUnitType,
-  tokenFeeCreditRecordUnitType,
-  TokenType,
-} from "../utils/constants";
-import {
-  addDecimal,
-  separateDigits,
-} from "../utils/utils";
+import { AlphaType, DownloadableTypes, MaxImageSize, TokenType } from "../utils/constants";
+import { addDecimal, separateDigits } from "../utils/utils";
 import { FeeCreditRecordUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/FeeCreditRecordUnitIdFactory";
 import { TokenUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenUnitIdFactory";
 import { UnitType } from "@alphabill/alphabill-js-sdk/lib/transaction/UnitType";
@@ -90,7 +80,8 @@ const fetchFeeCredit = async(
 ) : Promise<FeeCreditRecord | null> => {
   try {
     const units = await client.getUnitsByOwnerId(Base16Converter.decode(pubKey));
-    const unitId = units.find((unit) => unit.type.toBase16() === type);
+    const unitId = units.findLast((unit) => unit.type.toBase16() === type);
+    console.log(unitId)
 
     if(!unitId) return null;
 
@@ -121,9 +112,19 @@ function waitTransactionProof (
 
       setTimeout(poller, interval);
     };
-
     poller();
   });
+}
+
+const getPartition = (
+    client: StateApiMoneyClient | StateApiTokenClient,
+    isAlpha?: boolean, 
+  ) => {
+  return {
+    client: client,
+    systemIdentifier: isAlpha ? SystemIdentifier.MONEY_PARTITION : SystemIdentifier.TOKEN_PARTITION,
+    unitType: isAlpha ? UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD : UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD
+  }
 }
 
 
@@ -317,17 +318,30 @@ export const getUserTokens = async (
 
 export const getProof = async (
   txHash: string,
-  isTokens?: boolean
+  isAlpha?: boolean,
+  timeout = 10000,
+  interval = 1000
 ): Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>> | null> => {
-  const decodedHash = Base16Converter.decode(txHash);
-  const client = isTokens ? tokenClient : moneyClient;
+  const client = isAlpha ? moneyClient : tokenClient;
+  const decodedTxHash = Base16Converter.decode(txHash);
+  
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const poller = async () => {
+      const proof = await client.getTransactionProof(decodedTxHash);
+      if (proof !== null) {
+        return resolve(proof);
+      }
 
-  try {
-    return client.getTransactionProof(decodedHash)
-  } catch(error) {
-    console.log('Error fetching transaction proof:', error)
-    return null
-  }
+      if (Date.now() > start + timeout) {
+        return reject('Timeout');
+      }
+
+      setTimeout(poller, interval);
+    };
+
+    poller();
+  });
 };
 
 export const getRoundNumber = async (isAlpha: boolean): Promise<bigint | null> => {
@@ -384,7 +398,7 @@ export const getFeeCreditBills = async (
   };
 };
 
-export const addFeeCredit = async(privateKey: Uint8Array) => {
+export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, isAlpha?: boolean) => {
   const signingService = new DefaultSigningService(privateKey);
   
   const moneyClientFee = createMoneyClient({
@@ -392,6 +406,14 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
     transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
     feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory,
   })
+
+  const client = isAlpha 
+    ? moneyClientFee
+    : createTokenClient({
+        transport: http(TOKENS_BACKEND_URL, cborCodec),
+        transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+        tokenUnitIdFactory: tokenUnitIdFactory,
+      })
 
   const unitIds = await getUnitsIdListByType(
     Base16Converter.encode(signingService.publicKey), 
@@ -403,6 +425,9 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
     throw new Error('No bills available');
   }
 
+  const partition = getPartition(client, isAlpha);
+
+
   const bill = await moneyClientFee.getUnit(unitIds[0], false) as Bill;
   const round = await moneyClientFee.getRoundNumber();
   const ownerPredicate = await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey);
@@ -410,11 +435,11 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
   let transferToFeeCreditHash = await moneyClientFee.transferToFeeCredit(
     {
       bill ,
-      amount: 100n,
-      systemIdentifier: SystemIdentifier.MONEY_PARTITION,
+      amount: amount,
+      systemIdentifier: partition.systemIdentifier,
       feeCreditRecordParams: {
         ownerPredicate: ownerPredicate,
-        unitType: UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD,
+        unitType: partition.unitType as UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD | UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD,
       },
       latestAdditionTime: round + 60n,
     },
@@ -428,10 +453,9 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
 
     let proof = await waitTransactionProof(moneyClientFee, transferToFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<TransferFeeCreditAttributes>>;
     const feeCreditRecordUnitId = proof.transactionRecord.transactionOrder.payload.attributes.targetUnitId;
-    const feeCreditRecordId = new UnitIdWithType(feeCreditRecordUnitId.bytes, UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
-  
+    const feeCreditRecordId = new UnitIdWithType(feeCreditRecordUnitId.bytes, partition.unitType);
 
-  let addFeeCreditHash = await moneyClientFee.addFeeCredit(
+  let addFeeCreditHash = await partition.client.addFeeCredit(
     {
       ownerPredicate: ownerPredicate,
       proof,
@@ -444,6 +468,7 @@ export const addFeeCredit = async(privateKey: Uint8Array) => {
       referenceNumber: null
     },
   );
+
   return addFeeCreditHash
 }
 
