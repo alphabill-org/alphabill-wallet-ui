@@ -27,7 +27,7 @@ import {
   handleBillSelection,
 } from "../../utils/utils"
 
-interface FormValues {
+export interface FormValues {
   amount: string,
   assets: {value: string, label: string},
   password: string

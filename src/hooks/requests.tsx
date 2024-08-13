@@ -29,6 +29,7 @@ import { SystemIdentifier } from "@alphabill/alphabill-js-sdk/lib/SystemIdentifi
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/PayToPublicKeyHashPredicate.js';
 import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
 import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
+import { CloseFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/CloseFeeCreditAttributes";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -80,7 +81,7 @@ const fetchFeeCredit = async(
 ) : Promise<FeeCreditRecord | null> => {
   try {
     const units = await client.getUnitsByOwnerId(Base16Converter.decode(pubKey));
-    const unitId = units.findLast((unit) => unit.type.toBase16() === type);
+    const unitId = units.find((unit) => unit.type.toBase16() === type);
     console.log(unitId)
 
     if(!unitId) return null;
@@ -101,7 +102,7 @@ function waitTransactionProof (
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const poller = async () => {
-      const proof = await client.getTransactionProof(txHash); 
+      const proof = await client.getTransactionProof(txHash);
       if (proof !== null) {
         return resolve(proof);
       }
@@ -503,6 +504,63 @@ export const transferBill = async(privateKey: Uint8Array) => {
   );
 
   console.log(await waitTransactionProof(clientMoneyBill, transferBillHash));
+}
+
+export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  const client = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const targetBillId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+
+
+  if(!feeCreditRecordId) {
+    throw new Error('No fee credit available');
+  }
+
+  if(!targetBillId){
+    throw new Error('No bills were found')
+  }
+
+  const bill = await client.getUnit(targetBillId, false) as Bill;
+  const feeCreditRecord = await client.getUnit(feeCreditRecordId, false) as FeeCreditRecord;
+  const round = await client.getRoundNumber();
+
+  const closeFeeCreditHash = await client.closeFeeCredit(
+    {
+      bill,
+      feeCreditRecord,
+      amount: bill.value
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId: null,
+      referenceNumber: null
+    }
+  )
+
+  const proof = await waitTransactionProof(client, closeFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<CloseFeeCreditAttributes>>;
+
+  const reclaimFeeCreditHash = await client.reclaimFeeCredit(
+    {
+      proof,
+      bill
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId: null,
+      referenceNumber: null
+    }
+  )
+
+  return reclaimFeeCreditHash;
 }
 
 
