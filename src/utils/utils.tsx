@@ -520,8 +520,6 @@ export const invalidateAllLists = async (
   assetTypeId: string,
   queryClient: QueryClient
 ) => {
-  const pubKeyHash = await publicKeyHash(pubKey, true);
-
   queryClient.invalidateQueries(["fungibleTokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["fungibleTokensList", pubKey]);
   queryClient.invalidateQueries(["NFTList", pubKey, assetTypeId]);
@@ -529,7 +527,7 @@ export const invalidateAllLists = async (
   queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
-  queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
+  queryClient.invalidateQueries(["feeBillsList", pubKey]);
 };
 
 export const createInvariantPredicateSignatures = (

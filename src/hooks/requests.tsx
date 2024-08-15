@@ -81,8 +81,7 @@ const fetchFeeCredit = async(
 ) : Promise<FeeCreditRecord | null> => {
   try {
     const units = await client.getUnitsByOwnerId(Base16Converter.decode(pubKey));
-    const unitId = units.find((unit) => unit.type.toBase16() === type);
-    console.log(unitId)
+    const unitId = units.findLast((unit) => unit.type.toBase16() === type);
 
     if(!unitId) return null;
 
@@ -103,6 +102,8 @@ function waitTransactionProof (
     const start = Date.now();
     const poller = async () => {
       const proof = await client.getTransactionProof(txHash);
+      console.log(txHash, "TX HASH")
+      console.log(proof)
       if (proof !== null) {
         return resolve(proof);
       }
@@ -158,7 +159,7 @@ export const getBillsList = async (
   const billsList: IBill[] = [];
   try {
     for(const id of idList){
-      const bill = await moneyClient.getUnit(id, true) as unknown as Bill | null;
+      const bill = await moneyClient.getUnit(id, false) as unknown as Bill | null;
       if(bill){
         billsList.push({
           id: Base16Converter.encode(id.bytes),
@@ -173,7 +174,6 @@ export const getBillsList = async (
     console.log('Error fetching unit by id:', error);
     return;
   }
-  
 };
 
 export const fetchAllTypes = async (
@@ -473,51 +473,36 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, isAlph
   return addFeeCreditHash
 }
 
-export const transferBill = async(privateKey: Uint8Array) => {
+export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean) => {
   const signingService = new DefaultSigningService(privateKey);
-  const clientMoneyBill = createMoneyClient({
-    transport: http(MONEY_BACKEND_URL, cborCodec),
-    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
-    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory,
-  });
-
-  const units = await clientMoneyBill.getUnitsByOwnerId(signingService.publicKey);
-  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
-  const billId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
-  if(!billId) {
-    throw new Error("No bills were found")
-  }
-
-  const round = await clientMoneyBill.getRoundNumber();
-  const bill = clientMoneyBill.getUnit(billId, false) as unknown as Bill;
-
-  const transferBillHash = await clientMoneyBill.transferBill({
-      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
-      bill,
-    },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId,
-      referenceNumber: null
-    }
-  );
-
-  console.log(await waitTransactionProof(clientMoneyBill, transferBillHash));
-}
-
-export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
-  const signingService = new DefaultSigningService(privateKey);
-  const client = createMoneyClient({
+  
+  const moneyClientReclaim = createMoneyClient({
     transport: http(MONEY_BACKEND_URL, cborCodec),
     transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
     feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
   });
+  
+  const client = isAlpha
+    ? moneyClientReclaim
+    : createTokenClient({
+        transport: http(TOKENS_BACKEND_URL, cborCodec),
+        transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+        tokenUnitIdFactory: tokenUnitIdFactory,
+      }) 
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
-  const targetBillId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
-  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
 
+  const unitsMoney = !isAlpha 
+    ? await moneyClientReclaim.getUnitsByOwnerId(signingService.publicKey)
+    : [];
+
+  const targetBillId = isAlpha
+   ? units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA)
+   : unitsMoney.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  
+  const feeCreditRecordId = isAlpha
+    ? units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD)
+    : units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
 
   if(!feeCreditRecordId) {
     throw new Error('No fee credit available');
@@ -527,7 +512,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
     throw new Error('No bills were found')
   }
 
-  const bill = await client.getUnit(targetBillId, false) as Bill;
+  const bill = await moneyClientReclaim.getUnit(targetBillId, false) as Bill;
   const feeCreditRecord = await client.getUnit(feeCreditRecordId, false) as FeeCreditRecord;
   const round = await client.getRoundNumber();
 
@@ -535,7 +520,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
     {
       bill,
       feeCreditRecord,
-      amount: bill.value
+      amount: feeCreditRecord.balance
     },
     {
       maxTransactionFee: 5n,
@@ -547,7 +532,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
 
   const proof = await waitTransactionProof(client, closeFeeCreditHash) as TransactionRecordWithProof<TransactionPayload<CloseFeeCreditAttributes>>;
 
-  const reclaimFeeCreditHash = await client.reclaimFeeCredit(
+  const reclaimFeeCreditHash = await moneyClientReclaim.reclaimFeeCredit(
     {
       proof,
       bill
@@ -561,6 +546,39 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array) => {
   )
 
   return reclaimFeeCreditHash;
+}
+
+export const transferBill = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  const client = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory,
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
+  const billId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  if(!billId) {
+    throw new Error("No bills were found")
+  }
+
+  const round = await client.getRoundNumber();
+  const bill = client.getUnit(billId, false) as unknown as Bill;
+
+  const transferBillHash = await client.transferBill({
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      bill,
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  );
+
+  console.log(await waitTransactionProof(client, transferBillHash));
 }
 
 
