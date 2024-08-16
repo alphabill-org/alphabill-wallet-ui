@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Formik } from "formik";
+import { Formik, FormikErrors } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
@@ -192,6 +192,23 @@ export default function TransferFungible(): JSX.Element | null {
 
   if (!isActionsViewVisible) return <div></div>;
 
+  // interface FormikValues {
+  //   assets: {
+  //     value: IBill | IFungibleAsset | undefined;
+  //     label: string;
+  //   };
+  //   amount: string;
+  //   address: string;
+  //   password: string;
+  // }
+
+  // const handleSubmit = async(
+  //   values: FormikValues,
+  //   setErrors: (errors: FormikErrors<FormikValues>) => void
+  // ) => {
+
+  // }
+
   return (
     <div className="w-100p">
       <Formik
@@ -223,7 +240,7 @@ export default function TransferFungible(): JSX.Element | null {
             );
           } catch (error) {
             return setErrors({
-              password: error.message,
+              password: (error as Error).message,
             });
           }
 

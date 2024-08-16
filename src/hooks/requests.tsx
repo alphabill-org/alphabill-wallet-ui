@@ -30,6 +30,7 @@ import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/tra
 import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
 import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
 import { CloseFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/CloseFeeCreditAttributes";
+import { UnitId } from "@alphabill/alphabill-js-sdk/lib/UnitId";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -548,7 +549,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean)
   return reclaimFeeCreditHash;
 }
 
-export const transferBill = async(privateKey: Uint8Array) => {
+export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL, cborCodec),
@@ -567,7 +568,7 @@ export const transferBill = async(privateKey: Uint8Array) => {
   const bill = client.getUnit(billId, false) as unknown as Bill;
 
   const transferBillHash = await client.transferBill({
-      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
       bill,
     },
     {
@@ -579,6 +580,148 @@ export const transferBill = async(privateKey: Uint8Array) => {
   );
 
   console.log(await waitTransactionProof(client, transferBillHash));
+}
+
+export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  const client = createTokenClient({
+    transport: http(TOKENS_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    tokenUnitIdFactory: tokenUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
+  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN);
+  const round = await client.getRoundNumber();
+
+  if(!feeCreditRecordId) {
+    throw new Error('No fee credit available');
+  }
+
+  if(!unitId){
+    throw new Error('Error fetching fungible tokens')
+  }
+
+  const token = await client.getUnit(unitId, false) as FungibleToken;
+  if(!token){
+    throw new Error('Token does not exist')
+  }
+
+  const transferFungibleTokenHash = await client.transferFungibleToken({
+      token,
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
+      nonce: null,
+      type: {unitId: token.tokenType},
+      invariantPredicateSignatures: []
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId: feeCreditRecordId,
+      referenceNumber: null
+    }
+  )
+
+  return transferFungibleTokenHash
+}
+
+export const splitBill = async(
+  privateKey: Uint8Array, 
+  amount: bigint, 
+  recipient: Uint8Array,
+  bill: Bill
+) => {
+  const signingService = new DefaultSigningService(privateKey);
+
+  const client = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+  // const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  const round = await client.getRoundNumber();
+
+  // if(!unitId){
+  //   throw new Error('Error fetching unitId');
+  // }
+
+  if(!feeCreditRecordId){
+    throw new Error('Error fetching fee credit record');
+  }
+
+  // const bill = await client.getUnit(unitId, false) as Bill;
+
+  const splitBillHash = await client.splitBill(
+    {
+      splits: [
+        {
+          value: bill.value - amount,
+          ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey)
+        },
+        {
+          value: amount,
+          ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient)
+        }
+      ],
+      bill
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  );
+
+  return splitBillHash;
+}
+
+export const splitFungibleToken = async(privateKey: Uint8Array, amount: bigint) => {
+  const signingService = new DefaultSigningService(privateKey);
+
+  const client = createTokenClient({
+    transport: http(TOKENS_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    tokenUnitIdFactory: tokenUnitIdFactory
+  })
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
+  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN);
+  const round = await client.getRoundNumber();
+
+  if(!unitId){
+    throw new Error('Error fetching unitId');
+  }
+
+  if(!feeCreditRecordId){
+    throw new Error('Error fetching fee credit record');
+  }
+
+  const token = await client.getUnit(unitId, false) as FungibleToken;
+
+  const splitFungibleTokenHash = await client.splitFungibleToken(
+    {
+      token,
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      amount: amount,
+      nonce: null,
+      type: { unitId: token.tokenType },
+      invariantPredicateSignatures: [],
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    },
+  );
+
+  return splitFungibleTokenHash;
 }
 
 
