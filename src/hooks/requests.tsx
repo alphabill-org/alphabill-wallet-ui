@@ -30,7 +30,6 @@ import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/tra
 import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
 import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
 import { CloseFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/CloseFeeCreditAttributes";
-import { UnitId } from "@alphabill/alphabill-js-sdk/lib/UnitId";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -130,6 +129,14 @@ const getPartition = (
   }
 }
 
+const compareArray = (a: Uint8Array, b: Uint8Array) => {
+  if(a.length !== b.length) return false;
+  for(let i = 0; i < a.length; i++){
+    if(a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 
 // SDK IMPLEMENTATION 
 
@@ -160,7 +167,7 @@ export const getBillsList = async (
   const billsList: IBill[] = [];
   try {
     for(const id of idList){
-      const bill = await moneyClient.getUnit(id, false) as unknown as Bill | null;
+      const bill = await moneyClient.getUnit(id, true) as unknown as Bill | null;
       if(bill){
         billsList.push({
           id: Base16Converter.encode(id.bytes),
@@ -236,13 +243,14 @@ export const getUserTokens = async (
   kind: TokenUnitType,
   activeAsset?: string
 ): Promise<IListTokensResponse[]> => {
+  console.log("IM IN TOKENS")
   let type: UnitType;
   switch (kind) {
       case TokenUnitType.FUNGIBLE:
-          type = UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN;
+          type = UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN;
           break;
       case TokenUnitType.NON_FUNGIBLE:
-          type = UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN;
+          type = UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN;
           break;
       default:
           throw new Error("Unsupported token");
@@ -400,7 +408,7 @@ export const getFeeCreditBills = async (
   };
 };
 
-export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, isAlpha?: boolean) => {
+export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId: Uint8Array, isAlpha?: boolean) => {
   const signingService = new DefaultSigningService(privateKey);
   
   const moneyClientFee = createMoneyClient({
@@ -417,26 +425,33 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, isAlph
         tokenUnitIdFactory: tokenUnitIdFactory,
       })
 
-  const unitIds = await getUnitsIdListByType(
-    Base16Converter.encode(signingService.publicKey), 
-    UnitType.MONEY_PARTITION_BILL_DATA, 
-    moneyClientFee
-  );
+  // const unitIds = await getUnitsIdListByType(
+  //   Base16Converter.encode(signingService.publicKey), 
+  //   UnitType.MONEY_PARTITION_BILL_DATA, 
+  //   moneyClientFee
+  // );
 
-  if(!unitIds || unitIds.length === 0){
+  console.log(billId)
+
+  const units = await moneyClient.getUnitsByOwnerId(signingService.publicKey);
+
+  console.log(units)
+  const unitId = units.find((id) => compareArray(id.bytes, billId))
+
+  if(!unitId){
     throw new Error('No bills available');
   }
 
   const partition = getPartition(client, isAlpha);
 
 
-  const bill = await moneyClientFee.getUnit(unitIds[0], false) as Bill;
+  const bill = await moneyClientFee.getUnit(unitId, false) as Bill;
   const round = await moneyClientFee.getRoundNumber();
   const ownerPredicate = await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey);
 
   let transferToFeeCreditHash = await moneyClientFee.transferToFeeCredit(
     {
-      bill ,
+      bill,
       amount: amount,
       systemIdentifier: partition.systemIdentifier,
       feeCreditRecordParams: {
@@ -520,8 +535,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean)
   const closeFeeCreditHash = await client.closeFeeCredit(
     {
       bill,
-      feeCreditRecord,
-      amount: feeCreditRecord.balance
+      feeCreditRecord
     },
     {
       maxTransactionFee: 5n,
@@ -549,7 +563,7 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean)
   return reclaimFeeCreditHash;
 }
 
-export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array) => {
+export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array, billId: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL, cborCodec),
@@ -559,13 +573,14 @@ export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array)
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
-  const billId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
-  if(!billId) {
+  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+
+  if(!unitId) {
     throw new Error("No bills were found")
   }
 
   const round = await client.getRoundNumber();
-  const bill = client.getUnit(billId, false) as unknown as Bill;
+  const bill = await client.getUnit(unitId, false) as Bill;
 
   const transferBillHash = await client.transferBill({
       ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
@@ -579,10 +594,11 @@ export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array)
     }
   );
 
-  console.log(await waitTransactionProof(client, transferBillHash));
+  // console.log(await waitTransactionProof(client, transferBillHash));
+  return transferBillHash
 }
 
-export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Uint8Array) => {
+export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Uint8Array, tokenId: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL, cborCodec),
@@ -592,7 +608,7 @@ export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Ui
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
-  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN);
+  const unitId = units.findLast((id) => id.bytes === tokenId);
   const round = await client.getRoundNumber();
 
   if(!feeCreditRecordId) {
@@ -604,6 +620,7 @@ export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Ui
   }
 
   const token = await client.getUnit(unitId, false) as FungibleToken;
+
   if(!token){
     throw new Error('Token does not exist')
   }
@@ -630,7 +647,7 @@ export const splitBill = async(
   privateKey: Uint8Array, 
   amount: bigint, 
   recipient: Uint8Array,
-  bill: Bill
+  billId: Uint8Array
 ) => {
   const signingService = new DefaultSigningService(privateKey);
 
@@ -642,26 +659,22 @@ export const splitBill = async(
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
-  // const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
   const round = await client.getRoundNumber();
 
-  // if(!unitId){
-  //   throw new Error('Error fetching unitId');
-  // }
+  if(!unitId){
+    throw new Error('Error fetching unitId');
+  }
 
   if(!feeCreditRecordId){
     throw new Error('Error fetching fee credit record');
   }
 
-  // const bill = await client.getUnit(unitId, false) as Bill;
+  const bill = await client.getUnit(unitId, false) as Bill;
 
   const splitBillHash = await client.splitBill(
     {
       splits: [
-        {
-          value: bill.value - amount,
-          ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey)
-        },
         {
           value: amount,
           ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient)
@@ -680,7 +693,12 @@ export const splitBill = async(
   return splitBillHash;
 }
 
-export const splitFungibleToken = async(privateKey: Uint8Array, amount: bigint) => {
+export const splitFungibleToken = async(
+  privateKey: Uint8Array, 
+  amount: bigint, 
+  recipient: Uint8Array, 
+  tokenId: Uint8Array
+) => {
   const signingService = new DefaultSigningService(privateKey);
 
   const client = createTokenClient({
@@ -691,7 +709,7 @@ export const splitFungibleToken = async(privateKey: Uint8Array, amount: bigint) 
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
-  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN);
+  const unitId = units.findLast((id) => id.bytes === tokenId);
   const round = await client.getRoundNumber();
 
   if(!unitId){
@@ -707,7 +725,7 @@ export const splitFungibleToken = async(privateKey: Uint8Array, amount: bigint) 
   const splitFungibleTokenHash = await client.splitFungibleToken(
     {
       token,
-      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
       amount: amount,
       nonce: null,
       type: { unitId: token.tokenType },

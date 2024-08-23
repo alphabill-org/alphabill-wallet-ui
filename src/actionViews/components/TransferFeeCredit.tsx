@@ -26,6 +26,7 @@ import {
   addDecimal,
   handleBillSelection,
 } from "../../utils/utils"
+import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
 
 export interface FormValues {
   amount: string,
@@ -143,13 +144,21 @@ export default function TransferFeeCredit(): JSX.Element | null {
         AlphaDecimals
       )
     } catch (error) {
+      setIsSending(false);
       return setErrors({
         password: (error as Error).message
       })
     }
 
+    const { optimalBills, billToSplit, billsToTransfer } = await handleBillSelection(convertedAmount.toString(), billsArr)
+    const test = Base16Converter.decode(optimalBills[0].id)
+    console.log(test)
+    console.log(billToSplit, "Bills to split")
+    console.log(billsToTransfer, "Bill to transfer")
+    console.log(optimalBills, "Optimal bills");
+
     try {
-      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, isAlphaTransaction);
+      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, test, isAlphaTransaction);
       setPreviousView(null);
       addPollingInterval(txHash, isAlphaTransaction);
     } catch (error) {

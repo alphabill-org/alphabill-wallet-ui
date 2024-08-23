@@ -78,7 +78,6 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     activeNFT,
     setActiveAssetLocal,
-    pubKeyHash,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem(LocalKeyAccountNames) || "";

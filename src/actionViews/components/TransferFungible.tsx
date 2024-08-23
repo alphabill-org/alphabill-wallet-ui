@@ -21,8 +21,13 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
+  getProof,
   getRoundNumber,
   makeTransaction,
+  splitBill,
+  splitFungibleToken,
+  transferBill,
+  transferFungibleToken,
 } from "../../hooks/requests";
 
 import {
@@ -62,6 +67,8 @@ import {
   prepTransactionRequestData,
   publicKeyHashWithFeeType,
 } from "../../utils/hashers";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+import { createFungibleToken, createFungibleTokenType } from "../../hooks/testRequests";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -133,28 +140,20 @@ export default function TransferFungible(): JSX.Element | null {
     setIsActionsViewVisible(false);
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
-  const addPollingInterval = () => {
+  const addPollingInterval = (txHash: string, isAlpha: boolean) => {
     initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
-      invalidateAllLists(
-        activeAccountId,
-        fungibleActiveAsset.typeId,
-        queryClient
-      );
-      getRoundNumber(selectedAsset?.typeId === AlphaType).then(
-        (roundNumber) => {
-          if (!initialRoundNumber?.current) {
-            initialRoundNumber.current = roundNumber;
+      invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
+      getProof(txHash, isAlpha)
+      .then((data) => {
+          if(!data?.transactionProof){
+            throw new Error('No proof was found!');
           }
-
-          if (
-            BigInt(initialRoundNumber?.current ?? 0n) + TimeoutBlocks <
-            (roundNumber ?? 0n)
-          ) {
-            handleTransactionEnd();
-          }
+          handleTransactionEnd();
         }
-      );
+      ).catch(() => {
+        throw new Error('Error fetching transaction proof')
+      })
     }, 500);
   };
 
@@ -192,22 +191,151 @@ export default function TransferFungible(): JSX.Element | null {
 
   if (!isActionsViewVisible) return <div></div>;
 
-  // interface FormikValues {
-  //   assets: {
-  //     value: IBill | IFungibleAsset | undefined;
-  //     label: string;
-  //   };
-  //   amount: string;
-  //   address: string;
-  //   password: string;
-  // }
+  interface FormikValues {
+    assets: {
+      value: IBill | IFungibleAsset | undefined;
+      label: string;
+    };
+    amount: string;
+    address: string;
+    password: string;
+  }
 
-  // const handleSubmit = async(
-  //   values: FormikValues,
-  //   setErrors: (errors: FormikErrors<FormikValues>) => void
-  // ) => {
+  const handleTransfer = async(
+    values: FormikValues,
+    setErrors: (errors: FormikErrors<FormikValues>) => void
+  ) => {
 
-  // }
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      values.password,
+      Number(account?.idx),
+      vault
+    );
+
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
+      return setErrors({
+        password: error || "Hashing keys are missing!",
+      });
+    }
+
+    if(!activeAsset.id){
+      return setErrors({
+        password: error || "Select an asset to transfer"
+      })
+    }
+
+    setIsSending(true);
+
+    const isAlpha = selectedAsset?.typeId === AlphaType;
+    
+   try {
+    const decodedId = Base16Converter.decode(activeAsset.id);
+    const recipient = Base16Converter.decode(values.address);
+
+    const transferHash = isAlpha 
+      ? await transferBill(hashingPrivateKey, recipient, decodedId)
+      : await transferFungibleToken(hashingPrivateKey, recipient, decodedId)
+
+    if(!transferHash){
+      return setErrors({
+        password: error || "Error occured during the transaction!"
+      })
+    }
+    addPollingInterval(Base16Converter.encode(transferHash), isAlpha);
+   } catch(error) {
+     return setErrors({
+      password: (error as Error).message || "Error occured during the transaction"
+     })
+   }
+
+  }
+
+
+  const handleSplit = async(
+    values: FormikValues,
+    setErrors: (errors: FormikErrors<FormikValues>) => void
+  ) => {
+
+    console.log("IM HERERE")
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      values.password,
+      Number(account?.idx),
+      vault
+    );
+
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
+      return setErrors({
+        password: error || "Hashing keys are missing!",
+      });
+    }
+
+
+    // await createFungibleTokenType(Base16Converter.encode(hashingPrivateKey));
+    // await createFungibleToken(Base16Converter.encode(hashingPrivateKey));
+
+    console.log(account.assets.fungible)
+
+    let convertedAmount: bigint;
+    try {
+      convertedAmount = convertToWholeNumberBigInt(
+        values.amount,
+        selectedAsset?.decimals || 0
+      );
+    } catch (error) {
+      return setErrors({
+        password: (error as Error).message,
+      });
+    }
+
+    const billsArr = selectedTransferKey
+      ? [directlySelectedAsset]
+      : unlockedBillsList || [];
+
+    const {
+      billToSplit,
+      splitBillAmount,
+    } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
+
+    if(!billToSplit) {
+      return setErrors({
+        password: error || "Select an asset to transfer"
+      })
+    }
+
+    console.log(billToSplit)
+    console.log(splitBillAmount)
+
+    setIsSending(true);
+
+    const isAlpha = selectedAsset?.typeId === AlphaType;
+
+    try {
+      console.log("IM IN TRY")
+      const decodedId = Base16Converter.decode(billToSplit?.id);
+      console.log(decodedId);
+      const recipient = Base16Converter.decode(values.address);
+
+      console.log(isAlpha)
+      console.log("IM IN TRY")
+
+      const splitHash = isAlpha
+        ? await splitBill(hashingPrivateKey, convertedAmount, recipient, decodedId)
+        : await splitFungibleToken(hashingPrivateKey, convertedAmount, recipient, decodedId)
+
+      if(!splitHash){
+        return setErrors({
+          password: error || "Error fetching transaction hash" 
+        })
+      }
+      console.log(Base16Converter.encode(splitHash));
+      addPollingInterval(Base16Converter.encode(splitHash), isAlpha);
+    } catch(error) {
+      return setErrors({
+        password: (error as Error).message || "Error occured during the transaction"
+      })
+    }
+  }
+
 
   return (
     <div className="w-100p">
@@ -220,247 +348,251 @@ export default function TransferFungible(): JSX.Element | null {
           password: "",
         }}
         onSubmit={async (values, { setErrors }) => {
-          const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-            values.password,
-            Number(account?.idx),
-            vault
-          );
+          console.log(directlySelectedAsset)
+          directlySelectedAsset 
+            ? handleTransfer(values, setErrors) 
+            : handleSplit(values, setErrors)
+          // const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+          //   values.password,
+          //   Number(account?.idx),
+          //   vault
+          // );
 
-          if (error || !hashingPrivateKey || !hashingPublicKey) {
-            return setErrors({
-              password: error || "Hashing keys are missing!",
-            });
-          }
+          // if (error || !hashingPrivateKey || !hashingPublicKey) {
+          //   return setErrors({
+          //     password: error || "Hashing keys are missing!",
+          //   });
+          // }
 
-          let convertedAmount: bigint;
-          try {
-            convertedAmount = convertToWholeNumberBigInt(
-              values.amount,
-              selectedAsset?.decimals || 0
-            );
-          } catch (error) {
-            return setErrors({
-              password: (error as Error).message,
-            });
-          }
+          // let convertedAmount: bigint;
+          // try {
+          //   convertedAmount = convertToWholeNumberBigInt(
+          //     values.amount,
+          //     selectedAsset?.decimals || 0
+          //   );
+          // } catch (error) {
+          //   return setErrors({
+          //     password: (error as Error).message,
+          //   });
+          // }
 
-          const billsArr = selectedTransferKey
-            ? [directlySelectedAsset]
-            : unlockedBillsList || [];
+          // const billsArr = selectedTransferKey
+          //   ? [directlySelectedAsset]
+          //   : unlockedBillsList || [];
 
-          const {
-            billsToTransfer,
-            billToSplit,
-            splitBillAmount,
-          } = handleBillSelection(
-            convertedAmount.toString(),
-            billsArr as IBill[]
-          );
+          // const {
+          //   billsToTransfer,
+          //   billToSplit,
+          //   splitBillAmount,
+          // } = handleBillSelection(
+          //   convertedAmount.toString(),
+          //   billsArr as IBill[]
+          // );
 
-          const newBearer = await predicateP2PKH(values.address);
+          // const newBearer = await predicateP2PKH(values.address);
 
-          setIsSending(true);
+          // setIsSending(true);
 
-          const isAlpha = selectedAsset?.typeId === AlphaType;
+          // const isAlpha = selectedAsset?.typeId === AlphaType;
 
-          getRoundNumber(isAlpha).then(async (roundNumber) => {
-            let transferType = TokensTransferType;
-            let splitType = TokensSplitType;
-            let systemId = TokensSystemId;
+          // getRoundNumber(isAlpha).then(async (roundNumber) => {
+          //   let transferType = TokensTransferType;
+          //   let splitType = TokensSplitType;
+          //   let systemId = TokensSystemId;
 
-            if (isAlpha) {
-              transferType = AlphaTransferType;
-              splitType = AlphaSplitType;
-              systemId = AlphaSystemId;
-            }
+          //   if (isAlpha) {
+          //     transferType = AlphaTransferType;
+          //     splitType = AlphaSplitType;
+          //     systemId = AlphaSystemId;
+          //   }
 
-            const targetRecord = (await publicKeyHashWithFeeType({
-              key: activeAccountId,
-              isAlpha: Boolean(isAlpha),
-            })) as Uint8Array;
+          //   const targetRecord = (await publicKeyHashWithFeeType({
+          //     key: activeAccountId,
+          //     isAlpha: Boolean(isAlpha),
+          //   })) as Uint8Array;
 
-            const baseObj = (bill: IBill, transferType: string) => {
-              return {
-                systemId: systemId,
-                type: transferType,
-                unitId: isAlpha
-                  ? Buffer.from(bill.id, "base64")
-                  : Buffer.from(bill.id.substring(2), "hex"),
-              };
-            };
+          //   const baseObj = (bill: IBill, transferType: string) => {
+          //     return {
+          //       systemId: systemId,
+          //       type: transferType,
+          //       unitId: isAlpha
+          //         ? Buffer.from(bill.id, "base64")
+          //         : Buffer.from(bill.id.substring(2), "hex"),
+          //     };
+          //   };
 
-            const clientDataObj = {
-              clientMetadata: {
-                timeout: roundNumber ?? 0n + TimeoutBlocks,
-                MaxTransactionFee: MaxTransactionFee,
-                feeCreditRecordID: targetRecord,
-              },
-            };
+          //   const clientDataObj = {
+          //     clientMetadata: {
+          //       timeout: roundNumber ?? 0n + TimeoutBlocks,
+          //       MaxTransactionFee: MaxTransactionFee,
+          //       feeCreditRecordID: targetRecord,
+          //     },
+          //   };
 
-            billsToTransfer?.map(async (bill, idx) => {
-              const transferData: ITransactionPayload = {
-                payload: {
-                  ...baseObj(bill, transferType),
-                  attributes: {
-                    newBearer: newBearer,
-                    targetValue: BigInt(bill.value),
-                    backlink: Buffer.from(bill.txHash, "base64"),
-                  } as ITransactionAttributes,
-                  ...clientDataObj,
-                },
-              };
+          //   billsToTransfer?.map(async (bill, idx) => {
+          //     const transferData: ITransactionPayload = {
+          //       payload: {
+          //         ...baseObj(bill, transferType),
+          //         attributes: {
+          //           newBearer: newBearer,
+          //           targetValue: BigInt(bill.value),
+          //           backlink: Buffer.from(bill.txHash, "base64"),
+          //         } as ITransactionAttributes,
+          //         ...clientDataObj,
+          //       },
+          //     };
 
-              const isLastTransaction =
-                Number(billsToTransfer?.length) === idx + 1 &&
-                !billToSplit &&
-                !splitBillAmount;
+          //     const isLastTransaction =
+          //       Number(billsToTransfer?.length) === idx + 1 &&
+          //       !billToSplit &&
+          //       !splitBillAmount;
 
-              handleTransaction(
-                transferData as ITransactionPayload,
-                isLastTransaction,
-                bill.typeId
-              );
-            });
+          //     handleTransaction(
+          //       transferData as ITransactionPayload,
+          //       isLastTransaction,
+          //       bill.typeId
+          //     );
+          //   });
 
-            if (billToSplit && splitBillAmount) {
-              const splitData: ITransactionPayload = await {
-                payload: {
-                  ...baseObj(billToSplit, splitType),
-                  attributes: {
-                    targetUnits: [
-                      Object.values({
-                        targetValue: splitBillAmount,
-                        targetOwner: newBearer,
-                      }),
-                    ],
-                    remainingValue: BigInt(billToSplit.value) - splitBillAmount,
-                    backlink: Buffer.from(billToSplit.txHash, "base64"),
-                  } as ITransactionAttributes,
-                  ...clientDataObj,
-                },
-              };
+          //   if (billToSplit && splitBillAmount) {
+          //     const splitData: ITransactionPayload = await {
+          //       payload: {
+          //         ...baseObj(billToSplit, splitType),
+          //         attributes: {
+          //           targetUnits: [
+          //             Object.values({
+          //               targetValue: splitBillAmount,
+          //               targetOwner: newBearer,
+          //             }),
+          //           ],
+          //           remainingValue: BigInt(billToSplit.value) - splitBillAmount,
+          //           backlink: Buffer.from(billToSplit.txHash, "base64"),
+          //         } as ITransactionAttributes,
+          //         ...clientDataObj,
+          //       },
+          //     };
 
-              handleTransaction(
-                splitData as ITransactionPayload,
-                true,
-                billToSplit.typeId
-              );
-            }
-          });
+          //     handleTransaction(
+          //       splitData as ITransactionPayload,
+          //       true,
+          //       billToSplit.typeId
+          //     );
+          //   }
+          // });
 
-          const handleTransaction = async (
-            billData: any,
-            isLastTransfer: boolean,
-            billTypeId?: string
-          ) => {
-            if (billTypeId && billTypeId !== AlphaType) {
-              const attr = billData.payload.attributes;
-              billData.payload.attributes = {
-                bearer: newBearer,
-                value:
-                  Number(splitBillAmount) > 0
-                    ? splitBillAmount
-                    : attr.targetValue,
-                nonce: null,
-                backlink: attr.backlink,
-                typeID: Buffer.from(billTypeId.substring(2), "hex"),
-              };
+          // const handleTransaction = async (
+          //   billData: any,
+          //   isLastTransfer: boolean,
+          //   billTypeId?: string
+          // ) => {
+          //   if (billTypeId && billTypeId !== AlphaType) {
+          //     const attr = billData.payload.attributes;
+          //     billData.payload.attributes = {
+          //       bearer: newBearer,
+          //       value:
+          //         Number(splitBillAmount) > 0
+          //           ? splitBillAmount
+          //           : attr.targetValue,
+          //       nonce: null,
+          //       backlink: attr.backlink,
+          //       typeID: Buffer.from(billTypeId.substring(2), "hex"),
+          //     };
 
-              if (billData.payload.type === TokensSplitType) {
-                billData.payload.attributes.remainingValue =
-                  attr.remainingValue;
-              }
-              billData.payload.attributes.invariantPredicateSignatures = null;
-            }
+          //     if (billData.payload.type === TokensSplitType) {
+          //       billData.payload.attributes.remainingValue =
+          //         attr.remainingValue;
+          //     }
+          //     billData.payload.attributes.invariantPredicateSignatures = null;
+          //   }
 
-            const attributes = billData?.payload
-              .attributes as ITransactionAttributes;
-            const amount =
-              attributes?.targetValue ||
-              attributes?.value ||
-              splitBillAmount ||
-              0n;
+          //   const attributes = billData?.payload
+          //     .attributes as ITransactionAttributes;
+          //   const amount =
+          //     attributes?.targetValue ||
+          //     attributes?.value ||
+          //     splitBillAmount ||
+          //     0n;
 
-            const proof = await createOwnerProof(
-              billData.payload,
-              hashingPrivateKey,
-              hashingPublicKey
-            );
+          //   const proof = await createOwnerProof(
+          //     billData.payload,
+          //     hashingPrivateKey,
+          //     hashingPublicKey
+          //   );
 
-            const finishTransaction = async (
-              transferData: ITransactionPayload
-            ) => {
-              const feeProof = await createOwnerProof(
-                transferData.payload as ITransactionPayloadObj,
-                hashingPrivateKey,
-                hashingPublicKey
-              );
+          //   const finishTransaction = async (
+          //     transferData: ITransactionPayload
+          //   ) => {
+          //     const feeProof = await createOwnerProof(
+          //       transferData.payload as ITransactionPayloadObj,
+          //       hashingPrivateKey,
+          //       hashingPublicKey
+          //     );
 
-              if (proof.isSignatureValid) {
-                makeTransaction(
-                  prepTransactionRequestData(
-                    transferData,
-                    proof.ownerProof,
-                    feeProof.ownerProof
-                  ),
-                  account.pubKey,
-                  selectedAsset?.typeId === AlphaType
-                )
-                  .then(() => {
-                    setPreviousView(null);
+          //     if (proof.isSignatureValid) {
+          //       makeTransaction(
+          //         prepTransactionRequestData(
+          //           transferData,
+          //           proof.ownerProof,
+          //           feeProof.ownerProof
+          //         ),
+          //         account.pubKey,
+          //         selectedAsset?.typeId === AlphaType
+          //       )
+          //         .then(() => {
+          //           setPreviousView(null);
 
-                    const fungibleSelectedAsset = account?.assets?.fungible
-                      ?.filter(
-                        (asset) => account?.activeNetwork === asset.network
-                      )
-                      .find(
-                        (asset) => asset.typeId === values.assets.value?.typeId
-                      ) as IBill | IFungibleAsset;
+          //           const fungibleSelectedAsset = account?.assets?.fungible
+          //             ?.filter(
+          //               (asset) => account?.activeNetwork === asset.network
+          //             )
+          //             .find(
+          //               (asset) => asset.typeId === values.assets.value?.typeId
+          //             ) as IBill | IFungibleAsset;
 
-                    balanceAfterSending.current = balanceAfterSending.current
-                      ? BigInt(balanceAfterSending.current) - amount
-                      : BigInt(
-                          (fungibleSelectedAsset as IFungibleAsset)?.amount ||
-                            (fungibleSelectedAsset as IBill)?.value ||
-                            ""
-                        ) - amount;
-                  })
-                  .finally(() => {
-                    const handleTransferEnd = () => {
-                      addPollingInterval();
-                      setSelectedAsset(activeAsset);
-                    };
+          //           balanceAfterSending.current = balanceAfterSending.current
+          //             ? BigInt(balanceAfterSending.current) - amount
+          //             : BigInt(
+          //                 (fungibleSelectedAsset as IFungibleAsset)?.amount ||
+          //                   (fungibleSelectedAsset as IBill)?.value ||
+          //                   ""
+          //               ) - amount;
+          //         })
+          //         .finally(() => {
+          //           const handleTransferEnd = () => {
+          //             addPollingInterval();
+          //             setSelectedAsset(activeAsset);
+          //           };
 
-                    if (isLastTransfer) {
-                      handleTransferEnd();
-                    }
-                  });
-              }
-            };
+          //           if (isLastTransfer) {
+          //             handleTransferEnd();
+          //           }
+          //         });
+          //     }
+          //   };
 
-            if (selectedAsset?.typeId !== AlphaType) {
-              try {
-                const hierarchy: ITypeHierarchy[] = await Hierarchy(
-                  billTypeId || ""
-                );
-                const signatures = createInvariantPredicateSignatures(
-                  hierarchy,
-                  proof.ownerProof,
-                  activeAccountId
-                );
+          //   if (selectedAsset?.typeId !== AlphaType) {
+          //     try {
+          //       const hierarchy: ITypeHierarchy[] = await Hierarchy(
+          //         billTypeId || ""
+          //       );
+          //       const signatures = createInvariantPredicateSignatures(
+          //         hierarchy,
+          //         proof.ownerProof,
+          //         activeAccountId
+          //       );
 
-                billData.payload.attributes.invariantPredicateSignatures = signatures;
-                finishTransaction(billData);
-              } catch (error) {
-                setIsSending(false);
-                setErrors({
-                  password: error.message,
-                });
-              }
-            } else {
-              finishTransaction(billData);
-            }
-          };
+          //       billData.payload.attributes.invariantPredicateSignatures = signatures;
+          //       finishTransaction(billData);
+          //     } catch (error) {
+          //       setIsSending(false);
+          //       setErrors({
+          //         password: error.message,
+          //       });
+          //     }
+          //   } else {
+          //     finishTransaction(billData);
+          //   }
+          // };
         }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
