@@ -69,7 +69,7 @@ const getUnitsIdListByType = async (
     const idList = units.filter((unit) => unit.type.toBase16() === type);
     return idList;
   } catch(error) {
-    console.log('Error fetching units:', error);
+    console.error('Error fetching units:', error);
     return;
   }
 }       
@@ -102,8 +102,6 @@ function waitTransactionProof (
     const start = Date.now();
     const poller = async () => {
       const proof = await client.getTransactionProof(txHash);
-      console.log(txHash, "TX HASH")
-      console.log(proof)
       if (proof !== null) {
         return resolve(proof);
       }
@@ -154,7 +152,7 @@ export const getBalance = async (
     }
     return {balance, pubKey};
   } catch(error) {
-    console.log('Error fetching units values:', error);
+    console.error('Error fetching units values:', error);
     return
   }
 };
@@ -179,7 +177,7 @@ export const getBillsList = async (
     }
     return billsList;
   } catch(error) {
-    console.log('Error fetching unit by id:', error);
+    console.error('Error fetching unit by id:', error);
     return;
   }
 };
@@ -243,7 +241,6 @@ export const getUserTokens = async (
   kind: TokenUnitType,
   activeAsset?: string
 ): Promise<IListTokensResponse[]> => {
-  console.log("IM IN TOKENS")
   let type: UnitType;
   switch (kind) {
       case TokenUnitType.FUNGIBLE:
@@ -360,7 +357,7 @@ export const getRoundNumber = async (isAlpha: boolean): Promise<bigint | null> =
   try {  
     return client.getRoundNumber();
   } catch(error) {
-    console.log('Error fetching round number:', error);
+    console.error('Error fetching round number:', error);
     return null;
   }
 };
@@ -425,17 +422,7 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId
         tokenUnitIdFactory: tokenUnitIdFactory,
       })
 
-  // const unitIds = await getUnitsIdListByType(
-  //   Base16Converter.encode(signingService.publicKey), 
-  //   UnitType.MONEY_PARTITION_BILL_DATA, 
-  //   moneyClientFee
-  // );
-
-  console.log(billId)
-
   const units = await moneyClient.getUnitsByOwnerId(signingService.publicKey);
-
-  console.log(units)
   const unitId = units.find((id) => compareArray(id.bytes, billId))
 
   if(!unitId){
@@ -594,7 +581,6 @@ export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array,
     }
   );
 
-  // console.log(await waitTransactionProof(client, transferBillHash));
   return transferBillHash
 }
 

@@ -36,8 +36,6 @@ function waitTransactionProof (
     const start = Date.now();
     const poller = async () => {
       const proof = await client.getTransactionProof(txHash);
-      console.log(txHash, "TX HASH")
-      console.log(proof)
       if (proof !== null) {
         return resolve(proof);
       }
@@ -112,8 +110,6 @@ export const createFungibleToken = async(privateKey: string) => {
     (id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD,
   );
 
-  console.log(feeCreditRecordId)
-
   if(!feeCreditRecordId){
     throw new Error("Error fetching unit fee credit record")
   }
@@ -122,8 +118,6 @@ export const createFungibleToken = async(privateKey: string) => {
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
 
   let tokenTypeUnitId = units.find((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE)
-
-  console.log(await client.getUnit(feeCreditRecordId!, false) as FeeCreditRecord)
 
   if(!tokenTypeUnitId){
     tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE);
@@ -144,7 +138,6 @@ export const createFungibleToken = async(privateKey: string) => {
       referenceNumber: null
     },
   );
-  console.log(createFungibleTokenHash, "Token Hash");
   console.log((await waitTransactionProof(client, createFungibleTokenHash))?.toString());
 }
 

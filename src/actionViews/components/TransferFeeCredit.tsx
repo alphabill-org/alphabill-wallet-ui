@@ -150,15 +150,11 @@ export default function TransferFeeCredit(): JSX.Element | null {
       })
     }
 
-    const { optimalBills, billToSplit, billsToTransfer } = await handleBillSelection(convertedAmount.toString(), billsArr)
-    const test = Base16Converter.decode(optimalBills[0].id)
-    console.log(test)
-    console.log(billToSplit, "Bills to split")
-    console.log(billsToTransfer, "Bill to transfer")
-    console.log(optimalBills, "Optimal bills");
+    const { optimalBills } = await handleBillSelection(convertedAmount.toString(), billsArr)
+    const optimalBill = Base16Converter.decode(optimalBills[0].id)
 
     try {
-      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, test, isAlphaTransaction);
+      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, optimalBill, isAlphaTransaction);
       setPreviousView(null);
       addPollingInterval(txHash, isAlphaTransaction);
     } catch (error) {
