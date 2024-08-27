@@ -3,7 +3,6 @@ import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import {
   IBillsList,
   IListTokensResponse,
-  ITokensListTypes,
   IFeeCreditBills,
   ITxProof,
 } from "../types/Types";

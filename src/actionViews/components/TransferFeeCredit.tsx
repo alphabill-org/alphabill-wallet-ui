@@ -26,7 +26,6 @@ import {
   addDecimal,
   handleBillSelection,
 } from "../../utils/utils"
-import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
 
 export interface FormValues {
   amount: string,

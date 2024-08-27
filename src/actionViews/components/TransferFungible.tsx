@@ -7,23 +7,17 @@ import { useQueryClient } from "react-query";
 import Button from "../../components/Button/Button";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
-
 import Select from "../../components/Select/Select";
+
 import {
   IFungibleAsset,
   IBill,
-  ITransactionPayload,
-  ITypeHierarchy,
   IActiveAsset,
-  ITransactionAttributes,
-  ITransactionPayloadObj,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
   getProof,
-  getRoundNumber,
-  makeTransaction,
   splitBill,
   splitFungibleToken,
   transferBill,
@@ -34,12 +28,9 @@ import {
   extractFormikError,
   getKeys,
   base64ToHexPrefixed,
-  createOwnerProof,
-  predicateP2PKH,
   invalidateAllLists,
   addDecimal,
   convertToWholeNumberBigInt,
-  createInvariantPredicateSignatures,
   separateDigits,
   getTokensLabel,
   FeeCostEl,
@@ -49,26 +40,12 @@ import {
   createEllipsisString,
 } from "../../utils/utils";
 import {
-  TimeoutBlocks,
-  TokensTransferType,
-  TokensSplitType,
-  AlphaTransferType,
-  AlphaSplitType,
-  AlphaSystemId,
-  TokensSystemId,
   AlphaType,
   FungibleListView,
   TransferFungibleView,
-  MaxTransactionFee,
   TokenType,
 } from "../../utils/constants";
-
-import {
-  prepTransactionRequestData,
-  publicKeyHashWithFeeType,
-} from "../../utils/hashers";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
-import { createFungibleToken, createFungibleTokenType } from "../../hooks/testRequests";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -237,12 +214,14 @@ export default function TransferFungible(): JSX.Element | null {
       : await transferFungibleToken(hashingPrivateKey, recipient, decodedId)
 
     if(!transferHash){
+      setIsSending(false);
       return setErrors({
         password: error || "Error occured during the transaction!"
       })
     }
     addPollingInterval(Base16Converter.encode(transferHash), isAlpha);
    } catch(error) {
+     console.log(error);
      return setErrors({
       password: (error as Error).message || "Error occured during the transaction"
      })
@@ -283,9 +262,9 @@ export default function TransferFungible(): JSX.Element | null {
       ? [directlySelectedAsset]
       : unlockedBillsList || [];
 
-    const {
-      billToSplit,
-    } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
+    const { billToSplit } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
+
+    console.log(billToSplit)
 
     if(!billToSplit) {
       return setErrors({
@@ -312,6 +291,8 @@ export default function TransferFungible(): JSX.Element | null {
       }
       addPollingInterval(Base16Converter.encode(splitHash), isAlpha);
     } catch(error) {
+      setIsSending(false);
+      console.log(error)
       return setErrors({
         password: (error as Error).message || "Error occured during the transaction"
       })

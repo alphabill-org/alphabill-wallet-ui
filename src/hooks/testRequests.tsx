@@ -14,7 +14,7 @@ import { TransactionPayload } from '@alphabill/alphabill-js-sdk/lib/transaction/
 import { ITransactionPayloadAttributes } from '@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes.js';
 import { TokenUnitIdFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/TokenUnitIdFactory';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/PayToPublicKeyHashPredicate';
-import { FeeCreditRecord } from '@alphabill/alphabill-js-sdk/lib/FeeCreditRecord';
+import { NonFungibleTokenData } from '@alphabill/alphabill-js-sdk/lib/transaction/NonFungibleTokenData.js';
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -50,8 +50,8 @@ function waitTransactionProof (
   });
 }
 
-export const createFungibleTokenType = async(privateKey: string) => {
-  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+export const createFungibleTokenType = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
   const transactionOrderFactory = new TransactionOrderFactory(cborCodec, signingService);
 
   const client = createTokenClient({
@@ -70,13 +70,13 @@ export const createFungibleTokenType = async(privateKey: string) => {
   
   const round = await client.getRoundNumber();
 
-  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE);
+  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 5]), UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE);
 
   const createFungibleTokenTypeHash = await client.createFungibleTokenType(
     {
       type: { unitId: tokenTypeUnitId },
-      symbol: 'E',
-      name: 'Big money come',
+      symbol: 'T',
+      name: 'T - Token',
       icon: new TokenIcon('image/png', new Uint8Array()),
       parentTypeId: null,
       decimalPlaces: 8,
@@ -95,8 +95,8 @@ export const createFungibleTokenType = async(privateKey: string) => {
   console.log((await waitTransactionProof(client, createFungibleTokenTypeHash))?.toString());
 }
 
-export const createFungibleToken = async(privateKey: string) => {
-  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+export const createFungibleToken = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
   const transactionOrderFactory = new TransactionOrderFactory(cborCodec, signingService);
   const tokenUnitIdFactory = new TokenUnitIdFactory(cborCodec);
 
@@ -120,14 +120,14 @@ export const createFungibleToken = async(privateKey: string) => {
   let tokenTypeUnitId = units.find((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE)
 
   if(!tokenTypeUnitId){
-    tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE);
+    tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 5]), UnitType.TOKEN_PARTITION_FUNGIBLE_TOKEN_TYPE);
   } 
 
   const createFungibleTokenHash = await client.createFungibleToken(
     {
       ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
       type: {unitId: tokenTypeUnitId},
-      value: 1000000000n,
+      value: 100000000000000n,
       nonce: 0n,
       tokenCreationPredicateSignatures: [null],
     },
@@ -141,11 +141,83 @@ export const createFungibleToken = async(privateKey: string) => {
   console.log((await waitTransactionProof(client, createFungibleTokenHash))?.toString());
 }
 
+export const createNFT = async (privateKey: string) => {
+  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+  const client = createTokenClient({
+    transport: http(TOKENS_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    tokenUnitIdFactory: new TokenUnitIdFactory(cborCodec)
+  });
+
+  const feeCreditRecordId = (await client.getUnitsByOwnerId(signingService.publicKey)).findLast(
+    (id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD,
+  );
+  const round = await client.getRoundNumber();
+  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
+  
+  const createNonFungibleTokenHash = await client.createNonFungibleToken(
+    {
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      type: { unitId: tokenTypeUnitId },
+      name: 'Potatoz',
+      uri: 'http://guardtime.com',
+      data: await NonFungibleTokenData.create(cborCodec, [
+        'user variables as primitives',
+        10000,
+        [true, new Uint8Array()],
+      ]),
+      dataUpdatePredicate: new AlwaysTruePredicate(),
+      nonce: 0n,
+      tokenCreationPredicateSignatures: [null],
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+    },
+  );
+  console.log((await waitTransactionProof(client, createNonFungibleTokenHash))?.toString());
+}
+
+export const createNFTType = async(privateKey: string) => {
+  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+  const client = createTokenClient({
+    transport: http(TOKENS_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    tokenUnitIdFactory: new TokenUnitIdFactory(cborCodec)
+  });
+
+  const feeCreditRecordId = (await client.getUnitsByOwnerId(signingService.publicKey)).findLast(
+    (id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD,
+  );
+
+  if(!feeCreditRecordId){
+    throw new Error('No fee credit record was found!')
+  }
+  const round = await client.getRoundNumber();
+  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
+  
+  const createNonFungibleTokenTypeHash = await client.createNonFungibleTokenType(
+    {
+      type: { unitId: tokenTypeUnitId },
+      symbol: 'NN',
+      name: 'Potatoz',
+      icon: { type: 'image/png', data: new Uint8Array() },
+      parentTypeId: null,
+      subTypeCreationPredicate: new AlwaysTruePredicate(),
+      tokenCreationPredicate: new AlwaysTruePredicate(),
+      invariantPredicate: new AlwaysTruePredicate(),
+      dataUpdatePredicate: new AlwaysTruePredicate(),
+      subTypeCreationPredicateSignatures: null,
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    },
+  );
+  console.log((await waitTransactionProof(client, createNonFungibleTokenTypeHash))?.toString());
 
 
-
-
-
-
-
-
+}

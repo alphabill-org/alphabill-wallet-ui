@@ -290,6 +290,10 @@ export const getUserTokens = async (
                   decimals: tokenType.decimalPlaces,
                   amount: token.value.toString(),
                   UIAmount: separateDigits(addDecimal(token.value.toString(), tokenType.decimalPlaces)),
+                  value: token.value.toString(),
+                  icon: tokenType.icon,
+                  invariantPredicate: Base64Converter.encode(tokenType.invariantPredicate.bytes)
+
               };
               break;
           }
@@ -308,6 +312,8 @@ export const getUserTokens = async (
                   nftData: Base64Converter.encode(token.data),
                   nftUri: token.uri,
                   nftDataUpdatePredicate: Base64Converter.encode(token.dataUpdatePredicate.bytes),
+                  icon: tokenType.icon,
+                  invariantPredicate: Base64Converter.encode(tokenType.invariantPredicate.bytes)
               };
               break;
           }
@@ -594,7 +600,7 @@ export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Ui
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
-  const unitId = units.findLast((id) => id.bytes === tokenId);
+  const unitId = units.findLast((id) => compareArray(id.bytes, tokenId));
   const round = await client.getRoundNumber();
 
   if(!feeCreditRecordId) {
@@ -616,7 +622,7 @@ export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Ui
       ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
       nonce: null,
       type: {unitId: token.tokenType},
-      invariantPredicateSignatures: []
+      invariantPredicateSignatures: [null]
     },
     {
       maxTransactionFee: 5n,
@@ -695,7 +701,7 @@ export const splitFungibleToken = async(
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
-  const unitId = units.findLast((id) => id.bytes === tokenId);
+  const unitId = units.findLast((id) => compareArray(id.bytes, tokenId));
   const round = await client.getRoundNumber();
 
   if(!unitId){
@@ -715,7 +721,7 @@ export const splitFungibleToken = async(
       amount: amount,
       nonce: null,
       type: { unitId: token.tokenType },
-      invariantPredicateSignatures: [],
+      invariantPredicateSignatures: [null],
     },
     {
       maxTransactionFee: 5n,

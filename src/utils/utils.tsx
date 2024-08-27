@@ -14,7 +14,6 @@ import {
   IBill,
   ITypeHierarchy,
   IListTokensResponse,
-  ITokensListTypes,
   INFTAsset,
   ITransactionPayloadObj,
 } from "../types/Types";
@@ -26,7 +25,6 @@ import {
   DCTransfersLimit,
   localStorageKeys,
 } from "./constants";
-import { publicKeyHash } from "./hashers";
 
 export const predicateP2PKH = async (address: string) => {
   const checkedAddress = address.startsWith("0x")
@@ -235,15 +233,7 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  const isOwner = checkOwnerPredicate(key, invariantPredicate);
-
-  if (invariantPredicate === alwaysTrueBase64) {
-    return true;
-  } else if (isOwner) {
-    return isOwner;
-  }
-
-  return false;
+  return invariantPredicate === alwaysTrueBase64 || checkOwnerPredicate(key, invariantPredicate);
 };
 
 export const createOwnerProof = async (
@@ -558,10 +548,10 @@ export const getUpdatedNFTAssets = (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
         isSendable: isTokenSendable(
-          "",
+          nft.invariantPredicate,
           activeAccountId
         ),
-        iconImage: "",
+        iconImage: nft.icon,
         amountOfSameType:
           NFTsList?.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -593,6 +583,8 @@ const getUpdatesUTPFungibleTokens = (
           txHash: token.txHash,
           symbol: token.symbol,
           network: token.network,
+          icon: token.icon,
+          invariantPredicate: token.invariantPredicate
         });
       } else {
         for (let resultToken of userTokens) {
@@ -615,10 +607,10 @@ const getUpdatesUTPFungibleTokens = (
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
-       "",
+        obj.invariantPredicate,
         activeAccountId
       ),
-      iconImage: "",
+      iconImage: obj.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),

@@ -15,7 +15,6 @@ import {
   IFeeCreditBills,
   IListTokensResponse,
   INFTAsset,
-  ITokensListTypes,
 } from "../types/Types";
 import {
   useGetAllUserTokens,
