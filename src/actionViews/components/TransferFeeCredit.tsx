@@ -15,6 +15,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getProof, addFeeCredit } from "../../hooks/requests";
 import { AlphaType, AlphaDecimals, MaxTransactionFee, TokenType } from "../../utils/constants";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+import { IFeeCreditForm } from "../../types/Types";
 
 import {
   extractFormikError,
@@ -26,12 +27,6 @@ import {
   addDecimal,
   handleBillSelection,
 } from "../../utils/utils"
-
-export interface FormValues {
-  amount: string,
-  assets: {value: string, label: string},
-  password: string
-}
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -115,8 +110,8 @@ export default function TransferFeeCredit(): JSX.Element | null {
   }
 
   const handleSubmit = async(
-    values: FormValues, 
-    setErrors: (errors: FormikErrors<FormValues>) => void
+    values: IFeeCreditForm, 
+    setErrors: (errors: FormikErrors<IFeeCreditForm>) => void
   ) => {
     const isAlphaTransaction = values.assets.value === AlphaType;
     const {error, hashingPrivateKey, hashingPublicKey} = getKeys(

@@ -1,5 +1,8 @@
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
 import { ITokensListTypes } from "../types/Types";
 import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
+import { AlwaysTruePredicate } from "@alphabill/alphabill-js-sdk/lib/transaction/AlwaysTruePredicate";
+import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
 
 export const TokenTypes: ITokensListTypes[] = [
   {
@@ -66,6 +69,8 @@ export const NFTsList_1 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/png", new Uint8Array()),
+    invariantPredicate: Base64Converter.encode(new AlwaysTruePredicate().bytes),
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
@@ -77,6 +82,8 @@ export const NFTsList_1 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/png", new Uint8Array()),
+    invariantPredicate: Base64Converter.encode(new AlwaysTruePredicate().bytes),
   },
 ];
 
@@ -91,6 +98,8 @@ export const NFTsList_2 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/png", new Uint8Array()),
+    invariantPredicate: Base64Converter.encode(new AlwaysTruePredicate().bytes),
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
@@ -102,6 +111,8 @@ export const NFTsList_2 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/png", new Uint8Array()),
+    invariantPredicate: Base64Converter.encode(new AlwaysTruePredicate().bytes),
   },
 ];
 
@@ -116,6 +127,8 @@ export const NFTsList_3 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysFalseBase64,
+    icon: new TokenIcon("image/png", new Uint8Array()),
+    invariantPredicate: Base64Converter.encode(new AlwaysTruePredicate().bytes),
   },
 ];
 

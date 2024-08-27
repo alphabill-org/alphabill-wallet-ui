@@ -13,6 +13,7 @@ import {
   IFungibleAsset,
   IBill,
   IActiveAsset,
+  ITransferForm,
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
@@ -168,19 +169,9 @@ export default function TransferFungible(): JSX.Element | null {
 
   if (!isActionsViewVisible) return <div></div>;
 
-  interface FormikValues {
-    assets: {
-      value: IBill | IFungibleAsset | undefined;
-      label: string;
-    };
-    amount: string;
-    address: string;
-    password: string;
-  }
-
   const handleTransfer = async(
-    values: FormikValues,
-    setErrors: (errors: FormikErrors<FormikValues>) => void
+    values: ITransferForm,
+    setErrors: (errors: FormikErrors<ITransferForm>) => void
   ) => {
 
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
@@ -231,8 +222,8 @@ export default function TransferFungible(): JSX.Element | null {
 
 
   const handleSplit = async(
-    values: FormikValues,
-    setErrors: (errors: FormikErrors<FormikValues>) => void
+    values: ITransferForm,
+    setErrors: (errors: FormikErrors<ITransferForm>) => void
   ) => {
     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
       values.password,
