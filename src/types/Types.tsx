@@ -105,7 +105,7 @@ export interface IListTokensResponse {
   nftDataUpdatePredicate?: string; // nft only
   network: string;
   nftName?: string; // nft only
-  invariantPredicate: string
+  invariantPredicate?: string // fungible only
   icon: TokenIcon;
 }
 

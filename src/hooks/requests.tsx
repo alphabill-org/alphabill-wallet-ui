@@ -313,7 +313,6 @@ export const getUserTokens = async (
                   nftUri: token.uri,
                   nftDataUpdatePredicate: Base64Converter.encode(token.dataUpdatePredicate.bytes),
                   icon: tokenType.icon,
-                  invariantPredicate: Base64Converter.encode(tokenType.invariantPredicate.bytes)
               };
               break;
           }

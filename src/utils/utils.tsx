@@ -548,7 +548,7 @@ export const getUpdatedNFTAssets = (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
         isSendable: isTokenSendable(
-          nft.invariantPredicate,
+          nft.nftDataUpdatePredicate ? nft.nftDataUpdatePredicate : "",
           activeAccountId
         ),
         iconImage: nft.icon,
@@ -607,7 +607,7 @@ const getUpdatesUTPFungibleTokens = (
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
-        obj.invariantPredicate,
+        obj.invariantPredicate ? obj.invariantPredicate : "",
         activeAccountId
       ),
       iconImage: obj.icon,
