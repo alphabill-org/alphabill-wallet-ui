@@ -20,7 +20,6 @@ import {
   IPayloadClientMetadata,
   ITransactionPayload,
   ITransactionPayloadObj,
-  ITxProof,
 } from "../../../types/Types";
 import {
   getRoundNumber,

@@ -118,7 +118,7 @@ export default function TransferFungible(): JSX.Element | null {
     setIsActionsViewVisible(false);
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
-  const addPollingInterval = (txHash: string, isAlpha: boolean) => {
+  const addPollingInterval = useCallback((txHash: string, isAlpha: boolean) => {
     initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
@@ -133,7 +133,7 @@ export default function TransferFungible(): JSX.Element | null {
         throw new Error('Error fetching transaction proof')
       })
     }, 500);
-  };
+  }, [activeAccountId, fungibleActiveAsset.typeId, handleTransactionEnd, queryClient]);
 
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimals || 0));
@@ -166,8 +166,6 @@ export default function TransferFungible(): JSX.Element | null {
     actionsView,
     handleTransactionEnd,
   ]);
-
-  if (!isActionsViewVisible) return <div></div>;
 
   const handleTransfer = async(
     values: ITransferForm,
@@ -221,7 +219,7 @@ export default function TransferFungible(): JSX.Element | null {
   }
 
 
-  const handleSplit = async(
+  const handleSplit =  useCallback( async(
     values: ITransferForm,
     setErrors: (errors: FormikErrors<ITransferForm>) => void
   ) => {
@@ -288,8 +286,9 @@ export default function TransferFungible(): JSX.Element | null {
         password: (error as Error).message || "Error occured during the transaction"
       })
     }
-  }
+  }, [account?.idx, addPollingInterval, directlySelectedAsset, selectedAsset?.decimals, selectedAsset?.typeId, selectedTransferKey, unlockedBillsList, vault])
 
+  if (!isActionsViewVisible) return <div></div>;
 
   return (
     <div className="w-100p">

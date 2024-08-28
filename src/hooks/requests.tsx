@@ -182,45 +182,6 @@ export const getBillsList = async (
   }
 };
 
-export const fetchAllTypes = async (
-  kind: string = "all",
-  limit: number = 100,
-  offsetKey: string = ""
-) => {
-  const types = [];
-  let nextOffsetKey: string | null = offsetKey;
-
-  while (nextOffsetKey !== null) {
-    const response: AxiosResponse = await axios.get(
-      TOKENS_BACKEND_URL +
-        (nextOffsetKey
-          ? nextOffsetKey.replace("/api/v1", "") // TOKENS_BACKEND_URL includes /api/v1
-          : `/kinds/${kind}/types?limit=${limit}`)
-    );
-
-    const data = response.data;
-
-    // Add types to the list
-    data && types.push(...data);
-
-    // Check if there is a "next" link in the response header
-    const linkHeader = response.headers.link;
-
-    if (linkHeader) {
-      const nextLinkMatch = linkHeader.match(/<([^>]+)>; rel="next"/);
-      if (nextLinkMatch) {
-        // Extract the next offset key from the link header
-        nextOffsetKey = nextLinkMatch[1];
-      } else {
-        nextOffsetKey = null;
-      }
-    } else {
-      nextOffsetKey = null;
-    }
-  }
-  return types;
-};
-
 export const getTypeHierarchy = async (typeId: string) => {
 
   if(!typeId) return;

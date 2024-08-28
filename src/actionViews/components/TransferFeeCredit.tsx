@@ -77,9 +77,17 @@ export default function TransferFeeCredit(): JSX.Element | null {
     setAvailableAmount(getAvailableAmount(AlphaDecimals || 0));
   }, [getAvailableAmount, isActionsViewVisible]);
 
-  if (!isActionsViewVisible) return <div></div>;
+  const removePollingInterval = useCallback(() => {
+    pollingInterval.current 
+      && clearInterval(pollingInterval.current);
+    setIsSending(false);
+    isFeeCreditAdded.current 
+      && setIsActionsViewVisible(false)
 
-  const addPollingInterval = (txHash: Uint8Array, isAlpha?: boolean) => {
+    isFeeCreditAdded.current = false;
+  }, [setIsActionsViewVisible])
+
+  const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha?: boolean) => {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);
@@ -97,19 +105,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
         removePollingInterval();
       })
     }, 1000)
-  }
+  }, [activeAccountId, queryClient, removePollingInterval])
 
-  const removePollingInterval = () => {
-    pollingInterval.current 
-      && clearInterval(pollingInterval.current);
-    setIsSending(false);
-    isFeeCreditAdded.current 
-      && setIsActionsViewVisible(false)
-
-    isFeeCreditAdded.current = false;
-  }
-
-  const handleSubmit = async(
+  const handleSubmit = useCallback( async(
     values: IFeeCreditForm, 
     setErrors: (errors: FormikErrors<IFeeCreditForm>) => void
   ) => {
@@ -157,7 +155,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
         password: (error as Error).message || "Error occured during the transaction"
       })
     }
-  }
+  }, [account?.idx, addPollingInterval, billsArr, removePollingInterval, setPreviousView, vault]); 
+
+  if (!isActionsViewVisible) return <div></div>;
 
   return (
     <div className="w-100p">
