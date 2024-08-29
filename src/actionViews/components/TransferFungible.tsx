@@ -167,56 +167,53 @@ export default function TransferFungible(): JSX.Element | null {
     handleTransactionEnd,
   ]);
 
-  const handleTransfer = async(
-    values: ITransferForm,
-    setErrors: (errors: FormikErrors<ITransferForm>) => void
-  ) => {
+  const handleTransfer = useCallback( async(
+      values: ITransferForm,
+      setErrors: (errors: FormikErrors<ITransferForm>) => void
+    ) => {
+      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+        values.password,
+        Number(account?.idx),
+        vault
+      );
 
-    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-      values.password,
-      Number(account?.idx),
-      vault
-    );
+      if (error || !hashingPrivateKey || !hashingPublicKey) {
+        return setErrors({
+          password: error || "Hashing keys are missing!",
+        });
+      }
 
-    if (error || !hashingPrivateKey || !hashingPublicKey) {
-      return setErrors({
-        password: error || "Hashing keys are missing!",
-      });
-    }
+      if(!activeAsset.id){
+        return setErrors({
+          password: error || "Select an asset to transfer"
+        })
+      }
 
-    if(!activeAsset.id){
-      return setErrors({
-        password: error || "Select an asset to transfer"
-      })
-    }
+      setIsSending(true);
 
-    setIsSending(true);
-
-    const isAlpha = selectedAsset?.typeId === AlphaType;
+      const isAlpha = selectedAsset?.typeId === AlphaType;
     
-   try {
-    const decodedId = Base16Converter.decode(activeAsset.id);
-    const recipient = Base16Converter.decode(values.address);
+    try {
+      const decodedId = Base16Converter.decode(activeAsset.id);
+      const recipient = Base16Converter.decode(values.address);
 
-    const transferHash = isAlpha 
-      ? await transferBill(hashingPrivateKey, recipient, decodedId)
-      : await transferFungibleToken(hashingPrivateKey, recipient, decodedId)
+      const transferHash = isAlpha 
+        ? await transferBill(hashingPrivateKey, recipient, decodedId)
+        : await transferFungibleToken(hashingPrivateKey, recipient, decodedId)
 
-    if(!transferHash){
-      setIsSending(false);
+      if(!transferHash){
+        setIsSending(false);
+        return setErrors({
+          password: error || "Error occured during the transaction!"
+        })
+      }
+      addPollingInterval(Base16Converter.encode(transferHash), isAlpha);
+    } catch(error) {
       return setErrors({
-        password: error || "Error occured during the transaction!"
+        password: (error as Error).message || "Error occured during the transaction"
       })
     }
-    addPollingInterval(Base16Converter.encode(transferHash), isAlpha);
-   } catch(error) {
-     console.log(error);
-     return setErrors({
-      password: (error as Error).message || "Error occured during the transaction"
-     })
-   }
-
-  }
+  }, [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault])
 
 
   const handleSplit =  useCallback( async(
@@ -253,8 +250,6 @@ export default function TransferFungible(): JSX.Element | null {
 
     const { billToSplit } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
 
-    console.log(billToSplit)
-
     if(!billToSplit) {
       return setErrors({
         password: error || "Select an asset to transfer"
@@ -281,7 +276,6 @@ export default function TransferFungible(): JSX.Element | null {
       addPollingInterval(Base16Converter.encode(splitHash), isAlpha);
     } catch(error) {
       setIsSending(false);
-      console.log(error)
       return setErrors({
         password: (error as Error).message || "Error occured during the transaction"
       })
