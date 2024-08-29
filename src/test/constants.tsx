@@ -1,3 +1,4 @@
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
 import { ITokensListTypes } from "../types/Types";
 import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
 
@@ -66,6 +67,7 @@ export const NFTsList_1 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
@@ -77,6 +79,7 @@ export const NFTsList_1 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 
@@ -91,6 +94,7 @@ export const NFTsList_2 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
@@ -102,6 +106,7 @@ export const NFTsList_2 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysTrueBase64,
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 
@@ -116,6 +121,7 @@ export const NFTsList_3 = [
     network: "AB Devnet",
     nftData: "YSBuZXcgbmZ0",
     nftDataUpdatePredicate: alwaysFalseBase64,
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 
@@ -132,10 +138,8 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 2,
-    iconImage: {
-      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
-      type: "image/svg+xml",
-    },
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
+    iconImage: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
   {
     id: "1YSX1ru+cVcx2OoVcMYETrTRE3uKv3HZruIHIxi9fbA=",
@@ -149,10 +153,8 @@ export const NFTSameTypeResult = [
     nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 2,
-    iconImage: {
-      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
-      type: "image/svg+xml",
-    },
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
+    iconImage: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 
@@ -169,10 +171,8 @@ export const NFTIsSendableFalseResult = [
     nftDataUpdatePredicate: alwaysFalseBase64,
     isSendable: false,
     amountOfSameType: 1,
-    iconImage: {
-      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
-      type: "image/svg+xml",
-    },
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
+    iconImage: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 
@@ -189,10 +189,8 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 1,
-    iconImage: {
-      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
-      type: "image/svg+xml",
-    },
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
+    iconImage: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
   {
     id: "GJco9N79b9RGT0KCBFECWdrM+tQYft5vB7acnCLQpj0=",
@@ -206,10 +204,8 @@ export const NFTDifferentTypeResult = [
     nftDataUpdatePredicate: alwaysTrueBase64,
     isSendable: true,
     amountOfSameType: 1,
-    iconImage: {
-      data: "PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFN",
-      type: "image/svg+xml",
-    },
+    icon: new TokenIcon("image/svg+xml", new Uint8Array()),
+    iconImage: new TokenIcon("image/svg+xml", new Uint8Array()),
   },
 ];
 

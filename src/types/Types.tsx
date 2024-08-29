@@ -1,5 +1,21 @@
-import { string } from "yup/lib/locale";
 import { AlphaType, TokenType } from "../utils/constants";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
+
+export interface ITransferForm {
+  assets: {
+    value: IBill | IFungibleAsset | undefined;
+    label: string;
+  };
+  amount: string;
+  address: string;
+  password: string;
+}
+
+export interface IFeeCreditForm {
+  amount: string,
+  assets: {value: string, label: string},
+  password: string
+}
 
 export interface IAccount {
   pubKey: string;
@@ -89,6 +105,8 @@ export interface IListTokensResponse {
   nftDataUpdatePredicate?: string; // nft only
   network: string;
   nftName?: string; // nft only
+  invariantPredicate?: string // fungible only
+  icon: TokenIcon;
 }
 
 export interface IActiveAsset {

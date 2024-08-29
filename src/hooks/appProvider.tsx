@@ -15,10 +15,8 @@ import {
   IFeeCreditBills,
   IListTokensResponse,
   INFTAsset,
-  ITokensListTypes,
 } from "../types/Types";
 import {
-  useGetAllTokenTypes,
   useGetAllUserTokens,
   useGetBalances,
   useGetBillsList,
@@ -61,7 +59,6 @@ interface IAppContextShape {
   selectedTransferAccountKey: string | null | undefined;
   setSelectedTransferAccountKey: (e: string | null) => void;
   feeCreditBills?: IFeeCreditBills;
-  tokenTypes: ITokensListTypes[] | undefined;
 }
 
 export const AppContext = createContext<IAppContextShape>(
@@ -80,7 +77,6 @@ export const AppProvider: FunctionComponent<{
     activeAsset,
     activeNFT,
     setActiveAssetLocal,
-    pubKeyHash,
   } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem(LocalKeyAccountNames) || "";
@@ -98,7 +94,7 @@ export const AppProvider: FunctionComponent<{
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
-  const { data: feeCreditBills } = useGetFeeCreditBills(pubKeyHash);
+  const { data: feeCreditBills } = useGetFeeCreditBills(activeAccountId);
   const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
     useGetAllUserTokens(activeAccountId);
   const { data: NFTsList, isLoading: isLoadingNFTs } =
@@ -111,8 +107,6 @@ export const AppProvider: FunctionComponent<{
     activeAccountId,
     activeNFT && activeNFT.typeId
   );
-  const { data: tokenTypes, isLoading: isLoadingTokenTypes } =
-    useGetAllTokenTypes(activeAccountId);
   const billsList =
     activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
 
@@ -139,14 +133,12 @@ export const AppProvider: FunctionComponent<{
     const assets = {
       fungible: getUpdatedFungibleAssets(
         fungibleTokensList,
-        tokenTypes,
         activeAccountId,
         balances
       ),
       nft:
         (getUpdatedNFTAssets(
           NFTsList,
-          tokenTypes,
           activeAccountId
         ) as INFTAsset[]) || [],
     };
@@ -177,8 +169,7 @@ export const AppProvider: FunctionComponent<{
             } else if (
               activeAccountId === keyRes?.ab_connected_key &&
               !isLoadingNFTs &&
-              !isLoadingFungibleTokens &&
-              !isLoadingTokenTypes
+              !isLoadingFungibleTokens
             ) {
               setError("No token with given type ID");
               removeConnectTransferData();
@@ -231,13 +222,11 @@ export const AppProvider: FunctionComponent<{
     setActiveAccountId,
     activeAsset,
     fungibleTokensList,
-    tokenTypes,
     account?.assets,
     NFTsList,
     setActiveAssetLocal,
     account?.pubKey,
     isLoadingNFTs,
-    isLoadingTokenTypes,
     isLoadingFungibleTokens,
   ]);
 
@@ -263,7 +252,6 @@ export const AppProvider: FunctionComponent<{
         previousView,
         setPreviousView,
         feeCreditBills,
-        tokenTypes,
       }}
     >
       {children}

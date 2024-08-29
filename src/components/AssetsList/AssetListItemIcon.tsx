@@ -5,9 +5,9 @@ import { ReactComponent as ABLogo } from "../../images/ab-logo-ico.svg";
 import { Base64imageComponent, base64ToHexPrefixed } from "../../utils/utils";
 import { useGetImageUrl } from "../../hooks/api";
 import Spinner from "../Spinner/Spinner";
-import { ITokensListTypes } from "../../types/Types";
-import { useApp } from "../../hooks/appProvider";
 import classNames from "classnames";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
+import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
 
 export interface IAssetsListItemIconProps {
   asset: any;
@@ -19,32 +19,36 @@ export default function AssetsListItemIcon({
   isTypeListItem,
 }: IAssetsListItemIconProps): JSX.Element | null {
   const hexId = base64ToHexPrefixed(asset?.id);
-  const { tokenTypes } = useApp();
   const nftUri = asset?.nftUri || "";
   const { data: imageResponse, isLoading: isLoadingImage } = useGetImageUrl(
     nftUri,
     Boolean(isTypeListItem)
   );
-  const label = isTypeListItem
-    ? hexId
-    : asset?.nftName || asset?.symbol || hexId;
+  const label = isTypeListItem 
+      ? hexId 
+      : asset?.nftName || asset?.symbol || hexId;
+
   const iconEmblem = (asset?.nftName || asset?.symbol || hexId)[0];
   const withImage =
     !Boolean(imageResponse?.error) &&
     Boolean(imageResponse?.imageUrl) &&
     isTypeListItem;
   let icon;
-  const tokenTypeIcon = tokenTypes?.find(
-    (type: ITokensListTypes) => type.id === asset.typeId
-  )?.icon;
+  const tokenIcon: TokenIcon = asset.icon;
   const wrapClass = classNames("assets-list__item-icon", {
-    "is-image": tokenTypeIcon || withImage,
+    "is-image": tokenIcon || withImage,
   });
 
-  if (tokenTypeIcon) {
+  if (tokenIcon) {
     return (
       <div className={wrapClass}>
-        <Base64imageComponent base64Data={tokenTypeIcon} alt={asset.id} />
+        <Base64imageComponent 
+          base64Data={{
+            type: tokenIcon.type, 
+            data: Base64Converter.encode(tokenIcon.data)
+          }} 
+          alt={asset.id} 
+        />
       </div>
     );
   } else {

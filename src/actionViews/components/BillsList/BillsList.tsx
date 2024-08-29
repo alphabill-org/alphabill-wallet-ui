@@ -82,6 +82,10 @@ function BillsList(): JSX.Element | null {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
       getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) => {
+        if(!roundNumber){
+          throw new Error("Error fetching roundNumber");
+        }
+        
         if (!initialRoundNumber || !initialRoundNumber?.current) {
           initialRoundNumber.current = roundNumber;
         }
