@@ -396,7 +396,6 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with two of the same type", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_1,
-      TokenTypes,
       activeAccountId
     );
 
@@ -406,7 +405,6 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with one of the each type", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_2,
-      TokenTypes,
       activeAccountId
     );
 
@@ -416,7 +414,6 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
   it("should return updated NFT assets with correct properties with isSendable false", () => {
     const actualOutput = getUpdatedNFTAssets(
       NFTsList_3,
-      TokenTypes,
       activeAccountId
     );
 

@@ -31,7 +31,7 @@ export default function FeeCredit(): JSX.Element | null {
       (asset: IFungibleAsset) => asset.typeId === AlphaType
     )?.amount
   );
-
+  
   return (
     <div
       className={classNames("assets-list", {

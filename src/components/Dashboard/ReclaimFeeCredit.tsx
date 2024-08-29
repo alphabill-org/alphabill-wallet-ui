@@ -1,52 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { Formik } from "formik";
-import * as Yup from "yup";
-import { Form, FormFooter, FormContent } from "../Form/Form";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
+import { useApp } from "../../hooks/appProvider";
+import { useAuth } from "../../hooks/useAuth";
+
+import { Formik, FormikErrors, FormikState } from "formik";
+import { Form, FormFooter, FormContent } from "../Form/Form";
+import { IBill } from "../../types/Types";
+import { getProof, reclaimFeeCredit } from "../../hooks/requests";
+import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
+import { AlphaType, TokenType } from "../../utils/constants";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
 import Textfield from "../Textfield/Textfield";
-
-import {
-  IBill,
-  ITransactionPayload,
-  IPayloadClientMetadata,
-  ITransactionPayloadObj,
-  ITxProof,
-  IFungibleAsset,
-} from "../../types/Types";
-import { useApp } from "../../hooks/appProvider";
-import { useAuth } from "../../hooks/useAuth";
-import {
-  getProof,
-  getRoundNumber,
-  makeTransaction,
-} from "../../hooks/requests";
-
-import {
-  extractFormikError,
-  getKeys,
-  createOwnerProof,
-  invalidateAllLists,
-  base64ToHexPrefixed,
-  unit8ToHexPrefixed,
-} from "../../utils/utils";
-import {
-  FeeTimeoutBlocks,
-  AlphaType,
-  AlphaSystemId,
-  TokensSystemId,
-  MaxTransactionFee,
-  TokenType,
-  FeeCreditCloseType,
-  FeeCreditReclaimType,
-} from "../../utils/constants";
-
-import {
-  prepTransactionRequestData,
-  transferOrderTxHash,
-} from "../../utils/hashers";
 import Popup from "../Popup/Popup";
 
 export default function ReclaimFeeCredit({
@@ -59,49 +26,96 @@ export default function ReclaimFeeCredit({
   const { account, billsList, setPreviousView, feeCreditBills } = useApp();
   const { vault, activeAccountId, setActiveAssetLocal } = useAuth();
   const queryClient = useQueryClient();
+
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [isReclaimPopupVisible, setIsReclaimPopupVisible] = useState<boolean>(false);
+
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const isFeeReclaimed = useRef<boolean>(false);
+  
   const billsArr = billsList
     ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
-  const balance: string =
-    account?.assets?.fungible?.find(
-      (asset: IFungibleAsset) => asset.typeId === AlphaType
-    )?.amount || "";
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null | undefined>(null);
-  const isFeeReclaimed = useRef<boolean>(false);
-  const closePollingProofProps = useRef<{
-    id: string;
-    txHash: string;
-  } | null>(null);
-  const balanceAfterReclaim = useRef<bigint | null>(null);
-  const [isSending, setIsSending] = useState<boolean>(false);
 
   const currentCreditBill = isAlpha
     ? feeCreditBills?.ALPHA
     : feeCreditBills?.UTP;
+
   const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
+  const buttonLabel = "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
 
-  const resetRefs = () => {
-    balanceAfterReclaim.current = null;
-    closePollingProofProps.current = null;
-  };
-  const [isReclaimPopupVisible, setIsReclaimPopupVisible] =
-    useState<boolean>(false);
+  const setIntervalCancel = useCallback(() => {
+    pollingInterval.current 
+      && clearInterval(pollingInterval.current);
+    setIsSending(false);
+    isFeeReclaimed.current 
+      && setIsReclaimPopupVisible(false);
 
-  useEffect(() => {
-    if (
-      BigInt(balance || "0") &&
-      balanceAfterReclaim.current &&
-      BigInt(balance || "0") >= BigInt(balanceAfterReclaim.current || "0")
-    ) {
-      pollingInterval.current && clearInterval(pollingInterval.current);
-      setIsSending(false);
-      resetRefs();
-      setIsReclaimPopupVisible(false);
-    }
-  }, [billsList, account, feeCreditBills, balance]);
-  const buttonLabel =
-    "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
+    isFeeReclaimed.current = false;
+  }, []) 
+
+  const addPollingInterval = useCallback((
+      txHash: Uint8Array,
+      resetForm: (nextState?: Partial<FormikState<{password: string;}>>) => void
+    ) => {
+        pollingInterval.current = setInterval(() => {
+        invalidateAllLists(activeAccountId, AlphaType, queryClient);
+        getProof(
+          Base16Converter.encode(txHash), 
+          true
+        ).then((data) => {
+          if (!data?.transactionProof) {
+            throw new Error("No proof was found");
+          }
+        resetForm();
+          isFeeReclaimed.current = true;
+        }).catch(() => {
+          throw new Error("The proof for transaction is missing");
+        }).finally(() => {
+          setIntervalCancel()
+        });
+      }, 1000);
+    },[queryClient, activeAccountId, setIntervalCancel]
+  );
+  
+
+  const handleSubmit = useCallback( async(
+      values: {password: string;}, 
+      setErrors: (errors: FormikErrors<{password: string;}>) => void,
+      resetForm: (nextState?: Partial<FormikState<{password: string;}>>) => void
+    ) => {
+      const {error, hashingPrivateKey, hashingPublicKey} = getKeys(
+        values.password,
+        Number(account?.idx),
+        vault
+      );
+
+      if (error || !hashingPrivateKey || !hashingPublicKey) {
+        return setErrors({
+          password: error || "Hashing keys are missing!",
+        });
+      }
+
+      setIsSending(true);
+
+      try {
+        setPreviousView(null);
+        const reclaimTxHash = await reclaimFeeCredit(hashingPrivateKey, isAlpha);
+        if(!reclaimTxHash){
+          setIsSending(false);
+          return setErrors({
+            password: error || "Error occured during the transaction"
+          })
+        }
+        addPollingInterval(reclaimTxHash, resetForm)
+      } catch(error) {
+        setIsSending(false);
+        setErrors({
+          password: 'Error occured during the transaction'
+        })
+      }
+    }, [account?.idx, addPollingInterval, isAlpha, setPreviousView, vault]
+  );
 
   return (
     <>
@@ -144,180 +158,7 @@ export default function ReclaimFeeCredit({
           initialValues={{
             password: "",
           }}
-          onSubmit={async (values, { setErrors, resetForm }) => {
-            resetRefs();
-            isFeeReclaimed.current = false;
-
-            const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-              values.password,
-              Number(account?.idx),
-              vault
-            );
-
-            if (error || !hashingPrivateKey || !hashingPublicKey) {
-              return setErrors({
-                password: error || "Hashing keys are missing!",
-              });
-            }
-
-            setIsSending(true);
-
-            const baseObj = (
-              bill: IBill,
-              isClose: boolean,
-              proof?: ITxProof
-            ) => {
-              const attr = isClose
-                ? baseCloseAttr(bill)
-                : baseReclaimAttr(proof!);
-              return {
-                payload: {
-                  systemId:
-                    !isAlpha && isClose ? TokensSystemId : AlphaSystemId,
-                  type: isClose ? FeeCreditCloseType : FeeCreditReclaimType,
-                  unitId: isClose
-                    ? Buffer.from(bill.id, "base64")
-                    : Buffer.from(billsList[0].id, "base64"),
-                  ...attr,
-                },
-              };
-            };
-
-            const baseCloseAttr = (bill: IBill) => {
-              return {
-                attributes: {
-                  amount: BigInt(bill.value),
-                  targetUnitID: Buffer.from(billsList[0].id, "base64"),
-                  nonce: Buffer.from(billsList[0].txHash, "base64"),
-                },
-              };
-            };
-
-            const baseReclaimAttr = (proof: ITxProof) => {
-              return {
-                attributes: {
-                  closeFeeCreditTransfer: proof.txRecord,
-                  closeFeeCreditProof: proof.txProof,
-                  backlink: Buffer.from(billsList[0].txHash, "base64"),
-                },
-              };
-            };
-
-            if (!billsArr?.[0]?.txHash) {
-              return setErrors({
-                password: "ALPHAs needed to reclaim fees",
-              });
-            }
-
-            const initTransaction = async (
-              billData: ITransactionPayload,
-              isClose: boolean
-            ) => {
-              getRoundNumber(true).then(async (variableRoundNumber) => {
-                const id = billData.payload.unitId;
-
-                (billData.payload.clientMetadata as IPayloadClientMetadata) = {
-                  timeout: variableRoundNumber + FeeTimeoutBlocks,
-                  MaxTransactionFee: MaxTransactionFee,
-                  feeCreditRecordID: null,
-                };
-
-                const proof = await createOwnerProof(
-                  billData.payload as ITransactionPayloadObj,
-                  hashingPrivateKey,
-                  hashingPublicKey
-                );
-
-                const finishTransaction = (
-                  billData: ITransactionPayload,
-                  isClose: boolean
-                ) => {
-                  proof.isSignatureValid &&
-                    makeTransaction(
-                      prepTransactionRequestData(billData, proof.ownerProof),
-                      activeAccountId,
-                      isClose ? isAlpha : true
-                    )
-                      .then(() => {
-                        setPreviousView(null);
-                      })
-                      .catch(() => {
-                        pollingInterval.current &&
-                          clearInterval(pollingInterval.current);
-                        resetRefs();
-                        setIsSending(false);
-                      })
-                      .finally(async () => {
-                        const txHash = await transferOrderTxHash(
-                          prepTransactionRequestData(billData, proof.ownerProof)
-                        );
-
-                        closePollingProofProps.current = {
-                          id: unit8ToHexPrefixed(id),
-                          txHash: txHash,
-                        };
-                        isClose && addPollingInterval();
-                      });
-                };
-
-                finishTransaction(billData, isClose);
-              });
-            };
-
-            currentCreditBill &&
-              (await initTransaction(baseObj(currentCreditBill, true), true));
-
-            balanceAfterReclaim.current =
-              BigInt(balance) +
-              BigInt(currentCreditBill?.value || "0") -
-              MaxTransactionFee * 2n;
-
-            const addPollingInterval = () => {
-              pollingInterval.current = setInterval(async () => {
-                initialRoundNumber.current = null;
-                invalidateAllLists(activeAccountId, AlphaType, queryClient);
-
-                if (closePollingProofProps.current) {
-                  getProof(
-                    closePollingProofProps.current.id,
-                    base64ToHexPrefixed(closePollingProofProps.current.txHash),
-                    !isAlpha
-                  )
-                    .then(async (data) => {
-                      if (data?.txRecord) {
-                        isFeeReclaimed.current = true;
-                        currentCreditBill &&
-                          initTransaction(
-                            baseObj(currentCreditBill, false, data),
-                            false
-                          );
-                        resetForm();
-                      }
-                    })
-                    .finally(() => setIntervalCancel());
-                }
-
-                const setIntervalCancel = () => {
-                  getRoundNumber(isAlpha).then((roundNumber) => {
-                    if (!initialRoundNumber?.current) {
-                      initialRoundNumber.current = roundNumber;
-                    }
-                    if (
-                      BigInt(initialRoundNumber?.current) + FeeTimeoutBlocks <
-                      roundNumber
-                    ) {
-                      pollingInterval.current &&
-                        clearInterval(pollingInterval.current);
-                    }
-                  });
-                };
-              }, 1000);
-            };
-          }}
-          validateOnBlur={false}
-          validationSchema={Yup.object().shape({
-            password: Yup.string().required("Password is required"),
-          })}
+          onSubmit={async (values, { setErrors, resetForm }) => handleSubmit(values, setErrors, resetForm)}
         >
           {(formikProps) => {
             const { handleSubmit, errors, touched, resetForm } = formikProps;
@@ -373,3 +214,4 @@ export default function ReclaimFeeCredit({
     </>
   );
 }
+

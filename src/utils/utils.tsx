@@ -14,7 +14,6 @@ import {
   IBill,
   ITypeHierarchy,
   IListTokensResponse,
-  ITokensListTypes,
   INFTAsset,
   ITransactionPayloadObj,
 } from "../types/Types";
@@ -26,7 +25,6 @@ import {
   DCTransfersLimit,
   localStorageKeys,
 } from "./constants";
-import { publicKeyHash } from "./hashers";
 
 export const predicateP2PKH = async (address: string) => {
   const checkedAddress = address.startsWith("0x")
@@ -235,15 +233,7 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
 };
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  const isOwner = checkOwnerPredicate(key, invariantPredicate);
-
-  if (invariantPredicate === alwaysTrueBase64) {
-    return true;
-  } else if (isOwner) {
-    return isOwner;
-  }
-
-  return false;
+  return invariantPredicate === alwaysTrueBase64 || checkOwnerPredicate(key, invariantPredicate);
 };
 
 export const createOwnerProof = async (
@@ -459,7 +449,6 @@ export const addDecimal = (str: string, pos: number) => {
   if (pos <= 0 || !str) {
     return str;
   }
-
   const convertedAmount = str.padStart(pos + 1, "0");
   return `${convertedAmount.slice(0, -pos)}.${convertedAmount.slice(-pos)}`;
 };
@@ -521,8 +510,6 @@ export const invalidateAllLists = async (
   assetTypeId: string,
   queryClient: QueryClient
 ) => {
-  const pubKeyHash = await publicKeyHash(pubKey, true);
-
   queryClient.invalidateQueries(["fungibleTokenList", pubKey, assetTypeId]);
   queryClient.invalidateQueries(["fungibleTokensList", pubKey]);
   queryClient.invalidateQueries(["NFTList", pubKey, assetTypeId]);
@@ -530,7 +517,7 @@ export const invalidateAllLists = async (
   queryClient.invalidateQueries(["tokenTypesList", pubKey]);
   queryClient.invalidateQueries(["billsList", pubKey]);
   queryClient.invalidateQueries(["balance", pubKey]);
-  queryClient.invalidateQueries(["feeBillsList", pubKeyHash]);
+  queryClient.invalidateQueries(["feeBillsList", pubKey]);
 };
 
 export const createInvariantPredicateSignatures = (
@@ -555,20 +542,16 @@ export const getTokensLabel = (typeId: string) =>
 
 export const getUpdatedNFTAssets = (
   NFTsList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   return (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
         isSendable: isTokenSendable(
-          tokenTypes?.find((type: ITokensListTypes) => type.id === nft.typeId)
-            ?.invariantPredicate!,
+          nft.nftDataUpdatePredicate ? nft.nftDataUpdatePredicate : "",
           activeAccountId
         ),
-        iconImage: tokenTypes?.find(
-          (type: ITokensListTypes) => type.id === nft.typeId
-        )?.icon,
+        iconImage: nft.icon,
         amountOfSameType:
           NFTsList?.filter(
             (obj: IListTokensResponse) => obj.typeId === nft.typeId
@@ -580,7 +563,6 @@ export const getUpdatedNFTAssets = (
 
 const getUpdatesUTPFungibleTokens = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string
 ) => {
   let userTokens: any = [];
@@ -601,6 +583,8 @@ const getUpdatesUTPFungibleTokens = (
           txHash: token.txHash,
           symbol: token.symbol,
           network: token.network,
+          icon: token.icon,
+          invariantPredicate: token.invariantPredicate
         });
       } else {
         for (let resultToken of userTokens) {
@@ -623,13 +607,10 @@ const getUpdatesUTPFungibleTokens = (
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
       isSendable: isTokenSendable(
-        tokenTypes?.find((type: ITokensListTypes) => type.id === obj.typeId)
-          ?.invariantPredicate!,
+        obj.invariantPredicate ? obj.invariantPredicate : "",
         activeAccountId
       ),
-      iconImage: tokenTypes?.find(
-        (type: ITokensListTypes) => type.id === obj.typeId
-      )?.icon,
+      iconImage: obj.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
       ),
@@ -639,18 +620,16 @@ const getUpdatesUTPFungibleTokens = (
 
 export const getUpdatedFungibleAssets = (
   fungibleTokensList: IListTokensResponse[] | undefined = [],
-  tokenTypes: ITokensListTypes[] | undefined = [],
   activeAccountId: string,
   balances: any[]
 ) => {
   const fungibleUTPAssets = getUpdatesUTPFungibleTokens(
     fungibleTokensList,
-    tokenTypes,
     activeAccountId
   );
   const ALPHABalance =
-    balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
-      ?.data?.balance || "0";
+    String(balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
+      ?.data?.balance || "0");
 
   const alphaAsset = {
     id: AlphaType,
