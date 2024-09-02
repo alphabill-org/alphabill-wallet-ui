@@ -30,6 +30,7 @@ import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/tra
 import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
 import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
 import { CloseFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/CloseFeeCreditAttributes";
+import { TransferBillToDustCollectorAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferBillToDustCollectorAttributes";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -740,6 +741,95 @@ export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, reci
   );
 
   return transferNFTHash;
+}
+
+export const swapBill = async(
+  privateKey: Uint8Array,
+  targetBillId: Uint8Array,
+  billsToSwapIds: Uint8Array[]
+) => {
+  const signingService = new DefaultSigningService(privateKey);
+
+  const client = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+
+  if(!feeCreditRecordId){
+    throw new Error("Error fetching fee credit record id");
+  }
+
+  const targetUnitId = units.find((id) => compareArray(id.bytes, targetBillId));
+
+  if(!targetUnitId){
+    throw new Error("Error fetching target unit");
+  }
+
+  const targetBill = await client.getUnit(targetUnitId, false) as Bill;
+
+  if(!targetBill){
+    throw new Error("Error fetching target bill");
+  }
+
+  const billsToSwap: Bill[] = [];
+
+
+  billsToSwapIds.map(async(billId) => {
+    const unitId = units.find((id) => compareArray(id.bytes, billId));
+    if(!unitId){
+      throw new Error("Error fetching bill for consolidation");
+    }
+
+    const bill = await client.getUnit(unitId, false) as Bill;
+
+    billsToSwap.push(bill);
+  })
+
+  const proofsToSwap: TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>[] = [];
+  const round = await client.getRoundNumber();
+
+  billsToSwap.map(async(bill) => {
+    const transferBillToDustCollectorHash = await client.transferBillToDustCollector(
+      {
+        bill,
+        targetBill
+      },
+      {
+        maxTransactionFee: 5n,
+        timeout: round + 5n,
+        feeCreditRecordId,
+        referenceNumber: null
+      }
+    )
+
+    const proof = await getProof(Base16Converter.encode(transferBillToDustCollectorHash), true) as TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>;
+
+    if(!proof){
+      throw new Error("Error fetching transaction proof");
+    }
+
+    proofsToSwap.push(proof);
+  })
+
+  const swapBillsWithDustCollectorHash = await client.swapBillsWithDustCollector(
+    {
+      bill: targetBill,
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      proofs: proofsToSwap
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 100n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  )
+
+  return swapBillsWithDustCollectorHash;
 }
 
 
