@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Formik } from "formik";
+import { useCallback, useRef, useState } from "react";
+import { Formik, FormikErrors, FormikState } from "formik";
 import * as Yup from "yup";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import { useQueryClient } from "react-query";
@@ -9,50 +9,16 @@ import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
 
 import Select from "../../components/Select/Select";
-import {
-  ITypeHierarchy,
-  INFTAsset,
-  IListTokensResponse,
-  ITransactionPayload,
-  ITransactionAttributes,
-  ITransactionPayloadObj,
-} from "../../types/Types";
+import { INFTAsset, IListTokensResponse, ITransferFormNFT } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  getRoundNumber,
-  getTypeHierarchy,
-  makeTransaction,
-} from "../../hooks/requests";
+import { getProof, transferNFT } from "../../hooks/requests";
 
-import {
-  extractFormikError,
-  getKeys,
-  createOwnerProof,
-  predicateP2PKH,
-  invalidateAllLists,
-  createInvariantPredicateSignatures,
-  sendTransferMessage,
-  removeConnectTransferData,
-  FeeCostEl,
-  isValidAddress,
-  createEllipsisString,
-} from "../../utils/utils";
-import {
-  TimeoutBlocks,
-  TokensSystemId,
-  AlphaType,
-  NFTTokensTransferType,
-  NFTListView,
-  MaxTransactionFee,
-  TokenType,
-} from "../../utils/constants";
+import { extractFormikError, getKeys, invalidateAllLists, removeConnectTransferData, FeeCostEl, isValidAddress, createEllipsisString } from "../../utils/utils";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
-import {
-  prepTransactionRequestData,
-  publicKeyHashWithFeeType,
-  transferOrderTxHash,
-} from "../../utils/hashers";
+import { AlphaType, NFTListView, TokenType } from "../../utils/constants";
+
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -90,33 +56,89 @@ export default function TransferNFTs(): JSX.Element | null {
     (token: IListTokensResponse) => token.id === selectedTransferKey
   );
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null | undefined>(null);
-  const transferredToken = useRef<IListTokensResponse | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
-  const addPollingInterval = () => {
-    initialRoundNumber.current = null;
-    pollingInterval.current = setInterval(() => {
-      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-      getRoundNumber(false).then((roundNumber) => {
-        if (!initialRoundNumber?.current) {
-          initialRoundNumber.current = roundNumber;
-        }
+  
 
-        if (BigInt(initialRoundNumber?.current) + TimeoutBlocks < roundNumber) {
-          pollingInterval.current && clearInterval(pollingInterval.current);
-        }
-      });
-    }, 500);
-  };
+  const removePollingInterval = useCallback((isProof: boolean = false) => {
+    pollingInterval.current 
+      && clearInterval(pollingInterval.current);
 
-  useEffect(() => {
-    const isTokenTransferred = !NFTsList?.find(
-      (token) => token.id === transferredToken.current?.id
-    );
-    if (pollingInterval.current && isTokenTransferred) {
-      clearInterval(pollingInterval.current);
+    setIsSending(false);
+
+    if(isProof){
+      setSelectedTransferKey(null);
+      setIsActionsViewVisible(false);
+      setPreviousView(null);
     }
-  }, [NFTsList]);
+  }, [setIsActionsViewVisible, setPreviousView, setSelectedTransferKey]);
+
+  const addPollingInterval = useCallback((txHash: Uint8Array) => 
+    {
+      pollingInterval.current = setInterval(async() => {
+        try {
+          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+          const proof = await getProof(Base16Converter.encode(txHash), false);
+
+          if(!proof?.transactionProof){
+            throw new Error("No transaction proof was found")
+          }
+
+          removePollingInterval(true);
+        } catch(error) {
+          throw new Error("Error fetching transaction proof")
+        }
+      }, 500);
+    }, [activeAccountId, activeAsset.typeId, queryClient, removePollingInterval]);
+
+  const handleSubmit = useCallback(async(
+    values: ITransferFormNFT,
+    setErrors: (errors: FormikErrors<ITransferFormNFT>) => void,
+    resetForm: (nextState?: Partial<FormikState<ITransferFormNFT>> | undefined) => void
+  ) => {
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      values.password,
+      Number(account.idx),
+      vault
+    );
+
+    if( error || !hashingPrivateKey || !hashingPublicKey ){
+      return setErrors({
+        password: error || "Hashing keys are missing!"
+      })
+    }
+
+    const selectedNFT = selectedTransferKey
+      ? (selectedTransferNFT as IListTokensResponse)
+      : NFTsList?.find(
+        (token: IListTokensResponse) => selectedAsset?.id === token.id
+      );
+    
+    if(!selectedNFT){
+      return setErrors({
+        password: error || "NFT is required!"
+      })
+    }
+
+    setIsSending(true);
+
+    try {
+      const decodedId = Base16Converter.decode(selectedNFT.id);
+      const recipient = Base16Converter.decode(values.address);
+
+      const txHash = await transferNFT(hashingPrivateKey, decodedId, recipient);
+      if(!txHash){
+        return setErrors({
+          password: error || "Error occured fetching transaction hash"
+        })
+      }
+
+      addPollingInterval(txHash)
+    } catch(error) {
+      setErrors({
+        password: (error as Error).message || "Error occured during the transaction"
+      })
+    }
+  }, [NFTsList, account.idx, addPollingInterval, selectedAsset?.id, selectedTransferKey, selectedTransferNFT, vault])
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -131,150 +153,7 @@ export default function TransferNFTs(): JSX.Element | null {
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={async (values, { setErrors, resetForm }) => {
-          const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-            values.password,
-            Number(account?.idx),
-            vault
-          );
-
-          if (error || !hashingPrivateKey || !hashingPublicKey) {
-            return setErrors({
-              password: error || "Hashing keys are missing!",
-            });
-          }
-
-          const selectedNFT = selectedTransferKey
-            ? (selectedTransferNFT as IListTokensResponse)
-            : NFTsList?.find(
-                (token: IListTokensResponse) => selectedAsset?.id === token.id
-              );
-
-          if (!selectedNFT) {
-            return setErrors({
-              password: error || "NFT is required",
-            });
-          }
-
-          const newBearer = await predicateP2PKH(values.address);
-
-          setIsSending(true);
-
-          getRoundNumber(false).then(async (roundNumber) => {
-            await getTypeHierarchy(selectedNFT.typeId || "")
-              .then(async (hierarchy: ITypeHierarchy[]) => {
-                const feeCreditRecordID = (await publicKeyHashWithFeeType({
-                  key: activeAccountId,
-                  isAlpha: false,
-                })) as Uint8Array;
-
-                const tokenData: ITransactionPayload = {
-                  payload: {
-                    systemId: TokensSystemId,
-                    type: NFTTokensTransferType,
-                    unitId: Buffer.from(selectedNFT.id.substring(2), "hex"),
-                    attributes: {
-                      newBearer: newBearer,
-                      nftType: Buffer.from(selectedNFT.typeId.substring(2), "hex"),
-                      backlink: Buffer.from(selectedNFT.txHash, "base64"),
-                      typeID: Buffer.from(selectedNFT.typeId.substring(2), "hex"),
-                      invariantPredicateSignatures: null,
-                    } as ITransactionAttributes,
-                    clientMetadata: {
-                      timeout: roundNumber + TimeoutBlocks,
-                      MaxTransactionFee: MaxTransactionFee,
-                      feeCreditRecordID: feeCreditRecordID,
-                    },
-                  },
-                };
-                const tokenDataObj = tokenData;
-
-                const proof = await createOwnerProof(
-                  tokenData.payload as ITransactionPayloadObj,
-                  hashingPrivateKey,
-                  hashingPublicKey
-                );
-                let signatures;
-                try {
-                  signatures = createInvariantPredicateSignatures(
-                    hierarchy,
-                    proof.ownerProof,
-                    activeAccountId
-                  );
-                } catch (error) {
-                  setIsSending(false);
-                  return setErrors({
-                    password: error.message,
-                  });
-                }
-
-                (tokenData.payload
-                  .attributes as ITransactionAttributes).invariantPredicateSignatures = signatures;
-
-                transferredToken.current = selectedNFT;
-                const feeProof = await createOwnerProof(
-                  tokenData.payload as ITransactionPayloadObj,
-                  hashingPrivateKey,
-                  hashingPublicKey
-                );
-                proof.isSignatureValid &&
-                  makeTransaction(
-                    prepTransactionRequestData(
-                      tokenData,
-                      proof.ownerProof,
-                      feeProof.ownerProof
-                    ),
-                    account.pubKey
-                  ).then(async () => {
-                    const handleTransferEnd = () => {
-                      addPollingInterval();
-                      setIsSending(false);
-                      setSelectedTransferKey(null);
-                      setIsActionsViewVisible(false);
-                      resetForm();
-                      setPreviousView(null);
-                    };
-
-                    if (Boolean(chrome?.storage) && tokenDataObj) {
-                      chrome?.storage?.local.get(
-                        ["ab_connect_transfer"],
-                        async function (transferRes) {
-                          const typeId =
-                            transferRes?.ab_connect_transfer?.token_type_id;
-
-                          if (Boolean(typeId)) {
-                            sendTransferMessage(
-                              transferredToken.current as INFTAsset,
-                              await transferOrderTxHash(
-                                prepTransactionRequestData(
-                                  tokenData,
-                                  proof.ownerProof,
-                                  feeProof.ownerProof
-                                )
-                              ),
-                              handleTransferEnd
-                            );
-                          } else {
-                            handleTransferEnd();
-                          }
-                        }
-                      );
-                    } else {
-                      handleTransferEnd();
-                    }
-                  });
-              })
-              .catch(() => {
-                setIsSending(false);
-                setErrors({
-                  password:
-                    "Fetching token hierarchy for " +
-                    selectedNFT.typeId +
-                    "failed",
-                });
-              });
-          });
-        }}
+        onSubmit={async (values, { setErrors, resetForm }) => { handleSubmit(values, setErrors, resetForm) }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
           address: Yup.string()

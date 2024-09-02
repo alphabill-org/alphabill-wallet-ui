@@ -97,7 +97,6 @@ export default function TransferFungible(): JSX.Element | null {
   const selectedBillValue = directlySelectedAsset?.value || "";
   const formRef = useRef(null);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null | undefined>(null);
   const balanceAfterSending = useRef<bigint | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
 
@@ -119,7 +118,6 @@ export default function TransferFungible(): JSX.Element | null {
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
   const addPollingInterval = useCallback((txHash: string, isAlpha: boolean) => {
-    initialRoundNumber.current = null;
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
       getProof(txHash, isAlpha)
