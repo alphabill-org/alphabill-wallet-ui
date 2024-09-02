@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, isCancel } from "axios";
+import axios, { isCancel } from "axios";
 import { encodeAsync } from "cbor";
 import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory.js';
 import { CborCodecWeb } from '@alphabill/alphabill-js-sdk/lib/codec/cbor/CborCodecWeb.js';
@@ -526,7 +526,7 @@ export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array,
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
-  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  const unitId = units.findLast((id) => compareArray(id.bytes, billId));
 
   if(!unitId) {
     throw new Error("No bills were found")
@@ -611,7 +611,7 @@ export const splitBill = async(
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
-  const unitId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
+  const unitId = units.findLast((id) => compareArray(id.bytes, billId));
   const round = await client.getRoundNumber();
 
   if(!unitId){
@@ -692,6 +692,54 @@ export const splitFungibleToken = async(
   );
 
   return splitFungibleTokenHash;
+}
+
+export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, recipient: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
+  
+  const client = createTokenClient({
+    transport: http(TOKENS_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    tokenUnitIdFactory: tokenUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
+  const unitId = units.findLast((id) => compareArray(id.bytes, nftId));
+  const round = await client.getRoundNumber();
+
+  if(!unitId){
+    throw new Error("Invalid nft id")
+  }
+
+  if(!feeCreditRecordId){
+    throw new Error("Error fetching fee credit record")
+  }
+
+  const nft = await client.getUnit(unitId, false) as NonFungibleToken;
+
+  if(!nft){
+    throw new Error("NFT does not exist")
+  }
+
+  const transferNFTHash = await client.transferNonFungibleToken(
+    {
+      token: nft,
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, recipient),
+      nonce: null,
+      type: {unitId: nft.tokenType},
+      invariantPredicateSignatures: [null],
+      counter: nft.counter
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 60n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  );
+
+  return transferNFTHash;
 }
 
 

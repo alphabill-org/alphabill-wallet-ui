@@ -141,8 +141,8 @@ export const createFungibleToken = async(privateKey: Uint8Array) => {
   console.log((await waitTransactionProof(client, createFungibleTokenHash))?.toString());
 }
 
-export const createNFT = async (privateKey: string) => {
-  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+export const createNFT = async (privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL, cborCodec),
     transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
@@ -153,8 +153,13 @@ export const createNFT = async (privateKey: string) => {
     (id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD,
   );
   const round = await client.getRoundNumber();
-  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+  let tokenTypeUnitId = units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
   
+  if(!tokenTypeUnitId){
+    tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 5]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
+  }
+
   const createNonFungibleTokenHash = await client.createNonFungibleToken(
     {
       ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
@@ -179,8 +184,8 @@ export const createNFT = async (privateKey: string) => {
   console.log((await waitTransactionProof(client, createNonFungibleTokenHash))?.toString());
 }
 
-export const createNFTType = async(privateKey: string) => {
-  const signingService = new DefaultSigningService(Base16Converter.decode(privateKey));
+export const createNFTType = async(privateKey: Uint8Array) => {
+  const signingService = new DefaultSigningService(privateKey);
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL, cborCodec),
     transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
@@ -195,13 +200,13 @@ export const createNFTType = async(privateKey: string) => {
     throw new Error('No fee credit record was found!')
   }
   const round = await client.getRoundNumber();
-  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 3]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
+  const tokenTypeUnitId = new UnitIdWithType(new Uint8Array([1, 2, 5]), UnitType.TOKEN_PARTITION_NON_FUNGIBLE_TOKEN_TYPE);
   
   const createNonFungibleTokenTypeHash = await client.createNonFungibleTokenType(
     {
       type: { unitId: tokenTypeUnitId },
-      symbol: 'NN',
-      name: 'Potatoz',
+      symbol: 'NaNoYes',
+      name: 'Time',
       icon: { type: 'image/png', data: new Uint8Array() },
       parentTypeId: null,
       subTypeCreationPredicate: new AlwaysTruePredicate(),
@@ -218,6 +223,4 @@ export const createNFTType = async(privateKey: string) => {
     },
   );
   console.log((await waitTransactionProof(client, createNonFungibleTokenTypeHash))?.toString());
-
-
 }
