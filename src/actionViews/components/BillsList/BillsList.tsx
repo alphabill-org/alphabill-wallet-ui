@@ -1,28 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
-
-import {
-  FeeCostEl,
-  getBillsAndTargetUnitToConsolidate,
-  getTokensLabel,
-} from "../../../utils/utils";
-import {
-  DCTransfersLimit,
-  SwapTimeout,
-  AlphaType,
-  FungibleListView,
-} from "../../../utils/constants";
-import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
+
+import { FeeCostEl, getBillsAndTargetUnitToConsolidate, getTokensLabel } from "../../../utils/utils";
+import { getProof, swapBill } from "../../../hooks/requests";
+import { getKeys } from "../../../utils/utils";
+
+import { DCTransfersLimit, AlphaType, FungibleListView } from "../../../utils/constants";
+import { IBill } from "../../../types/Types";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import { getProof, getRoundNumber, swapBill } from "../../../hooks/requests";
 import BillsListPopups from "./BillsListPopups";
-import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
-import { getKeys, sortBillsByID } from "../../../utils/utils";
 import AssetsList from "../../../components/AssetsList/AssetsList";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 function BillsList(): JSX.Element | null {
   const [password, setPassword] = useState<string>("");
@@ -32,16 +24,6 @@ function BillsList(): JSX.Element | null {
   const sortedListByValue: IBill[] = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
   );
-
-  // const DCBills = useMemo(
-  //   () =>
-  //     sortedListByValue
-  //       ? sortBillsByID(sortedListByValue)?.filter((b: IBill) =>
-  //           Boolean(b.targetUnitId)
-  //         )
-  //       : [],
-  //   [sortedListByValue]
-  // );
 
   const { billsToConsolidate, consolidationTargetUnit } =
     getBillsAndTargetUnitToConsolidate(billsList);
@@ -64,10 +46,6 @@ function BillsList(): JSX.Element | null {
   // Swap related hooks
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
-  const [haveDCBillsUpdated, setHaveDCBillsUpdated] = useState<boolean>(false);
-  const [collectorBillsCount, setCollectorBillsCount] = useState<number | null>(
-    null
-  );
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const queryClient = useQueryClient();
@@ -75,41 +53,14 @@ function BillsList(): JSX.Element | null {
 
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
-  const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null>(null);
-
-  // Bills list functions
-  // const addInterval = () => {
-  //   initialRoundNumber.current = null;
-  //   swapInterval.current = setInterval(() => {
-  //     queryClient.invalidateQueries(["billsList", activeAccountId]);
-  //     queryClient.invalidateQueries(["balance", activeAccountId]);
-  //     getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) => {
-  //       if(!roundNumber){
-  //         throw new Error("Error fetching roundNumber");
-  //       }
-        
-  //       if (!initialRoundNumber || !initialRoundNumber?.current) {
-  //         initialRoundNumber.current = roundNumber;
-  //       }
-
-  //       if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
-  //         swapInterval.current && clearInterval(swapInterval.current);
-  //         setIsConsolidationLoading(false);
-  //         setHaveDCBillsUpdated(false);
-  //       }
-  //     });
-  //   }, 1000);
-  // };
 
   const removePollingInterval = useCallback(() => {
     swapInterval.current && clearInterval(swapInterval.current);
     setIsConsolidationLoading(false);
-    setHaveDCBillsUpdated(false);
   }, [])
 
   const addPollingInterval = useCallback(async(
-    txHash: string
+    txHash: Uint8Array
   ) => {
     try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
@@ -124,42 +75,7 @@ function BillsList(): JSX.Element | null {
       removePollingInterval()
       throw new Error("Error fetching transaction proof");
     }
-  }, [])
-
-  // const handleSwap = useCallback(
-  //   (formPassword?: string) => {
-  //     const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-  //       formPassword || password,
-  //       Number(account?.idx),
-  //       vault
-  //     );
-
-  //     if (
-  //       error ||
-  //       !hashingPublicKey ||
-  //       !hashingPrivateKey ||
-  //       !consolidationTargetUnit
-  //     ) {
-  //       return;
-  //     }
-
-  //     handleSwapRequest(
-  //       hashingPublicKey,
-  //       hashingPrivateKey,
-  //       DCBills,
-  //       account,
-  //       activeAccountId
-  //     );
-  //   },
-  //   [
-  //     DCBills,
-  //     account,
-  //     password,
-  //     vault,
-  //     activeAccountId,
-  //     consolidationTargetUnit,
-  //   ]
-  // );
+  }, [activeAccountId, queryClient, removePollingInterval])
 
   const handleSwap = useCallback(async(
     password: string
@@ -178,11 +94,13 @@ function BillsList(): JSX.Element | null {
       throw new Error("Missing target unit");
     }
 
+    setIsConsolidationLoading(true)
+
     const billsToSwapIds: Uint8Array[] = [];
 
     const targetBillId = Base16Converter.decode(consolidationTargetUnit?.id);
 
-    sortedListByValue.map((bill) => {
+    sortedListByValue.forEach((bill) => {
       billsToSwapIds.push(Base16Converter.decode(bill.id))
     })
 
@@ -192,50 +110,11 @@ function BillsList(): JSX.Element | null {
         throw new Error("Transaction hash is missing");
       }
 
-      addPollingInterval(Base16Converter.encode(txHash));
+      addPollingInterval(txHash);
     } catch(error) {
       throw new Error("Error while consolidating");
     }
-  }, [account?.idx, addPollingInterval, consolidationTargetUnit, vault])
-
-  // Effects
-  // useEffect(() => {
-  //   if (DCBills?.length >= 1 && isConsolidationLoading) {
-  //     setHaveDCBillsUpdated(true);
-  //   }
-
-  //   if (
-  //     password &&
-  //     collectorBillsCount === DCBills?.length &&
-  //     isConsolidationLoading &&
-  //     haveDCBillsUpdated
-  //   ) {
-  //     handleSwap(password);
-  //     setCollectorBillsCount(null);
-  //   }
-
-  //   if (
-  //     DCBills?.length < 1 &&
-  //     isConsolidationLoading &&
-  //     haveDCBillsUpdated
-  //   ) {
-  //     swapInterval.current && clearInterval(swapInterval.current);
-  //     swapTimer.current && clearTimeout(swapTimer.current);
-  //     setIsConsolidationLoading(false);
-  //     setHaveDCBillsUpdated(false);
-  //   }
-  // }, [
-  //   handleSwap,
-  //   haveDCBillsUpdated,
-  //   isConsolidationLoading,
-  //   DCBills,
-  //   password,
-  //   account?.idx,
-  //   vault,
-  //   activeAccountId,
-  //   account,
-  //   collectorBillsCount,
-  // ]);
+  }, [account?.idx, addPollingInterval, consolidationTargetUnit, sortedListByValue, vault])
 
   return (
     <>
@@ -267,8 +146,6 @@ function BillsList(): JSX.Element | null {
                       isConsolidationLoading 
                     }
                     onClick={() => {
-                      setCollectorBillsCount(billsToConsolidate.length);
-
                       if (password) {
                         handleSwap(
                           password

@@ -291,18 +291,17 @@ export const getUserTokens = async (
 
 
 export const getProof = async (
-  txHash: string,
+  txHash: Uint8Array,
   isAlpha?: boolean,
   timeout = 10000,
   interval = 1000
 ): Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>> | null> => {
   const client = isAlpha ? moneyClient : tokenClient;
-  const decodedTxHash = Base16Converter.decode(txHash);
   
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const poller = async () => {
-      const proof = await client.getTransactionProof(decodedTxHash);
+      const proof = await client.getTransactionProof(txHash);
       if (proof !== null) {
         return resolve(proof);
       }
@@ -749,13 +748,7 @@ export const swapBill = async(
   targetBillId: Uint8Array,
   billsToSwapIds: Uint8Array[]
 ) => {
-
-  console.log(billsToSwapIds, "IDS");
-  console.log(targetBillId, "TARGET");
-  console.log(privateKey)
-
   const signingService = new DefaultSigningService(privateKey);
-
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL, cborCodec),
     transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
@@ -763,75 +756,69 @@ export const swapBill = async(
   });
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
-  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
 
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
   if(!feeCreditRecordId){
     throw new Error("Error fetching fee credit record id");
   }
 
   const targetUnitId = units.find((id) => compareArray(id.bytes, targetBillId));
-
   if(!targetUnitId){
     throw new Error("Error fetching target unit");
   }
 
   const targetBill = await client.getUnit(targetUnitId, false) as Bill;
-
   if(!targetBill){
     throw new Error("Error fetching target bill");
   }
 
-  const billsToSwap: Bill[] = [];
+  const billsIdsFiltered = billsToSwapIds.filter((id) => !compareArray(id, targetBillId));
 
-
-  await Promise.all(billsToSwapIds.map(async(billId) => {
+  const billsToSwap = await Promise.all(
+    billsIdsFiltered.map(async(billId) => {
       const unitId = units.find((id) => compareArray(id.bytes, billId));
       if(!unitId){
         throw new Error("Error fetching bill for consolidation");
       }
 
       const bill = await client.getUnit(unitId, false) as Bill;
+      if(!bill){
+        throw new Error("Error fetching bill")
+      }
 
-      billsToSwap.push(bill);
+      return bill
     })
   )
-  const proofsToSwap: TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>[] = [];
+
   const round = await client.getRoundNumber();
 
-  console.log(billsToSwap)
-  console.log("Im ready for transfer")
-
-  console.log(signingService.publicKey)
-  await Promise.all(billsToSwap.map(async(bill) => {
-      if(!compareArray(bill.unitId.bytes, targetUnitId.bytes)){
-        console.log(bill.ownerPredicate, "BILL PREDICATE")
-        const transferBillToDustCollectorHash = await client.transferBillToDustCollector(
-          {
-            bill,
-            targetBill
-          },
-          {
-            maxTransactionFee: 5n,
-            timeout: round + 60n,
-            feeCreditRecordId,
-            referenceNumber: null
-          }
-        )
-
-        const proof = await getProof(Base16Converter.encode(transferBillToDustCollectorHash), true) as TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>;
-
-        if(!proof){
-          throw new Error("Error fetching transaction proof");
+  const proofsToSwap = await Promise.all(
+    billsToSwap.map(async(bill) => {
+      const transferBillToDustCollectorHash = await client.transferBillToDustCollector(
+        {
+          bill,
+          targetBill
+        },
+        {
+          maxTransactionFee: 5n,
+          timeout: round + 60n,
+          feeCreditRecordId,
+          referenceNumber: null
         }
-        proofsToSwap.push(proof);
-      } 
+      )
+
+      const proof = await getProof(
+        transferBillToDustCollectorHash, 
+        true
+      ) as TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>;
+
+      if(!proof){
+        throw new Error("Error fetching transaction proof");
+      }
+      
+      return proof
     })
   )
-  console.log(proofsToSwap)
-  console.log(targetBill)
-
-  console.log(await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey));
-  
 
   const swapBillsWithDustCollectorHash = await client.swapBillsWithDustCollector(
     {
@@ -847,9 +834,7 @@ export const swapBill = async(
     }
   )
 
-  console.log(swapBillsWithDustCollectorHash);
-
-   return swapBillsWithDustCollectorHash;
+  return swapBillsWithDustCollectorHash;
 }
 
 
