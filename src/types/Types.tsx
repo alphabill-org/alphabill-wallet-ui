@@ -1,6 +1,19 @@
 import { AlphaType, TokenType } from "../utils/constants";
 import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
 
+export interface ITransferFormNFT {
+  assets: {
+    value: {
+      value: INFTAsset | undefined;
+      label: string;
+    };
+    label: string;
+  };
+  address: string;
+  password: string;
+}
+
+
 export interface ITransferForm {
   assets: {
     value: IBill | IFungibleAsset | undefined;
