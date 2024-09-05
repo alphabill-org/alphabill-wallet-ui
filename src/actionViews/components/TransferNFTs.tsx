@@ -77,7 +77,7 @@ export default function TransferNFTs(): JSX.Element | null {
       pollingInterval.current = setInterval(async() => {
         try {
           invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-          const proof = await getProof(Base16Converter.encode(txHash), false);
+          const proof = await getProof(txHash, false);
 
           if(!proof?.transactionProof){
             throw new Error("No transaction proof was found")

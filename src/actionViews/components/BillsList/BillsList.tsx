@@ -1,26 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
-
-import {
-  FeeCostEl,
-  getBillsAndTargetUnitToConsolidate,
-  getTokensLabel,
-} from "../../../utils/utils";
-import {
-  DCTransfersLimit,
-  SwapTimeout,
-  AlphaType,
-  FungibleListView,
-} from "../../../utils/constants";
-import { IBill } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
+
+import { FeeCostEl, getBillsAndTargetUnitToConsolidate, getTokensLabel } from "../../../utils/utils";
+import { getProof, swapBill } from "../../../hooks/requests";
+import { getKeys } from "../../../utils/utils";
+
+import { DCTransfersLimit, AlphaType, FungibleListView } from "../../../utils/constants";
+import { IBill } from "../../../types/Types";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+
 import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import { getRoundNumber } from "../../../hooks/requests";
 import BillsListPopups from "./BillsListPopups";
-import { handleDC, handleSwapRequest } from "./BillsListConsolidation";
-import { getKeys, sortBillsByID } from "../../../utils/utils";
 import AssetsList from "../../../components/AssetsList/AssetsList";
 
 function BillsList(): JSX.Element | null {
@@ -28,28 +21,20 @@ function BillsList(): JSX.Element | null {
   const { billsList, account, setPreviousView, feeCreditBills } = useApp();
 
   // Bills lists
-  const sortedListByValue = billsList?.sort(
+  const sortedListByValue: IBill[] = billsList?.sort(
     (a: IBill, b: IBill) => Number(a.value) - Number(b.value)
-  );
-
-  const DCBills = useMemo(
-    () =>
-      sortedListByValue
-        ? sortBillsByID(sortedListByValue)?.filter((b: IBill) =>
-            Boolean(b.targetUnitId)
-          )
-        : [],
-    [sortedListByValue]
   );
 
   const { billsToConsolidate, consolidationTargetUnit } =
     getBillsAndTargetUnitToConsolidate(billsList);
 
   const isFeeForSwap =
-    DCBills.length >= 1 && BigInt(feeCreditBills?.ALPHA?.value || "") >= 1n;
+    sortedListByValue 
+      ? sortedListByValue.length >= 1 && BigInt(feeCreditBills?.ALPHA?.value || "") >= 1n
+      : false;
 
   const isFeeCredit =
-    DCBills.length >= 1
+    sortedListByValue && sortedListByValue.length >= 2 
       ? isFeeForSwap
       : BigInt(feeCreditBills?.ALPHA?.value || "") >=
         BigInt(billsToConsolidate?.length) + 1n;
@@ -61,10 +46,6 @@ function BillsList(): JSX.Element | null {
   // Swap related hooks
   const [isConsolidationLoading, setIsConsolidationLoading] =
     useState<boolean>(false);
-  const [haveDCBillsUpdated, setHaveDCBillsUpdated] = useState<boolean>(false);
-  const [collectorBillsCount, setCollectorBillsCount] = useState<number | null>(
-    null
-  );
   // Global hooks
   const { vault, activeAccountId, activeAsset } = useAuth();
   const queryClient = useQueryClient();
@@ -72,106 +53,68 @@ function BillsList(): JSX.Element | null {
 
   // Refs
   const swapInterval = useRef<NodeJS.Timeout | null>(null);
-  const swapTimer = useRef<NodeJS.Timeout | null>(null);
-  const initialRoundNumber = useRef<bigint | null>(null);
 
-  // Bills list functions
-  const addInterval = () => {
-    initialRoundNumber.current = null;
-    swapInterval.current = setInterval(() => {
+  const removePollingInterval = useCallback(() => {
+    swapInterval.current && clearInterval(swapInterval.current);
+    setIsConsolidationLoading(false);
+  }, [])
+
+  const addPollingInterval = useCallback(async(
+    txHash: Uint8Array
+  ) => {
+    try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      getRoundNumber(activeAsset?.typeId === AlphaType).then((roundNumber) => {
-        if(!roundNumber){
-          throw new Error("Error fetching roundNumber");
-        }
-        
-        if (!initialRoundNumber || !initialRoundNumber?.current) {
-          initialRoundNumber.current = roundNumber;
-        }
+      const proof = getProof(txHash, true);
+      if(!proof){
+        throw new Error("Missing transaction proof");
+      }
+      
+      removePollingInterval()
+    } catch(error) {
+      removePollingInterval()
+      throw new Error("Error fetching transaction proof");
+    }
+  }, [activeAccountId, queryClient, removePollingInterval])
 
-        if (initialRoundNumber?.current + SwapTimeout < roundNumber) {
-          swapInterval.current && clearInterval(swapInterval.current);
-          setIsConsolidationLoading(false);
-          setHaveDCBillsUpdated(false);
-        }
-      });
-    }, 1000);
-  };
+  const handleSwap = useCallback(async(
+    password: string
+  ) => {
+    const {error, hashingPrivateKey, hashingPublicKey} = getKeys(
+      password,
+      Number(account?.idx),
+      vault
+    );
 
-  const handleSwap = useCallback(
-    (formPassword?: string) => {
-      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-        formPassword || password,
-        Number(account?.idx),
-        vault
-      );
+    if(error || !hashingPrivateKey || !hashingPublicKey) {
+      throw new Error("Missing hashing keys");
+    }
 
-      if (
-        error ||
-        !hashingPublicKey ||
-        !hashingPrivateKey ||
-        !consolidationTargetUnit
-      ) {
-        return;
+    if(!consolidationTargetUnit){
+      throw new Error("Missing target unit");
+    }
+
+    setIsConsolidationLoading(true)
+
+    const billsToSwapIds: Uint8Array[] = [];
+
+    const targetBillId = Base16Converter.decode(consolidationTargetUnit?.id);
+
+    sortedListByValue.forEach((bill) => {
+      billsToSwapIds.push(Base16Converter.decode(bill.id))
+    })
+
+    try {
+      const txHash = await swapBill(hashingPrivateKey, targetBillId, billsToSwapIds);
+      if(!txHash){
+        throw new Error("Transaction hash is missing");
       }
 
-      handleSwapRequest(
-        hashingPublicKey,
-        hashingPrivateKey,
-        DCBills,
-        account,
-        activeAccountId
-      );
-    },
-    [
-      DCBills,
-      account,
-      password,
-      vault,
-      activeAccountId,
-      consolidationTargetUnit,
-    ]
-  );
-
-  // Effects
-  useEffect(() => {
-    if (DCBills?.length >= 1 && isConsolidationLoading) {
-      setHaveDCBillsUpdated(true);
+      addPollingInterval(txHash);
+    } catch(error) {
+      throw new Error("Error while consolidating");
     }
-
-    if (
-      password &&
-      collectorBillsCount === DCBills?.length &&
-      isConsolidationLoading &&
-      haveDCBillsUpdated
-    ) {
-      handleSwap(password);
-      setCollectorBillsCount(null);
-    }
-
-    if (
-      DCBills?.length < 1 &&
-      isConsolidationLoading === true &&
-      haveDCBillsUpdated
-    ) {
-      swapInterval.current && clearInterval(swapInterval.current);
-      swapTimer.current && clearTimeout(swapTimer.current);
-      setIsConsolidationLoading(false);
-      setHaveDCBillsUpdated(false);
-    }
-  }, [
-    handleSwap,
-    haveDCBillsUpdated,
-    isConsolidationLoading,
-    DCBills,
-    password,
-    account?.idx,
-    vault,
-    activeAccountId,
-    account,
-    collectorBillsCount,
-  ]);
+  }, [account?.idx, addPollingInterval, consolidationTargetUnit, sortedListByValue, vault])
 
   return (
     <>
@@ -199,35 +142,23 @@ function BillsList(): JSX.Element | null {
                     variant="primary"
                     working={isConsolidationLoading}
                     disabled={
-                      (billsToConsolidate?.length < 1 && DCBills.length <= 0) ||
-                      isConsolidationLoading ||
-                      !isFeeCredit
+                      (billsToConsolidate?.length < 1) ||
+                      isConsolidationLoading 
                     }
                     onClick={() => {
-                      setCollectorBillsCount(billsToConsolidate.length);
-
                       if (password) {
-                        handleDC(
-                          addInterval,
-                          setIsConsolidationLoading,
-                          handleSwap,
-                          account,
-                          password,
-                          vault,
-                          billsToConsolidate,
-                          DCBills,
-                          activeAccountId,
-                          consolidationTargetUnit as IBill
+                        handleSwap(
+                          password
                         );
                       } else {
                         setIsPasswordFormVisible("handleDC");
                       }
                     }}
                   >
-                    {(isFeeCredit && billsToConsolidate?.length >= 1) ||
-                    (isFeeCredit && DCBills.length >= 1)
+                    {(isFeeCredit && sortedListByValue?.length >= 2) ||
+                    (isFeeCredit && sortedListByValue?.length >= 2)
                       ? "Consolidate Bills"
-                      : billsToConsolidate?.length < 1 && isFeeCredit
+                      : sortedListByValue?.length < 2 && isFeeCredit
                       ? "At least 2 bills needed for consolidation"
                       : "Not enough fee credit for consolidation"}
                   </Button>
@@ -247,7 +178,7 @@ function BillsList(): JSX.Element | null {
             assetList={sortedListByValue?.filter(
               (b: IBill) => !Boolean(b.targetUnitId)
             )}
-            DCBills={DCBills}
+            DCBills={sortedListByValue}
             consolidationTargetUnit={consolidationTargetUnit}
             isTypeListItem
             isTransferButton
@@ -262,17 +193,8 @@ function BillsList(): JSX.Element | null {
           setIsPasswordFormVisible={setIsPasswordFormVisible}
           setPassword={setPassword}
           handleDC={(formPassword) =>
-            handleDC(
-              addInterval,
-              setIsConsolidationLoading,
-              handleSwap,
-              account,
-              formPassword,
-              vault,
-              billsToConsolidate,
-              DCBills,
-              activeAccountId,
-              consolidationTargetUnit as IBill
+            handleSwap(
+              formPassword
             )
           }
           account={account}

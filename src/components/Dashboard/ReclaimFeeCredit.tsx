@@ -9,7 +9,6 @@ import { IBill } from "../../types/Types";
 import { getProof, reclaimFeeCredit } from "../../hooks/requests";
 import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
 import { AlphaType, TokenType } from "../../utils/constants";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 import Button from "../Button/Button";
 import Spacer from "../Spacer/Spacer";
@@ -61,7 +60,7 @@ export default function ReclaimFeeCredit({
         pollingInterval.current = setInterval(() => {
         invalidateAllLists(activeAccountId, AlphaType, queryClient);
         getProof(
-          Base16Converter.encode(txHash), 
+          txHash, 
           true
         ).then((data) => {
           if (!data?.transactionProof) {
