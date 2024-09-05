@@ -30,6 +30,7 @@ import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/tra
 import { UnitIdWithType } from '@alphabill/alphabill-js-sdk/lib/transaction/UnitIdWithType.js';
 import { TransferFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferFeeCreditAttributes";
 import { CloseFeeCreditAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/CloseFeeCreditAttributes";
+import { TransferBillToDustCollectorAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/TransferBillToDustCollectorAttributes";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -290,22 +291,22 @@ export const getUserTokens = async (
 
 
 export const getProof = async (
-  txHash: string,
+  txHash: Uint8Array,
   isAlpha?: boolean,
   timeout = 10000,
   interval = 1000
 ): Promise<TransactionRecordWithProof<TransactionPayload<ITransactionPayloadAttributes>> | null> => {
   const client = isAlpha ? moneyClient : tokenClient;
-  const decodedTxHash = Base16Converter.decode(txHash);
   
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const poller = async () => {
-      const proof = await client.getTransactionProof(decodedTxHash);
+      const proof = await client.getTransactionProof(txHash);
       if (proof !== null) {
         return resolve(proof);
       }
-
+      console.log(txHash, "TX HASH AT PROOF")
+      console.log(proof)
       if (Date.now() > start + timeout) {
         return reject('Timeout');
       }
@@ -740,6 +741,100 @@ export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, reci
   );
 
   return transferNFTHash;
+}
+
+export const swapBill = async(
+  privateKey: Uint8Array,
+  targetBillId: Uint8Array,
+  billsToSwapIds: Uint8Array[]
+) => {
+  const signingService = new DefaultSigningService(privateKey);
+  const client = createMoneyClient({
+    transport: http(MONEY_BACKEND_URL, cborCodec),
+    transactionOrderFactory: new TransactionOrderFactory(cborCodec, signingService),
+    feeCreditRecordUnitIdFactory: feeCreditRecordUnitIdFactory
+  });
+
+  const units = await client.getUnitsByOwnerId(signingService.publicKey);
+
+  const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
+  if(!feeCreditRecordId){
+    throw new Error("Error fetching fee credit record id");
+  }
+
+  const targetUnitId = units.find((id) => compareArray(id.bytes, targetBillId));
+  if(!targetUnitId){
+    throw new Error("Error fetching target unit");
+  }
+
+  const targetBill = await client.getUnit(targetUnitId, false) as Bill;
+  if(!targetBill){
+    throw new Error("Error fetching target bill");
+  }
+
+  const billsIdsFiltered = billsToSwapIds.filter((id) => !compareArray(id, targetBillId));
+
+  const billsToSwap = await Promise.all(
+    billsIdsFiltered.map(async(billId) => {
+      const unitId = units.find((id) => compareArray(id.bytes, billId));
+      if(!unitId){
+        throw new Error("Error fetching bill for consolidation");
+      }
+
+      const bill = await client.getUnit(unitId, false) as Bill;
+      if(!bill){
+        throw new Error("Error fetching bill")
+      }
+
+      return bill
+    })
+  )
+
+  const round = await client.getRoundNumber();
+
+  const proofsToSwap = await Promise.all(
+    billsToSwap.map(async(bill) => {
+      const transferBillToDustCollectorHash = await client.transferBillToDustCollector(
+        {
+          bill,
+          targetBill
+        },
+        {
+          maxTransactionFee: 5n,
+          timeout: round + 60n,
+          feeCreditRecordId,
+          referenceNumber: null
+        }
+      )
+
+      const proof = await getProof(
+        transferBillToDustCollectorHash, 
+        true
+      ) as TransactionRecordWithProof<TransactionPayload<TransferBillToDustCollectorAttributes>>;
+
+      if(!proof){
+        throw new Error("Error fetching transaction proof");
+      }
+      
+      return proof
+    })
+  )
+
+  const swapBillsWithDustCollectorHash = await client.swapBillsWithDustCollector(
+    {
+      bill: targetBill,
+      ownerPredicate: await PayToPublicKeyHashPredicate.create(cborCodec, signingService.publicKey),
+      proofs: proofsToSwap
+    },
+    {
+      maxTransactionFee: 5n,
+      timeout: round + 100n,
+      feeCreditRecordId,
+      referenceNumber: null
+    }
+  )
+
+  return swapBillsWithDustCollectorHash;
 }
 
 

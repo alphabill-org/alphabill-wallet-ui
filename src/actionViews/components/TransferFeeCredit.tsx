@@ -92,7 +92,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);
       getProof(
-        Base16Converter.encode(txHash),
+        txHash,
         isAlpha
       ).then((data) => {
         if(!data?.transactionProof){

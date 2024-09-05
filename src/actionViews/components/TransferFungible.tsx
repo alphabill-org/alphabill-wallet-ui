@@ -117,7 +117,7 @@ export default function TransferFungible(): JSX.Element | null {
     setIsActionsViewVisible(false);
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
-  const addPollingInterval = useCallback((txHash: string, isAlpha: boolean) => {
+  const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha: boolean) => {
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
       getProof(txHash, isAlpha)
@@ -205,7 +205,7 @@ export default function TransferFungible(): JSX.Element | null {
           password: error || "Error occured during the transaction!"
         })
       }
-      addPollingInterval(Base16Converter.encode(transferHash), isAlpha);
+      addPollingInterval(transferHash, isAlpha);
     } catch(error) {
       return setErrors({
         password: (error as Error).message || "Error occured during the transaction"
@@ -271,7 +271,7 @@ export default function TransferFungible(): JSX.Element | null {
           password: error || "Error fetching transaction hash" 
         })
       }
-      addPollingInterval(Base16Converter.encode(splitHash), isAlpha);
+      addPollingInterval(splitHash, isAlpha);
     } catch(error) {
       setIsSending(false);
       return setErrors({
