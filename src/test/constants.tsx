@@ -385,6 +385,10 @@ export const TestBills = [
   },
 ];
 
+export const Array_1 = new Uint8Array([0,2,3,4,5,4,3,2,3,45,34,123,54]);
+export const Array_2 = new Uint8Array([1,4,23,44,55,42,31,62,37,45,34,224,51]);
+export const Array_3 = new Uint8Array([0,2,3,4,5,4,3,2,3,45,34,123,54]);
+
 // Define the expected bill objects
 export const ExpectedBill100 = {
   id: "1",
