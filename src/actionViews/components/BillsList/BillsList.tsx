@@ -96,13 +96,11 @@ function BillsList(): JSX.Element | null {
 
     setIsConsolidationLoading(true)
 
-    const billsToSwapIds: Uint8Array[] = [];
+    const billsToSwapIds = sortedListByValue.map((bill) => {
+      return Base16Converter.decode(bill.id)
+    })
 
     const targetBillId = Base16Converter.decode(consolidationTargetUnit?.id);
-
-    sortedListByValue.forEach((bill) => {
-      billsToSwapIds.push(Base16Converter.decode(bill.id))
-    })
 
     try {
       const txHash = await swapBill(hashingPrivateKey, targetBillId, billsToSwapIds);

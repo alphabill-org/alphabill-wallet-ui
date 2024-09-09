@@ -11,7 +11,7 @@ import { NonFungibleToken } from "@alphabill/alphabill-js-sdk/lib/NonFungibleTok
 import { NonFungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/NonFungibleTokenType";
 import { ITransactionPayload, IBill, IListTokensResponse, ITypeHierarchy, IBalance,IFeeCreditBills } from "../types/Types";
 import { AlphaType, DownloadableTypes, MaxImageSize, TokenType } from "../utils/constants";
-import { addDecimal, separateDigits } from "../utils/utils";
+import { addDecimal, compareArray, separateDigits } from "../utils/utils";
 import { FeeCreditRecordUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/FeeCreditRecordUnitIdFactory";
 import { TokenUnitIdFactory } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenUnitIdFactory";
 import { UnitType } from "@alphabill/alphabill-js-sdk/lib/transaction/UnitType";
@@ -127,15 +127,6 @@ const getPartition = (
     unitType: isAlpha ? UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD : UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD
   }
 }
-
-const compareArray = (a: Uint8Array, b: Uint8Array) => {
-  if(a.length !== b.length) return false;
-  for(let i = 0; i < a.length; i++){
-    if(a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 
 // SDK IMPLEMENTATION 
 

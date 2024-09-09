@@ -17,13 +17,13 @@ import {
   unlockedBills,
   findBillWithLargestValue,
   checkOwnerPredicate,
+  compareArray,
 } from "../utils/utils";
 
 import {
   activeAccountId,
   NFTsList_1,
   NFTsList_2,
-  TokenTypes,
   NFTsList_3,
   NFTDifferentTypeResult,
   NFTIsSendableFalseResult,
@@ -32,6 +32,9 @@ import {
   ExpectedBill1000,
   ExpectedBill200,
   ExpectedBill500,
+  Array_1,
+  Array_2,
+  Array_3
 } from "./constants";
 import { IBill } from "../types/Types";
 import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
@@ -566,7 +569,6 @@ describe("getBillsAndTargetUnitToConsolidate", () => {
     { id: "123", targetUnitId: null },
     { id: "456", targetUnitId: "789" },
   ] as IBill[];
-  const DCBills = [{ targetUnitId: "789" }];
 
   it("returns bills to consolidate and target unit", () => {
     const result = getBillsAndTargetUnitToConsolidate(billsList);
@@ -587,7 +589,6 @@ describe("getBillsAndTargetUnitToConsolidate", () => {
 
   it("returns undefined target unit when no collectable bills", () => {
     const billsList = [{ id: "123", targetUnitId: "456" }] as IBill[];
-    const DCBills = [{ targetUnitId: "789" }];
     const result = getBillsAndTargetUnitToConsolidate(billsList);
     expect(result.consolidationTargetUnit).toBeNull();
   });
@@ -636,3 +637,17 @@ describe("findBillWithLargestValue", () => {
     });
   });
 });
+
+describe("compare two different arrays", () => {
+  it("should return false", () => {
+    const result = compareArray(Array_1, Array_2);
+    expect(result).toEqual(false);
+  })
+})
+
+describe("compare two equal arrays", () => {
+  it("should return true", () => {
+    const result = compareArray(Array_1, Array_3);
+    expect(result).toEqual(true);
+  })
+})
