@@ -16,12 +16,16 @@ import Spacer from "../../components/Spacer/Spacer";
 import Popup from "../../components/Popup/Popup";
 import { useAuth } from "../../hooks/useAuth";
 import { useApp } from "../../hooks/appProvider";
+import { AssetCard } from "../../components/AssetCard/AssetCard";
+import { Alert } from "../../components/Alert/Alert";
 
 function AccountView(): JSX.Element | null {
   const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] =
     useState(false);
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
-  const { accounts, setIsActionsViewVisible } = useApp();
+  const { accounts, setIsActionsViewVisible, account } = useApp();
+
+  const testAsset = account.assets.fungible[0];
 
   if (
     Number(userKeys?.length) <= 0 ||
@@ -33,7 +37,10 @@ function AccountView(): JSX.Element | null {
   }
 
   return (
+  <>
     <div className={classNames("account__view pad-24-h")}>
+      <AssetCard asset={testAsset} isFungible isMini/>
+      <Alert message="Your fee limit is lower than the transaction limit." alertType={"success"} isLightText isBorder/>
       <Spacer mb={8} />
       <div className="account__menu">
         <div
@@ -187,6 +194,8 @@ function AccountView(): JSX.Element | null {
         </Formik>
       </Popup>
     </div>
+  </>
+    
   );
 }
 

@@ -43,6 +43,8 @@
 @import '../components/Animations/Animations.scss';
 @import '../components/Button/Button.scss';
 
+@import '../components/AssetCard/AssetCard.scss';
+@import '../components/AssetCard/AssetCardIcon/AssetCardIcon.scss';
 @import '../components/AssetsList/AssetsList.scss';
 @import '../components/Form/Form.scss';
 @import '../components/Checkbox/Checkbox.scss';
@@ -53,6 +55,7 @@
 @import '../components/Textfield/Textfield.scss';
 @import '../components/Dashboard/Dashboard.scss';
 @import '../components/SelectPopover/SelectPopover.scss';
+@import '../components/Alert/Alert.scss';
 
 @import '../routes/Login/Login.scss';
 @import 'react-tooltip/dist/react-tooltip.css';
