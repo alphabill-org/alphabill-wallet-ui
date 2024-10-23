@@ -2,15 +2,16 @@ import { useRef, useState } from "react";
 import classNames from "classnames";
 
 import Button from "../Button/Button";
-import { ReactComponent as Logo } from "../../images/ab-logo-ico.svg";
-import { ReactComponent as Profile } from "../../images/profile.svg";
-import { ReactComponent as Arrow } from "../../images/arrow.svg";
 import { ReactComponent as Check } from "../../images/check.svg";
 import { useApp } from "../../hooks/appProvider";
 import Checkbox from "../Checkbox/Checkbox";
 import { useDocumentClick } from "../../utils/utils";
 import SelectPopover from "../SelectPopover/SelectPopover";
 import { ProfileView } from "../../utils/constants";
+import { ICLogo, ICSettings } from "../../css/icons";
+import CopyToClipboard from "react-copy-to-clipboard";
+import { ICCopy } from "../../css/icons/ICCopy";
+import { ICDown } from "../../css/icons/ICDown";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
@@ -42,14 +43,7 @@ function Header(): JSX.Element | null {
   return (
     <div className="header">
       <div className="header__ico">
-        <Button
-          target="_blank"
-          type="button"
-          variant="icon"
-          url="https://alphabill.org/"
-        >
-          <Logo height="40" width="40px" />
-        </Button>
+        <ICLogo className="header__ico"/>
       </div>
       <div className="header__select">
         <Button
@@ -57,9 +51,19 @@ function Header(): JSX.Element | null {
           className="select__button"
           onClick={() => setIsPopoverOpen(!isPopoverOpen)}
         >
-          {account?.activeNetwork || "Select Network"}
-          <Arrow />
+          { account?.name}
+          <ICDown className="select__button--icon"/>
         </Button>
+        <CopyToClipboard text={account?.pubKey || ""}>
+          <Button
+            id="copy-tooltip"
+            tooltipContent="Key copied"
+            variant="icon"
+            className="copy__button"
+          >
+            <ICCopy />
+          </Button>
+        </CopyToClipboard>
         <SelectPopover
           onClose={() => {
             setIsPopoverOpen(!isPopoverOpen);
@@ -141,7 +145,7 @@ function Header(): JSX.Element | null {
           setIsActionsViewVisible(true);
         }}
       >
-        <Profile className="profile-ico" height="32" width="32px" />
+        <ICSettings className="header__settings"/>
       </Button>
     </div>
   );

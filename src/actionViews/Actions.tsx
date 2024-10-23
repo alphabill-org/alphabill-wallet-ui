@@ -77,7 +77,6 @@ function Actions(): JSX.Element | null {
       <div className="actions__view">
         {isTransferView && (
           <>
-            <Spacer mt={8} />
             <Navbar
               activeBar={
                 actionsView === TransferFungibleView
@@ -109,7 +108,6 @@ function Actions(): JSX.Element | null {
           <BillsList />
         ) : actionsView === NFTListView ? (
           <>
-            <Spacer mt={24} />
             <AssetsList
               isTypeListItem
               assetList={NFTList}

@@ -2,12 +2,14 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import CreateAccount from "./routes/CreateAccount/CreateAccount";
-import Animations from "./components/Animations/Animations";
 import Login from "./routes/Login/Login";
 import Home from "./routes/Home";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
 import Popup from "./components/Popup/Popup";
+import Fungible from "./routes/Fungible";
+import NFT from "./routes/NFT";
+import History from "./routes/History";
 
 function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -39,7 +41,8 @@ function App() {
 
   return (
     <div className="app">
-      <Animations />
+      <div className="app__background-top"></div>
+      <div className="app__background-bottom"></div>
       <div className="app__content">
         <Routes>
           <Route
@@ -49,6 +52,30 @@ function App() {
                 <Home />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/fungible"
+            element={
+              <ProtectedRoute>
+                <Fungible/>
+              </ProtectedRoute>
+            }          
+          />
+          <Route
+            path="/nft"
+            element={
+              <ProtectedRoute>
+                <NFT/>
+              </ProtectedRoute>
+            }          
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <History/>
+              </ProtectedRoute>
+            }          
           />
           {<Route path="/login" element={<Login />} />}
           <Route path="/create-wallet" element={<CreateAccount />} />

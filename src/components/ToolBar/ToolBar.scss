@@ -1,0 +1,34 @@
+.tool-bar {
+  width: 375px;
+  height: 65px;
+  display: flex;
+  background-image: linear-gradient(rgba($color-blue, 0.05), rgba($color-blue, 1));
+  justify-content: space-between;
+  align-items: center;
+  row-gap: 4px;
+  padding: 8px;
+
+  .navigation-button {
+    display: flex;
+    width: 70px;
+    flex-direction: column;
+    font-size: 10px;
+    font-weight: 400;
+    padding: 4px;
+    gap: 4px;
+    line-height: 13px;
+    color: $color-light;
+
+    &__icon {
+      fill: $color-light
+    }
+
+    &:hover {
+      color: $color-primary;
+    }
+
+    &:hover path {
+      fill: $color-primary;
+    }
+  }
+}

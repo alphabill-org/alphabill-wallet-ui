@@ -25,8 +25,8 @@
 .asset-card-body {
   display: grid;
   grid-template-columns: max-content max-content;
-  align-items: end;
   gap: 8px;
+  align-items: end;
   z-index: 1;
 
   &__asset-title {
@@ -35,6 +35,15 @@
     line-height: 26px;
     grid-column: 2;
     grid-row: 1;
+
+    &--nft {
+      grid-column: 1;
+      grid-row: 1;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 32px;
+      align-self: center;
+    }
   }
 
   &__asset-amount {
@@ -43,6 +52,20 @@
     line-height: 32px;
     grid-column: 1;
     grid-row: 1;
+
+    &--nft {
+      background-color: rgba(255, 255, 255, 0.15);
+      padding-left: 5px;
+      padding-right: 5px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      grid-column: 2;
+      grid-row: 1;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 18px;
+      align-self: center;
+    }
   }
 }
 

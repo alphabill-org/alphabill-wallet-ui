@@ -23,11 +23,7 @@ import NFTAssetsCol from "./assetsCol/NFTAssetsCol";
 import Navbar from "../Navbar/Navbar";
 import Popovers from "./Popovers";
 import FeeCredit from "./FeeCredit";
-import {
-  tooltipHideDelay,
-  tooltipOffset,
-  tooltipShowDelay,
-} from "../../test/constants";
+import FeeCreditSection from "../FeeCredit/FeeCreditSection";
 
 function Dashboard(): JSX.Element | null {
   const { activeAccountId, activeAsset, setActiveAssetLocal } = useAuth();
@@ -66,6 +62,7 @@ function Dashboard(): JSX.Element | null {
 
   return (
     <div className="dashboard">
+      <FeeCreditSection/>  
       <Spacer mb={48} />
       <div className="dashboard__balance">
         <div
@@ -85,45 +82,12 @@ function Dashboard(): JSX.Element | null {
       <Spacer mb={32} />
 
       <div className="dashboard__account" id={"account-id-" + account?.pubKey}>
-        <Tooltip
-          anchorId={"account-id-" + account?.pubKey}
-          content={account?.pubKey}
-          offset={tooltipOffset}
-          clickable
-          delayHide={tooltipHideDelay}
-          delayShow={tooltipShowDelay}
-        />
         <div
           className="dashboard__account-id"
           onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
         >
           <span className="dashboard__account-name" ref={keyNameRef}>
             {account?.name}
-          </span>
-          <span className="dashboard__account-id-hover"></span>
-          <span
-            className="dashboard__account-id-item"
-            style={{
-              maxWidth: 212 - keyNameWidth,
-              display: keyNameWidth > 102 ? "block" : "flex",
-            }}
-          >
-            {account?.name && "- "}
-            {keyNameWidth > 102 ? (
-              account?.pubKey
-            ) : (
-              <>
-                <span className="t-ellipsis" style={{ minWidth: 64 }}>
-                  {account?.pubKey}
-                </span>
-                <span>
-                  {account?.pubKey.substr(
-                    account?.pubKey.length - 6,
-                    account?.pubKey.length
-                  )}
-                </span>
-              </>
-            )}
           </span>
           <Arrow />
         </div>

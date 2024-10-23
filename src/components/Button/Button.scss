@@ -18,27 +18,14 @@
     padding: 0;
     color: $color-primary;
 
-    &:hover {
-      opacity: .7;
-
-      .profile-ico {
-        circle:first-child {
-          fill: $color-white;
-        }
-
-        circle {
-          fill: $color-secondary-op;
-        }
-      }
-    }
-
     &:active {
       transform: scale(.9);
     }
+
   }
 
-  &:hover {
-    opacity: 0.6;
+  &:hover path{
+    fill: $color-white;
   }
 
   &:disabled {
