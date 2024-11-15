@@ -12,7 +12,7 @@ import Select from "../../components/Select/Select";
 import { IBill } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import { getProof, addFeeCredit } from "../../hooks/requests";
+import { addFeeCredit } from "../../hooks/requests";
 import { AlphaType, AlphaDecimals, MaxTransactionFee, TokenType } from "../../utils/constants";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { IFeeCreditForm } from "../../types/Types";
@@ -27,6 +27,8 @@ import {
   addDecimal,
   handleBillSelection,
 } from "../../utils/utils"
+import { AddFeeCreditTransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/fees/transactions/records/AddFeeCreditTransactionRecordWithProof";
+import { TransactionStatus } from '@alphabill/alphabill-js-sdk/lib/transaction/record/TransactionStatus.js';
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -87,23 +89,18 @@ export default function TransferFeeCredit(): JSX.Element | null {
     isFeeCreditAdded.current = false;
   }, [setIsActionsViewVisible])
 
-  const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha?: boolean) => {
+  const addPollingInterval = useCallback((txProof: AddFeeCreditTransactionRecordWithProof, isAlpha?: boolean) => {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);
-      getProof(
-        txHash,
-        isAlpha
-      ).then((data) => {
-        if(!data?.transactionProof){
-          throw new Error("The proof for transaction is missing");
-        }
+
+      if(txProof.transactionRecord.serverMetadata.successIndicator === TransactionStatus.Successful){
         isFeeCreditAdded.current = true;
-      }).catch(() => {
-        throw new Error("Error validating the transaction")
-      }).finally(() => {
-        removePollingInterval();
-      })
+      } else {
+        throw new Error("Transaction failed")
+      }
+
+      removePollingInterval();
     }, 1000)
   }, [activeAccountId, queryClient, removePollingInterval])
 
@@ -146,9 +143,9 @@ export default function TransferFeeCredit(): JSX.Element | null {
     const optimalBill = Base16Converter.decode(optimalBills[0].id)
 
     try {
-      const txHash = await addFeeCredit(hashingPrivateKey, convertedAmount, optimalBill, isAlphaTransaction);
+      const txProof = await addFeeCredit(hashingPrivateKey, convertedAmount, optimalBill, isAlphaTransaction);
       setPreviousView(null);
-      addPollingInterval(txHash, isAlphaTransaction);
+      addPollingInterval(txProof, isAlphaTransaction);
     } catch (error) {
       removePollingInterval()
       return setErrors({

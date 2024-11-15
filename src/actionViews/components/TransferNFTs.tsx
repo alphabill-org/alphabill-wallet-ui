@@ -12,7 +12,7 @@ import Select from "../../components/Select/Select";
 import { INFTAsset, IListTokensResponse, ITransferFormNFT } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
-import { getProof, transferNFT } from "../../hooks/requests";
+import { transferNFT } from "../../hooks/requests";
 
 import { extractFormikError, getKeys, invalidateAllLists, removeConnectTransferData, FeeCostEl, isValidAddress, createEllipsisString } from "../../utils/utils";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
@@ -77,11 +77,11 @@ export default function TransferNFTs(): JSX.Element | null {
       pollingInterval.current = setInterval(async() => {
         try {
           invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-          const proof = await getProof(txHash, false);
+          // const proof = await getProof(txHash, false);
 
-          if(!proof?.transactionProof){
-            throw new Error("No transaction proof was found")
-          }
+          // if(!proof?.transactionProof){
+          //   throw new Error("No transaction proof was found")
+          // }
 
           removePollingInterval(true);
         } catch(error) {

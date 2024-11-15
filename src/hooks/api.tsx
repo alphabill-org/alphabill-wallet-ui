@@ -13,7 +13,7 @@ import {
   getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
-  getProof,
+  // getProof,
   getUserTokens,
   TokenUnitType,
 } from "./requests";
@@ -150,13 +150,13 @@ export function useGetUserTokens(
   );
 }
 
-export function useGetProof(
-  billID: string,
-  txHash: Uint8Array
-): QueryObserverResult<ITxProof, AxiosError> {
-  return useQuery([`proof`, billID], async () => getProof(txHash), {
-    enabled: true,
-    keepPreviousData: true,
-    staleTime: Infinity,
-  });
-}
+// export function useGetProof(
+//   billID: string,
+//   txHash: Uint8Array
+// ): QueryObserverResult<ITxProof, AxiosError> {
+//   // return useQuery([`proof`, billID], async () => getProof(txHash), {
+//   //   enabled: true,
+//   //   keepPreviousData: true,
+//   //   staleTime: Infinity,
+//   // });
+// }

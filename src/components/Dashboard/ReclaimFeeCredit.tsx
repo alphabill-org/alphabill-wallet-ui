@@ -6,7 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Formik, FormikErrors, FormikState } from "formik";
 import { Form, FormFooter, FormContent } from "../Form/Form";
 import { IBill } from "../../types/Types";
-import { getProof, reclaimFeeCredit } from "../../hooks/requests";
+import { reclaimFeeCredit } from "../../hooks/requests";
 import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
 import { AlphaType, TokenType } from "../../utils/constants";
 
@@ -59,20 +59,20 @@ export default function ReclaimFeeCredit({
     ) => {
         pollingInterval.current = setInterval(() => {
         invalidateAllLists(activeAccountId, AlphaType, queryClient);
-        getProof(
-          txHash, 
-          true
-        ).then((data) => {
-          if (!data?.transactionProof) {
-            throw new Error("No proof was found");
-          }
-        resetForm();
-          isFeeReclaimed.current = true;
-        }).catch(() => {
-          throw new Error("The proof for transaction is missing");
-        }).finally(() => {
-          setIntervalCancel()
-        });
+        // getProof(
+        //   txHash, 
+        //   true
+        // ).then((data) => {
+        //   if (!data?.transactionProof) {
+        //     throw new Error("No proof was found");
+        //   }
+        //   resetForm();
+        //   isFeeReclaimed.current = true;
+        // }).catch(() => {
+        //   throw new Error("The proof for transaction is missing");
+        // }).finally(() => {
+        //   setIntervalCancel()
+        // });
       }, 1000);
     },[queryClient, activeAccountId, setIntervalCancel]
   );

@@ -1,4 +1,4 @@
-import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/tokens/TokenIcon";
 import { ITokensListTypes } from "../types/Types";
 import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
 

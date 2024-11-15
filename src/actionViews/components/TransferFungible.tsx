@@ -18,7 +18,6 @@ import {
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  getProof,
   splitBill,
   splitFungibleToken,
   transferBill,
@@ -120,16 +119,16 @@ export default function TransferFungible(): JSX.Element | null {
   const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha: boolean) => {
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
-      getProof(txHash, isAlpha)
-      .then((data) => {
-          if(!data?.transactionProof){
-            throw new Error('No proof was found!');
-          }
-          handleTransactionEnd();
-        }
-      ).catch(() => {
-        throw new Error('Error fetching transaction proof')
-      })
+      // getProof(txHash, isAlpha)
+      // .then((data) => {
+      //     if(!data?.transactionProof){
+      //       throw new Error('No proof was found!');
+      //     }
+      //     handleTransactionEnd();
+      //   }
+      // ).catch(() => {
+      //   throw new Error('Error fetching transaction proof')
+      // })
     }, 500);
   }, [activeAccountId, fungibleActiveAsset.typeId, handleTransactionEnd, queryClient]);
 

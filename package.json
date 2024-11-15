@@ -3,7 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "dependencies": {
-    "@alphabill/alphabill-js-sdk": "0.5.0-rc.84aff8d",
+    "@alphabill/alphabill-js-sdk": "0.5.0-rc1-rc.e9dd12d",
     "@noble/secp256k1": "^1.7.0",
     "@scure/bip32": "^1.1.1",
     "axios": "^1.1.3",

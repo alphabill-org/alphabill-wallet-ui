@@ -4,7 +4,7 @@ import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 
 import { FeeCostEl, getBillsAndTargetUnitToConsolidate, getTokensLabel } from "../../../utils/utils";
-import { getProof, swapBill } from "../../../hooks/requests";
+import { swapBill } from "../../../hooks/requests";
 import { getKeys } from "../../../utils/utils";
 
 import { DCTransfersLimit, AlphaType, FungibleListView } from "../../../utils/constants";
@@ -65,10 +65,10 @@ function BillsList(): JSX.Element | null {
     try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      const proof = getProof(txHash, true);
-      if(!proof){
-        throw new Error("Missing transaction proof");
-      }
+      // const proof = getProof(txHash, true);
+      // if(!proof){
+      //   throw new Error("Missing transaction proof");
+      // }
       
       removePollingInterval()
     } catch(error) {
