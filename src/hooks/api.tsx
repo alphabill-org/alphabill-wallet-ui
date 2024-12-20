@@ -4,7 +4,6 @@ import {
   IBillsList,
   IListTokensResponse,
   IFeeCreditBills,
-  ITxProof,
 } from "../types/Types";
 
 import {
