@@ -12,7 +12,6 @@ import {
   getFeeCreditBills,
   getImageUrl,
   getImageUrlAndDownloadType,
-  // getProof,
   getUserTokens,
   TokenUnitType,
 } from "./requests";

@@ -23,15 +23,13 @@ import {
 } from "../../../types/Types";
 import {
   getRoundNumber,
-  getProof,
-  makeTransaction,
 } from "../../../hooks/requests";
 import { getKeys, sortBillsByID } from "../../../utils/utils";
 import {
   prepTransactionRequestData,
   publicKeyHashWithFeeType,
 } from "../../../utils/hashers";
-import { TransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/TransactionRecordWithProof";
+import { TransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/transaction/record/TransactionRecordWithProof";
 import { TransactionPayload } from "@alphabill/alphabill-js-sdk/lib/transaction/TransactionPayload";
 import { ITransactionPayloadAttributes } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionPayloadAttributes";
 
