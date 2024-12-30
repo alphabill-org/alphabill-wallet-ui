@@ -1,57 +1,13 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
-import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq, isNumber, sortBy } from "lodash";
-import * as secp from "@noble/secp256k1";
+import { entropyToMnemonic, mnemonicToSeedSync } from "bip39";
+import { isNumber, sortBy } from "lodash";
 import { QueryClient } from "react-query";
-import { encodeAsync, encodeCanonical } from "cbor";
 
-import {
-  IAccount,
-  IFungibleAsset,
-  IBill,
-  ITypeHierarchy,
-  IListTokensResponse,
-  INFTAsset,
-  ITransactionPayloadObj,
-} from "../types/Types";
-import {
-  AlphaDecimals,
-  AlphaType,
-  alwaysTrueBase64,
-  alwaysTrueTagAndIdentifierBytes,
-  DCTransfersLimit,
-  localStorageKeys,
-} from "./constants";
-
-export const predicateP2PKH = async (address: string) => {
-  const checkedAddress = address.startsWith("0x")
-    ? address.substring(2)
-    : address;
-
-  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
-  const pubKeyHash = CryptoJS.SHA256(addressHash);
-  // Convert the hash to a hex string
-  const pubKeyHashHex = pubKeyHash.toString(CryptoJS.enc.Hex);
-
-  // Create a buffer from the hex string
-  const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
-
-  const predicate = {
-    tag: BigInt(0), // uint64, represented as BigInt
-    identifier: Buffer.from("02", "hex"), // Single byte, 0x02
-    body: pubKeyHashBuffer, // Encoded as a byte array
-  };
-
-  // Encode the entire Predicate as CBOR
-  const encodedPredicate = await encodeAsync(Object.values(predicate), {
-    canonical: true,
-  });
-
-  return encodedPredicate;
-};
+import { IAccount, IBill, IListTokensResponse } from "../types/Types";
+import { AlphaDecimals, AlphaType, DCTransfersLimit, localStorageKeys } from "./constants";
 
 export const extractFormikError = (
   errors: unknown,
@@ -71,27 +27,6 @@ export const extractFormikError = (
     })
     .find((error) => !!error) || "";
 
-export function useCombinedRefs(...refs: any[]) {
-  const targetRef = useRef();
-
-  useEffect(() => {
-    refs.forEach((ref) => {
-      if (!ref) return;
-
-      if (typeof ref === "function") {
-        ref(targetRef.current);
-      } else {
-        ref.current = targetRef.current;
-      }
-    });
-  }, [refs]);
-
-  return targetRef;
-}
-
-export const hexToBase64 = (key: string) =>
-  Buffer.from(key, "hex").toString("base64");
-
 export const unit8ToHexPrefixed = (key: Uint8Array) =>
   "0x" + Buffer.from(key).toString("hex");
 
@@ -104,39 +39,6 @@ export const base64ToHexPrefixed = (key: string = "") => {
     return "0x" + Buffer.from(key, "base64").toString("hex");
   }
 };
-
-export const base64ToHex = (key: string = "") =>
-  Buffer.from(key, "base64").toString("hex");
-
-export const base64ToBuffer = (key: string = "") => Buffer.from(key, "base64");
-
-export const sortBillsByID = (bills: IBill[]) =>
-  uniq(bills).sort((a: IBill, b: IBill) =>
-    BigInt(base64ToHexPrefixed(a.id)) < BigInt(base64ToHexPrefixed(b.id))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a.id)) > BigInt(base64ToHexPrefixed(b.id))
-      ? 1
-      : 0
-  );
-
-export const sortTx_ProofsByID = (proofs: any[]) => {
-  return proofs.sort((a: any, b: any) => {
-    const aTxUnitId = a.txRecord[0][0][2];
-    const bTxUnitId = b.txRecord[0][0][2];
-
-    // Compare the buffer values using the compare method
-    return Buffer.compare(aTxUnitId, bTxUnitId);
-  });
-};
-
-export const sortIDBySize = (arr: string[]) =>
-  arr.sort((a: string, b: string) =>
-    BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a)) > BigInt(base64ToHexPrefixed(b))
-      ? 1
-      : 0
-  );
 
 export const checkPassword = (password: string | undefined) => {
   if (!password) {
@@ -209,68 +111,8 @@ export const getKeys = (
   };
 };
 
-export const checkOwnerPredicate = (key: string, predicate: string) => {
-  if (!predicate || !key) return false;
-  const hex = Buffer.from(predicate, "base64").toString("hex");
-  const removeScriptBefore = alwaysTrueTagAndIdentifierBytes;
-  const sha256KeyFromPredicate = hex.replace(removeScriptBefore, "");
-
-  const checkedAddress = key.startsWith("0x") ? key.substring(2) : key;
-  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
-  const pubKeyHash = CryptoJS.SHA256(addressHash);
-
-  const pubKeyHashHex = pubKeyHash.toString(CryptoJS.enc.Hex);
-
-  // Create a buffer from the hex string
-  const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
-
-  // Encode the entire Predicate as CBOR
-  const encodedKey = encodeCanonical(pubKeyHashBuffer);
-
-  const encodedKeyHex = Buffer.from(encodedKey).toString("hex");
-
-  return sha256KeyFromPredicate === encodedKeyHex;
-};
-
-export const isTokenSendable = (invariantPredicate: string, key: string) => {
-  return invariantPredicate === alwaysTrueBase64 || checkOwnerPredicate(key, invariantPredicate);
-};
-
-export const createOwnerProof = async (
-  payload: ITransactionPayloadObj,
-  hashingPrivateKey: Uint8Array,
-  pubKey: Uint8Array
-) => {
-  const modifiedPayload = { ...payload };
-
-  modifiedPayload.attributes = Object.values(modifiedPayload.attributes);
-  modifiedPayload.clientMetadata = Object.values(
-    modifiedPayload.clientMetadata
-  );
-  const payloadHash = await secp.utils.sha256(
-    await encodeAsync(Object.values(modifiedPayload), { canonical: true })
-  );
-  const signature = await secp.sign(payloadHash, hashingPrivateKey, {
-    der: false,
-    recovered: true,
-  });
-
-  const isValid = secp.verify(signature[0], payloadHash, pubKey);
-  const P2pkh256Signature = {
-    sig: Buffer.from(
-      secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
-    ),
-    pubKey: pubKey,
-  };
-
-  const ownerProof = await encodeAsync(Object.values(P2pkh256Signature), {
-    canonical: true,
-  });
-
-  return {
-    isSignatureValid: isValid,
-    ownerProof: ownerProof,
-  };
+export const isTokenSendable = () => {
+  return true; // TODO: Figure out new requirements
 };
 
 export const findClosestBigger = (
@@ -406,11 +248,6 @@ export const getBillsSum = (bills: IBill[]) =>
     return acc + BigInt(obj.value);
   }, 0n);
 
-export const getAssetSum = (asset: IFungibleAsset[]) =>
-  asset?.reduce((acc, obj: IFungibleAsset) => {
-    return acc + BigInt(obj.amount);
-  }, 0n);
-
 export const useDocumentClick = (
   callback: (event: MouseEvent) => void,
   ref: React.MutableRefObject<HTMLElement | null>
@@ -520,37 +357,14 @@ export const invalidateAllLists = async (
   queryClient.invalidateQueries(["feeBillsList", pubKey]);
 };
 
-export const createInvariantPredicateSignatures = (
-  hierarchy: ITypeHierarchy[],
-  ownerProof: Uint8Array,
-  key: string
-) => {
-  return hierarchy?.map((parent: ITypeHierarchy) => {
-    const predicate = parent.invariantPredicate;
-
-    if (predicate === alwaysTrueBase64) {
-      return null;
-    } else if (checkOwnerPredicate(key, predicate)) {
-      return ownerProof;
-    }
-    throw new Error("Token can not be transferred");
-  });
-};
-
 export const getTokensLabel = (typeId: string) =>
   typeId === AlphaType ? "bill" : "token";
 
-export const getUpdatedNFTAssets = (
-  NFTsList: IListTokensResponse[] | undefined = [],
-  activeAccountId: string
-) => {
+export const getUpdatedNFTAssets = (NFTsList: IListTokensResponse[] | undefined = []) => {
   return (
     NFTsList?.map((nft) => {
       return Object.assign(nft, {
-        isSendable: isTokenSendable(
-          nft.nftDataUpdatePredicate ? nft.nftDataUpdatePredicate : "",
-          activeAccountId
-        ),
+        isSendable: isTokenSendable(),
         iconImage: nft.icon,
         amountOfSameType:
           NFTsList?.filter(
@@ -561,10 +375,7 @@ export const getUpdatedNFTAssets = (
   );
 };
 
-const getUpdatesUTPFungibleTokens = (
-  fungibleTokensList: IListTokensResponse[] | undefined = [],
-  activeAccountId: string
-) => {
+const getUpdatesUTPFungibleTokens = (fungibleTokensList: IListTokensResponse[] | undefined = []) => {
   let userTokens: any = [];
   let typeIDs: string[] = [];
 
@@ -606,10 +417,7 @@ const getUpdatesUTPFungibleTokens = (
       network: obj.network,
       amount: obj.amount?.toString(),
       decimals: obj.decimals,
-      isSendable: isTokenSendable(
-        obj.invariantPredicate ? obj.invariantPredicate : "",
-        activeAccountId
-      ),
+      isSendable: isTokenSendable(),
       iconImage: obj.icon,
       UIAmount: separateDigits(
         addDecimal(obj.amount || "0", obj.decimals || 0)
@@ -623,10 +431,7 @@ export const getUpdatedFungibleAssets = (
   activeAccountId: string,
   balances: any[]
 ) => {
-  const fungibleUTPAssets = getUpdatesUTPFungibleTokens(
-    fungibleTokensList,
-    activeAccountId
-  );
+  const fungibleUTPAssets = getUpdatesUTPFungibleTokens(fungibleTokensList);
   const ALPHABalance =
     String(balances?.find((balance: any) => balance?.data?.pubKey === activeAccountId)
       ?.data?.balance || "0");
@@ -642,11 +447,7 @@ export const getUpdatedFungibleAssets = (
     isSendable: true,
   };
 
-  const updatedFungibleAssets = sortBy(fungibleUTPAssets.concat([alphaAsset]), [
-    "id",
-  ]);
-
-  return updatedFungibleAssets;
+  return sortBy(fungibleUTPAssets.concat([alphaAsset]), ["id"]);
 };
 
 const sortByTypeId = (arr: any) =>
@@ -677,40 +478,6 @@ export const downloadHexFile = (hexString: string, filename: string) => {
   downloadLink.click();
   document.body.removeChild(downloadLink);
   window.URL.revokeObjectURL(url);
-};
-
-export const sendTransferMessage = async (
-  selectedAsset: INFTAsset | IFungibleAsset,
-  txHash: string,
-  handleTransferEnd: () => void
-) => {
-  chrome?.storage?.local.get(["ab_connected_key"], function (res) {
-    const connectedKey = res?.ab_connected_key;
-
-    if (Boolean(connectedKey)) {
-      chrome?.runtime
-        ?.sendMessage({
-          ab_wallet_extension_actions: {
-            ab_transferred_token_tx_hash: txHash,
-            ab_transferred_token_id: selectedAsset.id,
-          },
-        })
-        .then(() => {
-          chrome?.storage?.local.remove("ab_connect_transfer");
-          chrome?.storage?.local
-            .set({
-              ab_last_connect_transfer: {
-                ab_transferred_token_tx_hash: txHash,
-                ab_transferred_token_id: selectedAsset.id,
-              },
-            })
-            .then(() => {
-              window.close();
-              handleTransferEnd();
-            });
-        });
-    }
-  });
 };
 
 export const removeConnectTransferData = () =>

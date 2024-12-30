@@ -10,7 +10,7 @@ import { isEqual, sortBy } from "lodash";
 
 import {
   IAccount,
-  IActionVies,
+  IActionViews,
   IBill,
   IFeeCreditBills,
   IListTokensResponse,
@@ -50,8 +50,8 @@ interface IAppContextShape {
   account: IAccount;
   isActionsViewVisible: boolean;
   setIsActionsViewVisible: (e: boolean) => void;
-  actionsView: IActionVies;
-  setActionsView: (e: IActionVies) => void;
+  actionsView: IActionViews;
+  setActionsView: (e: IActionViews) => void;
   previousView: string | null;
   setPreviousView: (e: string | null) => void;
   selectedTransferKey: string | null | undefined;
@@ -125,7 +125,7 @@ export const AppProvider: FunctionComponent<{
   );
   const [isActionsViewVisible, setIsActionsViewVisible] =
     useState<boolean>(false);
-  const [actionsView, setActionsView] = useState<IActionVies>("");
+  const [actionsView, setActionsView] = useState<IActionViews>("");
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
@@ -137,10 +137,7 @@ export const AppProvider: FunctionComponent<{
         balances
       ),
       nft:
-        (getUpdatedNFTAssets(
-          NFTsList,
-          activeAccountId
-        ) as INFTAsset[]) || [],
+        (getUpdatedNFTAssets(NFTsList) as INFTAsset[]) || [],
     };
 
     chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
@@ -257,7 +254,7 @@ export const AppProvider: FunctionComponent<{
       {children}
       <Popup
         isPopupVisible={Boolean(error)}
-        setIsPopupVisible={(v) => {
+        setIsPopupVisible={() => {
           setError(null);
         }}
         title="Error"

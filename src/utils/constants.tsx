@@ -17,15 +17,6 @@ export const AlphaTransferType = "trans";
 export const AlphaSwapType = "swapDC";
 export const AlphaDcType = "transDC";
 
-export const TokensSplitType = "splitFToken";
-export const TokensTransferType = "transFToken";
-export const NFTTokensTransferType = "transNToken";
-
-export const FeeCreditAddType = "addFC";
-export const FeeCreditTransferType = "transFC";
-export const FeeCreditCloseType = "closeFC";
-export const FeeCreditReclaimType = "reclFC";
-
 export const AlphaSystemId = BigInt(1);
 export const TokensSystemId = BigInt(2);
 

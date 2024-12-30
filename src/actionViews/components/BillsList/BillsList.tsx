@@ -4,7 +4,7 @@ import { useApp } from "../../../hooks/appProvider";
 import { useAuth } from "../../../hooks/useAuth";
 
 import { FeeCostEl, getBillsAndTargetUnitToConsolidate, getTokensLabel } from "../../../utils/utils";
-import { getProof, swapBill } from "../../../hooks/requests";
+import { swapBill } from "../../../hooks/requests";
 import { getKeys } from "../../../utils/utils";
 
 import { DCTransfersLimit, AlphaType, FungibleListView } from "../../../utils/constants";
@@ -59,23 +59,16 @@ function BillsList(): JSX.Element | null {
     setIsConsolidationLoading(false);
   }, [])
 
-  const addPollingInterval = useCallback(async(
-    txHash: Uint8Array
-  ) => {
+  const addPollingInterval = useCallback(async () => {
     try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      const proof = getProof(txHash, true);
-      if(!proof){
-        throw new Error("Missing transaction proof");
-      }
-      
-      removePollingInterval()
-    } catch(error) {
-      removePollingInterval()
+      removePollingInterval();
+    } catch (error) {
+      removePollingInterval();
       throw new Error("Error fetching transaction proof");
     }
-  }, [activeAccountId, queryClient, removePollingInterval])
+  }, [activeAccountId, queryClient, removePollingInterval]);
 
   const handleSwap = useCallback(async(
     password: string
@@ -86,11 +79,11 @@ function BillsList(): JSX.Element | null {
       vault
     );
 
-    if(error || !hashingPrivateKey || !hashingPublicKey) {
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
       throw new Error("Missing hashing keys");
     }
 
-    if(!consolidationTargetUnit){
+    if (!consolidationTargetUnit) {
       throw new Error("Missing target unit");
     }
 
@@ -106,11 +99,11 @@ function BillsList(): JSX.Element | null {
 
     try {
       const txHash = await swapBill(hashingPrivateKey, targetBillId, billsToSwapIds);
-      if(!txHash){
+      if (!txHash) {
         throw new Error("Transaction hash is missing");
       }
 
-      addPollingInterval(txHash);
+      await addPollingInterval();
     } catch(error) {
       throw new Error("Error while consolidating");
     }

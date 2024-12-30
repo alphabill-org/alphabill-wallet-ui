@@ -13,16 +13,15 @@ import {
   IFungibleAsset,
   IBill,
   IActiveAsset,
-  ITransferForm,
+  ITransferForm
 } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  getProof,
   splitBill,
   splitFungibleToken,
   transferBill,
-  transferFungibleToken,
+  transferFungibleToken
 } from "../../hooks/requests";
 
 import {
@@ -38,13 +37,13 @@ import {
   getFungibleAssetsAmount,
   isValidAddress,
   handleBillSelection,
-  createEllipsisString,
+  createEllipsisString
 } from "../../utils/utils";
 import {
   AlphaType,
   FungibleListView,
   TransferFungibleView,
-  TokenType,
+  TokenType
 } from "../../utils/constants";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
@@ -85,7 +84,7 @@ export default function TransferFungible(): JSX.Element | null {
     label: string;
   } = {
     value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
-    label: directlySelectedAsset?.id || fungibleActiveAsset.symbol || AlphaType,
+    label: directlySelectedAsset?.id || fungibleActiveAsset.symbol || AlphaType
   };
 
   const [selectedAsset, setSelectedAsset] = useState<
@@ -117,21 +116,11 @@ export default function TransferFungible(): JSX.Element | null {
     setIsActionsViewVisible(false);
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
-  const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha: boolean) => {
+  const addPollingInterval = useCallback(() => {
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
-      getProof(txHash, isAlpha)
-      .then((data) => {
-          if(!data?.transactionProof){
-            throw new Error('No proof was found!');
-          }
-          handleTransactionEnd();
-        }
-      ).catch(() => {
-        throw new Error('Error fetching transaction proof')
-      })
     }, 500);
-  }, [activeAccountId, fungibleActiveAsset.typeId, handleTransactionEnd, queryClient]);
+  }, [activeAccountId, fungibleActiveAsset.typeId, queryClient]);
 
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimals || 0));
@@ -165,56 +154,55 @@ export default function TransferFungible(): JSX.Element | null {
     handleTransactionEnd,
   ]);
 
-  const handleTransfer = useCallback( async(
-      values: ITransferForm,
-      setErrors: (errors: FormikErrors<ITransferForm>) => void
-    ) => {
-      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-        values.password,
-        Number(account?.idx),
-        vault
-      );
+  const handleTransfer = useCallback(async (
+    values: ITransferForm,
+    setErrors: (errors: FormikErrors<ITransferForm>) => void
+  ) => {
+    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
+      values.password,
+      Number(account?.idx),
+      vault,
+    );
 
-      if (error || !hashingPrivateKey || !hashingPublicKey) {
-        return setErrors({
-          password: error || "Hashing keys are missing!",
-        });
-      }
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
+      return setErrors({
+        password: error || "Hashing keys are missing!",
+      });
+    }
 
-      if(!activeAsset.id){
-        return setErrors({
-          password: error || "Select an asset to transfer"
-        })
-      }
+    if (!activeAsset.id) {
+      return setErrors({
+        password: error || "Select an asset to transfer",
+      });
+    }
 
-      setIsSending(true);
+    setIsSending(true);
 
-      const isAlpha = selectedAsset?.typeId === AlphaType;
-    
+    const isAlpha = selectedAsset?.typeId === AlphaType;
+
     try {
       const decodedId = Base16Converter.decode(activeAsset.id);
       const recipient = Base16Converter.decode(values.address);
 
-      const transferHash = isAlpha 
+      const transferHash = isAlpha
         ? await transferBill(hashingPrivateKey, recipient, decodedId)
-        : await transferFungibleToken(hashingPrivateKey, recipient, decodedId)
+        : await transferFungibleToken(hashingPrivateKey, recipient, decodedId);
 
-      if(!transferHash){
+      if (!transferHash) {
         setIsSending(false);
         return setErrors({
-          password: error || "Error occured during the transaction!"
-        })
+          password: error || "Error occurred during the transaction!"
+        });
       }
-      addPollingInterval(transferHash, isAlpha);
-    } catch(error) {
+      addPollingInterval();
+    } catch (error) {
       return setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
-      })
+        password: (error as Error).message || "Error occurred during the transaction"
+      });
     }
-  }, [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault])
+  }, [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault]);
 
-
-  const handleSplit =  useCallback( async(
+  const handleSplit = useCallback(async (
     values: ITransferForm,
     setErrors: (errors: FormikErrors<ITransferForm>) => void
   ) => {
@@ -248,10 +236,10 @@ export default function TransferFungible(): JSX.Element | null {
 
     const { billToSplit } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
 
-    if(!billToSplit) {
+    if (!billToSplit) {
       return setErrors({
         password: error || "Select an asset to transfer"
-      })
+      });
     }
 
     setIsSending(true);
@@ -264,21 +252,21 @@ export default function TransferFungible(): JSX.Element | null {
 
       const splitHash = isAlpha
         ? await splitBill(hashingPrivateKey, convertedAmount, recipient, decodedId)
-        : await splitFungibleToken(hashingPrivateKey, convertedAmount, recipient, decodedId)
+        : await splitFungibleToken(hashingPrivateKey, convertedAmount, recipient, decodedId);
 
-      if(!splitHash){
+      if (!splitHash) {
         return setErrors({
-          password: error || "Error fetching transaction hash" 
-        })
+          password: error || "Error fetching transaction hash"
+        });
       }
-      addPollingInterval(splitHash, isAlpha);
-    } catch(error) {
+      addPollingInterval();
+    } catch (error) {
       setIsSending(false);
       return setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
-      })
+        password: (error as Error).message || "Error occurred during the transaction"
+      });
     }
-  }, [account?.idx, addPollingInterval, directlySelectedAsset, selectedAsset?.decimals, selectedAsset?.typeId, selectedTransferKey, unlockedBillsList, vault])
+  }, [account?.idx, addPollingInterval, directlySelectedAsset, selectedAsset?.decimals, selectedAsset?.typeId, selectedTransferKey, unlockedBillsList, vault]);
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -293,9 +281,9 @@ export default function TransferFungible(): JSX.Element | null {
           password: "",
         }}
         onSubmit={async (values, { setErrors }) => {
-          directlySelectedAsset 
-            ? handleTransfer(values, setErrors) 
-            : handleSplit(values, setErrors)
+          directlySelectedAsset
+            ? handleTransfer(values, setErrors)
+            : handleSplit(values, setErrors);
         }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
@@ -319,7 +307,7 @@ export default function TransferFungible(): JSX.Element | null {
                 BigInt(
                   feeCreditBills?.[
                     selectedAsset?.typeId === AlphaType ? AlphaType : TokenType
-                  ]?.value || "0"
+                    ]?.value || "0"
                 ) >= BigInt("1")
             )
             .required("Password is required"),
@@ -337,9 +325,9 @@ export default function TransferFungible(): JSX.Element | null {
                 selectedTransferKey
                   ? true
                   : value
-                  ? convertToWholeNumberBigInt(value || "", decimals) <=
+                    ? convertToWholeNumberBigInt(value || "", decimals) <=
                     convertToWholeNumberBigInt(availableAmount, decimals)
-                  : true
+                    : true
             ),
         })}
       >
@@ -378,7 +366,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedAsset(activeAsset);
                               setFieldValue("assets", {
                                 value: activeAsset,
-                                label: activeAsset?.symbol,
+                                label: activeAsset?.symbol
                               });
                             }}
                             variant="link"
@@ -436,7 +424,7 @@ export default function TransferFungible(): JSX.Element | null {
                         }
                         return 0;
                       })
-                      .sort(function (a, b) {
+                      .sort(function(a, b) {
                         if (a.id === AlphaType) {
                           return -1; // Move the object with the given ID to the beginning of the array
                         }

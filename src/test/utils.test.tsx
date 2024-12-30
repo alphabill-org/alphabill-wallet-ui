@@ -1,4 +1,4 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   countDecimalLength,
   convertToWholeNumberBigInt,
@@ -6,9 +6,6 @@ import {
   findClosestBigger,
   getClosestSmaller,
   getOptimalBills,
-  createInvariantPredicateSignatures,
-  isTokenSendable,
-  hexToBase64,
   getUpdatedNFTAssets,
   handleBillSelection,
   createEllipsisString,
@@ -16,11 +13,9 @@ import {
   isBillLocked,
   unlockedBills,
   findBillWithLargestValue,
-  checkOwnerPredicate,
 } from "../utils/utils";
 
 import {
-  activeAccountId,
   NFTsList_1,
   NFTsList_2,
   NFTsList_3,
@@ -33,7 +28,6 @@ import {
   ExpectedBill500,
 } from "./constants";
 import { IBill } from "../types/Types";
-import { alwaysFalseBase64, alwaysTrueBase64 } from "../utils/constants";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -192,230 +186,19 @@ describe("Function that gets optimal combination of bills to reach the target am
   });
 });
 
-describe("Check owner predicate", () => {
-  test("should return true for a valid predicate and key", () => {
-    const key =
-      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-    const predicate = "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
-    const result = checkOwnerPredicate(key, predicate);
-    expect(result).toBe(true);
-  });
-
-  test("should return false for an invalid predicate and key", () => {
-    const key = "0xabcdef";
-    const predicate = "invalid_predicate";
-    const result = checkOwnerPredicate(key, predicate);
-    expect(result).toBe(false);
-  });
-});
-
-describe("isTokenSendable", () => {
-  test("should return false for a PushBoolFalse invariant predicate", () => {
-    const invariantPredicate = alwaysFalseBase64;
-    const key = "0xabcdef";
-    const result = isTokenSendable(invariantPredicate, key);
-    expect(result).toBe(false);
-  });
-
-  test("should return true for a PushBoolTrue invariant predicate", () => {
-    const invariantPredicate = alwaysTrueBase64;
-    const key = "0xabcdef";
-    const result = isTokenSendable(invariantPredicate, key);
-    expect(result).toBe(true);
-  });
-
-  test("should return false for a invalid invariant predicate and key", () => {
-    const invariantPredicate = hexToBase64("abcdef");
-    const key = "0xabcdef";
-    const result = isTokenSendable(invariantPredicate, key);
-    expect(result).toBe(false);
-  });
-
-  test("should return true for a valid invariant predicate and key", () => {
-    const invariantPredicate =
-      "U3aoAU8Bpq7mLmVAW3geOmYTUV0O/UO9KoEkXL4+Elv50KMzBQSHaawB";
-    const key =
-      "0x03bf21600fb37a019d52e4e9ec4330ac66af681ce9354a579acb1f250463bc48e0";
-    const result = isTokenSendable(invariantPredicate, key);
-    expect(result).toBe(false);
-  });
-});
-
-describe("Create invariant predicate signatures", () => {
-  test("should throw an error for an empty string invariant predicate", () => {
-    const hierarchy = [
-      {
-        id: "AA==",
-        parentTypeId: "AA==",
-        symbol: "AA==",
-        decimals: 2,
-        kind: 2,
-        txHash: "AA==",
-        subTypeCreationPredicate: "AA==",
-        tokenCreationPredicate: "AA==",
-        invariantPredicate: "",
-      },
-    ];
-    const ownerProof = Buffer.from("abcdef");
-    const key = "0xabcdef";
-    expect(() =>
-      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toThrow();
-  });
-
-  test("should throw an error for invariant predicate with null value", () => {
-    const hierarchy: any = [
-      {
-        id: "AA==",
-        parentTypeId: "AA==",
-        symbol: "AA==",
-        decimals: 2,
-        kind: 2,
-        txHash: "AA==",
-        subTypeCreationPredicate: "AA==",
-        tokenCreationPredicate: "AA==",
-        invariantPredicate: null,
-      },
-    ];
-    const ownerProof = Buffer.from("abcdef");
-    const key = "0xabcdef";
-    expect(() =>
-      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toThrow();
-  });
-
-  test("should throw an error for a PushBoolFalse invariant predicate", () => {
-    const hierarchy = [
-      {
-        id: "AA==",
-        parentTypeId: "AA==",
-        symbol: "AA==",
-        decimals: 2,
-        kind: 2,
-        txHash: "AA==",
-        subTypeCreationPredicate: "AA==",
-        tokenCreationPredicate: "AA==",
-        invariantPredicate: alwaysFalseBase64,
-      },
-    ];
-    const ownerProof = Buffer.from("abcdef");
-    const key = "0xabcdef";
-    expect(() =>
-      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toThrow();
-  });
-
-  test("should return true for a valid signatures if invariant predicate is ptpkh", () => {
-    const hierarchy = [
-      {
-        id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
-        parentTypeId: "AA==",
-        symbol: "SSS",
-        subTypeCreationPredicate: "U1EB",
-        tokenCreationPredicate:
-          "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
-        invariantPredicate:
-          "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
-        decimals: 8,
-        kind: 2,
-        txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
-      },
-    ];
-    const ownerProof = Buffer.from(
-      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
-      "base64"
-    );
-
-    const key =
-      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-    expect(
-      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual(hierarchy?.map(() => ownerProof));
-  });
-  test("should return true for a valid signatures for valid predicate and key", () => {
-    const hierarchy = [
-      {
-        id: "Qd6GsnoLOa7J3fO1PkA+1FBaJaGfcakJtGfLBxXogwQ=",
-        parentTypeId: "AA==",
-        symbol: "SSS",
-        subTypeCreationPredicate: alwaysTrueBase64,
-        tokenCreationPredicate: alwaysTrueBase64,
-        invariantPredicate: alwaysTrueBase64,
-        decimals: 8,
-        kind: 2,
-        txHash: "PRH+z8hCfyz8tXjn7cZ/WCiQsg7z57x43Ye0TDhGFOA=",
-      },
-    ];
-    const ownerProof = Buffer.from(
-      "gwACgVggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=",
-      "base64"
-    );
-    const key =
-      "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-    expect(
-      createInvariantPredicateSignatures(hierarchy, ownerProof, key)
-    ).toEqual([null]);
-  });
-});
-
-describe("Check if owner predicate", () => {
-  const validKey =
-    "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
-  const validPredicate = "gwBBAlggHCHhNQxCfFrGwCbMcBLoV5ms4R6ZYQecnzzKIf5gQJM=";
-  const invalidKey =
-    "830002582258201c21e1350c427c5ac6c026cc7012e85799ace11e9961079c9f3cca21fe604093";
-  const invalidPredicate = "";
-
-  it("returns true when the sha256KeyFromPredicate matches the SHA256 hash of the key parameter", () => {
-    expect(checkOwnerPredicate(validKey, validPredicate)).toBe(true);
-  });
-
-  it("returns false when the sha256KeyFromPredicate does not match the SHA256 hash of the key parameter", () => {
-    expect(checkOwnerPredicate(invalidKey, validPredicate)).toBe(false);
-  });
-
-  it("returns false when the predicate parameter is falsy", () => {
-    expect(checkOwnerPredicate(validKey, invalidPredicate)).toBe(false);
-  });
-
-  it("returns false when both the key and predicate parameters are falsy", () => {
-    expect(checkOwnerPredicate(invalidKey, invalidPredicate)).toBe(false);
-  });
-
-  it("returns false when predicate is null", () => {
-    expect(checkOwnerPredicate(validKey, null as any)).toBe(false);
-  });
-
-  it("returns false when key is null", () => {
-    expect(checkOwnerPredicate(null as any, validPredicate)).toBe(false);
-  });
-});
-
 describe("Get updated NFT assets with is sendable & amount of same type", () => {
   it("should return updated NFT assets with correct properties with two of the same type", () => {
-    const actualOutput = getUpdatedNFTAssets(
-      NFTsList_1,
-      activeAccountId
-    );
-
+    const actualOutput = getUpdatedNFTAssets(NFTsList_1);
     expect(actualOutput).toEqual(NFTSameTypeResult);
   });
 
   it("should return updated NFT assets with correct properties with one of the each type", () => {
-    const actualOutput = getUpdatedNFTAssets(
-      NFTsList_2,
-      activeAccountId
-    );
-
+    const actualOutput = getUpdatedNFTAssets(NFTsList_2);
     expect(actualOutput).toEqual(NFTDifferentTypeResult);
   });
 
   it("should return updated NFT assets with correct properties with isSendable false", () => {
-    const actualOutput = getUpdatedNFTAssets(
-      NFTsList_3,
-      activeAccountId
-    );
-
+    const actualOutput = getUpdatedNFTAssets(NFTsList_3);
     expect(actualOutput).toEqual(NFTIsSendableFalseResult);
   });
 });

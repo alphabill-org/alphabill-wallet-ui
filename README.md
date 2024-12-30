@@ -1,6 +1,5 @@
 # Getting Started with Alphabill Light Wallet
 
-
 ## Available Scripts
 
 ### `npm install` & for Node.js version 17 & up add `--openssl-legacy-provider` flag.

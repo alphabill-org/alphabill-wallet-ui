@@ -6,7 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Formik, FormikErrors, FormikState } from "formik";
 import { Form, FormFooter, FormContent } from "../Form/Form";
 import { IBill } from "../../types/Types";
-import { getProof, reclaimFeeCredit } from "../../hooks/requests";
+import { reclaimFeeCredit } from "../../hooks/requests";
 import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
 import { AlphaType, TokenType } from "../../utils/constants";
 
@@ -30,8 +30,7 @@ export default function ReclaimFeeCredit({
   const [isReclaimPopupVisible, setIsReclaimPopupVisible] = useState<boolean>(false);
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const isFeeReclaimed = useRef<boolean>(false);
-  
+
   const billsArr = billsList
     ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
@@ -43,38 +42,11 @@ export default function ReclaimFeeCredit({
   const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
   const buttonLabel = "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
 
-  const setIntervalCancel = useCallback(() => {
-    pollingInterval.current 
-      && clearInterval(pollingInterval.current);
-    setIsSending(false);
-    isFeeReclaimed.current 
-      && setIsReclaimPopupVisible(false);
-
-    isFeeReclaimed.current = false;
-  }, []) 
-
-  const addPollingInterval = useCallback((
-      txHash: Uint8Array,
-      resetForm: (nextState?: Partial<FormikState<{password: string;}>>) => void
-    ) => {
-        pollingInterval.current = setInterval(() => {
+  const addPollingInterval = useCallback(() => {
+      pollingInterval.current = setInterval(() => {
         invalidateAllLists(activeAccountId, AlphaType, queryClient);
-        getProof(
-          txHash, 
-          true
-        ).then((data) => {
-          if (!data?.transactionProof) {
-            throw new Error("No proof was found");
-          }
-        resetForm();
-          isFeeReclaimed.current = true;
-        }).catch(() => {
-          throw new Error("The proof for transaction is missing");
-        }).finally(() => {
-          setIntervalCancel()
-        });
       }, 1000);
-    },[queryClient, activeAccountId, setIntervalCancel]
+    }, [queryClient, activeAccountId]
   );
   
 
@@ -100,17 +72,17 @@ export default function ReclaimFeeCredit({
       try {
         setPreviousView(null);
         const reclaimTxHash = await reclaimFeeCredit(hashingPrivateKey, isAlpha);
-        if(!reclaimTxHash){
+        if (!reclaimTxHash) {
           setIsSending(false);
           return setErrors({
-            password: error || "Error occured during the transaction"
-          })
+            password: error || "Error occurred during the transaction"
+          });
         }
-        addPollingInterval(reclaimTxHash, resetForm)
+        addPollingInterval()
       } catch(error) {
         setIsSending(false);
         setErrors({
-          password: 'Error occured during the transaction'
+          password: 'Error occurred during the transaction'
         })
       }
     }, [account?.idx, addPollingInterval, isAlpha, setPreviousView, vault]
