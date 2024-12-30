@@ -6,8 +6,8 @@ import { Base64imageComponent, base64ToHexPrefixed } from "../../utils/utils";
 import { useGetImageUrl } from "../../hooks/api";
 import Spinner from "../Spinner/Spinner";
 import classNames from "classnames";
-import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
-import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/tokens/TokenIcon";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 export interface IAssetsListItemIconProps {
   asset: any;
@@ -42,10 +42,10 @@ export default function AssetsListItemIcon({
   if (tokenIcon) {
     return (
       <div className={wrapClass}>
-        <Base64imageComponent 
+        <Base64imageComponent
           base64Data={{
             type: tokenIcon.type, 
-            data: Base64Converter.encode(tokenIcon.data)
+            data: Base16Converter.encode(tokenIcon.data) // TODO: No longer base 64
           }} 
           alt={asset.id} 
         />

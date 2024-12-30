@@ -137,10 +137,7 @@ export const AppProvider: FunctionComponent<{
         balances
       ),
       nft:
-        (getUpdatedNFTAssets(
-          NFTsList,
-          activeAccountId
-        ) as INFTAsset[]) || [],
+        (getUpdatedNFTAssets(NFTsList) as INFTAsset[]) || [],
     };
 
     chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
@@ -257,7 +254,7 @@ export const AppProvider: FunctionComponent<{
       {children}
       <Popup
         isPopupVisible={Boolean(error)}
-        setIsPopupVisible={(v) => {
+        setIsPopupVisible={() => {
           setError(null);
         }}
         title="Error"

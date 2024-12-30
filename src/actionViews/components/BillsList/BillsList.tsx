@@ -59,19 +59,16 @@ function BillsList(): JSX.Element | null {
     setIsConsolidationLoading(false);
   }, [])
 
-  const addPollingInterval = useCallback(async(
-    txHash: Uint8Array
-  ) => {
+  const addPollingInterval = useCallback(async () => {
     try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-
-      removePollingInterval()
-    } catch(error) {
-      removePollingInterval()
+      removePollingInterval();
+    } catch (error) {
+      removePollingInterval();
       throw new Error("Error fetching transaction proof");
     }
-  }, [activeAccountId, queryClient, removePollingInterval])
+  }, [activeAccountId, queryClient, removePollingInterval]);
 
   const handleSwap = useCallback(async(
     password: string
@@ -106,7 +103,7 @@ function BillsList(): JSX.Element | null {
         throw new Error("Transaction hash is missing");
       }
 
-      addPollingInterval(txHash);
+      await addPollingInterval();
     } catch(error) {
       throw new Error("Error while consolidating");
     }

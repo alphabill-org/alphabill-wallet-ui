@@ -65,30 +65,23 @@ export default function TransferNFTs(): JSX.Element | null {
 
     setIsSending(false);
 
-    if(isProof){
+    if (isProof) {
       setSelectedTransferKey(null);
       setIsActionsViewVisible(false);
       setPreviousView(null);
     }
   }, [setIsActionsViewVisible, setPreviousView, setSelectedTransferKey]);
 
-  const addPollingInterval = useCallback((txHash: Uint8Array) => 
-    {
-      pollingInterval.current = setInterval(async() => {
-        try {
-          invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
-          // const proof = await getProof(txHash, false);
-
-          // if(!proof?.transactionProof){
-          //   throw new Error("No transaction proof was found")
-          // }
-
-          removePollingInterval(true);
-        } catch(error) {
-          throw new Error("Error fetching transaction proof")
-        }
-      }, 500);
-    }, [activeAccountId, activeAsset.typeId, queryClient, removePollingInterval]);
+  const addPollingInterval = useCallback(() => {
+    pollingInterval.current = setInterval(async () => {
+      try {
+        invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
+        removePollingInterval(true);
+      } catch (error) {
+        throw new Error("Error fetching transaction proof");
+      }
+    }, 500);
+  }, [activeAccountId, activeAsset.typeId, queryClient, removePollingInterval]);
 
   const handleSubmit = useCallback(async(
     values: ITransferFormNFT,
@@ -101,10 +94,10 @@ export default function TransferNFTs(): JSX.Element | null {
       vault
     );
 
-    if( error || !hashingPrivateKey || !hashingPublicKey ){
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
       return setErrors({
         password: error || "Hashing keys are missing!"
-      })
+      });
     }
 
     const selectedNFT = selectedTransferKey
@@ -112,11 +105,11 @@ export default function TransferNFTs(): JSX.Element | null {
       : NFTsList?.find(
         (token: IListTokensResponse) => selectedAsset?.id === token.id
       );
-    
-    if(!selectedNFT){
+
+    if (!selectedNFT) {
       return setErrors({
-        password: error || "NFT is required!"
-      })
+        password: error || "NFT is required!",
+      });
     }
 
     setIsSending(true);
@@ -126,16 +119,16 @@ export default function TransferNFTs(): JSX.Element | null {
       const recipient = Base16Converter.decode(values.address);
 
       const txHash = await transferNFT(hashingPrivateKey, decodedId, recipient);
-      if(!txHash){
+      if (!txHash) {
         return setErrors({
-          password: error || "Error occured fetching transaction hash"
-        })
+          password: error || "Error occurred fetching transaction hash"
+        });
       }
 
-      addPollingInterval(txHash)
+      addPollingInterval();
     } catch(error) {
       setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
+        password: (error as Error).message || "Error occurred during the transaction"
       })
     }
   }, [NFTsList, account.idx, addPollingInterval, selectedAsset?.id, selectedTransferKey, selectedTransferNFT, vault])

@@ -66,21 +66,6 @@ export interface IFungibleAsset {
   symbol: string;
 }
 
-export interface ITokensListTypes {
-  id: string; // base64 encoded hex
-  parentTypeId: string; // base64 encoded hex
-  symbol: string;
-  subTypeCreationPredicate: string;
-  tokenCreationPredicate: string;
-  invariantPredicate: string;
-  decimals?: number; // fungible only
-  kind: number; // [2:Fungible|4:NonFungible]
-  txHash: string; // base64 encoded hex  creation tx
-  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
-  icon: { data: string; type: string };
-  name: string;
-}
-
 export interface IListTokensResponse {
   id: string; // base64 encoded hex
   typeId: string; // base64 encoded hex
@@ -118,19 +103,6 @@ export interface IActiveAsset {
   nftData?: string;
   nftName?: string;
   name?: string;
-}
-
-export interface ITypeHierarchy {
-  id: string; //base64 encoded hex
-  parentTypeId: string; //base64 encoded hex
-  symbol: string;
-  decimals?: number; // [0..8] fungible only
-  kind: number; //  [2:Fungible|4:NonFungible],
-  txHash: string; //base64 encoded hex - creation tx
-  invariantPredicate: string;
-  tokenCreationPredicate: string;
-  subTypeCreationPredicate: string;
-  nftDataUpdatePredicate?: string; //base64 encoded hex - nft only
 }
 
 export interface IBill {

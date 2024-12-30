@@ -94,7 +94,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     isFeeCreditAdded.current = false;
   }, [setIsActionsViewVisible])
 
-  const addPollingInterval = useCallback((txProof: TransactionRecordWithProof<TransferFeeCreditTransactionOrder>, isAlpha?: boolean) => {
+  const addPollingInterval = useCallback((txProof: TransactionRecordWithProof<TransferFeeCreditTransactionOrder>) => {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);
@@ -144,17 +144,17 @@ export default function TransferFeeCredit(): JSX.Element | null {
       })
     }
 
-    const { optimalBills } = await handleBillSelection(convertedAmount.toString(), billsArr)
+    const { optimalBills } = handleBillSelection(convertedAmount.toString(), billsArr)
     const optimalBill = Base16Converter.decode(optimalBills[0].id)
 
     try {
       const txProof = await addFeeCredit(hashingPrivateKey, convertedAmount, optimalBill, isAlphaTransaction);
       setPreviousView(null);
-      addPollingInterval(txProof, isAlphaTransaction);
+      addPollingInterval(txProof);
     } catch (error) {
       removePollingInterval()
       return setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
+        password: (error as Error).message || "Error occurred during the transaction"
       })
     }
   }, [account?.idx, addPollingInterval, billsArr, removePollingInterval, setPreviousView, vault]); 

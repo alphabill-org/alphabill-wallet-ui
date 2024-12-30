@@ -116,7 +116,7 @@ export default function TransferFungible(): JSX.Element | null {
     setIsActionsViewVisible(false);
   }, [setIsActionsViewVisible, setSelectedTransferKey]);
 
-  const addPollingInterval = useCallback((txHash: Uint8Array, isAlpha: boolean) => {
+  const addPollingInterval = useCallback(() => {
     pollingInterval.current = setInterval(() => {
       invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
     }, 500);
@@ -191,13 +191,13 @@ export default function TransferFungible(): JSX.Element | null {
       if (!transferHash) {
         setIsSending(false);
         return setErrors({
-          password: error || "Error occured during the transaction!"
+          password: error || "Error occurred during the transaction!"
         });
       }
-      addPollingInterval(transferHash, isAlpha);
+      addPollingInterval();
     } catch (error) {
       return setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
+        password: (error as Error).message || "Error occurred during the transaction"
       });
     }
   }, [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault]);
@@ -259,11 +259,11 @@ export default function TransferFungible(): JSX.Element | null {
           password: error || "Error fetching transaction hash"
         });
       }
-      addPollingInterval(splitHash, isAlpha);
+      addPollingInterval();
     } catch (error) {
       setIsSending(false);
       return setErrors({
-        password: (error as Error).message || "Error occured during the transaction"
+        password: (error as Error).message || "Error occurred during the transaction"
       });
     }
   }, [account?.idx, addPollingInterval, directlySelectedAsset, selectedAsset?.decimals, selectedAsset?.typeId, selectedTransferKey, unlockedBillsList, vault]);
