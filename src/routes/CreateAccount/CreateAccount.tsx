@@ -1,6 +1,5 @@
 import { HDKey } from "@scure/bip32";
 import { generateMnemonic, mnemonicToSeedSync, mnemonicToEntropy } from "bip39";
-import CryptoJS from "crypto-js";
 import { Formik } from "formik";
 import { useMemo } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";

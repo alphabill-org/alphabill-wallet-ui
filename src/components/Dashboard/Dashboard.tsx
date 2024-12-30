@@ -1,7 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { useQueryClient } from "react-query";
 import { Tooltip } from "react-tooltip";
 
 import { useApp } from "../../hooks/appProvider";

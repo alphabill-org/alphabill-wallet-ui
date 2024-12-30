@@ -1,6 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Formik, FormikErrors, FormikState } from "formik";
 import { useCallback, useRef, useState } from "react";
-import { useQueryClient } from "react-query";
 import { useApp } from "../../hooks/appProvider";
 
 import { reclaimFeeCredit } from "../../hooks/requests";
@@ -117,7 +117,7 @@ export default function ReclaimFeeCredit({
           initialValues={{
             password: "",
           }}
-          onSubmit={async (values, { setErrors, resetForm }) => handleSubmit(values, setErrors, resetForm)}
+          onSubmit={(values, { setErrors, resetForm }) => handleSubmit(values, setErrors, resetForm)}
         >
           {(formikProps) => {
             const { handleSubmit, errors, touched, resetForm } = formikProps;

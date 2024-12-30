@@ -1,5 +1,5 @@
+import { QueryObserverResult, useQueries, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { QueryObserverResult, useQueries, useQuery } from "react-query";
 import { IBillsList, IListTokensResponse, IFeeCreditBills } from "../types/Types";
 
 import {

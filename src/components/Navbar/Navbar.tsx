@@ -1,5 +1,5 @@
+import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
-import { useQueryClient } from "react-query";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { INavbarViews } from "../../types/Types";

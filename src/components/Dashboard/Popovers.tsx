@@ -1,8 +1,8 @@
+import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
 import CryptoJS from "crypto-js";
 import { Formik } from "formik";
 import { useState } from "react";
-import { useQueryClient } from "react-query";
 import * as Yup from "yup";
 
 import { useApp } from "../../hooks/appProvider";

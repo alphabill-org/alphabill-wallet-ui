@@ -1,10 +1,9 @@
 import { HDKey } from "@scure/bip32";
+import { QueryClient } from "@tanstack/react-query";
 import { entropyToMnemonic, mnemonicToSeedSync } from "bip39";
-import CryptoJS from "crypto-js";
 import { getIn } from "formik";
 import { isNumber, sortBy } from "lodash";
 import { useCallback, useEffect } from "react";
-import { QueryClient } from "react-query";
 
 import { IAccount, IBill, IListTokensResponse } from "../types/Types";
 import { AlphaDecimals, AlphaType, DCTransfersLimit, localStorageKeys } from "./constants";

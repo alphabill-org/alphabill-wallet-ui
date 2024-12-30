@@ -1,5 +1,5 @@
+import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
-import { useQueryClient } from "react-query";
 
 import { useAuth } from "../../hooks/useAuth";
 import { IActiveAsset, IBill } from "../../types/Types";
