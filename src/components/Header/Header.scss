@@ -5,37 +5,46 @@
   padding: 24px;
   align-items: center;
   width: 100%;
-  background-color: $color-body-background;
   justify-content: space-between;
-  border-bottom: 1px solid $color-secondary;
 
   &__ico {
-    display: flex;
-    width: 40px;
-    height: 40px;
-    transition: all .2s;
-
-    a.button.button--icon:hover {
-      path {
-        fill: white;
-      }
-    }
+    fill: $color-primary;
+    flex-shrink: 0;
   }
 
   &__select {
-    width: 100%;
-    padding: 0 32px;
+    display: flex;
+    max-width: 70%;
+    justify-content: center;
+    gap: 12px;
+    height: 38px;
+    padding: 7px 14px;
+    background: rgba(255, 255, 255, 0.15);
+    
 
-    .select__button {
-      width: 100%;
-      justify-content: space-between;
-      background: $color-secondary;
-      padding: 4px 12px;
-      border-radius: 4px;
+    .select__button{
+      gap: 8px;
       color: $color-white;
-      font-weight: 600;
-      font-size: 12px;
+      font-weight: 500;
+      font-size: 14px;
       line-height: 18px;
+      fill: $color-white;
+
+      &--icon {
+        fill: $color-white 
+      }
+
     }
+
+    .copy__button path {
+      fill: $color-white;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__settings path {
+    fill: rgba(223, 216, 245, 1);
+    flex-shrink: 0;
   }
 }

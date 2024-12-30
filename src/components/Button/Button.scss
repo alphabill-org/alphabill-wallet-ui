@@ -3,13 +3,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 10px;
+  padding: 12px;
   font-weight: $font-weight-semibold;
   transform: translate3d(0, 0, 0);
   white-space: nowrap;
   border: none;
   cursor: pointer;
-  border-radius: 6px;
 
   &:active {
     transform: scale(.9);
@@ -17,28 +16,16 @@
 
   &--icon {
     padding: 0;
-
-    &:hover {
-      opacity: .7;
-
-      .profile-ico {
-        circle:first-child {
-          fill: $color-white;
-        }
-
-        circle {
-          fill: $color-secondary-op;
-        }
-      }
-    }
+    color: $color-primary;
 
     &:active {
       transform: scale(.9);
     }
+
   }
 
-  &:hover {
-    opacity: 0.6;
+  &:hover path{
+    fill: $color-white;
   }
 
   &:disabled {
@@ -98,13 +85,13 @@
   }
 
   &:disabled {
-    background-color: #0A8F9E;
+    background-color: #0A8F9E
   }
 }
 
 .button--secondary {
-  color: $color-light;
-  background-color: $color-secondary;
+  color: $color-primary;
+  background-color: rgba($color-white, 0.15);
 
   &.is--active {
     background-color: $color-blue;
@@ -112,13 +99,17 @@
 
   &:hover {
     opacity: 1;
-    background-color: $color-blue;
+    background-color: $color-primary;
     box-shadow: none;
     color: white;
 
     &.is--active {
       background-color: $color-blue;
     }
+  }
+
+  &:hover .icon-btn path {
+    fill: $color-blue;
   }
 }
 

@@ -1,0 +1,40 @@
+.fee-credit-card {
+  background-color: rgba($color: #ffffff, $alpha: .15);
+  width: 158px;
+  height: 88px;
+  display: flex;
+  flex-direction: column;
+  justify-items: start;
+  padding: 8px 16px;
+
+  &__label {
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 400;
+  }
+
+  &__amount {
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 500;
+  }
+
+  &__btn {
+    color: $color-primary;
+    gap: 6px;
+    width: 90px;
+    margin-top: 6px;
+
+    &:hover {
+      color: white !important;
+    }
+
+    &:hover path {
+      fill: white;
+    }
+
+    &-icon path{
+      fill: $color-primary;
+    }
+  }
+}

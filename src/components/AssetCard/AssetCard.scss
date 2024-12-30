@@ -1,0 +1,129 @@
+.asset-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: rgba(48, 47, 100, 1);
+  width: 327px;
+  height: 150px;
+  padding-left: 16px;
+  padding-top: 16px;
+  overflow: hidden;
+  z-index: 1;
+
+  &--mini{
+    width: 150px;
+    height: 183px;
+  }
+}
+
+.asset-card-header {
+ display: block;
+ padding-bottom: 12px;
+ z-index: 1;
+}
+
+.asset-card-body {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 8px;
+  align-items: end;
+  z-index: 1;
+
+  &__asset-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 26px;
+    grid-column: 2;
+    grid-row: 1;
+
+    &--nft {
+      grid-column: 1;
+      grid-row: 1;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 32px;
+      align-self: center;
+    }
+  }
+
+  &__asset-amount {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 32px;
+    grid-column: 1;
+    grid-row: 1;
+
+    &--nft {
+      background-color: rgba(255, 255, 255, 0.15);
+      padding-left: 5px;
+      padding-right: 5px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      grid-column: 2;
+      grid-row: 1;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 18px;
+      align-self: center;
+    }
+  }
+}
+
+.asset-card-body-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1;
+
+  &__asset-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
+  }
+
+  &__asset-amount {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 26px;
+  }
+}
+
+.asset-card-footer {
+  display: flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top: auto;
+
+  &__button {
+    transition: color 0.3s ease-in-out;
+
+    &-icon path{
+      fill: #08E8DE; 
+    }
+
+    &:hover .asset-card-footer__button-icon path {
+      fill: $color-blue;
+    }
+  }
+
+}
+
+.asset-card-sphere {
+  position: absolute;
+  top: -106px;
+  right: -81px;
+  width: 184px;
+  height: 184px;
+  background-color: $color-primary;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  z-index: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.asset-card .asset-card-footer__button:hover ~ .asset-card-sphere {
+  opacity: 0.8;
+}
+
+

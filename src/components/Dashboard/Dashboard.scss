@@ -4,7 +4,6 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  background-color: $color-blue;
 
   &__account {
     min-width: 278px;
@@ -296,7 +295,6 @@
   }
 
   &__info {
-    background-color: $color-body-background;
     min-height: 230px;
     position: relative;
   }
