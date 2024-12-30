@@ -1,5 +1,5 @@
 import { AlphaType, TokenType } from "../utils/constants";
-import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/tokens/TokenIcon";
 
 export interface ITransferFormNFT {
   assets: {
@@ -180,10 +180,6 @@ export interface IBillsList {
   bills: IBill[];
 }
 
-export interface IRoundNumber {
-  roundNumber: string;
-}
-
 export interface INetwork {
   id: string;
   isTestNetwork: boolean;
@@ -223,27 +219,6 @@ export interface ITransactionAttributes {
   targetUnitBacklink?: Uint8Array;
 }
 
-export interface ITransactionRequestPayload {
-  transactions: ITransactionPayload[];
-}
-
-export interface ITransactionPayload {
-  payload: {
-    systemId: bigint;
-    type: string;
-    unitId: Uint8Array;
-    attributes: Uint8Array | ITransactionAttributes;
-    clientMetadata?: Uint8Array[] | IPayloadClientMetadata;
-  };
-  ownerProof?: Uint8Array;
-  feeProof?: string | null;
-}
-
-export interface IPayloadClientMetadata {
-  timeout?: bigint;
-  MaxTransactionFee: bigint;
-  feeCreditRecordID?: Uint8Array | null;
-}
 export interface ITransactionPayloadObj {
   systemId: bigint;
   unitId: Uint8Array;

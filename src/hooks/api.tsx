@@ -147,14 +147,3 @@ export function useGetUserTokens(
     }
   );
 }
-
-// export function useGetProof(
-//   billID: string,
-//   txHash: Uint8Array
-// ): QueryObserverResult<ITxProof, AxiosError> {
-//   // return useQuery([`proof`, billID], async () => getProof(txHash), {
-//   //   enabled: true,
-//   //   keepPreviousData: true,
-//   //   staleTime: Infinity,
-//   // });
-// }

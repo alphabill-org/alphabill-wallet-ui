@@ -27,8 +27,13 @@ import {
   addDecimal,
   handleBillSelection,
 } from "../../utils/utils"
-import { AddFeeCreditTransactionRecordWithProof } from "@alphabill/alphabill-js-sdk/lib/fees/transactions/records/AddFeeCreditTransactionRecordWithProof";
 import { TransactionStatus } from '@alphabill/alphabill-js-sdk/lib/transaction/record/TransactionStatus.js';
+import {
+  TransactionRecordWithProof
+} from "@alphabill/alphabill-js-sdk/lib/transaction/record/TransactionRecordWithProof";
+import {
+  TransferFeeCreditTransactionOrder
+} from "@alphabill/alphabill-js-sdk/lib/fees/transactions/TransferFeeCredit";
 
 export default function TransferFeeCredit(): JSX.Element | null {
   const {
@@ -89,7 +94,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
     isFeeCreditAdded.current = false;
   }, [setIsActionsViewVisible])
 
-  const addPollingInterval = useCallback((txProof: AddFeeCreditTransactionRecordWithProof, isAlpha?: boolean) => {
+  const addPollingInterval = useCallback((txProof: TransactionRecordWithProof<TransferFeeCreditTransactionOrder>, isAlpha?: boolean) => {
     pollingInterval.current = setInterval(() => {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);

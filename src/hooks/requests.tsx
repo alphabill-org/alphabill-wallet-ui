@@ -1,35 +1,42 @@
-import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory.js';
+import { createMoneyClient, createTokenClient, http } from "@alphabill/alphabill-js-sdk/lib/StateApiClientFactory.js";
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { FungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken";
 import { FungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType";
 import { NonFungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/NonFungibleToken";
 import { NonFungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/tokens/NonFungibleTokenType";
-import { IBill, IListTokensResponse, IBalance,IFeeCreditBills } from "../types/Types";
+import { IBalance, IBill, IFeeCreditBills, IListTokensResponse } from "../types/Types";
 import { AlphaType, DownloadableTypes, MaxImageSize, TokenType } from "../utils/constants";
 import { addDecimal, separateDigits } from "../utils/utils";
 import { Bill } from "@alphabill/alphabill-js-sdk/lib/money/Bill";
 import { FeeCreditRecord } from "@alphabill/alphabill-js-sdk/lib/fees/FeeCreditRecord";
-import { DefaultSigningService } from '@alphabill/alphabill-js-sdk/lib/signing/DefaultSigningService.js';
-import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate.js';
-import { UnsignedTransferFeeCreditTransactionOrder } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/UnsignedTransferFeeCreditTransactionOrder.js';
-import { UnsignedAddFeeCreditTransactionOrder } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/UnsignedAddFeeCreditTransactionOrder.js';
-import { NetworkIdentifier } from '@alphabill/alphabill-js-sdk/lib/NetworkIdentifier';
-import { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { ITransactionData } from '@alphabill/alphabill-js-sdk/lib/transaction/order/ITransactionData';
-import { ITransactionClientMetadata } from '@alphabill/alphabill-js-sdk/lib/transaction/ITransactionClientMetadata';
-import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate.js';
-import { PayToPublicKeyHashProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory.js';
-import { TransferFeeCreditTransactionRecordWithProof } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/records/TransferFeeCreditTransactionRecordWithProof';
-import { AddFeeCreditTransactionRecordWithProof } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/records/AddFeeCreditTransactionRecordWithProof';
+import { DefaultSigningService } from "@alphabill/alphabill-js-sdk/lib/signing/DefaultSigningService.js";
+import {
+  PayToPublicKeyHashPredicate
+} from "@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate.js";
+import { NetworkIdentifier } from "@alphabill/alphabill-js-sdk/lib/NetworkIdentifier";
+import { IUnitId } from "@alphabill/alphabill-js-sdk/lib/IUnitId";
+import { ITransactionClientMetadata } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionClientMetadata";
+import { AlwaysTruePredicate } from "@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate.js";
+import {
+  PayToPublicKeyHashProofFactory
+} from "@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory.js";
 import { PartitionIdentifier } from "@alphabill/alphabill-js-sdk/lib/PartitionIdentifier";
-import {
-  CloseFeeCreditTransactionRecordWithProof
-} from "@alphabill/alphabill-js-sdk/lib/fees/transactions/records/CloseFeeCreditTransactionRecordWithProof";
-import {
-  TransferBillToDustCollectorTransactionRecordWithProof
-} from "@alphabill/alphabill-js-sdk/lib/money/transactions/records/TransferBillToDustCollectorTransactionRecordWithProof";
 import { ClientMetadata } from "@alphabill/alphabill-js-sdk/lib/transaction/ClientMetadata";
-
+import { ITransactionData } from "@alphabill/alphabill-js-sdk/lib/transaction/ITransactionData";
+import { TransferFeeCredit } from "@alphabill/alphabill-js-sdk/lib/fees/transactions/TransferFeeCredit";
+import { AddFeeCredit } from "@alphabill/alphabill-js-sdk/lib/fees/transactions/AddFeeCredit";
+import { CloseFeeCredit } from "@alphabill/alphabill-js-sdk/lib/fees/transactions/CloseFeeCredit";
+import { TransferBill } from "@alphabill/alphabill-js-sdk/lib/money/transactions/TransferBill";
+import { TransferFungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/transactions/TransferFungibleToken";
+import { SplitBill } from "@alphabill/alphabill-js-sdk/lib/money/transactions/SplitBill";
+import { SplitFungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/transactions/SplitFungibleToken";
+import { TransferNonFungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/transactions/TransferNonFungibleToken";
+import {
+  TransferBillToDustCollector
+} from "@alphabill/alphabill-js-sdk/lib/money/transactions/TransferBillToDustCollector";
+import {
+  SwapBillsWithDustCollector
+} from "@alphabill/alphabill-js-sdk/lib/money/transactions/SwapBillsWithDustCollector";
 
 export const MONEY_BACKEND_URL = import.meta.env.VITE_MONEY_BACKEND_URL;
 export const TOKENS_BACKEND_URL = import.meta.env.VITE_TOKENS_BACKEND_URL;
@@ -200,17 +207,6 @@ export const getUserTokens = async (
   return tokens;
 };
 
-export const getRoundNumber = async (isAlpha: boolean): Promise<bigint | null> => {
-  const client = isAlpha ? moneyClient : tokenClient;
-
-  try {  
-    return client.getRoundNumber();
-  } catch(error) {
-    console.error('Error fetching round number:', error);
-    return null;
-  }
-};
-
 export const getFeeCreditBills = async (
   pubKey: string
 ): Promise<IFeeCreditBills | undefined> => {
@@ -285,7 +281,7 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId
 
   const partitionIdentifier = getPartitionIdentifier(isAlpha);
 
-  const transferFeeCreditTransactionOrder = await UnsignedTransferFeeCreditTransactionOrder.create(
+  const transferFeeCreditTransactionOrder = await TransferFeeCredit.create(
     {
       amount: amount,
       targetPartitionIdentifier: partitionIdentifier,
@@ -302,12 +298,12 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId
 
   const transferFeeCreditProof = await moneyClient.waitTransactionProof(
     transferFeeCreditHash,
-    TransferFeeCreditTransactionRecordWithProof,
+    TransferFeeCredit,
   );
 
   const feeCreditRecordId = transferFeeCreditTransactionOrder.payload.attributes.targetUnitId;
 
-  const addFeeCreditTransactionOrder = await UnsignedAddFeeCreditTransactionOrder.create(
+  const addFeeCreditTransactionOrder = await AddFeeCredit.create(
     {
       targetPartitionIdentifier: partitionIdentifier,
       ownerPredicate: ownerPredicate,
@@ -322,25 +318,24 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId
     ? await moneyClientFee.sendTransaction(addFeeCreditTransactionOrder)
     : await tokenClientFee.sendTransaction(addFeeCreditTransactionOrder);
 
-  const addFeeCreditProof = isAlpha 
-    ? await moneyClientFee.waitTransactionProof(addFeeCreditHash, AddFeeCreditTransactionRecordWithProof)
-    : await tokenClientFee.waitTransactionProof(addFeeCreditHash, AddFeeCreditTransactionRecordWithProof)
-
-  return addFeeCreditProof;
+  return isAlpha
+    ? await moneyClientFee.waitTransactionProof(addFeeCreditHash, AddFeeCredit)
+    : await tokenClientFee.waitTransactionProof(addFeeCreditHash, AddFeeCredit);
 }
 
 export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
   
   const moneyClientReclaim = createMoneyClient({
     transport: http(MONEY_BACKEND_URL),
   });
-  
+
   const client = isAlpha
     ? moneyClientReclaim
     : createTokenClient({
-        transport: http(TOKENS_BACKEND_URL),
-      }) 
+      transport: http(TOKENS_BACKEND_URL)
+    });
 
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
 
@@ -352,48 +347,41 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean)
    ? units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA)
    : unitsMoney.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_BILL_DATA);
   
-  const feeCreditRecordId = isAlpha
-    ? units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD)
-    : units.findLast((id) => id.type.toBase16() === UnitType.TOKEN_PARTITION_FEE_CREDIT_RECORD);
+  const feeCreditRecordId: IUnitId = units.feeCreditRecords[0];
 
-  if(!feeCreditRecordId) {
-    throw new Error('No fee credit available');
+  if (!feeCreditRecordId) {
+    throw new Error("No fee credit available");
   }
 
-  if(!targetBillId){
-    throw new Error('No bills were found')
+  if (!targetBillId) {
+    throw new Error("No bills were found");
   }
 
   const bill = await moneyClientReclaim.getUnit(targetBillId, false, Bill);
   const feeCreditRecord = await client.getUnit(feeCreditRecordId, false, FeeCreditRecord);
   const round = await client.getRoundNumber();
 
-  const closeFeeCreditHash = await client.closeFeeCredit(
+  if (!bill) {
+    throw new Error("Bill does not exist");
+  }
+
+  const closeFeeCreditTransactionOrder = await CloseFeeCredit.create(
     {
       bill,
-      feeCreditRecord
+      feeCreditRecord,
+      ...createTransactionData(round),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId: null,
-      referenceNumber: null
-    }
-  )
+  ).sign(proofFactory);
 
-  const proof = await client.getTransactionProof(closeFeeCreditHash, CloseFeeCreditTransactionRecordWithProof);
+  const closeFeeCreditHash = await moneyClient.sendTransaction(closeFeeCreditTransactionOrder);
+  const proof = await client.getTransactionProof(closeFeeCreditHash, CloseFeeCredit);
 
   const reclaimFeeCreditHash = await moneyClientReclaim.reclaimFeeCredit(
     {
       proof,
-      bill
+      bill,
+      ...createTransactionData(round),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId: null,
-      referenceNumber: null
-    }
   )
 
   return reclaimFeeCreditHash;
@@ -401,6 +389,8 @@ export const reclaimFeeCredit = async(privateKey: Uint8Array, isAlpha?: boolean)
 
 export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array, billId: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
+
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL),
   });
@@ -409,30 +399,31 @@ export const transferBill = async(privateKey: Uint8Array, recipient: Uint8Array,
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD) ?? null;
   const unitId = units.findLast((id) => compareArray(id.bytes, billId));
 
-  if(!unitId) {
-    throw new Error("No bills were found")
+  if (!unitId) {
+    throw new Error("No bills were found");
   }
 
   const round = await client.getRoundNumber();
   const bill = await client.getUnit(unitId, false, Bill);
 
-  const transferBillHash = await client.transferBill({
+  if (!bill) {
+    throw new Error("Bill does not exist");
+  }
+
+  const transferBillTransactionOrder = await TransferBill.create({
       ownerPredicate: PayToPublicKeyHashPredicate.create(recipient),
       bill,
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId,
-      referenceNumber: null
-    }
-  );
+  ).sign(proofFactory, proofFactory);
 
-  return transferBillHash
+  return await moneyClient.sendTransaction(transferBillTransactionOrder)
 }
 
 export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Uint8Array, tokenId: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
+
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL),
   });
@@ -442,36 +433,29 @@ export const transferFungibleToken = async(privateKey: Uint8Array, recipient: Ui
   const unitId = units.findLast((id) => compareArray(id.bytes, tokenId));
   const round = await client.getRoundNumber();
 
-  if(!feeCreditRecordId) {
-    throw new Error('No fee credit available');
+  if (!feeCreditRecordId) {
+    throw new Error("No fee credit available");
   }
 
-  if(!unitId){
-    throw new Error('Error fetching fungible tokens')
+  if (!unitId) {
+    throw new Error("Error fetching fungible tokens");
   }
 
   const token = await client.getUnit(unitId, false, FungibleToken);
 
-  if(!token){
-    throw new Error('Token does not exist')
+  if (!token) {
+    throw new Error("Token does not exist");
   }
 
-  const transferFungibleTokenHash = await client.transferFungibleToken({
+  const transferFungibleTokenTransactionOrder = await TransferFungibleToken.create({
       token,
       ownerPredicate: PayToPublicKeyHashPredicate.create(recipient),
-      nonce: null,
-      type: {unitId: token.typeId},
-      invariantPredicateSignatures: [null]
+      type: { unitId: token.typeId },
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId: feeCreditRecordId,
-      referenceNumber: null
-    }
-  )
+  ).sign(proofFactory, proofFactory, []);
 
-  return transferFungibleTokenHash
+  return await moneyClient.sendTransaction(transferFungibleTokenTransactionOrder)
 }
 
 export const splitBill = async(
@@ -481,6 +465,7 @@ export const splitBill = async(
   billId: Uint8Array
 ) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
 
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL),
@@ -501,7 +486,11 @@ export const splitBill = async(
 
   const bill = await client.getUnit(unitId, false, Bill);
 
-  const splitBillHash = await client.splitBill(
+  if (!bill) {
+    throw new Error("Bill does not exist");
+  }
+
+  const splitBillTransactionOrder = await SplitBill.create(
     {
       splits: [
         {
@@ -509,17 +498,12 @@ export const splitBill = async(
           ownerPredicate: PayToPublicKeyHashPredicate.create(recipient)
         }
       ],
-      bill
+      bill,
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId,
-      referenceNumber: null
-    }
-  );
+  ).sign(proofFactory, proofFactory);
 
-  return splitBillHash;
+  return await client.sendTransaction(splitBillTransactionOrder);
 }
 
 export const splitFungibleToken = async(
@@ -529,6 +513,7 @@ export const splitFungibleToken = async(
   tokenId: Uint8Array
 ) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
 
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL),
@@ -539,38 +524,36 @@ export const splitFungibleToken = async(
   const unitId = units.findLast((id) => compareArray(id.bytes, tokenId));
   const round = await client.getRoundNumber();
 
-  if(!unitId){
-    throw new Error('Error fetching unitId');
+  if (!unitId) {
+    throw new Error("Error fetching unitId");
   }
 
-  if(!feeCreditRecordId){
-    throw new Error('Error fetching fee credit record');
+  if (!feeCreditRecordId) {
+    throw new Error("Error fetching fee credit record");
   }
 
   const token = await client.getUnit(unitId, false, FungibleToken);
 
-  const splitFungibleTokenHash = await client.splitFungibleToken(
+  if (!token) {
+    throw new Error("Token does not exist");
+  }
+
+  const splitFungibleTokenTransactionOrder = await SplitFungibleToken.create(
     {
       token,
       ownerPredicate: PayToPublicKeyHashPredicate.create(recipient),
       amount: amount,
-      nonce: null,
       type: { unitId: token.typeId },
-      invariantPredicateSignatures: [null],
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId,
-      referenceNumber: null
-    },
-  );
+  ).sign(proofFactory, proofFactory, []);
 
-  return splitFungibleTokenHash;
+  return await client.sendTransaction(splitFungibleTokenTransactionOrder);
 }
 
 export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, recipient: Uint8Array) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
   
   const client = createTokenClient({
     transport: http(TOKENS_BACKEND_URL),
@@ -595,24 +578,18 @@ export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, reci
     throw new Error("NFT does not exist")
   }
 
-  const transferNFTHash = await client.transferNonFungibleToken(
+  const transferNonFungibleTokenTransactionOrder = await TransferNonFungibleToken.create(
     {
       token: nft,
       ownerPredicate: PayToPublicKeyHashPredicate.create(recipient),
       nonce: null,
-      type: {unitId: nft.typeId},
-      invariantPredicateSignatures: [null],
-      counter: nft.counter
+      type: { unitId: nft.typeId },
+      counter: nft.counter,
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 60n,
-      feeCreditRecordId,
-      referenceNumber: null
-    }
-  );
+  ).sign(proofFactory, proofFactory, []);
 
-  return transferNFTHash;
+  return await client.sendTransaction(transferNonFungibleTokenTransactionOrder);
 }
 
 export const swapBill = async(
@@ -621,6 +598,8 @@ export const swapBill = async(
   billsToSwapIds: Uint8Array[]
 ) => {
   const signingService = new DefaultSigningService(privateKey);
+  const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
+
   const client = createMoneyClient({
     transport: http(MONEY_BACKEND_URL),
   });
@@ -664,25 +643,21 @@ export const swapBill = async(
 
   const proofsToSwap = await Promise.all(
     billsToSwap.map(async(bill) => {
-      const transferBillToDustCollectorHash = await client.transferBillToDustCollector(
+      const transferBillToDustCollectorTransactionOrder = await TransferBillToDustCollector.create(
         {
           bill,
-          targetBill
+          targetBill,
+          ...createTransactionData(round, feeCreditRecordId),
         },
-        {
-          maxTransactionFee: 5n,
-          timeout: round + 60n,
-          feeCreditRecordId,
-          referenceNumber: null
-        }
-      )
+      ).sign(proofFactory, proofFactory);
+      const transferBillToDustCollectorHash = await client.sendTransaction(transferBillToDustCollectorTransactionOrder);
 
       const proof = await client.getTransactionProof(
-        transferBillToDustCollectorHash, 
-        TransferBillToDustCollectorTransactionRecordWithProof
+        transferBillToDustCollectorHash,
+        TransferBillToDustCollector
       );
 
-      if(!proof){
+      if (!proof) {
         throw new Error("Error fetching transaction proof");
       }
       
@@ -690,21 +665,15 @@ export const swapBill = async(
     })
   )
 
-  const swapBillsWithDustCollectorHash = await client.swapBillsWithDustCollector(
+  const swapBillsWithDustCollectorTransactionOrder = await SwapBillsWithDustCollector.create(
     {
+      proofs: proofsToSwap,
       bill: targetBill,
-      ownerPredicate: PayToPublicKeyHashPredicate.create(signingService.publicKey),
-      proofs: proofsToSwap
+      ...createTransactionData(round, feeCreditRecordId),
     },
-    {
-      maxTransactionFee: 5n,
-      timeout: round + 100n,
-      feeCreditRecordId,
-      referenceNumber: null
-    }
-  )
+  ).sign(proofFactory, proofFactory);
 
-  return swapBillsWithDustCollectorHash;
+  return await client.sendTransaction(swapBillsWithDustCollectorTransactionOrder);
 }
 
 
@@ -742,9 +711,7 @@ export const getImageUrl = async (
     }
     return { error: "Invalid image URL", imageUrl: null };
   } catch (error) {
-    if (isCancel(error)) {
-      console.error("Request cancelled:", error.message);
-    }
+    console.error("Request cancelled:", error);
     return { error: "Failed to fetch image", imageUrl: null };
   } finally {
     clearTimeout(timeout);
