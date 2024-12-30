@@ -1,10 +1,9 @@
-import React from 'react';
+import classNames from "classnames";
+import React from "react";
 
-import classNames from 'classnames';
-
-import FormContent from './components/FormContent';
-import FormHeader from './components/FormHeader';
-import FormFooter from './components/FormFooter';
+import FormContent from "./components/FormContent";
+import FormFooter from "./components/FormFooter";
+import FormHeader from "./components/FormHeader";
 
 export interface IFormProps {
   children: React.ReactNode;
@@ -12,7 +11,7 @@ export interface IFormProps {
 }
 
 function Form(props: IFormProps): JSX.Element {
-  const className = classNames('form', { 'form--dark': props.dark });
+  const className = classNames("form", { "form--dark": props.dark });
 
   return <div className={className}>{props.children}</div>;
 }

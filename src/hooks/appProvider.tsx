@@ -1,21 +1,15 @@
-import {
-  createContext,
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
 import { isEqual, sortBy } from "lodash";
+import { createContext, FunctionComponent, useContext, useEffect, useMemo, useState } from "react";
 
+import Popup from "../components/Popup/Popup";
+import { IAccount, IActionViews, IBill, IFeeCreditBills, IListTokensResponse, INFTAsset } from "../types/Types";
+import { AlphaType, LocalKeyAccountNames, TransferNFTView } from "../utils/constants";
 import {
-  IAccount,
-  IActionViews,
-  IBill,
-  IFeeCreditBills,
-  IListTokensResponse,
-  INFTAsset,
-} from "../types/Types";
+  getUpdatedFungibleAssets,
+  getUpdatedNFTAssets,
+  removeConnectTransferData,
+  unlockedBills,
+} from "../utils/utils";
 import {
   useGetAllUserTokens,
   useGetBalances,
@@ -26,18 +20,6 @@ import {
   useGetFeeCreditBills,
 } from "./api";
 import { useAuth } from "./useAuth";
-import {
-  AlphaType,
-  LocalKeyAccountNames,
-  TransferNFTView,
-} from "../utils/constants";
-import {
-  getUpdatedFungibleAssets,
-  getUpdatedNFTAssets,
-  removeConnectTransferData,
-  unlockedBills,
-} from "../utils/utils";
-import Popup from "../components/Popup/Popup";
 
 interface IAppContextShape {
   balances: any;
@@ -61,132 +43,75 @@ interface IAppContextShape {
   feeCreditBills?: IFeeCreditBills;
 }
 
-export const AppContext = createContext<IAppContextShape>(
-  {} as IAppContextShape
-);
+export const AppContext = createContext<IAppContextShape>({} as IAppContextShape);
 
 export const useApp = (): IAppContextShape => useContext(AppContext);
 
 export const AppProvider: FunctionComponent<{
   children: JSX.Element | null;
 }> = ({ children }) => {
-  const {
-    userKeys,
-    setActiveAccountId,
-    activeAccountId,
-    activeAsset,
-    activeNFT,
-    setActiveAssetLocal,
-  } = useAuth();
+  const { userKeys, setActiveAccountId, activeAccountId, activeAsset, activeNFT, setActiveAssetLocal } = useAuth();
   const keysArr = useMemo(() => userKeys?.split(" ") || [], [userKeys]);
   const accountNames = localStorage.getItem(LocalKeyAccountNames) || "";
-  const accountNamesObj = useMemo(
-    () => (accountNames ? JSON.parse(accountNames) : {}),
-    [accountNames]
-  );
-  const [selectedTransferKey, setSelectedTransferKey] = useState<
-    string | null | undefined
-  >();
+  const accountNamesObj = useMemo(() => (accountNames ? JSON.parse(accountNames) : {}), [accountNames]);
+  const [selectedTransferKey, setSelectedTransferKey] = useState<string | null | undefined>();
   const [error, setError] = useState<string | null>(null);
-  const [selectedTransferAccountKey, setSelectedTransferAccountKey] = useState<
-    string | null | undefined
-  >();
+  const [selectedTransferAccountKey, setSelectedTransferAccountKey] = useState<string | null | undefined>();
   const [previousView, setPreviousView] = useState<string | null>(null);
   const balances: any = useGetBalances(keysArr);
   const { data: alphaList } = useGetBillsList(activeAccountId);
   const { data: feeCreditBills } = useGetFeeCreditBills(activeAccountId);
-  const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } =
-    useGetAllUserTokens(activeAccountId);
-  const { data: NFTsList, isLoading: isLoadingNFTs } =
-    useGetAllNFTs(activeAccountId);
-  const { data: fungibleTokenList } = useGetUserTokens(
-    activeAccountId,
-    activeAsset.typeId
-  );
-  const { data: NFTList } = useGetNFTs(
-    activeAccountId,
-    activeNFT && activeNFT.typeId
-  );
-  const billsList =
-    activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
+  const { data: fungibleTokensList, isLoading: isLoadingFungibleTokens } = useGetAllUserTokens(activeAccountId);
+  const { data: NFTsList, isLoading: isLoadingNFTs } = useGetAllNFTs(activeAccountId);
+  const { data: fungibleTokenList } = useGetUserTokens(activeAccountId, activeAsset.typeId);
+  const { data: NFTList } = useGetNFTs(activeAccountId, activeNFT && activeNFT.typeId);
+  const billsList = activeAsset.typeId === AlphaType ? alphaList : fungibleTokenList;
 
   // Will be updated with lock transactions in v0.5.0
-  const unlockedBillsList =
-    activeAsset.typeId === AlphaType
-      ? unlockedBills(billsList as IBill[])
-      : fungibleTokenList;
+  const unlockedBillsList = activeAsset.typeId === AlphaType ? unlockedBills(billsList as IBill[]) : fungibleTokenList;
   const [accounts, setAccounts] = useState<IAccount[] | []>([]);
   const account = useMemo(
-    () =>
-      accounts?.find(
-        (account: IAccount) => account?.pubKey === activeAccountId
-      )!,
-    [accounts, activeAccountId]
+    () => accounts?.find((account: IAccount) => account?.pubKey === activeAccountId)!,
+    [accounts, activeAccountId],
   );
-  const [isActionsViewVisible, setIsActionsViewVisible] =
-    useState<boolean>(false);
+  const [isActionsViewVisible, setIsActionsViewVisible] = useState<boolean>(false);
   const [actionsView, setActionsView] = useState<IActionViews>("");
 
   // Used when getting keys from localStorage or fetching balance takes time
   useEffect(() => {
     const hasKeys = Number(keysArr?.length) >= 1;
     const assets = {
-      fungible: getUpdatedFungibleAssets(
-        fungibleTokensList,
-        activeAccountId,
-        balances
-      ),
-      nft:
-        (getUpdatedNFTAssets(NFTsList) as INFTAsset[]) || [],
+      fungible: getUpdatedFungibleAssets(fungibleTokensList, activeAccountId, balances),
+      nft: (getUpdatedNFTAssets(NFTsList) as INFTAsset[]) || [],
     };
 
     chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
-      chrome?.storage?.local.get(
-        ["ab_connect_transfer"],
-        function (transferRes) {
-          const typeId = transferRes?.ab_connect_transfer?.token_type_id;
+      chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
+        const typeId = transferRes?.ab_connect_transfer?.token_type_id;
 
-          if (typeId) {
-            if (
-              keyRes?.ab_connected_key &&
-              activeAccountId !== keyRes?.ab_connected_key
-            ) {
-              setActiveAccountId(keyRes?.ab_connected_key);
-            }
-            const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
+        if (typeId) {
+          if (keyRes?.ab_connected_key && activeAccountId !== keyRes?.ab_connected_key) {
+            setActiveAccountId(keyRes?.ab_connected_key);
+          }
+          const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
 
-            if (isNFT) {
-              setSelectedTransferAccountKey(
-                transferRes?.ab_connect_transfer?.receiver_pub_key
-              );
-              setActiveAssetLocal(JSON.stringify(activeAsset));
-              setActionsView(TransferNFTView);
-              setIsActionsViewVisible(true);
-              setSelectedTransferKey(isNFT.id);
-            } else if (
-              activeAccountId === keyRes?.ab_connected_key &&
-              !isLoadingNFTs &&
-              !isLoadingFungibleTokens
-            ) {
-              setError("No token with given type ID");
-              removeConnectTransferData();
-            }
+          if (isNFT) {
+            setSelectedTransferAccountKey(transferRes?.ab_connect_transfer?.receiver_pub_key);
+            setActiveAssetLocal(JSON.stringify(activeAsset));
+            setActionsView(TransferNFTView);
+            setIsActionsViewVisible(true);
+            setSelectedTransferKey(isNFT.id);
+          } else if (activeAccountId === keyRes?.ab_connected_key && !isLoadingNFTs && !isLoadingFungibleTokens) {
+            setError("No token with given type ID");
+            removeConnectTransferData();
           }
         }
-      );
+      });
     });
 
     if (
-      (hasKeys &&
-        !isEqual(
-          assets?.fungible,
-          sortBy(account?.assets?.fungible, ["id"])
-        )) ||
-      (hasKeys &&
-        !isEqual(
-          sortBy(assets?.nft, ["id"]),
-          sortBy(account?.assets?.nft, ["id"])
-        )) ||
+      (hasKeys && !isEqual(assets?.fungible, sortBy(account?.assets?.fungible, ["id"]))) ||
+      (hasKeys && !isEqual(sortBy(assets?.nft, ["id"]), sortBy(account?.assets?.nft, ["id"]))) ||
       keysArr?.length !== accounts.length
     ) {
       setAccounts(
@@ -203,10 +128,8 @@ export const AppProvider: FunctionComponent<{
               isTestNetwork: true,
             },
           ],
-          activities:
-            accounts?.find((account: IAccount) => account?.pubKey === key)
-              ?.activities || [],
-        }))
+          activities: accounts?.find((account: IAccount) => account?.pubKey === key)?.activities || [],
+        })),
       );
       !activeAccountId && setActiveAccountId(keysArr[0]);
     }

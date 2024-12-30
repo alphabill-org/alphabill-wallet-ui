@@ -1,20 +1,16 @@
 import { Formik } from "formik";
-import * as Yup from "yup";
 import { Link, Navigate } from "react-router-dom";
+import * as Yup from "yup";
 
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Button from "../../components/Button/Button";
-import Textfield from "../../components/Textfield/Textfield";
-import Logo from "../../images/ab-logo.svg";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Spacer from "../../components/Spacer/Spacer";
-import {
-  extractFormikError,
-  getKeys,
-  unit8ToHexPrefixed,
-} from "../../utils/utils";
-import { useAuth } from "../../hooks/useAuth";
+import Textfield from "../../components/Textfield/Textfield";
 import { useApp } from "../../hooks/appProvider";
+import { useAuth } from "../../hooks/useAuth";
+import Logo from "../../images/ab-logo.svg?react";
 import { LocalKeyPubKeys, LocalKeyVault } from "../../utils/constants";
+import { extractFormikError, getKeys, unit8ToHexPrefixed } from "../../utils/utils";
 
 function Login(): JSX.Element | null {
   const { login } = useAuth();
@@ -22,13 +18,7 @@ function Login(): JSX.Element | null {
   const vault = localStorage.getItem(LocalKeyVault);
   const userKeys = localStorage.getItem(LocalKeyPubKeys);
 
-  if (
-    Boolean(balances) &&
-    Boolean(vault) &&
-    Boolean(userKeys) &&
-    vault !== "null" &&
-    userKeys !== "null"
-  ) {
+  if (Boolean(balances) && Boolean(vault) && Boolean(userKeys) && vault !== "null" && userKeys !== "null") {
     return <Navigate to="/" />;
   }
 
@@ -52,17 +42,9 @@ function Login(): JSX.Element | null {
             });
           }
 
-          const { error, hashingPublicKey, decryptedVault } = getKeys(
-            values.password,
-            0,
-            vault
-          );
+          const { error, hashingPublicKey, decryptedVault } = getKeys(values.password, 0, vault);
 
-          if (
-            error ||
-            unit8ToHexPrefixed(hashingPublicKey!) !==
-              decryptedVault.pub_keys?.split(" ")[0]
-          ) {
+          if (error || unit8ToHexPrefixed(hashingPublicKey!) !== decryptedVault.pub_keys?.split(" ")[0]) {
             return setErrors({ password: "Password is incorrect!" });
           }
 
@@ -89,12 +71,7 @@ function Login(): JSX.Element | null {
                   />
                 </FormContent>
                 <FormFooter>
-                  <Button
-                    big={true}
-                    block={true}
-                    type="submit"
-                    variant="primary"
-                  >
+                  <Button big={true} block={true} type="submit" variant="primary">
                     Unlock
                   </Button>
                 </FormFooter>
@@ -105,13 +82,9 @@ function Login(): JSX.Element | null {
       </Formik>
 
       <div className="login__footer">
-        <Link to="/recover-wallet">
-          {"Recover wallet from recovery phrase"}
-        </Link>
+        <Link to="/recover-wallet">{"Recover wallet from recovery phrase"}</Link>
         <Spacer mb={16} />
-        <Link to="/create-wallet">
-          {"Don't have a wallet? Create a wallet"}
-        </Link>
+        <Link to="/create-wallet">{"Don't have a wallet? Create a wallet"}</Link>
       </div>
     </div>
   );

@@ -35,11 +35,7 @@ export default function Select(props: ISelectProps): JSX.Element {
     }
   };
 
-  const className = classNames(
-    "select",
-    { "select--error": props.error },
-    props.className
-  );
+  const className = classNames("select", { "select--error": props.error }, props.className);
 
   return (
     <div className={className}>

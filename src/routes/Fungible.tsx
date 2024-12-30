@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const Fungible = () => {
-  return (
-    <div>Fungible</div>
-  )
-}
+  return <div>Fungible</div>;
+};
 
-export default Fungible
+export default Fungible;

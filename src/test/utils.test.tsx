@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { IBill } from "../types/Types";
 import {
   countDecimalLength,
   convertToWholeNumberBigInt,
@@ -27,7 +28,6 @@ import {
   ExpectedBill200,
   ExpectedBill500,
 } from "./constants";
-import { IBill } from "../types/Types";
 
 describe("Function that counts decimal length", () => {
   it("should return 0 for a string without a decimal", () => {
@@ -41,63 +41,41 @@ describe("Function that counts decimal length", () => {
 
 describe("Function to convert a value with decimals to a whole number BigInt", () => {
   it("should convert a positive number with decimal places to a whole number", () => {
-    expect(convertToWholeNumberBigInt(12232333332233.3, 2)).toEqual(
-      BigInt(1223233333223330n)
-    );
+    expect(convertToWholeNumberBigInt(12232333332233.3, 2)).toEqual(BigInt(1223233333223330n));
     expect(convertToWholeNumberBigInt(3.14, 2)).toEqual(BigInt(314));
   });
   it("should convert a string with a positive number with decimal places to a whole number", () => {
-    expect(convertToWholeNumberBigInt("184467440737095516.15", 2)).toEqual(
-      18446744073709551615n
-    );
-    expect(convertToWholeNumberBigInt("1844674407370955161.5", 2)).toEqual(
-      184467440737095516150n
-    );
-    expect(convertToWholeNumberBigInt("18446744073709551615", 2)).toEqual(
-      1844674407370955161500n
-    );
+    expect(convertToWholeNumberBigInt("184467440737095516.15", 2)).toEqual(18446744073709551615n);
+    expect(convertToWholeNumberBigInt("1844674407370955161.5", 2)).toEqual(184467440737095516150n);
+    expect(convertToWholeNumberBigInt("18446744073709551615", 2)).toEqual(1844674407370955161500n);
     expect(convertToWholeNumberBigInt("3.1", 2)).toEqual(BigInt(310));
     expect(convertToWholeNumberBigInt("3.14", 2)).toEqual(BigInt(314));
   });
   it("should throw an error when the input is not valid", () => {
     expect(() => convertToWholeNumberBigInt("not a number", 2)).toThrow(
-      "Converting to whole number failed: Input is not valid"
+      "Converting to whole number failed: Input is not valid",
     );
   });
   it("should throw an error when the input is negative", () => {
-    expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow(
-      "Converting to whole number failed: Input is not valid"
-    );
+    expect(() => convertToWholeNumberBigInt(-3.14, 2)).toThrow("Converting to whole number failed: Input is not valid");
   });
 });
 
 describe("Function return a formatted number string with separated digits", () => {
   it("should return a formatted number string with separated digits", () => {
     expect(separateDigits("123456.789")).toEqual("123'456.789");
-    expect(separateDigits("9876543210.123456789")).toEqual(
-      "9'876'543'210.123'456'789"
-    );
+    expect(separateDigits("9876543210.123456789")).toEqual("9'876'543'210.123'456'789");
     expect(separateDigits("0.123")).toEqual("0.123");
     expect(separateDigits("0.00000001")).toEqual("0.000'000'01");
     expect(separateDigits("1")).toEqual("1");
-    expect(separateDigits("1844674407370955161.58978978")).toEqual(
-      "1'844'674'407'370'955'161.589'789'78"
-    );
-    expect(separateDigits("18446744073709551615")).toEqual(
-      "18'446'744'073'709'551'615"
-    );
+    expect(separateDigits("1844674407370955161.58978978")).toEqual("1'844'674'407'370'955'161.589'789'78");
+    expect(separateDigits("18446744073709551615")).toEqual("18'446'744'073'709'551'615");
   });
 
   it("should throw an error if the input is not valid", () => {
-    expect(() => separateDigits("")).toThrow(
-      "Separating digits failed: Input is not valid"
-    );
-    expect(() => separateDigits("abc")).toThrow(
-      "Separating digits failed: Input is not valid"
-    );
-    expect(() => separateDigits("-1")).toThrow(
-      "Separating digits failed: Input is not valid"
-    );
+    expect(() => separateDigits("")).toThrow("Separating digits failed: Input is not valid");
+    expect(() => separateDigits("abc")).toThrow("Separating digits failed: Input is not valid");
+    expect(() => separateDigits("-1")).toThrow("Separating digits failed: Input is not valid");
   });
 });
 
@@ -206,12 +184,10 @@ describe("Get updated NFT assets with is sendable & amount of same type", () => 
 describe("handleBillSelection function", () => {
   it("should split the bill without fee", () => {
     const convertedAmount = "1200";
-    const {
-      optimalBills,
-      billsToTransfer,
-      billToSplit,
-      splitBillAmount,
-    } = handleBillSelection(convertedAmount, TestBills);
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } = handleBillSelection(
+      convertedAmount,
+      TestBills,
+    );
 
     // Assert the results based on your expectations
     expect(optimalBills.length).toBe(2);
@@ -223,21 +199,18 @@ describe("handleBillSelection function", () => {
   it("should split the bill with a fee of 50", () => {
     const convertedAmount = "1200";
     const feeAmount = 50n;
-    const {
-      optimalBills,
-      billsToTransfer,
-      billToSplit,
-      splitBillAmount,
-    } = handleBillSelection(convertedAmount, TestBills, feeAmount);
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } = handleBillSelection(
+      convertedAmount,
+      TestBills,
+      feeAmount,
+    );
 
     // Assert the results based on your expectations
     expect(optimalBills.length).toBe(2);
     expect(billsToTransfer.length).toBe(1);
     expect(billToSplit).toEqual(ExpectedBill500);
     // Fee amount is deducted on every transfer
-    expect(splitBillAmount).toEqual(
-      200n + BigInt(optimalBills.length) * feeAmount
-    );
+    expect(splitBillAmount).toEqual(200n + BigInt(optimalBills.length) * feeAmount);
   });
 
   it("should select specific bills in optimalBills array", () => {
@@ -252,12 +225,11 @@ describe("handleBillSelection function", () => {
   it("should select specific bills and split the bill", () => {
     const convertedAmount = "300"; // Less than the total value of bills
     const feeAmount = 50n;
-    const {
-      optimalBills,
-      billsToTransfer,
-      billToSplit,
-      splitBillAmount,
-    } = handleBillSelection(convertedAmount, TestBills, feeAmount);
+    const { optimalBills, billsToTransfer, billToSplit, splitBillAmount } = handleBillSelection(
+      convertedAmount,
+      TestBills,
+      feeAmount,
+    );
 
     // Use the toContainEqual matcher to check if the optimalBills array contains the expected bill objects
     expect(optimalBills).toEqual([ExpectedBill1000]);
@@ -267,8 +239,7 @@ describe("handleBillSelection function", () => {
     expect(billToSplit).toEqual(ExpectedBill1000);
 
     // Fee amount is deducted on every transfer
-    const expectedSplitBillAmount =
-      300n + BigInt(optimalBills.length) * feeAmount;
+    const expectedSplitBillAmount = 300n + BigInt(optimalBills.length) * feeAmount;
 
     // Ensure that the actual splitBillAmount matches the expected splitBillAmount
     expect(splitBillAmount).toEqual(expectedSplitBillAmount);
@@ -308,11 +279,7 @@ describe("isBillLocked", () => {
   });
 
   it("returns false when consolidation target unit and DCBills do not match", () => {
-    const result = isBillLocked(
-      consolidationTargetUnit,
-      { id: "456" } as IBill,
-      DCBills
-    );
+    const result = isBillLocked(consolidationTargetUnit, { id: "456" } as IBill, DCBills);
     expect(result).toBe(false);
   });
 

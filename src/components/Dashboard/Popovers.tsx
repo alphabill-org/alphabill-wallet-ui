@@ -1,43 +1,34 @@
-import { useState } from "react";
 import classNames from "classnames";
-import * as Yup from "yup";
-import { Formik } from "formik";
 import CryptoJS from "crypto-js";
+import { Formik } from "formik";
+import { useState } from "react";
 import { useQueryClient } from "react-query";
+import * as Yup from "yup";
 
-import { Form, FormFooter, FormContent } from "../Form/Form";
-import { ReactComponent as AddIco } from "../../images/add-ico.svg";
-import { IAccount } from "../../types/Types";
-import { ReactComponent as Edit } from "../../images/edit.svg";
-import { ReactComponent as CheckIco } from "../../images/check-ico.svg";
-import { ReactComponent as Close } from "../../images/close.svg";
-import Profile from "../../images/profile.svg";
-
-import Button from "../Button/Button";
-import Spacer from "../Spacer/Spacer";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
+import AddIco from "../../images/add-ico.svg?react";
+import CheckIco from "../../images/check-ico.svg?react";
+import Close from "../../images/close.svg?react";
+import Edit from "../../images/edit.svg?react";
+import Profile from "../../images/profile.svg?react";
+import { IAccount } from "../../types/Types";
 
-import {
-  extractFormikError,
-  getKeys,
-  invalidateAllLists,
-  unit8ToHexPrefixed,
-} from "../../utils/utils";
 import { AlphaType, LocalKeyAccountNames } from "../../utils/constants";
-import SelectPopover from "../SelectPopover/SelectPopover";
-import Textfield from "../Textfield/Textfield";
+import { extractFormikError, getKeys, invalidateAllLists, unit8ToHexPrefixed } from "../../utils/utils";
+import Button from "../Button/Button";
+import { Form, FormFooter, FormContent } from "../Form/Form";
 import Popup from "../Popup/Popup";
+import SelectPopover from "../SelectPopover/SelectPopover";
+import Spacer from "../Spacer/Spacer";
+import Textfield from "../Textfield/Textfield";
 
 export interface IPopoversProps {
   setIsKeySelectOpen: (e: boolean) => void;
   isKeySelectOpen: boolean;
 }
 
-export default function Popovers({
-  isKeySelectOpen,
-  setIsKeySelectOpen,
-}: IPopoversProps): JSX.Element | null {
+export default function Popovers({ isKeySelectOpen, setIsKeySelectOpen }: IPopoversProps): JSX.Element | null {
   const {
     activeAccountId,
     activeAsset,
@@ -50,9 +41,7 @@ export default function Popovers({
   } = useAuth();
   const { setIsActionsViewVisible, accounts, setAccounts } = useApp();
   const queryClient = useQueryClient();
-  const [renamePopupAccountIndex, setRenamePopupAccountIndex] = useState<
-    number | null
-  >(null);
+  const [renamePopupAccountIndex, setRenamePopupAccountIndex] = useState<number | null>(null);
   const [isAddAccountLoading, setIsAddAccountLoading] = useState(false);
   const [isAddPopupVisible, setIsAddPopupVisible] = useState(false);
 
@@ -82,29 +71,15 @@ export default function Popovers({
                     onClick={() => {
                       setActiveAccountId(account?.pubKey);
                       setActiveAssetLocal(
-                        JSON.stringify(
-                          account?.assets?.fungible.find(
-                            (asset) => asset.typeId === AlphaType
-                          )
-                        )
+                        JSON.stringify(account?.assets?.fungible.find((asset) => asset.typeId === AlphaType)),
                       );
                       setIsActionsViewVisible(false);
-                      renamePopupAccountIndex === null &&
-                        setIsKeySelectOpen(false);
-                      invalidateAllLists(
-                        account?.pubKey,
-                        activeAsset.typeId,
-                        queryClient
-                      );
+                      renamePopupAccountIndex === null && setIsKeySelectOpen(false);
+                      invalidateAllLists(account?.pubKey, activeAsset.typeId, queryClient);
                     }}
                   >
                     <div className="account__item">
-                      <img
-                        height="32"
-                        width="32px"
-                        src={Profile}
-                        alt="Profile"
-                      />
+                      <img height="32" width="32px" src={Profile} alt="Profile" />
                     </div>
                     <div className="account__item account__item-name">
                       {renamePopupAccountIndex === Number(account?.idx) ? (
@@ -113,11 +88,8 @@ export default function Popovers({
                             accountName: account?.name,
                           }}
                           onSubmit={async (values, { resetForm }) => {
-                            const accountNames =
-                              localStorage.getItem(LocalKeyAccountNames);
-                            const accountNamesObj = accountNames
-                              ? JSON.parse(accountNames)
-                              : {};
+                            const accountNames = localStorage.getItem(LocalKeyAccountNames);
+                            const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
                             const idx = Number(account?.idx);
 
                             localStorage.setItem(
@@ -125,8 +97,8 @@ export default function Popovers({
                               JSON.stringify(
                                 Object.assign(accountNamesObj, {
                                   ["_" + idx]: values.accountName,
-                                })
-                              )
+                                }),
+                              ),
                             );
 
                             const updatedAccounts = accounts?.map((obj) => {
@@ -142,28 +114,17 @@ export default function Popovers({
                           validationSchema={Yup.object().shape({
                             accountName: Yup.string()
                               .required("Public key name is required")
-                              .test(
-                                "account-name-taken",
-                                `The public key name is taken`,
-                                function (value) {
-                                  if (value) {
-                                    return !Boolean(
-                                      accounts?.find(
-                                        (a) =>
-                                          a.name === value &&
-                                          a.idx !== account?.idx
-                                      )
-                                    );
-                                  } else {
-                                    return true;
-                                  }
+                              .test("account-name-taken", `The public key name is taken`, function (value) {
+                                if (value) {
+                                  return !accounts?.find((a) => a.name === value && a.idx !== account?.idx);
+                                } else {
+                                  return true;
                                 }
-                              ),
+                              }),
                           })}
                         >
                           {(formikProps) => {
-                            const { handleSubmit, errors, touched } =
-                              formikProps;
+                            const { handleSubmit, errors, touched } = formikProps;
 
                             return (
                               <form onSubmit={handleSubmit}>
@@ -176,11 +137,7 @@ export default function Popovers({
                                       name="accountName"
                                       label=""
                                       type="accountName"
-                                      error={extractFormikError(
-                                        errors,
-                                        touched,
-                                        ["accountName"]
-                                      )}
+                                      error={extractFormikError(errors, touched, ["accountName"])}
                                       maxLength={26}
                                     />
                                   </FormContent>
@@ -188,26 +145,14 @@ export default function Popovers({
                                     <div className="button__group">
                                       <Button
                                         type="reset"
-                                        onClick={() =>
-                                          setRenamePopupAccountIndex(null)
-                                        }
+                                        onClick={() => setRenamePopupAccountIndex(null)}
                                         big={true}
                                         block={true}
                                         variant="icon"
                                       >
-                                        <Close
-                                          className="cancel"
-                                          width="16"
-                                          height="16"
-                                        />
+                                        <Close className="cancel" width="16" height="16" />
                                       </Button>
-                                      <Button
-                                        className="submit"
-                                        big={true}
-                                        block={true}
-                                        type="submit"
-                                        variant="icon"
-                                      >
+                                      <Button className="submit" big={true} block={true} type="submit" variant="icon">
                                         <CheckIco width="16" height="16" />
                                       </Button>
                                     </div>
@@ -219,19 +164,10 @@ export default function Popovers({
                         </Formik>
                       ) : (
                         <>
-                          <div className="t-medium account__item-id">
-                            {account?.name}
-                          </div>
+                          <div className="t-medium account__item-id">{account?.name}</div>
                           <div className="t-small account__item-id">
-                            <span className="t-ellipsis">
-                              {account?.pubKey}
-                            </span>
-                            <span>
-                              {account?.pubKey.substr(
-                                account?.pubKey.length - 12,
-                                account?.pubKey.length
-                              )}
-                            </span>
+                            <span className="t-ellipsis">{account?.pubKey}</span>
+                            <span>{account?.pubKey.substr(account?.pubKey.length - 12, account?.pubKey.length)}</span>
                           </div>
                         </>
                       )}
@@ -241,9 +177,7 @@ export default function Popovers({
                     className="edit-ico"
                     onClick={() => {
                       setRenamePopupAccountIndex(
-                        renamePopupAccountIndex === Number(account?.idx)
-                          ? null
-                          : Number(account?.idx)
+                        renamePopupAccountIndex === Number(account?.idx) ? null : Number(account?.idx),
                       );
                     }}
                   />
@@ -263,23 +197,20 @@ export default function Popovers({
           </div>
         </>
       </SelectPopover>
-      <Popup
-        isPopupVisible={isAddPopupVisible}
-        setIsPopupVisible={setIsAddPopupVisible}
-        title="Add new public key"
-      >
+      <Popup isPopupVisible={isAddPopupVisible} setIsPopupVisible={setIsAddPopupVisible} title="Add new public key">
         <Formik
           initialValues={{
             accountName: "",
             password: "",
           }}
           onSubmit={async (values, { resetForm, setErrors }) => {
-            const { error, masterKey, hashingPublicKey, decryptedVault } =
-              getKeys(values.password, accounts.length, vault);
+            const { error, masterKey, hashingPublicKey, decryptedVault } = getKeys(
+              values.password,
+              accounts.length,
+              vault,
+            );
             const accountIndex = accounts.length;
-            const prefixedHashingPubKey = hashingPublicKey
-              ? unit8ToHexPrefixed(hashingPublicKey)
-              : "";
+            const prefixedHashingPubKey = hashingPublicKey ? unit8ToHexPrefixed(hashingPublicKey) : "";
             if (error || !masterKey) {
               return setErrors({ password: "Password is incorrect!" });
             }
@@ -294,42 +225,30 @@ export default function Popovers({
                   JSON.stringify(
                     Object.assign(decryptedVault, {
                       pub_keys: userKeys?.concat(" ", prefixedHashingPubKey),
-                    })
+                    }),
                   ),
-                  values.password
-                ).toString()
+                  values.password,
+                ).toString(),
               );
               setUserKeys(userKeys?.concat(" ", prefixedHashingPubKey));
-              const accountNames =
-                localStorage.getItem(LocalKeyAccountNames) || "";
-              const accountNamesObj = accountNames
-                ? JSON.parse(accountNames)
-                : {};
+              const accountNames = localStorage.getItem(LocalKeyAccountNames) || "";
+              const accountNamesObj = accountNames ? JSON.parse(accountNames) : {};
               const idx = accountIndex;
               localStorage.setItem(
                 LocalKeyAccountNames,
                 JSON.stringify(
                   Object.assign(accountNamesObj, {
-                    ["_" + idx]:
-                      values.accountName || "Public key " + (idx + 1),
-                  })
-                )
+                    ["_" + idx]: values.accountName || "Public key " + (idx + 1),
+                  }),
+                ),
               );
 
               setActiveAccountId(prefixedHashingPubKey);
               setIsAddPopupVisible(false);
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
+              invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
             };
 
-            if (
-              error ||
-              unit8ToHexPrefixed(controlHashingPubKey!) !==
-                userKeys?.split(" ")[0]
-            ) {
+            if (error || unit8ToHexPrefixed(controlHashingPubKey!) !== userKeys?.split(" ")[0]) {
               return setErrors({ password: "Password is incorrect!" });
             }
 
@@ -340,17 +259,13 @@ export default function Popovers({
           }}
           validateOnBlur={false}
           validationSchema={Yup.object().shape({
-            accountName: Yup.string().test(
-              "account-name-taken",
-              `The public key name is taken`,
-              function (value) {
-                if (value) {
-                  return !Boolean(accounts?.find((a) => a.name === value));
-                } else {
-                  return true;
-                }
+            accountName: Yup.string().test("account-name-taken", `The public key name is taken`, function (value) {
+              if (value) {
+                return !accounts?.find((a) => a.name === value);
+              } else {
+                return true;
               }
-            ),
+            }),
             password: Yup.string().required("Password is required"),
           })}
         >
@@ -376,9 +291,7 @@ export default function Popovers({
                       name="accountName"
                       label="Key name (Optional - max 26 characters)"
                       type="accountName"
-                      error={extractFormikError(errors, touched, [
-                        "accountName",
-                      ])}
+                      error={extractFormikError(errors, touched, ["accountName"])}
                       maxLength={26}
                     />
                   </FormContent>
@@ -393,13 +306,7 @@ export default function Popovers({
                       >
                         Cancel
                       </Button>
-                      <Button
-                        big={true}
-                        block={true}
-                        type="submit"
-                        variant="primary"
-                        working={isAddAccountLoading}
-                      >
+                      <Button big={true} block={true} type="submit" variant="primary" working={isAddAccountLoading}>
                         Confirm
                       </Button>
                     </div>

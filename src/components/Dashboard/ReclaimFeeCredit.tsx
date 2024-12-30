@@ -1,19 +1,19 @@
+import { Formik, FormikErrors, FormikState } from "formik";
 import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
 import { useApp } from "../../hooks/appProvider";
-import { useAuth } from "../../hooks/useAuth";
 
-import { Formik, FormikErrors, FormikState } from "formik";
-import { Form, FormFooter, FormContent } from "../Form/Form";
-import { IBill } from "../../types/Types";
 import { reclaimFeeCredit } from "../../hooks/requests";
-import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
+import { useAuth } from "../../hooks/useAuth";
+import { IBill } from "../../types/Types";
 import { AlphaType, TokenType } from "../../utils/constants";
+import { extractFormikError, getKeys, invalidateAllLists } from "../../utils/utils";
 
 import Button from "../Button/Button";
+import { Form, FormFooter, FormContent } from "../Form/Form";
+import Popup from "../Popup/Popup";
 import Spacer from "../Spacer/Spacer";
 import Textfield from "../Textfield/Textfield";
-import Popup from "../Popup/Popup";
 
 export default function ReclaimFeeCredit({
   isAlpha,
@@ -33,33 +33,26 @@ export default function ReclaimFeeCredit({
 
   const billsArr = billsList
     ?.filter((bill: any) => Number(bill.value) >= 1)
-    ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
+    ?.filter((bill: IBill) => !bill.targetUnitId);
 
-  const currentCreditBill = isAlpha
-    ? feeCreditBills?.ALPHA
-    : feeCreditBills?.UTP;
+  const currentCreditBill = isAlpha ? feeCreditBills?.ALPHA : feeCreditBills?.UTP;
 
   const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
   const buttonLabel = "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
 
   const addPollingInterval = useCallback(() => {
-      pollingInterval.current = setInterval(() => {
-        invalidateAllLists(activeAccountId, AlphaType, queryClient);
-      }, 1000);
-    }, [queryClient, activeAccountId]
-  );
-  
+    pollingInterval.current = setInterval(() => {
+      invalidateAllLists(activeAccountId, AlphaType, queryClient);
+    }, 1000);
+  }, [queryClient, activeAccountId]);
 
-  const handleSubmit = useCallback( async(
-      values: {password: string;}, 
-      setErrors: (errors: FormikErrors<{password: string;}>) => void,
-      resetForm: (nextState?: Partial<FormikState<{password: string;}>>) => void
+  const handleSubmit = useCallback(
+    async (
+      values: { password: string },
+      setErrors: (errors: FormikErrors<{ password: string }>) => void,
+      resetForm: (nextState?: Partial<FormikState<{ password: string }>>) => void,
     ) => {
-      const {error, hashingPrivateKey, hashingPublicKey} = getKeys(
-        values.password,
-        Number(account?.idx),
-        vault
-      );
+      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(values.password, Number(account?.idx), vault);
 
       if (error || !hashingPrivateKey || !hashingPublicKey) {
         return setErrors({
@@ -75,17 +68,18 @@ export default function ReclaimFeeCredit({
         if (!reclaimTxHash) {
           setIsSending(false);
           return setErrors({
-            password: error || "Error occurred during the transaction"
+            password: error || "Error occurred during the transaction",
           });
         }
-        addPollingInterval()
-      } catch(error) {
+        addPollingInterval();
+      } catch (error) {
         setIsSending(false);
         setErrors({
-          password: 'Error occurred during the transaction'
-        })
+          password: "Error occurred during the transaction",
+        });
       }
-    }, [account?.idx, addPollingInterval, isAlpha, setPreviousView, vault]
+    },
+    [account?.idx, addPollingInterval, isAlpha, setPreviousView, vault],
   );
 
   return (
@@ -100,21 +94,15 @@ export default function ReclaimFeeCredit({
           className={isHidden ? "reclaim hidden" : "reclaim"}
           disabled={isSending || !billsArr?.[0]?.txHash || !isMinReclaimAmount}
           onClick={() => {
-            setActiveAssetLocal(
-              JSON.stringify(
-                account?.assets?.fungible.find(
-                  (asset) => asset.typeId === AlphaType
-                )
-              )
-            );
+            setActiveAssetLocal(JSON.stringify(account?.assets?.fungible.find((asset) => asset.typeId === AlphaType)));
             setIsReclaimPopupVisible(!isReclaimPopupVisible);
           }}
         >
           {!billsArr?.[0]?.txHash
             ? "ALPHAs needed to reclaim fees"
             : !isMinReclaimAmount
-            ? "Not enough credit to reclaim"
-            : buttonLabel}
+              ? "Not enough credit to reclaim"
+              : buttonLabel}
         </Button>
       </div>
       <Popup
@@ -185,4 +173,3 @@ export default function ReclaimFeeCredit({
     </>
   );
 }
-

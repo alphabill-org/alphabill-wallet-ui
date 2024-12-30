@@ -14,12 +14,7 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
   const userKeys = localStorage.getItem(LocalKeyPubKeys);
   const [isLocked, setIsLocked] = useState<"locked" | "unlocked">();
 
-  const isRedirect =
-    !Boolean(userKeys) ||
-    !Boolean(vault) ||
-    !Boolean(balances) ||
-    vault === "null" ||
-    userKeys === "null";
+  const isRedirect = !userKeys || !vault || !balances || vault === "null" || userKeys === "null";
 
   useEffect(() => {
     chrome?.storage?.local
@@ -43,9 +38,7 @@ function ProtectedRoute({ children }: IProtectedRouteProps): JSX.Element {
 
   chrome?.runtime?.onMessage?.addListener((request) => {
     if (request.isLocked === true) {
-      chrome?.storage?.local
-        .set({ ab_is_wallet_locked: "locked" })
-        .then(() => window.close());
+      chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" }).then(() => window.close());
     }
   });
 

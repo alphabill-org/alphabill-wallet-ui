@@ -1,39 +1,28 @@
-import { useRef, useState } from "react";
 import classNames from "classnames";
+import { useRef, useState } from "react";
 
-import Button from "../Button/Button";
-import { ReactComponent as Check } from "../../images/check.svg";
-import { useApp } from "../../hooks/appProvider";
-import Checkbox from "../Checkbox/Checkbox";
-import { useDocumentClick } from "../../utils/utils";
-import SelectPopover from "../SelectPopover/SelectPopover";
-import { ProfileView } from "../../utils/constants";
-import { ICLogo, ICSettings } from "../../css/icons";
 import CopyToClipboard from "react-copy-to-clipboard";
+import { ICLogo, ICSettings } from "../../css/icons";
 import { ICCopy } from "../../css/icons/ICCopy";
 import { ICDown } from "../../css/icons/ICDown";
+import { useApp } from "../../hooks/appProvider";
+import Check from "../../images/check.svg?react";
+import { ProfileView } from "../../utils/constants";
+import { useDocumentClick } from "../../utils/utils";
+import Button from "../Button/Button";
+import Checkbox from "../Checkbox/Checkbox";
+import SelectPopover from "../SelectPopover/SelectPopover";
 
 function Header(): JSX.Element | null {
   const [showTestNetworks, setShowTestNetworks] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const {
-    setIsActionsViewVisible,
-    setActionsView,
-    account,
-    accounts,
-    setAccounts,
-  } = useApp();
+  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
 
-  const testNetworks = account?.networks?.filter(
-    (network) => network.isTestNetwork === true
-  );
+  const testNetworks = account?.networks?.filter((network) => network.isTestNetwork === true);
   const isTestNetworkActive = account?.networks?.find(
-    (network) =>
-      network.isTestNetwork === true && account?.activeNetwork === network.id
+    (network) => network.isTestNetwork === true && account?.activeNetwork === network.id,
   );
-  const mainNetworks = account?.networks?.filter(
-    (network) => network.isTestNetwork !== true
-  );
+  const mainNetworks = account?.networks?.filter((network) => network.isTestNetwork !== true);
   const popupRef = useRef<HTMLDivElement>(null);
 
   useDocumentClick(() => {
@@ -43,24 +32,15 @@ function Header(): JSX.Element | null {
   return (
     <div className="header">
       <div className="header__ico">
-        <ICLogo className="header__ico"/>
+        <ICLogo className="header__ico" />
       </div>
       <div className="header__select">
-        <Button
-          variant="icon"
-          className="select__button"
-          onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-        >
-          { account?.name}
-          <ICDown className="select__button--icon"/>
+        <Button variant="icon" className="select__button" onClick={() => setIsPopoverOpen(!isPopoverOpen)}>
+          {account?.name}
+          <ICDown className="select__button--icon" />
         </Button>
         <CopyToClipboard text={account?.pubKey || ""}>
-          <Button
-            id="copy-tooltip"
-            tooltipContent="Key copied"
-            variant="icon"
-            className="copy__button"
-          >
+          <Button id="copy-tooltip" tooltipContent="Key copied" variant="icon" className="copy__button">
             <ICCopy />
           </Button>
         </CopyToClipboard>
@@ -98,15 +78,13 @@ function Header(): JSX.Element | null {
                       setShowTestNetworks(false);
                     }}
                   >
-                    {network.id}{" "}
-                    {network.id === account?.activeNetwork && <Check />}
+                    {network.id} {network.id === account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
               <div
                 className={classNames("select__popover-test-networks", {
-                  "select__popover-test-networks--hidden":
-                    !showTestNetworks && !Boolean(isTestNetworkActive),
+                  "select__popover-test-networks--hidden": !showTestNetworks && !isTestNetworkActive,
                 })}
               >
                 Test networks
@@ -116,8 +94,7 @@ function Header(): JSX.Element | null {
                   <div
                     key={network.id}
                     className={classNames("select__option", {
-                      "select__option--hidden":
-                        !showTestNetworks && !Boolean(isTestNetworkActive),
+                      "select__option--hidden": !showTestNetworks && !isTestNetworkActive,
                     })}
                     onClick={() => {
                       const updatedAccounts = accounts?.map((obj) => {
@@ -129,8 +106,7 @@ function Header(): JSX.Element | null {
                       setAccounts(updatedAccounts);
                     }}
                   >
-                    {network.id}{" "}
-                    {network.id === account?.activeNetwork && <Check />}
+                    {network.id} {network.id === account?.activeNetwork && <Check />}
                   </div>
                 );
               })}
@@ -145,7 +121,7 @@ function Header(): JSX.Element | null {
           setIsActionsViewVisible(true);
         }}
       >
-        <ICSettings className="header__settings"/>
+        <ICSettings className="header__settings" />
       </Button>
     </div>
   );

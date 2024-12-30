@@ -1,16 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { BrowserRouter } from "react-router-dom";
 import AuthProvider from "./hooks/useAuth";
 
 import "./css/app.scss";
 import App from "./App";
 import { AppProvider } from "./hooks/appProvider";
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
 const queryClient = new QueryClient();
 
@@ -25,5 +23,5 @@ root.render(
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

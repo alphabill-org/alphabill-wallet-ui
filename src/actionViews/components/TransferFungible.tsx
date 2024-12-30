@@ -1,29 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { Formik, FormikErrors } from "formik";
-import * as Yup from "yup";
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
-
+import * as Yup from "yup";
 import Button from "../../components/Button/Button";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+
+import Select from "../../components/Select/Select";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
-import Select from "../../components/Select/Select";
 
-import {
-  IFungibleAsset,
-  IBill,
-  IActiveAsset,
-  ITransferForm
-} from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
+import { splitBill, splitFungibleToken, transferBill, transferFungibleToken } from "../../hooks/requests";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  splitBill,
-  splitFungibleToken,
-  transferBill,
-  transferFungibleToken
-} from "../../hooks/requests";
+import { IFungibleAsset, IBill, IActiveAsset, ITransferForm } from "../../types/Types";
 
+import { AlphaType, FungibleListView, TransferFungibleView, TokenType } from "../../utils/constants";
 import {
   extractFormikError,
   getKeys,
@@ -37,15 +29,8 @@ import {
   getFungibleAssetsAmount,
   isValidAddress,
   handleBillSelection,
-  createEllipsisString
+  createEllipsisString,
 } from "../../utils/utils";
-import {
-  AlphaType,
-  FungibleListView,
-  TransferFungibleView,
-  TokenType
-} from "../../utils/constants";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 
 export default function TransferFungible(): JSX.Element | null {
   const {
@@ -61,20 +46,11 @@ export default function TransferFungible(): JSX.Element | null {
     selectedTransferAccountKey,
     feeCreditBills,
   } = useApp();
-  const {
-    vault,
-    activeAccountId,
-    setActiveAssetLocal,
-    activeAsset,
-  } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } = useAuth();
   const queryClient = useQueryClient();
 
-  const directlySelectedAsset = unlockedBillsList?.find(
-    (bill: IBill) => bill.id === selectedTransferKey
-  );
-  const fungibleAssets = account?.assets?.fungible?.filter(
-    (asset) => account?.activeNetwork === asset.network
-  );
+  const directlySelectedAsset = unlockedBillsList?.find((bill: IBill) => bill.id === selectedTransferKey);
+  const fungibleAssets = account?.assets?.fungible?.filter((asset) => account?.activeNetwork === asset.network);
   const fungibleActiveAsset =
     fungibleAssets.find((asset) => asset.typeId === activeAsset.typeId) ||
     fungibleAssets.find((asset) => asset.typeId === AlphaType)!;
@@ -84,12 +60,12 @@ export default function TransferFungible(): JSX.Element | null {
     label: string;
   } = {
     value: directlySelectedAsset ? directlySelectedAsset : fungibleActiveAsset,
-    label: directlySelectedAsset?.id || fungibleActiveAsset.symbol || AlphaType
+    label: directlySelectedAsset?.id || fungibleActiveAsset.symbol || AlphaType,
   };
 
-  const [selectedAsset, setSelectedAsset] = useState<
-    IBill | IFungibleAsset | IActiveAsset | undefined
-  >(defaultAsset?.value);
+  const [selectedAsset, setSelectedAsset] = useState<IBill | IFungibleAsset | IActiveAsset | undefined>(
+    defaultAsset?.value,
+  );
 
   const decimals = selectedAsset?.decimals || 0;
   const tokenLabel = getTokensLabel(fungibleActiveAsset.typeId);
@@ -100,14 +76,11 @@ export default function TransferFungible(): JSX.Element | null {
   const [isSending, setIsSending] = useState<boolean>(false);
 
   const getAvailableAmount = useCallback(
-    (decimals: number) =>
-      getFungibleAssetsAmount(account, decimals, selectedAsset?.typeId || ""),
-    [account, selectedAsset]
+    (decimals: number) => getFungibleAssetsAmount(account, decimals, selectedAsset?.typeId || ""),
+    [account, selectedAsset],
   );
 
-  const [availableAmount, setAvailableAmount] = useState<string>(
-    getAvailableAmount(selectedAsset?.decimals || 0)
-  );
+  const [availableAmount, setAvailableAmount] = useState<string>(getAvailableAmount(selectedAsset?.decimals || 0));
 
   const handleTransactionEnd = useCallback(() => {
     pollingInterval.current && clearInterval(pollingInterval.current);
@@ -134,139 +107,124 @@ export default function TransferFungible(): JSX.Element | null {
     if (BigInt(activeAssetAmount || "") === balanceAfterSending.current) {
       handleTransactionEnd();
       balanceAfterSending.current = null;
-    } else if (
-      balanceAfterSending.current === null &&
-      pollingInterval.current &&
-      !isSending
-    ) {
+    } else if (balanceAfterSending.current === null && pollingInterval.current && !isSending) {
       handleTransactionEnd();
     }
 
     if (actionsView !== TransferFungibleView && pollingInterval.current) {
       handleTransactionEnd();
     }
-  }, [
-    account?.assets,
-    account?.activeNetwork,
-    selectedAsset?.typeId,
-    isSending,
-    actionsView,
-    handleTransactionEnd,
-  ]);
+  }, [account?.assets, account?.activeNetwork, selectedAsset?.typeId, isSending, actionsView, handleTransactionEnd]);
 
-  const handleTransfer = useCallback(async (
-    values: ITransferForm,
-    setErrors: (errors: FormikErrors<ITransferForm>) => void
-  ) => {
-    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-      values.password,
-      Number(account?.idx),
-      vault,
-    );
+  const handleTransfer = useCallback(
+    async (values: ITransferForm, setErrors: (errors: FormikErrors<ITransferForm>) => void) => {
+      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(values.password, Number(account?.idx), vault);
 
-    if (error || !hashingPrivateKey || !hashingPublicKey) {
-      return setErrors({
-        password: error || "Hashing keys are missing!",
-      });
-    }
+      if (error || !hashingPrivateKey || !hashingPublicKey) {
+        return setErrors({
+          password: error || "Hashing keys are missing!",
+        });
+      }
 
-    if (!activeAsset.id) {
-      return setErrors({
-        password: error || "Select an asset to transfer",
-      });
-    }
+      if (!activeAsset.id) {
+        return setErrors({
+          password: error || "Select an asset to transfer",
+        });
+      }
 
-    setIsSending(true);
+      setIsSending(true);
 
-    const isAlpha = selectedAsset?.typeId === AlphaType;
+      const isAlpha = selectedAsset?.typeId === AlphaType;
 
-    try {
-      const decodedId = Base16Converter.decode(activeAsset.id);
-      const recipient = Base16Converter.decode(values.address);
+      try {
+        const decodedId = Base16Converter.decode(activeAsset.id);
+        const recipient = Base16Converter.decode(values.address);
 
-      const transferHash = isAlpha
-        ? await transferBill(hashingPrivateKey, recipient, decodedId)
-        : await transferFungibleToken(hashingPrivateKey, recipient, decodedId);
+        const transferHash = isAlpha
+          ? await transferBill(hashingPrivateKey, recipient, decodedId)
+          : await transferFungibleToken(hashingPrivateKey, recipient, decodedId);
 
-      if (!transferHash) {
+        if (!transferHash) {
+          setIsSending(false);
+          return setErrors({
+            password: error || "Error occurred during the transaction!",
+          });
+        }
+        addPollingInterval();
+      } catch (error) {
+        return setErrors({
+          password: (error as Error).message || "Error occurred during the transaction",
+        });
+      }
+    },
+    [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault],
+  );
+
+  const handleSplit = useCallback(
+    async (values: ITransferForm, setErrors: (errors: FormikErrors<ITransferForm>) => void) => {
+      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(values.password, Number(account?.idx), vault);
+
+      if (error || !hashingPrivateKey || !hashingPublicKey) {
+        return setErrors({
+          password: error || "Hashing keys are missing!",
+        });
+      }
+
+      let convertedAmount: bigint;
+      try {
+        convertedAmount = convertToWholeNumberBigInt(values.amount, selectedAsset?.decimals || 0);
+      } catch (error) {
+        return setErrors({
+          password: (error as Error).message,
+        });
+      }
+
+      const billsArr = selectedTransferKey ? [directlySelectedAsset] : unlockedBillsList || [];
+
+      const { billToSplit } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
+
+      if (!billToSplit) {
+        return setErrors({
+          password: error || "Select an asset to transfer",
+        });
+      }
+
+      setIsSending(true);
+
+      const isAlpha = selectedAsset?.typeId === AlphaType;
+
+      try {
+        const decodedId = Base16Converter.decode(billToSplit?.id);
+        const recipient = Base16Converter.decode(values.address);
+
+        const splitHash = isAlpha
+          ? await splitBill(hashingPrivateKey, convertedAmount, recipient, decodedId)
+          : await splitFungibleToken(hashingPrivateKey, convertedAmount, recipient, decodedId);
+
+        if (!splitHash) {
+          return setErrors({
+            password: error || "Error fetching transaction hash",
+          });
+        }
+        addPollingInterval();
+      } catch (error) {
         setIsSending(false);
         return setErrors({
-          password: error || "Error occurred during the transaction!"
+          password: (error as Error).message || "Error occurred during the transaction",
         });
       }
-      addPollingInterval();
-    } catch (error) {
-      return setErrors({
-        password: (error as Error).message || "Error occurred during the transaction"
-      });
-    }
-  }, [account?.idx, activeAsset.id, addPollingInterval, selectedAsset?.typeId, vault]);
-
-  const handleSplit = useCallback(async (
-    values: ITransferForm,
-    setErrors: (errors: FormikErrors<ITransferForm>) => void
-  ) => {
-    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-      values.password,
-      Number(account?.idx),
-      vault
-    );
-
-    if (error || !hashingPrivateKey || !hashingPublicKey) {
-      return setErrors({
-        password: error || "Hashing keys are missing!",
-      });
-    }
-
-    let convertedAmount: bigint;
-    try {
-      convertedAmount = convertToWholeNumberBigInt(
-        values.amount,
-        selectedAsset?.decimals || 0
-      );
-    } catch (error) {
-      return setErrors({
-        password: (error as Error).message,
-      });
-    }
-
-    const billsArr = selectedTransferKey
-      ? [directlySelectedAsset]
-      : unlockedBillsList || [];
-
-    const { billToSplit } = handleBillSelection(convertedAmount.toString(), billsArr as IBill[]);
-
-    if (!billToSplit) {
-      return setErrors({
-        password: error || "Select an asset to transfer"
-      });
-    }
-
-    setIsSending(true);
-
-    const isAlpha = selectedAsset?.typeId === AlphaType;
-
-    try {
-      const decodedId = Base16Converter.decode(billToSplit?.id);
-      const recipient = Base16Converter.decode(values.address);
-
-      const splitHash = isAlpha
-        ? await splitBill(hashingPrivateKey, convertedAmount, recipient, decodedId)
-        : await splitFungibleToken(hashingPrivateKey, convertedAmount, recipient, decodedId);
-
-      if (!splitHash) {
-        return setErrors({
-          password: error || "Error fetching transaction hash"
-        });
-      }
-      addPollingInterval();
-    } catch (error) {
-      setIsSending(false);
-      return setErrors({
-        password: (error as Error).message || "Error occurred during the transaction"
-      });
-    }
-  }, [account?.idx, addPollingInterval, directlySelectedAsset, selectedAsset?.decimals, selectedAsset?.typeId, selectedTransferKey, unlockedBillsList, vault]);
+    },
+    [
+      account?.idx,
+      addPollingInterval,
+      directlySelectedAsset,
+      selectedAsset?.decimals,
+      selectedAsset?.typeId,
+      selectedTransferKey,
+      unlockedBillsList,
+      vault,
+    ],
+  );
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -281,9 +239,7 @@ export default function TransferFungible(): JSX.Element | null {
           password: "",
         }}
         onSubmit={async (values, { setErrors }) => {
-          directlySelectedAsset
-            ? handleTransfer(values, setErrors)
-            : handleSplit(values, setErrors);
+          directlySelectedAsset ? handleTransfer(values, setErrors) : handleSplit(values, setErrors);
         }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
@@ -292,23 +248,16 @@ export default function TransferFungible(): JSX.Element | null {
             .test(
               "account-id-same",
               `Receiver's account is your account`,
-              (value) => !value || account?.pubKey !== value
+              (value) => !value || account?.pubKey !== value,
             )
-            .test(
-              "account-id-correct",
-              `Address in not in valid format`,
-              (value) => isValidAddress(value)
-            ),
+            .test("account-id-correct", `Address in not in valid format`, (value) => isValidAddress(value)),
           password: Yup.string()
             .test(
               "test less than",
               "Add fee credits",
               () =>
-                BigInt(
-                  feeCreditBills?.[
-                    selectedAsset?.typeId === AlphaType ? AlphaType : TokenType
-                    ]?.value || "0"
-                ) >= BigInt("1")
+                BigInt(feeCreditBills?.[selectedAsset?.typeId === AlphaType ? AlphaType : TokenType]?.value || "0") >=
+                BigInt("1"),
             )
             .required("Password is required"),
           amount: Yup.string()
@@ -316,32 +265,21 @@ export default function TransferFungible(): JSX.Element | null {
             .test(
               "test more than",
               "Value must be greater than 0",
-              (value: string | undefined) => Number(value || "") > 0n
+              (value: string | undefined) => Number(value || "") > 0n,
             )
-            .test(
-              "test less than",
-              "Amount exceeds available assets",
-              (value: string | undefined) =>
-                selectedTransferKey
-                  ? true
-                  : value
-                    ? convertToWholeNumberBigInt(value || "", decimals) <=
+            .test("test less than", "Amount exceeds available assets", (value: string | undefined) =>
+              selectedTransferKey
+                ? true
+                : value
+                  ? convertToWholeNumberBigInt(value || "", decimals) <=
                     convertToWholeNumberBigInt(availableAmount, decimals)
-                    : true
+                  : true,
             ),
         })}
       >
         {(formikProps) => {
-          const {
-            handleSubmit,
-            setFieldValue,
-            errors,
-            touched,
-            values,
-          } = formikProps;
-          const hexID = selectedTransferKey
-            ? base64ToHexPrefixed(selectedTransferKey)
-            : "";
+          const { handleSubmit, setFieldValue, errors, touched, values } = formikProps;
+          const hexID = selectedTransferKey ? base64ToHexPrefixed(selectedTransferKey) : "";
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
               <Form>
@@ -353,12 +291,7 @@ export default function TransferFungible(): JSX.Element | null {
                           You have selected a {tokenLabel} with a value of{" "}
                           {selectedBillValue &&
                             selectedAsset &&
-                            separateDigits(
-                              addDecimal(
-                                selectedBillValue || "0",
-                                selectedAsset?.decimals || 0
-                              )
-                            )}
+                            separateDigits(addDecimal(selectedBillValue || "0", selectedAsset?.decimals || 0))}
                           . You can deselect it by clicking{" "}
                           <Button
                             onClick={() => {
@@ -366,7 +299,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setSelectedAsset(activeAsset);
                               setFieldValue("assets", {
                                 value: activeAsset,
-                                label: activeAsset?.symbol
+                                label: activeAsset?.symbol,
                               });
                             }}
                             variant="link"
@@ -381,11 +314,7 @@ export default function TransferFungible(): JSX.Element | null {
                               setActionsView(FungibleListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
-                              invalidateAllLists(
-                                activeAccountId,
-                                fungibleActiveAsset.typeId,
-                                queryClient
-                              );
+                              invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
                             }}
                             type="button"
                             variant="link"
@@ -410,11 +339,7 @@ export default function TransferFungible(): JSX.Element | null {
                     name="assets"
                     className={selectedTransferKey ? "d-none" : ""}
                     options={account?.assets?.fungible
-                      ?.filter(
-                        (asset) =>
-                          account?.activeNetwork === asset.network &&
-                          asset.isSendable
-                      )
+                      ?.filter((asset) => account?.activeNetwork === asset.network && asset.isSendable)
                       .sort((a: IFungibleAsset, b: IFungibleAsset) => {
                         if (a?.symbol! < b?.symbol!) {
                           return -1;
@@ -424,7 +349,7 @@ export default function TransferFungible(): JSX.Element | null {
                         }
                         return 0;
                       })
-                      .sort(function(a, b) {
+                      .sort(function (a, b) {
                         if (a.id === AlphaType) {
                           return -1; // Move the object with the given ID to the beginning of the array
                         }
@@ -438,11 +363,7 @@ export default function TransferFungible(): JSX.Element | null {
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={(_label, option: any) => {
                       setSelectedAsset(option);
-                      invalidateAllLists(
-                        activeAccountId,
-                        fungibleActiveAsset.typeId,
-                        queryClient
-                      );
+                      invalidateAllLists(activeAccountId, fungibleActiveAsset.typeId, queryClient);
                       setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
@@ -464,15 +385,10 @@ export default function TransferFungible(): JSX.Element | null {
                       type="text"
                       floatingFixedPoint={selectedAsset?.decimals}
                       error={extractFormikError(errors, touched, ["amount"])}
-                      disabled={
-                        !Boolean(values.assets) || Boolean(selectedTransferKey)
-                      }
+                      disabled={!values.assets || Boolean(selectedTransferKey)}
                       value={
                         (selectedTransferKey &&
-                          (addDecimal(
-                            selectedBillValue,
-                            selectedAsset?.decimals || 0
-                          ) as string | undefined)) ||
+                          (addDecimal(selectedBillValue, selectedAsset?.decimals || 0) as string | undefined)) ||
                         ""
                       }
                       isNumberFloat
@@ -486,9 +402,7 @@ export default function TransferFungible(): JSX.Element | null {
                     label="Password"
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
-                    disabled={
-                      !Boolean(values.assets) && !Boolean(selectedTransferKey)
-                    }
+                    disabled={!values.assets && !selectedTransferKey}
                   />
                   <Spacer mb={4} />
                 </FormContent>
@@ -520,11 +434,7 @@ export default function TransferFungible(): JSX.Element | null {
               setActiveAssetLocal(JSON.stringify(fungibleActiveAsset));
               setActionsView(FungibleListView);
               setIsActionsViewVisible(true);
-              invalidateAllLists(
-                activeAccountId,
-                activeAsset.typeId,
-                queryClient
-              );
+              invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
             }}
             variant="link"
             type="button"

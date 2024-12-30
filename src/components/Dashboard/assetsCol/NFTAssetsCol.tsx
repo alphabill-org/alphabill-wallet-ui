@@ -1,11 +1,7 @@
-import {
-  filterUniqueTypes,
-  sortBySymbol,
-  sortByTypeId,
-} from "../../../utils/utils";
 import { useApp } from "../../../hooks/appProvider";
-import AssetsList from "../../AssetsList/AssetsList";
 import { NFTListView } from "../../../utils/constants";
+import { filterUniqueTypes, sortBySymbol, sortByTypeId } from "../../../utils/utils";
+import AssetsList from "../../AssetsList/AssetsList";
 
 export default function NFTAssetsCol(): JSX.Element | null {
   const { setIsActionsViewVisible, setActionsView, account } = useApp();

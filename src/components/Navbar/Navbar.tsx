@@ -12,11 +12,7 @@ export interface INavbarProps {
   isFees?: boolean;
 }
 
-export default function Navbar({
-  onChange,
-  activeBar,
-  isFees,
-}: INavbarProps): JSX.Element | null {
+export default function Navbar({ onChange, activeBar, isFees }: INavbarProps): JSX.Element | null {
   const { activeAsset, activeAccountId, setActiveAssetLocal } = useAuth();
   const { account } = useApp();
   const queryClient = useQueryClient();

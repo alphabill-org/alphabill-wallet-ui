@@ -1,14 +1,14 @@
 import { Formik } from "formik";
+import { useMemo } from "react";
 import * as Yup from "yup";
 
-import { Form, FormFooter, FormContent } from "../components/Form/Form";
 import Button from "../components/Button/Button";
-import { extractFormikError } from "../utils/utils";
-import { useAuth } from "../hooks/useAuth";
-import { useMemo } from "react";
-import Select from "../components/Select/Select";
+import { Form, FormFooter, FormContent } from "../components/Form/Form";
 import Popup from "../components/Popup/Popup";
+import Select from "../components/Select/Select";
 import Spacer from "../components/Spacer/Spacer";
+import { useAuth } from "../hooks/useAuth";
+import { extractFormikError } from "../utils/utils";
 
 function ConnectPopup(): JSX.Element {
   const { setIsConnectWalletPopup, userKeys, isConnectWalletPopup } = useAuth();
@@ -70,12 +70,7 @@ function ConnectPopup(): JSX.Element {
                     />
                   </FormContent>
                   <FormFooter>
-                    <Button
-                      big={true}
-                      block={true}
-                      type="submit"
-                      variant="primary"
-                    >
+                    <Button big={true} block={true} type="submit" variant="primary">
                       Connect wallet
                     </Button>
                   </FormFooter>

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-
 import classNames from "classnames";
 
 import { useField, useFormikContext } from "formik";
+import React, { useEffect, useState } from "react";
 
 export interface ITextAreaFieldProps {
   id: string;
@@ -31,7 +30,6 @@ export default function TextAreaField(props: ITextAreaFieldProps): JSX.Element {
   const [isChanged, setIsChanged] = useState(false);
   const [field] = useField(props as any);
 
-
   useEffect(() => {
     setFieldValue(field.name, value);
   }, [field.name, value, setFieldValue]);
@@ -42,7 +40,7 @@ export default function TextAreaField(props: ITextAreaFieldProps): JSX.Element {
       "textfield--error": error,
       "textfield--transparent": transparent,
     },
-    props.className
+    props.className,
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -54,9 +52,7 @@ export default function TextAreaField(props: ITextAreaFieldProps): JSX.Element {
   return (
     <div className={className} data-testid="textfield">
       <div className="textfield__inner">
-        {props.label && (
-          <label className="textfield__label">{props.label}</label>
-        )}
+        {props.label && <label className="textfield__label">{props.label}</label>}
         <textarea
           {...textAreaProps}
           autoComplete="off"

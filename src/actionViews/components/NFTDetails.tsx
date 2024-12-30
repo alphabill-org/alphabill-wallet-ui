@@ -1,43 +1,34 @@
+import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
-import { useQueryClient } from "react-query";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
-import { NFTListView, TransferNFTView } from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
-import { ReactComponent as Download } from "../../images/download.svg";
-import { useAuth } from "../../hooks/useAuth";
-import { downloadHexFile, invalidateAllLists } from "../../utils/utils";
-import { useApp } from "../../hooks/appProvider";
 import Button from "../../components/Button/Button";
-import { downloadFile } from "../../hooks/requests";
-import { useGetImageUrlAndDownloadType } from "../../hooks/api";
-import Spinner from "../../components/Spinner/Spinner";
 import Spacer from "../../components/Spacer/Spacer";
+import Spinner from "../../components/Spinner/Spinner";
+import { useGetImageUrlAndDownloadType } from "../../hooks/api";
+import { useApp } from "../../hooks/appProvider";
+import { downloadFile } from "../../hooks/requests";
+import { useAuth } from "../../hooks/useAuth";
+import Download from "../../images/download.svg?react";
+import Send from "../../images/send-ico.svg?react";
+import { NFTListView, TransferNFTView } from "../../utils/constants";
+import { downloadHexFile, invalidateAllLists } from "../../utils/utils";
 
 export interface INFTDetailsProps {
   onItemClick?: () => void;
 }
 
-export default function NFTDetails({
-  onItemClick,
-}: INFTDetailsProps): JSX.Element | null {
+export default function NFTDetails({ onItemClick }: INFTDetailsProps): JSX.Element | null {
   const { activeAsset, activeAccountId } = useAuth();
   const queryClient = useQueryClient();
   const nftUri = activeAsset?.nftUri || "";
   const { data, isLoading } = useGetImageUrlAndDownloadType(nftUri);
-  const isImage = Boolean(data?.imageUrl) && !Boolean(data?.error);
-  const isDownloadableImage =
-    Boolean(data?.downloadType) && Boolean(data?.imageUrl);
-  const isDownloadableImageWithError =
-    isDownloadableImage && Boolean(data?.error);
+  const isImage = Boolean(data?.imageUrl) && !data?.error;
+  const isDownloadableImage = Boolean(data?.downloadType) && Boolean(data?.imageUrl);
+  const isDownloadableImageWithError = isDownloadableImage && Boolean(data?.error);
   const prefixedID = activeAsset?.id!;
 
-  const {
-    setIsActionsViewVisible,
-    setActionsView,
-    setSelectedTransferKey,
-    setPreviousView,
-  } = useApp();
+  const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey, setPreviousView } = useApp();
 
   const handleClick = () => {
     onItemClick && onItemClick();
@@ -62,18 +53,11 @@ export default function NFTDetails({
         })}
       >
         {isImage ? (
-          <LazyLoadImage
-            alt={activeAsset?.id}
-            height={32}
-            src={activeAsset?.nftUri}
-            width={32}
-          />
+          <LazyLoadImage alt={activeAsset?.id} height={32} src={activeAsset?.nftUri} width={32} />
         ) : (
           <div>
             <div>Unable to preview {data?.downloadType} content.</div>
-            {isDownloadableImageWithError && (
-              <div>{data?.error}. Download image to preview.</div>
-            )}
+            {isDownloadableImageWithError && <div>{data?.error}. Download image to preview.</div>}
           </div>
         )}
       </div>
@@ -98,11 +82,8 @@ export default function NFTDetails({
         <div className="asset-details__info">
           <div className="asset-details__info--item">
             <div className="flex">
-              ID:{" "}
-              <span className="t-ellipsis pad-8-l mw-200px">{prefixedID}</span>
-              <span>
-                {prefixedID.substr(prefixedID.length - 12, prefixedID.length)}
-              </span>
+              ID: <span className="t-ellipsis pad-8-l mw-200px">{prefixedID}</span>
+              <span>{prefixedID.substr(prefixedID.length - 12, prefixedID.length)}</span>
             </div>
           </div>
           {activeAsset?.nftName && (

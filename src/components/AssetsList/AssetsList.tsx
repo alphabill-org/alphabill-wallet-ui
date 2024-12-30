@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import { useQueryClient } from "react-query";
 
-import { AlphaType, FungibleTokenKind } from "../../utils/constants";
 import { useAuth } from "../../hooks/useAuth";
-import { invalidateAllLists, isBillLocked } from "../../utils/utils";
 import { IActiveAsset, IBill } from "../../types/Types";
+import { AlphaType, FungibleTokenKind } from "../../utils/constants";
+import { invalidateAllLists, isBillLocked } from "../../utils/utils";
 import AssetsListItem from "./AssetsListItem";
 
 export interface IAssetsListProps {
@@ -28,12 +28,7 @@ export default function AssetsList({
   isHoverDisabled,
   onSendClick,
 }: IAssetsListProps): JSX.Element | null {
-  const {
-    activeAccountId,
-    activeAsset,
-    setActiveAssetLocal,
-    setActiveNFTLocal,
-  } = useAuth();
+  const { activeAccountId, activeAsset, setActiveAssetLocal, setActiveNFTLocal } = useAuth();
 
   const handleClick = (asset: any) => {
     setActiveAssetLocal(JSON.stringify(asset));
@@ -49,11 +44,8 @@ export default function AssetsList({
       })}
     >
       {assetList?.map((asset: any) => {
-        const isFungibleKind =
-          asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
-        const isLocked =
-          consolidationTargetUnit &&
-          isBillLocked(consolidationTargetUnit, asset, DCBills);
+        const isFungibleKind = asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
+        const isLocked = consolidationTargetUnit && isBillLocked(consolidationTargetUnit, asset, DCBills);
 
         return (
           <div
@@ -66,10 +58,7 @@ export default function AssetsList({
               !isFungibleKind && setActiveNFTLocal(asset);
             }}
           >
-            <div
-              onClick={() => onItemClick && onItemClick()}
-              className="assets-list__item-clicker"
-            ></div>
+            <div onClick={() => onItemClick && onItemClick()} className="assets-list__item-clicker"></div>
             <AssetsListItem
               asset={asset}
               isTypeListItem={isTypeListItem}

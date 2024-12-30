@@ -1,17 +1,12 @@
 import classNames from "classnames";
 
+import AssetsList from "../components/AssetsList/AssetsList";
 import Button from "../components/Button/Button";
-import { ReactComponent as Arrow } from "./../images/arrow.svg";
-import { useApp } from "../hooks/appProvider";
-import TransferFungible from "./components/TransferFungible";
-import TransferFeeCredit from "./components/TransferFeeCredit";
-import BillsList from "./components/BillsList/BillsList";
-import AccountView from "./components/AccountView";
-import { useAuth } from "../hooks/useAuth";
-import TransferNFTs from "./components/TransferNFTs";
 import Navbar from "../components/Navbar/Navbar";
 import Spacer from "../components/Spacer/Spacer";
-import AssetsList from "../components/AssetsList/AssetsList";
+import { useApp } from "../hooks/appProvider";
+import { useAuth } from "../hooks/useAuth";
+import { IActionViews, INavbarViews } from "../types/Types";
 import {
   FungibleListView,
   NFTDetailsView,
@@ -21,9 +16,14 @@ import {
   TransferFungibleView,
   TransferNFTView,
 } from "../utils/constants";
-import NFTDetails from "./components/NFTDetails";
-import { IActionViews, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
+import Arrow from "./../images/arrow.svg?react";
+import AccountView from "./components/AccountView";
+import BillsList from "./components/BillsList/BillsList";
+import NFTDetails from "./components/NFTDetails";
+import TransferFeeCredit from "./components/TransferFeeCredit";
+import TransferFungible from "./components/TransferFungible";
+import TransferNFTs from "./components/TransferNFTs";
 
 function Actions(): JSX.Element | null {
   const {
@@ -38,13 +38,10 @@ function Actions(): JSX.Element | null {
     previousView,
   } = useApp();
   const { activeAsset } = useAuth();
-  const isTransferView =
-    actionsView === TransferFungibleView || actionsView === TransferNFTView;
+  const isTransferView = actionsView === TransferFungibleView || actionsView === TransferNFTView;
 
   return (
-    <div
-      className={classNames("actions", { "is-visible": isActionsViewVisible })}
-    >
+    <div className={classNames("actions", { "is-visible": isActionsViewVisible })}>
       <div className="actions__header">
         <Button
           onClick={() => {
@@ -78,17 +75,9 @@ function Actions(): JSX.Element | null {
         {isTransferView && (
           <>
             <Navbar
-              activeBar={
-                actionsView === TransferFungibleView
-                  ? "fungible"
-                  : "nonFungible"
-              }
+              activeBar={actionsView === TransferFungibleView ? "fungible" : "nonFungible"}
               onChange={(isFungibleView: INavbarViews) => {
-                setActionsView(
-                  isFungibleView === "fungible"
-                    ? TransferFungibleView
-                    : TransferNFTView
-                );
+                setActionsView(isFungibleView === "fungible" ? TransferFungibleView : TransferNFTView);
                 setSelectedTransferKey(null);
                 setPreviousView(null);
                 removeConnectTransferData();

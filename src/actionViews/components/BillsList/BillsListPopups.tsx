@@ -1,22 +1,14 @@
 import { Formik } from "formik";
 import * as Yup from "yup";
 
-import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
-import Textfield from "../../../components/Textfield/Textfield";
-import {
-  IAccount,
-  IActiveAsset,
-  IBill,
-} from "../../../types/Types";
-import Spacer from "../../../components/Spacer/Spacer";
 import Button from "../../../components/Button/Button";
-import {
-  extractFormikError,
-  getKeys,
-} from "../../../utils/utils";
-
-import { useAuth } from "../../../hooks/useAuth";
+import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
+import Spacer from "../../../components/Spacer/Spacer";
+import Textfield from "../../../components/Textfield/Textfield";
+import { useAuth } from "../../../hooks/useAuth";
+import { IAccount, IActiveAsset, IBill } from "../../../types/Types";
+import { extractFormikError, getKeys } from "../../../utils/utils";
 
 export interface IBillsListItemProps {
   setIsPasswordFormVisible: (e: "handleDC" | null | undefined) => void;
@@ -63,7 +55,7 @@ function BillsListPopups({
             const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
               values.password,
               Number(account?.idx),
-              vault
+              vault,
             );
 
             if (error || !hashingPublicKey || !hashingPrivateKey) {
@@ -89,18 +81,11 @@ function BillsListPopups({
                         name="password"
                         label=""
                         type="password"
-                        error={extractFormikError(errors, touched, [
-                          "password",
-                        ])}
+                        error={extractFormikError(errors, touched, ["password"])}
                       />
                     </FormContent>
                     <FormFooter>
-                      <Button
-                        big={true}
-                        block={true}
-                        type="submit"
-                        variant="primary"
-                      >
+                      <Button big={true} block={true} type="submit" variant="primary">
                         Submit
                       </Button>
                     </FormFooter>

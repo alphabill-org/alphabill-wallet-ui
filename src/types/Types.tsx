@@ -1,5 +1,5 @@
-import { AlphaType, TokenType } from "../utils/constants";
 import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/tokens/TokenIcon";
+import { AlphaType, TokenType } from "../utils/constants";
 
 export interface ITransferFormNFT {
   assets: {
@@ -24,9 +24,9 @@ export interface ITransferForm {
 }
 
 export interface IFeeCreditForm {
-  amount: string,
-  assets: {value: string, label: string},
-  password: string
+  amount: string;
+  assets: { value: string; label: string };
+  password: string;
 }
 
 export interface IAccount {
@@ -82,7 +82,7 @@ export interface IListTokensResponse {
   nftDataUpdatePredicate?: string; // nft only
   network: string;
   nftName?: string; // nft only
-  invariantPredicate?: string // fungible only
+  invariantPredicate?: string; // fungible only
   icon: TokenIcon;
 }
 

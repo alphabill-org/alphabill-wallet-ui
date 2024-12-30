@@ -1,5 +1,5 @@
-import { IFungibleAsset } from "../../../types/Types";
 import { useApp } from "../../../hooks/appProvider";
+import { IFungibleAsset } from "../../../types/Types";
 import { AlphaType, FungibleListView } from "../../../utils/constants";
 import AssetsList from "../../AssetsList/AssetsList";
 

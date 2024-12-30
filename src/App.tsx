@@ -1,15 +1,15 @@
-import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
+import Popup from "./components/Popup/Popup";
 import CreateAccount from "./routes/CreateAccount/CreateAccount";
-import Login from "./routes/Login/Login";
+import Fungible from "./routes/Fungible";
+import History from "./routes/History";
 import Home from "./routes/Home";
+import Login from "./routes/Login/Login";
+import NFT from "./routes/NFT";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
-import Popup from "./components/Popup/Popup";
-import Fungible from "./routes/Fungible";
-import NFT from "./routes/NFT";
-import History from "./routes/History";
 
 function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -57,25 +57,25 @@ function App() {
             path="/fungible"
             element={
               <ProtectedRoute>
-                <Fungible/>
+                <Fungible />
               </ProtectedRoute>
-            }          
+            }
           />
           <Route
             path="/nft"
             element={
               <ProtectedRoute>
-                <NFT/>
+                <NFT />
               </ProtectedRoute>
-            }          
+            }
           />
           <Route
             path="/history"
             element={
               <ProtectedRoute>
-                <History/>
+                <History />
               </ProtectedRoute>
-            }          
+            }
           />
           {<Route path="/login" element={<Login />} />}
           <Route path="/create-wallet" element={<CreateAccount />} />
@@ -84,10 +84,7 @@ function App() {
         </Routes>
         <Popup isPopupVisible={isNetworkError} title="No internet connection!">
           <div className="pad-24-t w-100p">
-            <p>
-              There is something wrong with your internet connection. Please
-              reconnect and try again.
-            </p>
+            <p>There is something wrong with your internet connection. Please reconnect and try again.</p>
           </div>
         </Popup>
       </div>

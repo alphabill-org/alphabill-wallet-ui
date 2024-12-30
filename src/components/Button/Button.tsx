@@ -1,14 +1,12 @@
+import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import classNames from "classnames";
 
 import Spinner from "../Spinner/Spinner";
 
 export interface IButtonProps {
   children?: React.ReactNode;
-  onClick?: (
-    event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>
-  ) => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   variant?: "primary" | "secondary" | "third" | "link" | "icon";
   working?: boolean;
   workingText?: string;
@@ -43,14 +41,12 @@ export default function Button(props: IButtonProps): JSX.Element {
       "is--active": props.isActive,
       [`button--${props.brand}`]: props.brand,
     },
-    props.className
+    props.className,
   );
 
   const [isTooltipOpen, setIsTooltipOpen] = useState<boolean>(false);
 
-  const handleButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>
-  ) => {
+  const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     if (props.onClick) {
       props.onClick(event);
       props.tooltipContent && setIsTooltipOpen(true);
@@ -61,7 +57,7 @@ export default function Button(props: IButtonProps): JSX.Element {
     if (isTooltipOpen === true) {
       setTimeout(() => {
         setIsTooltipOpen(false);
-      }, 1000)
+      }, 1000);
     }
   }, [isTooltipOpen]);
 

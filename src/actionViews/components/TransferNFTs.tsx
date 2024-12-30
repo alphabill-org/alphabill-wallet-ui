@@ -1,24 +1,30 @@
-import { useCallback, useRef, useState } from "react";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { Formik, FormikErrors, FormikState } from "formik";
-import * as Yup from "yup";
-import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "react-query";
-
+import * as Yup from "yup";
 import Button from "../../components/Button/Button";
+import { Form, FormFooter, FormContent } from "../../components/Form/Form";
+
+import Select from "../../components/Select/Select";
 import Spacer from "../../components/Spacer/Spacer";
 import Textfield from "../../components/Textfield/Textfield";
 
-import Select from "../../components/Select/Select";
-import { INFTAsset, IListTokensResponse, ITransferFormNFT } from "../../types/Types";
 import { useApp } from "../../hooks/appProvider";
-import { useAuth } from "../../hooks/useAuth";
 import { transferNFT } from "../../hooks/requests";
-
-import { extractFormikError, getKeys, invalidateAllLists, removeConnectTransferData, FeeCostEl, isValidAddress, createEllipsisString } from "../../utils/utils";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
+import { useAuth } from "../../hooks/useAuth";
+import { INFTAsset, IListTokensResponse, ITransferFormNFT } from "../../types/Types";
 
 import { AlphaType, NFTListView, TokenType } from "../../utils/constants";
-
+import {
+  extractFormikError,
+  getKeys,
+  invalidateAllLists,
+  removeConnectTransferData,
+  FeeCostEl,
+  isValidAddress,
+  createEllipsisString,
+} from "../../utils/utils";
 
 export default function TransferNFTs(): JSX.Element | null {
   const {
@@ -33,12 +39,7 @@ export default function TransferNFTs(): JSX.Element | null {
     selectedTransferAccountKey,
     feeCreditBills,
   } = useApp();
-  const {
-    vault,
-    activeAccountId,
-    setActiveAssetLocal,
-    activeAsset,
-  } = useAuth();
+  const { vault, activeAccountId, setActiveAssetLocal, activeAsset } = useAuth();
   const queryClient = useQueryClient();
   const activeNFT = account?.assets.nft
     ?.filter((asset) => account?.activeNetwork === asset.network)
@@ -49,28 +50,25 @@ export default function TransferNFTs(): JSX.Element | null {
     value: activeNFT || account?.assets.nft[0],
     label: createEllipsisString(defaultAssetId, 16, 11),
   };
-  const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(
-    defaultAsset?.value
-  );
-  const selectedTransferNFT = NFTsList?.find(
-    (token: IListTokensResponse) => token.id === selectedTransferKey
-  );
+  const [selectedAsset, setSelectedAsset] = useState<INFTAsset | undefined>(defaultAsset?.value);
+  const selectedTransferNFT = NFTsList?.find((token: IListTokensResponse) => token.id === selectedTransferKey);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
-  
 
-  const removePollingInterval = useCallback((isProof: boolean = false) => {
-    pollingInterval.current 
-      && clearInterval(pollingInterval.current);
+  const removePollingInterval = useCallback(
+    (isProof: boolean = false) => {
+      pollingInterval.current && clearInterval(pollingInterval.current);
 
-    setIsSending(false);
+      setIsSending(false);
 
-    if (isProof) {
-      setSelectedTransferKey(null);
-      setIsActionsViewVisible(false);
-      setPreviousView(null);
-    }
-  }, [setIsActionsViewVisible, setPreviousView, setSelectedTransferKey]);
+      if (isProof) {
+        setSelectedTransferKey(null);
+        setIsActionsViewVisible(false);
+        setPreviousView(null);
+      }
+    },
+    [setIsActionsViewVisible, setPreviousView, setSelectedTransferKey],
+  );
 
   const addPollingInterval = useCallback(() => {
     pollingInterval.current = setInterval(async () => {
@@ -83,55 +81,52 @@ export default function TransferNFTs(): JSX.Element | null {
     }, 500);
   }, [activeAccountId, activeAsset.typeId, queryClient, removePollingInterval]);
 
-  const handleSubmit = useCallback(async(
-    values: ITransferFormNFT,
-    setErrors: (errors: FormikErrors<ITransferFormNFT>) => void,
-    resetForm: (nextState?: Partial<FormikState<ITransferFormNFT>> | undefined) => void
-  ) => {
-    const { error, hashingPrivateKey, hashingPublicKey } = getKeys(
-      values.password,
-      Number(account.idx),
-      vault
-    );
+  const handleSubmit = useCallback(
+    async (
+      values: ITransferFormNFT,
+      setErrors: (errors: FormikErrors<ITransferFormNFT>) => void,
+      resetForm: (nextState?: Partial<FormikState<ITransferFormNFT>> | undefined) => void,
+    ) => {
+      const { error, hashingPrivateKey, hashingPublicKey } = getKeys(values.password, Number(account.idx), vault);
 
-    if (error || !hashingPrivateKey || !hashingPublicKey) {
-      return setErrors({
-        password: error || "Hashing keys are missing!"
-      });
-    }
-
-    const selectedNFT = selectedTransferKey
-      ? (selectedTransferNFT as IListTokensResponse)
-      : NFTsList?.find(
-        (token: IListTokensResponse) => selectedAsset?.id === token.id
-      );
-
-    if (!selectedNFT) {
-      return setErrors({
-        password: error || "NFT is required!",
-      });
-    }
-
-    setIsSending(true);
-
-    try {
-      const decodedId = Base16Converter.decode(selectedNFT.id);
-      const recipient = Base16Converter.decode(values.address);
-
-      const txHash = await transferNFT(hashingPrivateKey, decodedId, recipient);
-      if (!txHash) {
+      if (error || !hashingPrivateKey || !hashingPublicKey) {
         return setErrors({
-          password: error || "Error occurred fetching transaction hash"
+          password: error || "Hashing keys are missing!",
         });
       }
 
-      addPollingInterval();
-    } catch(error) {
-      setErrors({
-        password: (error as Error).message || "Error occurred during the transaction"
-      })
-    }
-  }, [NFTsList, account.idx, addPollingInterval, selectedAsset?.id, selectedTransferKey, selectedTransferNFT, vault])
+      const selectedNFT = selectedTransferKey
+        ? (selectedTransferNFT as IListTokensResponse)
+        : NFTsList?.find((token: IListTokensResponse) => selectedAsset?.id === token.id);
+
+      if (!selectedNFT) {
+        return setErrors({
+          password: error || "NFT is required!",
+        });
+      }
+
+      setIsSending(true);
+
+      try {
+        const decodedId = Base16Converter.decode(selectedNFT.id);
+        const recipient = Base16Converter.decode(values.address);
+
+        const txHash = await transferNFT(hashingPrivateKey, decodedId, recipient);
+        if (!txHash) {
+          return setErrors({
+            password: error || "Error occurred fetching transaction hash",
+          });
+        }
+
+        addPollingInterval();
+      } catch (error) {
+        setErrors({
+          password: (error as Error).message || "Error occurred during the transaction",
+        });
+      }
+    },
+    [NFTsList, account.idx, addPollingInterval, selectedAsset?.id, selectedTransferKey, selectedTransferNFT, vault],
+  );
 
   if (!isActionsViewVisible) return <div></div>;
 
@@ -146,7 +141,9 @@ export default function TransferNFTs(): JSX.Element | null {
           address: selectedTransferAccountKey || "",
           password: "",
         }}
-        onSubmit={async (values, { setErrors, resetForm }) => { handleSubmit(values, setErrors, resetForm) }}
+        onSubmit={async (values, { setErrors, resetForm }) => {
+          handleSubmit(values, setErrors, resetForm);
+        }}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
           address: Yup.string()
@@ -154,28 +151,21 @@ export default function TransferNFTs(): JSX.Element | null {
             .test(
               "account-id-same",
               `Receiver's account is your account`,
-              (value) => !value || account?.pubKey !== value
+              (value) => !value || account?.pubKey !== value,
             )
-            .test(
-              "account-id-correct",
-              `Address in not in valid format`,
-              (value) => isValidAddress(value)
-            ),
+            .test("account-id-correct", `Address in not in valid format`, (value) => isValidAddress(value)),
           password: Yup.string()
             .test(
               "test less than",
               "Add fee credits",
-              () =>
-                BigInt(feeCreditBills?.[TokenType]?.value || "0") >= BigInt("1")
+              () => BigInt(feeCreditBills?.[TokenType]?.value || "0") >= BigInt("1"),
             )
             .required("Password is required"),
         })}
       >
         {(formikProps) => {
           const { handleSubmit, errors, touched, values } = formikProps;
-          const hexID = selectedTransferKey
-            ? selectedTransferKey
-            : "";
+          const hexID = selectedTransferKey ? selectedTransferKey : "";
 
           return (
             <form className="pad-24" onSubmit={handleSubmit}>
@@ -185,8 +175,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     <>
                       {selectedTransferKey && (
                         <div className="t-medium-small">
-                          You have selected a specific NFT. You can deselect it
-                          by clicking{" "}
+                          You have selected a specific NFT. You can deselect it by clicking{" "}
                           <Button
                             onClick={() => {
                               setSelectedTransferKey(null);
@@ -205,11 +194,7 @@ export default function TransferNFTs(): JSX.Element | null {
                               setActionsView(NFTListView);
                               setIsActionsViewVisible(true);
                               setSelectedTransferKey(null);
-                              invalidateAllLists(
-                                activeAccountId,
-                                activeAsset.typeId,
-                                queryClient
-                              );
+                              invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
                             }}
                             type="button"
                             variant="link"
@@ -235,11 +220,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     name="assets"
                     className={selectedTransferKey ? "d-none" : ""}
                     options={account?.assets.nft
-                      ?.filter(
-                        (asset) =>
-                          account?.activeNetwork === asset.network &&
-                          asset.isSendable
-                      )
+                      ?.filter((asset) => account?.activeNetwork === asset.network && asset.isSendable)
                       .sort((a: INFTAsset, b: INFTAsset) => {
                         if (a?.id! < b?.id!) {
                           return -1;
@@ -265,11 +246,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     error={extractFormikError(errors, touched, ["assets"])}
                     onChange={async (_label, option: any) => {
                       setSelectedAsset(option);
-                      invalidateAllLists(
-                        activeAccountId,
-                        activeAsset.typeId,
-                        queryClient
-                      );
+                      invalidateAllLists(activeAccountId, activeAsset.typeId, queryClient);
                       setActiveAssetLocal(JSON.stringify(option));
                     }}
                     defaultValue={{
@@ -292,9 +269,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     label="Password"
                     type="password"
                     error={extractFormikError(errors, touched, ["password"])}
-                    disabled={
-                      !Boolean(values.assets) && !Boolean(selectedTransferKey)
-                    }
+                    disabled={!values.assets && !selectedTransferKey}
                   />
                   <Spacer mb={4} />
                 </FormContent>

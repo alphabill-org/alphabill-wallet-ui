@@ -1,20 +1,14 @@
-import { useRef, useState } from "react";
-import { useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 
-import {
-  AlphaType,
-  FungibleTokenKind,
-  TransferFungibleView,
-  TransferNFTView,
-} from "../../utils/constants";
-import { ReactComponent as Send } from "../../images/send-ico.svg";
+import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
+import Send from "../../images/send-ico.svg?react";
+import { IActiveAsset } from "../../types/Types";
+import { AlphaType, FungibleTokenKind, TransferFungibleView, TransferNFTView } from "../../utils/constants";
 import { base64ToHexPrefixed } from "../../utils/utils";
 import Button from "../Button/Button";
-import { useApp } from "../../hooks/appProvider";
-import { IActiveAsset } from "../../types/Types";
+import LockIco from "./../../images/lock-ico.svg?react";
 import AssetsListItemIcon from "./AssetListItemIcon";
-import { ReactComponent as LockIco } from "./../../images/lock-ico.svg";
 
 export interface IAssetsListProps {
   asset: any;
@@ -34,20 +28,17 @@ export default function AssetsListItem({
   onSendClick,
 }: IAssetsListProps): JSX.Element | null {
   const { activeAccountId, activeAsset } = useAuth();
-  const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } =
-    useApp();
+  const { setIsActionsViewVisible, setActionsView, setSelectedTransferKey } = useApp();
   const hexId = base64ToHexPrefixed(asset?.id);
   const [itemRightElWidth, setItemRightElWidth] = useState(0);
   const itemRightElRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    itemRightElRef.current &&
-      setItemRightElWidth(itemRightElRef.current.offsetWidth);
+    itemRightElRef.current && setItemRightElWidth(itemRightElRef.current.offsetWidth);
   }, [activeAsset, activeAccountId]);
   const amount = asset.UIAmount || asset.amountOfSameType;
   const isButtons = isTransferButton;
-  const isFungibleKind =
-    asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
+  const isFungibleKind = asset?.kind === FungibleTokenKind || asset.typeId === AlphaType;
 
   const hexIdEllipsisLabel = (
     <div className="flex">
@@ -64,27 +55,20 @@ export default function AssetsListItem({
     </div>
   );
 
-  const label = isTypeListItem
-    ? hexIdEllipsisLabel
-    : asset?.name || asset?.symbol || hexIdEllipsisLabel;
+  const label = isTypeListItem ? hexIdEllipsisLabel : asset?.name || asset?.symbol || hexIdEllipsisLabel;
 
   return (
     <>
       <AssetsListItemIcon asset={asset} isTypeListItem={isTypeListItem} />
       <div className="assets-list__item-title">{label}</div>
-      <div
-        className="assets-list__item-right flex flex-align-c"
-        ref={itemRightElRef}
-      >
+      <div className="assets-list__item-right flex flex-align-c" ref={itemRightElRef}>
         {amount && <div className="assets-list__item-amount">{amount}</div>}
         {isButtons && (
           <div className="assets-list__item-actions">
             {isTransferButton && !isLocked && (
               <Button
                 onClick={() => {
-                  setActionsView(
-                    isFungibleKind ? TransferFungibleView : TransferNFTView
-                  );
+                  setActionsView(isFungibleKind ? TransferFungibleView : TransferNFTView);
                   setIsActionsViewVisible(true);
                   setSelectedTransferKey(asset.id);
                   handleClick(asset);

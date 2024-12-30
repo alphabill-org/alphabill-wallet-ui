@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { useField, useFormikContext } from "formik";
+import React, { useEffect, useRef, useState } from "react";
 
+import Show from "../../images/show-ico.svg?react";
 import Button from "../Button/Button";
-import { ReactComponent as Show } from "../../images/show-ico.svg";
 
 export interface ITextfieldProps {
   id: string;
@@ -79,7 +79,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
       "textfield--transparent": transparent,
       "textfield--password": type === "password",
     },
-    props.className
+    props.className,
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,11 +98,7 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
       value = value.replace(/'/g, "");
     }
 
-    if (
-      props.isNumberFloat &&
-      value !== "" &&
-      (!regexNumber.test(value) || !regexFloat.test(value))
-    ) {
+    if (props.isNumberFloat && value !== "" && (!regexNumber.test(value) || !regexFloat.test(value))) {
       return false;
     }
 
@@ -116,36 +112,20 @@ export default function Textfield(props: ITextfieldProps): JSX.Element {
   return (
     <div className={className} data-testid="textfield">
       <div className="textfield__inner">
-        {props.label && (
-          <label className="textfield__label">{props.label}</label>
-        )}
+        {props.label && <label className="textfield__label">{props.label}</label>}
         <div className="textfield__input--wrap">
           <input
             {...inputProps}
-            type={
-              type === "password"
-                ? showPassword
-                  ? "text"
-                  : "password"
-                : type || "text"
-            }
+            type={type === "password" ? (showPassword ? "text" : "password") : type || "text"}
             ref={inputRef}
             autoComplete="off"
             onChange={handleChange}
             onBlur={handleBlur}
-            value={
-              field.value
-                ? props.type === "number"
-                  ? Math.max(0, field.value)
-                  : field.value
-                : props.value || ""
-            }
+            value={field.value ? (props.type === "number" ? Math.max(0, field.value) : field.value) : props.value || ""}
             className="textfield__input"
             onKeyDown={
               props.type === "number"
-                ? (evt) =>
-                    ["e", "E", "+", "-", ",", "."].includes(evt.key) &&
-                    evt.preventDefault()
+                ? (evt) => ["e", "E", "+", "-", ",", "."].includes(evt.key) && evt.preventDefault()
                 : undefined
             }
             min={props.type === "number" ? 0 : undefined}

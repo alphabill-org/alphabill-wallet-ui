@@ -154,8 +154,7 @@ export const NFTDifferentTypeResult = [
   },
 ];
 
-export const activeAccountId =
-  "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
+export const activeAccountId = "0x02096eaa73743cb75e1ff12d575199affb89ee2da8e90c5aa376170ec44eeb824c";
 
 export const TestBills = [
   {
