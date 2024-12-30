@@ -3,10 +3,9 @@ import { getIn } from "formik";
 import CryptoJS from "crypto-js";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeedSync, entropyToMnemonic } from "bip39";
-import { uniq, isNumber, sortBy } from "lodash";
-import * as secp from "@noble/secp256k1";
+import { isNumber, sortBy } from "lodash";
 import { QueryClient } from "react-query";
-import { encodeAsync, encodeCanonical } from "cbor";
+import { encodeCanonical } from "cbor";
 
 import {
   IAccount,
@@ -15,7 +14,6 @@ import {
   ITypeHierarchy,
   IListTokensResponse,
   INFTAsset,
-  ITransactionPayloadObj,
 } from "../types/Types";
 import {
   AlphaDecimals,
@@ -25,33 +23,6 @@ import {
   DCTransfersLimit,
   localStorageKeys,
 } from "./constants";
-
-export const predicateP2PKH = async (address: string) => {
-  const checkedAddress = address.startsWith("0x")
-    ? address.substring(2)
-    : address;
-
-  const addressHash = CryptoJS.enc.Hex.parse(checkedAddress);
-  const pubKeyHash = CryptoJS.SHA256(addressHash);
-  // Convert the hash to a hex string
-  const pubKeyHashHex = pubKeyHash.toString(CryptoJS.enc.Hex);
-
-  // Create a buffer from the hex string
-  const pubKeyHashBuffer = Buffer.from(pubKeyHashHex, "hex");
-
-  const predicate = {
-    tag: BigInt(0), // uint64, represented as BigInt
-    identifier: Buffer.from("02", "hex"), // Single byte, 0x02
-    body: pubKeyHashBuffer, // Encoded as a byte array
-  };
-
-  // Encode the entire Predicate as CBOR
-  const encodedPredicate = await encodeAsync(Object.values(predicate), {
-    canonical: true,
-  });
-
-  return encodedPredicate;
-};
 
 export const extractFormikError = (
   errors: unknown,
@@ -104,34 +75,6 @@ export const base64ToHexPrefixed = (key: string = "") => {
     return "0x" + Buffer.from(key, "base64").toString("hex");
   }
 };
-
-export const sortBillsByID = (bills: IBill[]) =>
-  uniq(bills).sort((a: IBill, b: IBill) =>
-    BigInt(base64ToHexPrefixed(a.id)) < BigInt(base64ToHexPrefixed(b.id))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a.id)) > BigInt(base64ToHexPrefixed(b.id))
-      ? 1
-      : 0
-  );
-
-export const sortTx_ProofsByID = (proofs: any[]) => {
-  return proofs.sort((a: any, b: any) => {
-    const aTxUnitId = a.txRecord[0][0][2];
-    const bTxUnitId = b.txRecord[0][0][2];
-
-    // Compare the buffer values using the compare method
-    return Buffer.compare(aTxUnitId, bTxUnitId);
-  });
-};
-
-export const sortIDBySize = (arr: string[]) =>
-  arr.sort((a: string, b: string) =>
-    BigInt(base64ToHexPrefixed(a)) < BigInt(base64ToHexPrefixed(b))
-      ? -1
-      : BigInt(base64ToHexPrefixed(a)) > BigInt(base64ToHexPrefixed(b))
-      ? 1
-      : 0
-  );
 
 export const checkPassword = (password: string | undefined) => {
   if (!password) {
@@ -229,43 +172,6 @@ export const checkOwnerPredicate = (key: string, predicate: string) => {
 
 export const isTokenSendable = (invariantPredicate: string, key: string) => {
   return invariantPredicate === alwaysTrueBase64 || checkOwnerPredicate(key, invariantPredicate);
-};
-
-export const createOwnerProof = async (
-  payload: ITransactionPayloadObj,
-  hashingPrivateKey: Uint8Array,
-  pubKey: Uint8Array
-) => {
-  const modifiedPayload = { ...payload };
-
-  modifiedPayload.attributes = Object.values(modifiedPayload.attributes);
-  modifiedPayload.clientMetadata = Object.values(
-    modifiedPayload.clientMetadata
-  );
-  const payloadHash = await secp.utils.sha256(
-    await encodeAsync(Object.values(modifiedPayload), { canonical: true })
-  );
-  const signature = await secp.sign(payloadHash, hashingPrivateKey, {
-    der: false,
-    recovered: true,
-  });
-
-  const isValid = secp.verify(signature[0], payloadHash, pubKey);
-  const P2pkh256Signature = {
-    sig: Buffer.from(
-      secp.utils.concatBytes(signature[0], Buffer.from([signature[1]]))
-    ),
-    pubKey: pubKey,
-  };
-
-  const ownerProof = await encodeAsync(Object.values(P2pkh256Signature), {
-    canonical: true,
-  });
-
-  return {
-    isSignatureValid: isValid,
-    ownerProof: ownerProof,
-  };
 };
 
 export const findClosestBigger = (

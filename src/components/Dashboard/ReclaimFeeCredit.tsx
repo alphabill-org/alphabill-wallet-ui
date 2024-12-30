@@ -89,11 +89,11 @@ export default function ReclaimFeeCredit({
       try {
         setPreviousView(null);
         const reclaimTxHash = await reclaimFeeCredit(hashingPrivateKey, isAlpha);
-        if(!reclaimTxHash){
+        if (!reclaimTxHash) {
           setIsSending(false);
           return setErrors({
             password: error || "Error occured during the transaction"
-          })
+          });
         }
         addPollingInterval(reclaimTxHash, resetForm)
       } catch(error) {

@@ -22,7 +22,7 @@ import {
   TransferNFTView,
 } from "../utils/constants";
 import NFTDetails from "./components/NFTDetails";
-import { IActionVies, INavbarViews } from "../types/Types";
+import { IActionViews, INavbarViews } from "../types/Types";
 import { removeConnectTransferData } from "../utils/utils";
 
 function Actions(): JSX.Element | null {
@@ -51,7 +51,7 @@ function Actions(): JSX.Element | null {
             if (actionsView === NFTDetailsView) {
               setActionsView(NFTListView);
             } else if (previousView) {
-              setActionsView(previousView as IActionVies);
+              setActionsView(previousView as IActionViews);
             } else {
               setIsActionsViewVisible(false);
             }

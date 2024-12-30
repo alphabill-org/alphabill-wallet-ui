@@ -59,18 +59,18 @@ const getPartitionIdentifier = (isAlpha: boolean | undefined) => {
 }
 
 const compareArray = (a: Uint8Array, b: Uint8Array) => {
-  if(a.length !== b.length) return false;
-  for(let i = 0; i < a.length; i++){
-    if(a[i] !== b[i]) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
   }
   return true;
-}
+};
 
 export const getBalance = async (
   pubKey: string
 ): Promise<IBalance | undefined> => {
   const unitIds = (await moneyClient.getUnitsByOwnerId(Base16Converter.decode(pubKey))).bills;
-  if(!unitIds || unitIds.length <= 0) return;
+  if (!unitIds || unitIds.length <= 0) return;
   let balance = 0;
   try {
     for(const id of unitIds){
@@ -88,12 +88,12 @@ export const getBillsList = async (
   pubKey: string,
 ): Promise<IBill[] | undefined> => {
   const idList = (await moneyClient.getUnitsByOwnerId(Base16Converter.decode(pubKey))).bills;
-  if(!idList || idList.length <= 0) return;
+  if (!idList || idList.length <= 0) return;
   const billsList: IBill[] = [];
   try {
     for(const id of idList){
       const bill = await moneyClient.getUnit(id, true, Bill);
-      if(bill){
+      if (bill) {
         billsList.push({
           id: Base16Converter.encode(id.bytes),
           value: bill.value.toString(),
@@ -129,7 +129,7 @@ export const getUserTokens = async (
     ? (await tokenClient.getUnitsByOwnerId(Base16Converter.decode(pubKey))).fungibleTokens
     : (await tokenClient.getUnitsByOwnerId(Base16Converter.decode(pubKey))).nonFungibleTokens;
 
-  if(!list || list.length <= 0){
+  if (!list || list.length <= 0) {
     return [];
   }
 
@@ -238,20 +238,6 @@ export const getFeeCreditBills = async (
   };
 };
 
-export function createTransactionData(round: bigint, feeCreditRecordId?: IUnitId): ITransactionData {
-  return {
-    version: 1n, // TODO: let user specify version
-    networkIdentifier: NetworkIdentifier.TESTNET,
-    stateLock: null,
-    metadata: createMetadata(round, feeCreditRecordId),
-    stateUnlock: new AlwaysTruePredicate(),
-  };
-}
-
-export function createMetadata(round: bigint, feeCreditRecordId?: IUnitId): ITransactionClientMetadata {
-  return new ClientMetadata(5n, round + 60n, feeCreditRecordId ?? null, new Uint8Array());
-}
-
 export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId: Uint8Array, isAlpha?: boolean) => {
   const signingService = new DefaultSigningService(privateKey);
   const proofFactory = new PayToPublicKeyHashProofFactory(signingService)
@@ -267,14 +253,14 @@ export const addFeeCredit = async(privateKey: Uint8Array, amount: bigint, billId
   const units = (await moneyClient.getUnitsByOwnerId(signingService.publicKey)).bills;
   const unitId = units.find((id) => compareArray(id.bytes, billId))
 
-  if(!unitId){
-    throw new Error('No bills available');
+  if (!unitId) {
+    throw new Error("No bills available");
   }
 
   const bill = await moneyClientFee.getUnit(unitId, false, Bill);
 
-  if(!bill) {
-    throw new Error('Bill not found');
+  if (!bill) {
+    throw new Error("Bill not found");
   }
   const round = await moneyClientFee.getRoundNumber();
   const ownerPredicate = PayToPublicKeyHashPredicate.create(signingService.publicKey);
@@ -476,12 +462,12 @@ export const splitBill = async(
   const unitId = units.findLast((id) => compareArray(id.bytes, billId));
   const round = await client.getRoundNumber();
 
-  if(!unitId){
-    throw new Error('Error fetching unitId');
+  if (!unitId) {
+    throw new Error("Error fetching unitId");
   }
 
-  if(!feeCreditRecordId){
-    throw new Error('Error fetching fee credit record');
+  if (!feeCreditRecordId) {
+    throw new Error("Error fetching fee credit record");
   }
 
   const bill = await client.getUnit(unitId, false, Bill);
@@ -564,18 +550,18 @@ export const transferNFT = async(privateKey: Uint8Array, nftId: Uint8Array, reci
   const unitId = units.findLast((id) => compareArray(id.bytes, nftId));
   const round = await client.getRoundNumber();
 
-  if(!unitId){
-    throw new Error("Invalid nft id")
+  if (!unitId) {
+    throw new Error("Invalid nft id");
   }
 
-  if(!feeCreditRecordId){
-    throw new Error("Error fetching fee credit record")
+  if (!feeCreditRecordId) {
+    throw new Error("Error fetching fee credit record");
   }
 
   const nft = await client.getUnit(unitId, false, NonFungibleToken);
 
-  if(!nft){
-    throw new Error("NFT does not exist")
+  if (!nft) {
+    throw new Error("NFT does not exist");
   }
 
   const transferNonFungibleTokenTransactionOrder = await TransferNonFungibleToken.create(
@@ -607,17 +593,17 @@ export const swapBill = async(
   const units = await client.getUnitsByOwnerId(signingService.publicKey);
 
   const feeCreditRecordId = units.findLast((id) => id.type.toBase16() === UnitType.MONEY_PARTITION_FEE_CREDIT_RECORD);
-  if(!feeCreditRecordId){
+  if (!feeCreditRecordId) {
     throw new Error("Error fetching fee credit record id");
   }
 
   const targetUnitId = units.find((id) => compareArray(id.bytes, targetBillId));
-  if(!targetUnitId){
+  if (!targetUnitId) {
     throw new Error("Error fetching target unit");
   }
 
   const targetBill = await client.getUnit(targetUnitId, false, Bill);
-  if(!targetBill){
+  if (!targetBill) {
     throw new Error("Error fetching target bill");
   }
 
@@ -626,13 +612,13 @@ export const swapBill = async(
   const billsToSwap = await Promise.all(
     billsIdsFiltered.map(async(billId) => {
       const unitId = units.find((id) => compareArray(id.bytes, billId));
-      if(!unitId){
+      if (!unitId) {
         throw new Error("Error fetching bill for consolidation");
       }
 
       const bill = await client.getUnit(unitId, false, Bill);
-      if(!bill){
-        throw new Error("Error fetching bill")
+      if (!bill) {
+        throw new Error("Error fetching bill");
       }
 
       return bill
@@ -676,6 +662,19 @@ export const swapBill = async(
   return await client.sendTransaction(swapBillsWithDustCollectorTransactionOrder);
 }
 
+export function createTransactionData(round: bigint, feeCreditRecordId?: IUnitId): ITransactionData {
+  return {
+    version: 1n, // TODO: let user specify version
+    networkIdentifier: NetworkIdentifier.TESTNET,
+    stateLock: null,
+    metadata: createMetadata(round, feeCreditRecordId),
+    stateUnlock: new AlwaysTruePredicate(),
+  };
+}
+
+export function createMetadata(round: bigint, feeCreditRecordId?: IUnitId): ITransactionClientMetadata {
+  return new ClientMetadata(5n, round + 60n, feeCreditRecordId ?? null, new Uint8Array());
+}
 
 // IMG REQUESTS
 
@@ -764,9 +763,9 @@ export const getImageUrlAndDownloadType = async (
     }
     return {error: "Invalid image URL", downloadType: null, imageUrl: null};
   } catch (error) {
-    if(controller.signal.aborted) {
+    if (controller.signal.aborted) {
       console.error("Request cancelled:", error);
-      return {error: "Request timeout", imageUrl: null, downloadType: null};
+      return { error: "Request timeout", imageUrl: null, downloadType: null };
     }
     return {error: "Failed to fetch image", imageUrl: null, downloadType: null};
   } finally {
@@ -780,8 +779,8 @@ export const downloadFile = async (url: string, filename: string) => {
       method: "GET",
     });
 
-    if(!response.ok) {
-      throw new Error(`Failed to fetch file: ${response.statusText}`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
     }
     const objectUrl = URL.createObjectURL(await response.blob());
     const link = document.createElement("a");

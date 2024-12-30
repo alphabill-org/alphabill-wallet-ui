@@ -65,11 +65,7 @@ function BillsList(): JSX.Element | null {
     try {
       queryClient.invalidateQueries(["billsList", activeAccountId]);
       queryClient.invalidateQueries(["balance", activeAccountId]);
-      // const proof = getProof(txHash, true);
-      // if(!proof){
-      //   throw new Error("Missing transaction proof");
-      // }
-      
+
       removePollingInterval()
     } catch(error) {
       removePollingInterval()
@@ -86,11 +82,11 @@ function BillsList(): JSX.Element | null {
       vault
     );
 
-    if(error || !hashingPrivateKey || !hashingPublicKey) {
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
       throw new Error("Missing hashing keys");
     }
 
-    if(!consolidationTargetUnit){
+    if (!consolidationTargetUnit) {
       throw new Error("Missing target unit");
     }
 
@@ -106,7 +102,7 @@ function BillsList(): JSX.Element | null {
 
     try {
       const txHash = await swapBill(hashingPrivateKey, targetBillId, billsToSwapIds);
-      if(!txHash){
+      if (!txHash) {
         throw new Error("Transaction hash is missing");
       }
 

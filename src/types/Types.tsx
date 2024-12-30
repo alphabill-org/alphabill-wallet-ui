@@ -13,7 +13,6 @@ export interface ITransferFormNFT {
   password: string;
 }
 
-
 export interface ITransferForm {
   assets: {
     value: IBill | IFungibleAsset | undefined;
@@ -65,26 +64,6 @@ export interface IFungibleAsset {
   typeId: string;
   isSendable: boolean;
   symbol: string;
-}
-
-export interface INFTTransferPayload {
-  payload: {
-    systemId: bigint;
-    unitId: string;
-    type: string;
-    attributes: {
-      nftType: string;
-      backlink: string;
-      newBearer?: string;
-      invariantPredicateSignatures?: string[];
-    };
-    clientMetadata: {
-      timeout: string;
-      MaxTransactionFee: string;
-      feeCreditRecordID?: Uint8Array | null;
-    };
-  };
-  ownerProof: string;
 }
 
 export interface ITokensListTypes {
@@ -141,17 +120,6 @@ export interface IActiveAsset {
   name?: string;
 }
 
-export interface INonFungibleAsset {
-  id: string; // base64 encoded hex
-  typeId: string; // base64 encoded hex
-  owner: string; // base64 encoded hex - bearer predicate
-  nftUri: string; // nft only
-  nftData: string; // base64 encoded hex - nft only
-  kind: number; // [2:Fungible|4:NonFungible]
-  txHash: string; // base64 encoded hex - latest tx
-  name: string;
-}
-
 export interface ITypeHierarchy {
   id: string; //base64 encoded hex
   parentTypeId: string; //base64 encoded hex
@@ -190,49 +158,6 @@ export interface ISwap {
   top: string;
 }
 
-export interface ITransactionAttributes {
-  type?: Uint8Array;
-  backlink?: Uint8Array;
-  newBearer?: Buffer | Uint8Array;
-  remainingValue?: bigint;
-  targetBearer?: Uint8Array;
-  swapTimeout?: bigint;
-  amount?: bigint;
-  nonce?: Uint8Array | null;
-  value?: bigint;
-  targetValue?: bigint;
-  invariantPredicateSignatures?:  (Uint8Array | null)[] | null;
-  targetSystemIdentifier?: bigint; // system_identifier of the target partition (money 0000 , token 0002, vd 0003)
-  targetRecordID?: Uint8Array | string; // unit id of the corresponding “add fee credit” transaction (tuleb ise luua hetkel on private key hash)
-  earliestAdditionTime?: bigint; // earliest round when the corresponding “add fee credit” transaction can be executed in the target system (current round number vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-  latestAdditionTime?: bigint; // latest round when the corresponding “add fee credit” transaction can be executed in the target system (timeout vastavalt TargetSystemIdentifierile ehk kas token, mone ..)
-  ownerCondition?: Uint8Array;
-  billIdentifiers?: Uint8Array[];
-  proofs?: Uint8Array[];
-  dcTransfers?: Uint8Array[];
-  nftType?: Uint8Array;
-  feeCreditOwnerCondition?: Uint8Array;
-  feeCreditTransfer?: Uint8Array;
-  feeCreditTransferProof?: Uint8Array;
-  typeID?: Uint8Array;
-  targetUnitID?: Uint8Array;
-  targetUnitBacklink?: Uint8Array;
-}
-
-export interface ITransactionPayloadObj {
-  systemId: bigint;
-  unitId: Uint8Array;
-  type: string;
-  attributes: any | ITransactionAttributes;
-  clientMetadata:
-    | any
-    | {
-        timeout: bigint;
-        MaxTransactionFee: bigint;
-        feeCreditRecordID?: Uint8Array | null;
-      };
-}
-
 export interface IActivity {
   id: string;
   name: string;
@@ -245,13 +170,6 @@ export interface IActivity {
   fromID?: string;
   fromAmount?: string;
   fromAddress?: string;
-}
-
-export interface ITransactionPayloadProps {
-  setAccounts: (e: IAccount[]) => void;
-  account?: IAccount;
-  accounts?: IAccount[];
-  setIsActionsViewVisible: (e: boolean) => void;
 }
 
 export interface IBalance {
@@ -274,7 +192,7 @@ export interface IFeeCreditBills {
   } | null;
 }
 
-export type IActionVies =
+export type IActionViews =
   | "Transfer fungible view"
   | "Transfer NFT view"
   | "Transfer Fee Credit view"

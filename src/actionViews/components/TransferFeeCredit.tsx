@@ -99,10 +99,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
       queryClient.invalidateQueries(["feeBillsList", activeAccountId])
       invalidateAllLists(activeAccountId, AlphaType, queryClient);
 
-      if(txProof.transactionRecord.serverMetadata.successIndicator === TransactionStatus.Successful){
+      if (txProof.transactionRecord.serverMetadata.successIndicator === TransactionStatus.Successful) {
         isFeeCreditAdded.current = true;
       } else {
-        throw new Error("Transaction failed")
+        throw new Error("Transaction failed");
       }
 
       removePollingInterval();
@@ -122,10 +122,10 @@ export default function TransferFeeCredit(): JSX.Element | null {
     
     pollingInterval.current && clearInterval(pollingInterval.current);
 
-    if(error || !hashingPrivateKey || !hashingPublicKey){
+    if (error || !hashingPrivateKey || !hashingPublicKey) {
       return setErrors({
         password: error || "Hashing keys are missing"
-      })
+      });
     }
 
     setIsSending(true);
