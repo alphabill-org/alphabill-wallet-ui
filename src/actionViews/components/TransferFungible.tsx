@@ -130,7 +130,7 @@ export default function TransferFungible(): JSX.Element | null {
       //   throw new Error('Error fetching transaction proof')
       // })
     }, 500);
-  }, [activeAccountId, fungibleActiveAsset.typeId, handleTransactionEnd, queryClient]);
+  }, [activeAccountId, fungibleActiveAsset.typeId, queryClient]);
 
   useEffect(() => {
     setAvailableAmount(getAvailableAmount(selectedAsset?.decimals || 0));

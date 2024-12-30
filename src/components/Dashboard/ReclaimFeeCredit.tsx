@@ -30,8 +30,7 @@ export default function ReclaimFeeCredit({
   const [isReclaimPopupVisible, setIsReclaimPopupVisible] = useState<boolean>(false);
 
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const isFeeReclaimed = useRef<boolean>(false);
-  
+
   const billsArr = billsList
     ?.filter((bill: any) => Number(bill.value) >= 1)
     ?.filter((bill: IBill) => !Boolean(bill.targetUnitId));
@@ -42,16 +41,6 @@ export default function ReclaimFeeCredit({
 
   const isMinReclaimAmount = Number(currentCreditBill?.value) > 2;
   const buttonLabel = "Reclaim " + (isAlpha ? AlphaType : TokenType) + " credits";
-
-  const setIntervalCancel = useCallback(() => {
-    pollingInterval.current 
-      && clearInterval(pollingInterval.current);
-    setIsSending(false);
-    isFeeReclaimed.current 
-      && setIsReclaimPopupVisible(false);
-
-    isFeeReclaimed.current = false;
-  }, []) 
 
   const addPollingInterval = useCallback((
       txHash: Uint8Array,
@@ -74,7 +63,7 @@ export default function ReclaimFeeCredit({
         //   setIntervalCancel()
         // });
       }, 1000);
-    },[queryClient, activeAccountId, setIntervalCancel]
+    },[queryClient, activeAccountId]
   );
   
 
