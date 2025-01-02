@@ -64,7 +64,7 @@ export default function ReclaimFeeCredit({
 
       try {
         setPreviousView(null);
-        const reclaimTxHash = await reclaimFeeCredit(hashingPrivateKey, isAlpha);
+        const reclaimTxHash = await reclaimFeeCredit(hashingPrivateKey);
         if (!reclaimTxHash) {
           setIsSending(false);
           return setErrors({

@@ -26,9 +26,7 @@ function BillsListPopups({
   setPassword,
   handleDC,
   account,
-  activeBill,
   isPasswordFormVisible,
-  tokenLabel,
 }: IBillsListItemProps): JSX.Element | null {
   const { vault } = useAuth();
 

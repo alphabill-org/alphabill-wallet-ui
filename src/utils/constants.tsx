@@ -1,28 +1,12 @@
 export const alwaysTrueBase64 = "gwBBAfY=";
-export const alwaysTrueTagAndIdentifierBytes = "83004102";
 export const alwaysFalseBase64 = "gwBBAPY=";
 
-export const tokenFeeCreditRecordUnitType = "2f";
-export const moneyFeeCreditRecordUnitType = "0f";
-
-export const TimeoutBlocks = 10n;
-export const SwapTimeout = 40n;
-export const FeeTimeoutBlocks = 20n;
 export const DCTransfersLimit = 100;
 export const AlphaDecimals = 8;
 export const MaxTransactionFee = 1n;
 
-export const AlphaSplitType = "split";
-export const AlphaTransferType = "trans";
-export const AlphaSwapType = "swapDC";
-export const AlphaDcType = "transDC";
-
-export const AlphaSystemId = BigInt(1);
-export const TokensSystemId = BigInt(2);
-
 export const AlphaType = "ALPHA";
 export const TokenType = "UTP";
-export const NonFungibleTokenKind = 4;
 export const FungibleTokenKind = 2;
 
 export const NFTListView = "NFT list view";

@@ -18,9 +18,7 @@ import PasswordIco from "./../../images/password-ico.svg?react";
 function AccountView(): JSX.Element | null {
   const [isChangePasswordPopupVisible, setIsChangePasswordPopupVisible] = useState(false);
   const { logout, userKeys, setUserKeys, vault, setVault } = useAuth();
-  const { accounts, setIsActionsViewVisible, account } = useApp();
-
-  const testAsset = account.assets.fungible[0];
+  const { accounts, setIsActionsViewVisible } = useApp();
 
   if (Number(userKeys?.length) <= 0 || !vault || vault === "null" || userKeys === "null") {
     return <Navigate to="/login" />;

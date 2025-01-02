@@ -149,7 +149,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
           assets: defaultAsset,
           password: "",
         }}
-        onSubmit={async (values, { setErrors }) => handleSubmit(values, setErrors)}
+        onSubmit={async (values, { setErrors }) => await handleSubmit(values, setErrors)}
         validationSchema={Yup.object().shape({
           assets: Yup.object().required("Selected asset is required"),
           password: Yup.string().required("Password is required"),

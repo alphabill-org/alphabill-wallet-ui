@@ -1,5 +1,5 @@
-import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/transaction/TokenIcon";
-import { Base64Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base64Converter";
+import { TokenIcon } from "@alphabill/alphabill-js-sdk/lib/tokens/TokenIcon";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import classNames from "classnames";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -34,7 +34,7 @@ export default function AssetCardIcon({ asset, isTypeListItem }: IAssetCardIconP
         <Base64imageComponent
           base64Data={{
             type: tokenIcon.type,
-            data: Base64Converter.encode(tokenIcon.data),
+            data: Base16Converter.encode(tokenIcon.data), // TODO: No longer base 64
           }}
           alt={asset.id}
         />

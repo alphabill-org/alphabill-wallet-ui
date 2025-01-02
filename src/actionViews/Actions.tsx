@@ -3,7 +3,6 @@ import classNames from "classnames";
 import AssetsList from "../components/AssetsList/AssetsList";
 import Button from "../components/Button/Button";
 import Navbar from "../components/Navbar/Navbar";
-import Spacer from "../components/Spacer/Spacer";
 import { useApp } from "../hooks/appProvider";
 import { useAuth } from "../hooks/useAuth";
 import { IActionViews, INavbarViews } from "../types/Types";
