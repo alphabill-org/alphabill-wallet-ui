@@ -15,7 +15,7 @@
     "lint:fix": "eslint \"src/**/*.tsx\" --fix"
   },
   "dependencies": {
-    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.a65f762",
+    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.c99e7d2",
     "@scure/bip32": "1.6.0",
     "classnames": "2.5.1",
     "formik": "2.4.6",

@@ -515,9 +515,7 @@ export const transferNFT = async (privateKey: Uint8Array, nftId: Uint8Array, rec
   const transferNonFungibleTokenTransactionOrder = await TransferNonFungibleToken.create({
     token: nft,
     ownerPredicate: PayToPublicKeyHashPredicate.create(recipient),
-    nonce: null,
     type: { unitId: nft.typeId },
-    counter: nft.counter,
     ...createTransactionData(round, feeCreditRecordId),
   }).sign(proofFactory, proofFactory, []);
 
