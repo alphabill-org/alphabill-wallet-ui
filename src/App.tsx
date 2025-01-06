@@ -24,21 +24,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const extensionId = chrome?.runtime?.id;
-    extensionId &&
-      chrome?.runtime?.sendMessage(extensionId, {
-        ab_extension_state: { is_popup_open: true },
-      });
-
-    return () => {
-      extensionId &&
-        chrome?.runtime?.sendMessage(extensionId, {
-          ab_extension_state: { is_popup_open: false },
-        });
-    };
-  }, []);
-
   return (
     <div className="app">
       <div className="app__background-top"></div>

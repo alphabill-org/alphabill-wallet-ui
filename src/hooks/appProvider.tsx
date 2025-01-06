@@ -85,30 +85,6 @@ export const AppProvider: FunctionComponent<{
       nft: (getUpdatedNFTAssets(NFTsList) as INFTAsset[]) || [],
     };
 
-    chrome?.storage?.local.get(["ab_connected_key"], function (keyRes) {
-      chrome?.storage?.local.get(["ab_connect_transfer"], function (transferRes) {
-        const typeId = transferRes?.ab_connect_transfer?.token_type_id;
-
-        if (typeId) {
-          if (keyRes?.ab_connected_key && activeAccountId !== keyRes?.ab_connected_key) {
-            setActiveAccountId(keyRes?.ab_connected_key);
-          }
-          const isNFT = assets.nft.find((nft) => nft?.typeId === typeId);
-
-          if (isNFT) {
-            setSelectedTransferAccountKey(transferRes?.ab_connect_transfer?.receiver_pub_key);
-            setActiveAssetLocal(JSON.stringify(activeAsset));
-            setActionsView(TransferNFTView);
-            setIsActionsViewVisible(true);
-            setSelectedTransferKey(isNFT.id);
-          } else if (activeAccountId === keyRes?.ab_connected_key && !isLoadingNFTs && !isLoadingFungibleTokens) {
-            setError("No token with given type ID");
-            removeConnectTransferData();
-          }
-        }
-      });
-    });
-
     if (
       (hasKeys && !isEqual(assets?.fungible, sortBy(account?.assets?.fungible, ["id"]))) ||
       (hasKeys && !isEqual(sortBy(assets?.nft, ["id"]), sortBy(account?.assets?.nft, ["id"]))) ||

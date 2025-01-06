@@ -88,12 +88,6 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const navigate = useNavigate();
 
   useEffect(() => {
-    chrome?.storage?.local.get(["ab_is_connect_popup"], function (result) {
-      setIsConnectWalletPopup(result?.ab_is_connect_popup);
-    });
-  }, [isConnectWalletPopup]);
-
-  useEffect(() => {
     const getPubKeyHash = async () => {
       const publicKey = await publicKeyHash(activeAccountId, true);
       setPubKeyHash(publicKey as string);
@@ -110,11 +104,7 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
       navigate("/", { replace: true });
     };
 
-    if (chrome?.storage) {
-      chrome?.storage?.local.set({ ab_is_wallet_locked: "unlocked" }).then(() => initiateLogin());
-    } else {
-      initiateLogin();
-    }
+    initiateLogin();
   };
 
   const logout = () => {

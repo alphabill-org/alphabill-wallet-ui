@@ -44,7 +44,6 @@ function AccountView(): JSX.Element | null {
               setIsActionsViewVisible(false);
               setUserKeys(null);
               logout();
-              chrome?.storage?.local.set({ ab_is_wallet_locked: "locked" });
             }}
             className="account__menu-item"
           >
