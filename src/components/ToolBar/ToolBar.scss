@@ -1,8 +1,10 @@
+@use '../../css/variables.scss';
+
 .tool-bar {
   width: 375px;
   height: 65px;
   display: flex;
-  background-image: linear-gradient(rgba($color-blue, 0.05), rgba($color-blue, 1));
+  background-image: linear-gradient(rgba(variables.$color-blue, 0.05), rgba(variables.$color-blue, 1));
   justify-content: space-between;
   align-items: center;
   row-gap: 4px;
@@ -17,18 +19,18 @@
     padding: 4px;
     gap: 4px;
     line-height: 13px;
-    color: $color-light;
+    color: variables.$color-light;
 
     &__icon {
-      fill: $color-light
+      fill: variables.$color-light
     }
 
     &:hover {
-      color: $color-primary;
+      color: variables.$color-primary;
     }
 
     &:hover path {
-      fill: $color-primary;
+      fill: variables.$color-primary;
     }
   }
 }

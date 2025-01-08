@@ -1,9 +1,8 @@
+@use '../../css/variables.scss';
+
 .select__inner {
   border: 0;
   width: 100%;
-  border-radius: 0;
-  background: transparent;
-  display: block;
   -moz-appearance: none;
   -webkit-appearance: none;
   font-weight: 600;
@@ -48,11 +47,11 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 22px;
-  color: $color-light !important;
+  color: variables.$color-light !important;
 }
 
 .select__menu {
-  color: $color-light !important;
+  color: variables.$color-light !important;
 }
 
 .select__indicator {
@@ -60,7 +59,7 @@
   padding: 0 !important;
 
   svg {
-    fill: $color-light !important;
+    fill: variables.$color-light !important;
   }
 
   .select__control--is-disabled & {
@@ -70,10 +69,10 @@
 
 .form .select__option {
   cursor: pointer;
-  background-color: $color-secondary-op;
-  border-bottom: 1px solid $color-light;
+  background-color: variables.$color-secondary-op;
+  border-bottom: 1px solid variables.$color-light;
   padding: 20px 12px 16px;
-  transition: all $main-transition-duration;
+  transition: all variables.$main-transition-duration;
   text-align: center;
   margin: 0;
 
@@ -82,7 +81,7 @@
   }
 
   &:hover {
-    background-color: $color-secondary;
+    background-color: variables.$color-secondary;
   }
 }
 
@@ -98,6 +97,6 @@
 
 .select__error {
   padding: 8px 0;
-  color: $color-yellow;
+  color: variables.$color-yellow;
   display: block;
 }

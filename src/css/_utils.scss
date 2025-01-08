@@ -1,3 +1,5 @@
+@use './variables.scss';
+
 // Flex
 
 .flex {
@@ -113,7 +115,7 @@
   height: 32px;
   width: 32px;
   border-radius: 50%;
-  background-color: $color-light;
+  background-color: variables.$color-light;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,23 +164,23 @@
 // Color
 
 .c-light {
-  color: $color-light;
+  color: variables.$color-light;
 }
 
 .c-primary {
-  color: $color-primary;
+  color: variables.$color-primary;
 }
 
 .c-error {
-  color: $color-error
+  color: variables.$color-error
 }
 
 .c-blue {
-  color: $color-blue;
+  color: variables.$color-blue;
 }
 
 .f-blue {
-  fill: $color-blue;
+  fill: variables.$color-blue;
 }
 
 // Widths

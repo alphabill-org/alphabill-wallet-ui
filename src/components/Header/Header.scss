@@ -1,5 +1,6 @@
+@use '../../css/variables.scss';
+
 .header {
-  display: block;
   display: flex;
   height: 72px;
   padding: 24px;
@@ -8,7 +9,7 @@
   justify-content: space-between;
 
   &__ico {
-    fill: $color-primary;
+    fill: variables.$color-primary;
     flex-shrink: 0;
   }
 
@@ -24,20 +25,20 @@
 
     .select__button{
       gap: 8px;
-      color: $color-white;
+      color: variables.$color-white;
       font-weight: 500;
       font-size: 14px;
       line-height: 18px;
-      fill: $color-white;
+      fill: variables.$color-white;
 
       &--icon {
-        fill: $color-white 
+        fill: variables.$color-white
       }
 
     }
 
     .copy__button path {
-      fill: $color-white;
+      fill: variables.$color-white;
       width: 24px;
       height: 24px;
     }

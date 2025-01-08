@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
@@ -11,7 +11,7 @@ const root = createRoot(document.getElementById("root") as HTMLElement);
 const queryClient = new QueryClient();
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <VaultProvider>
@@ -19,5 +19,5 @@ root.render(
         </VaultProvider>
       </QueryClientProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </StrictMode>,
 );

@@ -1,3 +1,5 @@
+@use '../../css/variables.scss';
+
 .fee-credit-section {
   display: flex;
   flex-direction: column;
@@ -20,7 +22,7 @@
       gap: 8px;
       height: 24px;
       &-icon {
-        fill: $color-primary;
+        fill: variables.$color-primary;
       }
       &:hover {
         color: white;

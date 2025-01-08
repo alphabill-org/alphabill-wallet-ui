@@ -1,3 +1,5 @@
+@use '../../css/variables.scss';
+
 .textfield {
   display: flex;
   flex-direction: column;
@@ -40,9 +42,6 @@
 .textfield__input {
   width: 100%;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  display: block;
   -moz-appearance: none;
   -webkit-appearance: none;
   font-weight: 600;
@@ -50,9 +49,9 @@
   line-height: 18px;
   display: flex;
   align-items: center;
-  color: $color-light;
+  color: variables.$color-light;
   padding: 12px;
-  background-color: $color-secondary;
+  background-color: variables.$color-secondary;
   border-radius: 4px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -72,11 +71,11 @@
   }
 
   .form--dark & {
-    color: $color-primary;
+    color: variables.$color-primary;
     text-align: right;
 
     &:read-only {
-      color: $color-white;
+      color: variables.$color-white;
     }
   }
 
@@ -95,7 +94,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: $color-light;
+  color: variables.$color-light;
   white-space: nowrap;
   margin-right: auto;
   text-align: left;
@@ -105,7 +104,7 @@
 
 .textfield__error {
   padding: 8px 0;
-  color: $color-yellow;
+  color: variables.$color-yellow;
 
   .form--dark & {
     align-self: flex-end;

@@ -1,8 +1,7 @@
 import classNames from "classnames";
-import { useEffect, useRef } from "react";
+import { ReactElement, useEffect, useRef } from "react";
 
-import Close from "../../images/close.svg?react";
-import { useDocumentClick } from "../../utils/utils";
+import CloseIcon from "../../images/close.svg?react";
 
 export interface ISelectPopoverProps {
   onClose: () => void;
@@ -11,13 +10,9 @@ export interface ISelectPopoverProps {
   children: React.ReactNode;
 }
 
-function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPopoverProps): JSX.Element | null {
+function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPopoverProps): ReactElement | null {
   const popupRef = useRef<HTMLDivElement>(null);
   const isVisibleRef = useRef<boolean>(isPopoverVisible);
-
-  useDocumentClick(() => {
-    isVisibleRef.current && onClose();
-  }, popupRef);
 
   useEffect(() => {
     isVisibleRef.current = isPopoverVisible;
@@ -32,7 +27,7 @@ function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPo
       <div className="select__popover" ref={popupRef}>
         <div className="select__popover-header">
           <div>{title}</div>
-          <Close
+          <CloseIcon
             onClick={() => {
               onClose();
             }}

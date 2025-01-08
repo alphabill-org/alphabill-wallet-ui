@@ -1,15 +1,13 @@
-import Actions from "../actionViews/Actions";
-import Dashboard from "../components/Dashboard/Dashboard";
+import { ReactElement } from "react";
 import Header from "../components/Header/Header";
-import { ToolBar } from "../components/ToolBar/ToolBar";
 
-function Home(): JSX.Element {
+function Home(): ReactElement {
   return (
     <>
       <Header />
-      <Dashboard />
-      <Actions />
-      <ToolBar />
+      {/*<Dashboard />*/}
+      {/*<Actions />*/}
+      {/*<ToolBar />*/}
     </>
   );
 }
