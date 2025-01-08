@@ -1,10 +1,11 @@
-import { ISigningService } from "@alphabill/alphabill-js-sdk/lib/signing/ISigningService";
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { HDKey } from "@scure/bip32";
-import { mnemonicToSeed } from "@scure/bip39";
+import { mnemonicToEntropy, mnemonicToSeed } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { createContext, PropsWithChildren, useCallback } from "react";
 
 export interface IVaultContext {
-  getSigningService(key: string): Promise<ISigningService>;
+  createVault(mnemonic: string, password: string): Promise<void>;
 }
 
 export const VaultContext = createContext<IVaultContext | null>(null);
@@ -56,11 +57,11 @@ export default function VaultProvider({ children }: PropsWithChildren<object>) {
       key,
       encoder.encode(
         JSON.stringify({
-          masterKey: masterKey.toJSON(),
+          entropy: Base16Converter.encode(mnemonicToEntropy(mnemonic, wordlist)),
         }),
       ),
     );
   }, []);
 
-  return <VaultContext.Provider value={null}>{children}</VaultContext.Provider>;
+  return <VaultContext.Provider value={{ createVault }}>{children}</VaultContext.Provider>;
 }
