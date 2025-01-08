@@ -49,7 +49,7 @@ export default function VaultProvider({ children }: PropsWithChildren<object>) {
     crypto.getRandomValues(salt);
     const { key, iv } = await createKey(password, salt);
 
-    const vault = await crypto.subtle.encrypt(
+    const encryptedVault = await crypto.subtle.encrypt(
       {
         name: "AES-GCM",
         iv,
