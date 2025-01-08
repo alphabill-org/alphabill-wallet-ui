@@ -31,8 +31,6 @@ interface IUserContext {
   setActiveAssetLocal: (e: string) => void;
   activeNFT: IActiveAsset | null;
   setActiveNFTLocal: (e: string) => void;
-  isConnectWalletPopup: boolean;
-  setIsConnectWalletPopup: (e: boolean) => void;
   pubKeyHash: string;
 }
 
@@ -61,13 +59,10 @@ const AuthContext = createContext<IUserContext>({
   setActiveAssetLocal: () => {},
   activeNFT: null,
   setActiveNFTLocal: () => {},
-  isConnectWalletPopup: false,
-  setIsConnectWalletPopup: () => {},
   pubKeyHash: "",
 });
 
 function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
-  const [isConnectWalletPopup, setIsConnectWalletPopup] = useState<boolean>(false);
   const [pubKeyHash, setPubKeyHash] = useState<string>("");
   const [userKeys, setUserKeys] = useLocalStorage(LocalKeyPubKeys, keysData);
   const [activeAccountId, setActiveAccountId] = useLocalStorage(LocalKeyActiveAccount, initialActiveAccount);
@@ -88,12 +83,8 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getPubKeyHash = async () => {
-      const publicKey = await publicKeyHash(activeAccountId, true);
-      setPubKeyHash(publicKey as string);
-    };
-
-    getPubKeyHash();
+    const publicKey = publicKeyHash(activeAccountId);
+    setPubKeyHash(publicKey);
   }, [activeAccountId]);
 
   const login = async (activeAccountId: string, keys: string | null, vaultData?: string) => {
@@ -125,8 +116,6 @@ function AuthProvider(props: IUseLocalStorageProps): JSX.Element | null {
     setActiveAssetLocal,
     activeNFT,
     setActiveNFTLocal,
-    isConnectWalletPopup,
-    setIsConnectWalletPopup,
     pubKeyHash,
   };
 

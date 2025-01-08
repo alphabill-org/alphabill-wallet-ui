@@ -20,7 +20,6 @@ import {
   extractFormikError,
   getKeys,
   invalidateAllLists,
-  removeConnectTransferData,
   FeeCostEl,
   isValidAddress,
   createEllipsisString,
@@ -179,7 +178,6 @@ export default function TransferNFTs(): JSX.Element | null {
                           <Button
                             onClick={() => {
                               setSelectedTransferKey(null);
-                              removeConnectTransferData();
                             }}
                             variant="link"
                             type="button"
@@ -189,7 +187,6 @@ export default function TransferNFTs(): JSX.Element | null {
                           or select a new token from the{" "}
                           <Button
                             onClick={() => {
-                              removeConnectTransferData();
                               setPreviousView(null);
                               setActionsView(NFTListView);
                               setIsActionsViewVisible(true);

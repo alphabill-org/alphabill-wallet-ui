@@ -3,11 +3,10 @@ import { createContext, FunctionComponent, useContext, useEffect, useMemo, useSt
 
 import Popup from "../components/Popup/Popup";
 import { IAccount, IActionViews, IBill, IFeeCreditBills, IListTokensResponse, INFTAsset } from "../types/Types";
-import { AlphaType, LocalKeyAccountNames, TransferNFTView } from "../utils/constants";
+import { AlphaType, LocalKeyAccountNames } from "../utils/constants";
 import {
   getUpdatedFungibleAssets,
   getUpdatedNFTAssets,
-  removeConnectTransferData,
   unlockedBills,
 } from "../utils/utils";
 import {

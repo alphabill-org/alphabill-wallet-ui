@@ -1,6 +1,6 @@
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { useQueryClient } from "@tanstack/react-query";
-import { Formik, FormikErrors } from "formik";
+import { Formik } from "formik";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Yup from "yup";
 import Button from "../../components/Button/Button";

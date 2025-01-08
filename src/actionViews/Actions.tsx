@@ -15,7 +15,6 @@ import {
   TransferFungibleView,
   TransferNFTView,
 } from "../utils/constants";
-import { removeConnectTransferData } from "../utils/utils";
 import Arrow from "./../images/arrow.svg?react";
 import AccountView from "./components/AccountView";
 import BillsList from "./components/BillsList/BillsList";
@@ -56,8 +55,6 @@ function Actions(): JSX.Element | null {
               setPreviousView(null);
               setSelectedTransferKey(null);
             }
-
-            removeConnectTransferData();
           }}
           className="btn__back"
           variant="icon"
@@ -79,7 +76,6 @@ function Actions(): JSX.Element | null {
                 setActionsView(isFungibleView === "fungible" ? TransferFungibleView : TransferNFTView);
                 setSelectedTransferKey(null);
                 setPreviousView(null);
-                removeConnectTransferData();
               }}
             />
           </>

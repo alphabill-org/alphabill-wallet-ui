@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Popup from "./components/Popup/Popup";
@@ -42,7 +42,7 @@ function App() {
             path="/fungible"
             element={
               <ProtectedRoute>
-                <Fungible />
+                <div>Fungible</div>
               </ProtectedRoute>
             }
           />
@@ -50,7 +50,7 @@ function App() {
             path="/nft"
             element={
               <ProtectedRoute>
-                <NFT />
+                <div>NFT</div>
               </ProtectedRoute>
             }
           />
@@ -58,7 +58,7 @@ function App() {
             path="/history"
             element={
               <ProtectedRoute>
-                <History />
+                <div>History</div>;
               </ProtectedRoute>
             }
           />

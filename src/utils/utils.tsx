@@ -434,7 +434,7 @@ export const Base64imageComponent: React.FC<{
   return imageUrl ? <img src={`data:${base64Data.type};base64,${imageUrl}`} alt={alt} /> : null;
 };
 
-export const isImage = (data: string, type: string): boolean => {
+export function isImage(data: string, type: string): boolean {
   const isSVG = type?.startsWith("image/svg");
 
   if (isSVG) {
@@ -444,7 +444,7 @@ export const isImage = (data: string, type: string): boolean => {
     img.src = `data:image;base64,${data}`;
     return img.complete && img.naturalWidth !== 0;
   }
-};
+}
 
 export const isValidAddress = (value?: string) => Boolean(value?.match(/^0x[0-9A-Fa-f]{66}$/));
 
@@ -459,7 +459,7 @@ export const createEllipsisString = (id: string, firstCount: number, lastCount: 
 };
 
 // Will be updated with lock transactions in v0.5.0
-export const isBillLocked = (consolidationTargetUnit: IBill, asset: IBill, DCBills: IBill[]) => {
+export function isBillLocked(consolidationTargetUnit: IBill, asset: IBill, DCBills: IBill[]): boolean {
   return (
     (consolidationTargetUnit?.id === asset.id &&
       DCBills?.length >= 1 &&
@@ -468,23 +468,21 @@ export const isBillLocked = (consolidationTargetUnit: IBill, asset: IBill, DCBil
       consolidationTargetUnit &&
       Boolean(DCBills?.find((cb: IBill) => cb.targetUnitId === asset.id)))
   );
-};
+}
 
 // Will be updated with lock transactions in v0.5.0
-export const unlockedBills = (bills: IBill[]) => {
+export function unlockedBills(bills: IBill[]): IBill[] {
   const DCBills = bills?.filter((b: IBill) => Boolean(b.targetUnitId));
   const collectableBills = bills?.filter((b: IBill) => !b.targetUnitId) || [];
   const targetIds = DCBills?.map((item) => item.targetUnitId);
   return collectableBills?.filter((item) => !targetIds.includes(item.id));
-};
+}
 
 // Will be updated with lock transactions in v0.5.0
-export const getBillsAndTargetUnitToConsolidate = (
-  billsList: IBill[] | undefined,
-): {
+export function getBillsAndTargetUnitToConsolidate(billsList?: IBill[]): {
   billsToConsolidate: IBill[];
   consolidationTargetUnit: IBill | undefined;
-} => {
+} {
   const collectableBills = billsList?.filter((b: IBill) => !b.targetUnitId) || [];
   const DCBills = billsList?.filter((b: IBill) => Boolean(b.targetUnitId)) || [];
 
@@ -501,9 +499,9 @@ export const getBillsAndTargetUnitToConsolidate = (
     billsToConsolidate: billsToConsolidate || [],
     consolidationTargetUnit,
   };
-};
+}
 
-export const findBillWithLargestValue = (bills: IBill[]) => {
+export function findBillWithLargestValue(bills: IBill[]): IBill | null {
   if (bills.length === 0) {
     return null; // Return null if the array is empty
   }
@@ -520,4 +518,4 @@ export const findBillWithLargestValue = (bills: IBill[]) => {
   }
 
   return largestValueBill;
-};
+}
