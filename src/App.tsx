@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import Popup from "./components/Popup/Popup";
 import CreateAccount from "./routes/CreateAccount/CreateAccount";
-import Fungible from "./routes/Fungible";
-import History from "./routes/History";
 import Home from "./routes/Home";
 import Login from "./routes/Login/Login";
-import NFT from "./routes/NFT";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
 

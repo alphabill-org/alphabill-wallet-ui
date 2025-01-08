@@ -17,8 +17,8 @@
   "dependencies": {
     "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.c99e7d2",
     "@scure/bip32": "1.6.0",
+    "@scure/bip39": "^1.5.1",
     "classnames": "2.5.1",
-    "formik": "2.4.6",
     "moment": "2.30.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -28,6 +28,8 @@
     "yup": "1.6.1"
   },
   "devDependencies": {
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
     "@types/react-lazy-load-image-component": "1.6.4",
     "@vitejs/plugin-react": "4.3.4",
     "vite": "6.0.6",
