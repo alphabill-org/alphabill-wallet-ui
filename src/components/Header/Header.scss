@@ -20,8 +20,10 @@
     gap: 12px;
     height: 38px;
     padding: 7px 14px;
-    background: rgba(255, 255, 255, 0.15);
-    
+    background: rgba(78, 62, 182);
+    border-radius: 4px;
+    cursor: pointer;
+
 
     .select__button{
       gap: 8px;
@@ -47,5 +49,10 @@
   &__settings path {
     fill: rgba(223, 216, 245, 1);
     flex-shrink: 0;
+  }
+
+  .select__popover {
+    max-height: 100%;
+    overflow-y: auto;
   }
 }

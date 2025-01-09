@@ -1,16 +1,16 @@
 import classNames from "classnames";
-import { ReactElement } from "react";
+import { ReactElement, useState } from "react";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 import ArrowIcon from "../../images/arrow.svg?react";
 import CheckIcon from "../../images/check.svg?react";
-import CopyIcon from "../../images/copy-ico.svg?react";
 import ProfileIcon from "../../images/profile.svg?react";
 import Button from "../Button/Button";
 import SelectPopover from "../SelectPopover/SelectPopover";
 
 function Header(): ReactElement | null {
   // const [showTestNetworks, setShowTestNetworks] = useState(false);
-  // const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   // const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
   //
   // const testNetworks = account?.networks?.filter((network) => network.isTestNetwork === true);
@@ -29,58 +29,34 @@ function Header(): ReactElement | null {
       <div className="header__ico">
         <LogoIcon className="header__ico" />
       </div>
-      <div className="header__select">
-        <Button
-          variant="icon"
-          className="select__button"
-          onClick={() => {
-            // Open account options
-          }}
-        >
+      <div
+        className="header__select"
+        onClick={() => {
+          setIsPopoverOpen(true);
+        }}
+      >
+        <Button variant="icon" className="select__button">
           ACCOUNT NAME
           <ArrowIcon className="select__button--icon" />
         </Button>
-        {/* COPY PUBLIC KEY */}
-        <Button id="copy-tooltip" tooltipContent="Key copied" variant="icon" className="copy__button">
-          <CopyIcon className="tere" />
-        </Button>
         <SelectPopover
           onClose={() => {
-            // Open network selection
+            setIsPopoverOpen(false);
           }}
-          isPopoverVisible={false}
+          isPopoverVisible={isPopoverOpen}
           title="SELECT NETWORK"
         >
           <>
-            {/*{mainNetworks?.length >= 1 && (*/}
-            {/*  <div className="select__popover-checkbox">*/}
-            {/*    <Checkbox*/}
-            {/*      label="Show test networks"*/}
-            {/*      isChecked={showTestNetworks || Boolean(isTestNetworkActive)}*/}
-            {/*      onChange={() => setShowTestNetworks(!showTestNetworks)}*/}
-            {/*    />*/}
-            {/*  </div>*/}
-            {/*)}*/}
-            NETWORK CHECKBOX
             <div className="select__options">
-              SELECT NETWORK
-              <div
-                className={classNames("select__popover-test-networks", {
-                  "select__popover-test-networks--hidden": false,
-                })}
-              >
-                Test networks
-              </div>
-              {[]?.map(() => {
+              {new Array(5).fill("0")?.map((value, index) => {
+
                 return (
                   <div
-                    key={/* ID */ 1}
+                    key={index}
                     className={classNames("select__option", {
-                      "select__option--hidden": true,
+                      "select__option--hidden": false,
                     })}
-                    onClick={() => {
-
-                    }}
+                    onClick={() => {}}
                   >
                     NETWORK ID | <CheckIcon />
                   </div>
