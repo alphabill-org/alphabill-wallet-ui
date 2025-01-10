@@ -49,7 +49,6 @@ function Header(): ReactElement | null {
           <>
             <div className="select__options">
               {new Array(5).fill("0")?.map((value, index) => {
-
                 return (
                   <div
                     key={index}
