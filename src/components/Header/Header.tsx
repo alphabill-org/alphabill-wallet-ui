@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { ReactElement, useState } from "react";
+import { ReactElement, useContext, useState } from "react";
+import { NetworkContext } from "../../hooks/network";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 import ArrowIcon from "../../images/arrow.svg?react";
 import CheckIcon from "../../images/check.svg?react";
@@ -9,6 +10,7 @@ import SelectPopover from "../SelectPopover/SelectPopover";
 
 function Header(): ReactElement | null {
   // const [showTestNetworks, setShowTestNetworks] = useState(false);
+  const network = useContext(NetworkContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   // const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
@@ -36,7 +38,7 @@ function Header(): ReactElement | null {
         }}
       >
         <Button variant="icon" className="select__button">
-          ACCOUNT NAME
+          {network?.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover
@@ -48,17 +50,16 @@ function Header(): ReactElement | null {
         >
           <>
             <div className="select__options">
-              {new Array(5).fill("0")?.map((value, index) => {
-
+              {network?.networks.map((value, index) => {
                 return (
                   <div
                     key={index}
-                    className={classNames("select__option", {
-                      "select__option--hidden": false,
-                    })}
-                    onClick={() => {}}
+                    className={classNames("select__option")}
+                    onClick={() => {
+                      network?.setSelectedNetwork(value);
+                    }}
                   >
-                    NETWORK ID | <CheckIcon />
+                    {value.alias} {network?.selectedNetwork === value ? <CheckIcon /> : null}
                   </div>
                 );
               })}

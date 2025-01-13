@@ -1,29 +1,23 @@
-import { HDKey } from "@scure/bip32";
-import { generateMnemonic, mnemonicToSeedSync, mnemonicToEntropy } from "bip39";
-import { Formik } from "formik";
+import { generateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { useMemo } from "react";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { Link } from "react-router-dom";
-import * as Yup from "yup";
 
 import Button from "../../components/Button/Button";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Spacer from "../../components/Spacer/Spacer";
 import TextAreaField from "../../components/TextAreaField/TextAreaField";
-import Textfield from "../../components/Textfield/Textfield";
-import { useAuth } from "../../hooks/useAuth";
-import Back from "../../images/back-ico.svg?react";
-import { checkPassword, clearStorage, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
+import InputField from "../../components/InputField/InputField";
+import BackIcon from "../../images/back-ico.svg?react";
 
 function CreateAccount(): JSX.Element | null {
-  const { login } = useAuth();
-  const mnemonic = useMemo(() => generateMnemonic(), []);
+  const mnemonic = useMemo(() => generateMnemonic(wordlist), []);
 
   return (
     <div className="create-account">
       <div className="actions__header">
         <Link to="/" className="back-btn">
-          <Back />
+          <BackIcon />
         </Link>
         <div className="actions__title">Create Account</div>
       </div>
@@ -101,7 +95,7 @@ function CreateAccount(): JSX.Element | null {
                       value={mnemonic}
                       disabled
                     />
-                    <Textfield
+                    <InputField
                       id="passwordCreateAccount"
                       name="password"
                       label="New password (8 characters min)"
@@ -109,7 +103,7 @@ function CreateAccount(): JSX.Element | null {
                       error={extractFormikError(errors, touched, ["password"])}
                       focusInput
                     />
-                    <Textfield
+                    <InputField
                       id="passwordCreateAccountConfirm"
                       name="passwordConfirm"
                       label="Confirm password"

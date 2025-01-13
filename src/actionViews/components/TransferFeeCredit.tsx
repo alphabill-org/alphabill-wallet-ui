@@ -11,7 +11,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 
 import Select from "../../components/Select/Select";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 
 import { useApp } from "../../hooks/appProvider";
 import { addFeeCredit } from "../../hooks/requests";
@@ -218,7 +218,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     error={extractFormikError(errors, touched, ["assets"])}
                   />
                   <Spacer mb={8} />
-                  <Textfield
+                  <InputField
                     id="amount"
                     name="amount"
                     label="Amount"
@@ -238,7 +238,7 @@ export default function TransferFeeCredit(): JSX.Element | null {
                     removeApostrophes
                   />
                   <Spacer mb={8} />
-                  <Textfield
+                  <InputField
                     id="password"
                     name="password"
                     label="Password"

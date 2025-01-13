@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./css/app.scss";
 import App from "./App";
+import NetworkProvider from "./hooks/network";
 import VaultProvider from "./hooks/vault";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
@@ -14,9 +15,11 @@ root.render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <VaultProvider>
-          <App />
-        </VaultProvider>
+        <NetworkProvider>
+          <VaultProvider>
+            <App />
+          </VaultProvider>
+        </NetworkProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>,

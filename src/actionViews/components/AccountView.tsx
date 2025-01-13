@@ -8,7 +8,7 @@ import Button from "../../components/Button/Button";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Popup from "../../components/Popup/Popup";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { checkPassword, extractFormikError, getKeys } from "../../utils/utils";
@@ -112,7 +112,7 @@ function AccountView(): JSX.Element | null {
 
                   <Form>
                     <FormContent>
-                      <Textfield
+                      <InputField
                         focusInput={isChangePasswordPopupVisible}
                         id="currentPassword"
                         name="currentPassword"
@@ -120,14 +120,14 @@ function AccountView(): JSX.Element | null {
                         type="password"
                         error={extractFormikError(errors, touched, ["currentPassword"])}
                       />
-                      <Textfield
+                      <InputField
                         id="passwordChange"
                         name="password"
                         label="Add new password"
                         type="password"
                         error={extractFormikError(errors, touched, ["password"])}
                       />
-                      <Textfield
+                      <InputField
                         id="passwordChangeConfirm"
                         name="passwordConfirm"
                         label="Confirm new password"

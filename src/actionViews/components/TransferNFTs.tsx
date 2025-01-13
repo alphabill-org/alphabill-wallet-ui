@@ -8,7 +8,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 
 import Select from "../../components/Select/Select";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 
 import { useApp } from "../../hooks/appProvider";
 import { transferNFT } from "../../hooks/requests";
@@ -202,7 +202,7 @@ export default function TransferNFTs(): JSX.Element | null {
                         </div>
                       )}
                       <Spacer mt={16} />
-                      <Textfield
+                      <InputField
                         id="selectedNFTId"
                         name="selectedNFTId"
                         label={"SELECTED TOKEN ID"}
@@ -251,7 +251,7 @@ export default function TransferNFTs(): JSX.Element | null {
                       label: defaultAsset.label,
                     }}
                   />
-                  <Textfield
+                  <InputField
                     id="address"
                     name="address"
                     label="Address"
@@ -260,7 +260,7 @@ export default function TransferNFTs(): JSX.Element | null {
                     value={selectedTransferAccountKey || ""}
                   />
                   <Spacer mb={8} />
-                  <Textfield
+                  <InputField
                     id="password"
                     name="password"
                     label="Password"

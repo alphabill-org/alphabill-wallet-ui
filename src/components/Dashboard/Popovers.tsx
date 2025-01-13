@@ -21,7 +21,7 @@ import { Form, FormFooter, FormContent } from "../Form/Form";
 import Popup from "../Popup/Popup";
 import SelectPopover from "../SelectPopover/SelectPopover";
 import Spacer from "../Spacer/Spacer";
-import Textfield from "../Textfield/Textfield";
+import InputField from "../InputField/InputField";
 
 export interface IPopoversProps {
   setIsKeySelectOpen: (e: boolean) => void;
@@ -130,7 +130,7 @@ export default function Popovers({ isKeySelectOpen, setIsKeySelectOpen }: IPopov
                               <form onSubmit={handleSubmit}>
                                 <Form>
                                   <FormContent>
-                                    <Textfield
+                                    <InputField
                                       focusInput
                                       selectInput
                                       id="accountName"
@@ -278,7 +278,7 @@ export default function Popovers({ isKeySelectOpen, setIsKeySelectOpen }: IPopov
 
                 <Form>
                   <FormContent>
-                    <Textfield
+                    <InputField
                       focusInput={isAddPopupVisible}
                       id="passwordAddAccount"
                       name="password"
@@ -286,7 +286,7 @@ export default function Popovers({ isKeySelectOpen, setIsKeySelectOpen }: IPopov
                       type="password"
                       error={extractFormikError(errors, touched, ["password"])}
                     />
-                    <Textfield
+                    <InputField
                       id="accountName"
                       name="accountName"
                       label="Key name (Optional - max 26 characters)"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import Home from "./routes/Home";
+import Network from "./routes/Network";
 
 function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -21,7 +22,9 @@ function App() {
       <div className="app__background-bottom"></div>
       <div className="app__content">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />}>
+            <Route path="network" element={<Network />} />
+          </Route>
           {/*<Route*/}
           {/*  path="/fungible"*/}
           {/*  element={*/}
