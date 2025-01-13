@@ -38,7 +38,9 @@ function Header(): ReactElement | null {
         }}
       >
         <Button variant="icon" className="select__button">
-          {network?.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
+          {network?.selectedNetworkId
+            ? network.networks.get(network.selectedNetworkId)?.alias
+            : "--- SELECT NETWORK ---"}
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover
@@ -50,19 +52,21 @@ function Header(): ReactElement | null {
         >
           <>
             <div className="select__options">
-              {network?.networks.map((value, index) => {
-                return (
-                  <div
-                    key={index}
-                    className={classNames("select__option")}
-                    onClick={() => {
-                      network?.setSelectedNetwork(value);
-                    }}
-                  >
-                    {value.alias} {network?.selectedNetwork === value ? <CheckIcon /> : null}
-                  </div>
-                );
-              })}
+              {network
+                ? Array.from(network.networks).map(([id, value], index) => {
+                    return (
+                      <div
+                        key={index}
+                        className={classNames("select__option")}
+                        onClick={() => {
+                          network?.setSelectedNetwork(id);
+                        }}
+                      >
+                        {value.alias} {network?.selectedNetworkId === id ? <CheckIcon /> : null}
+                      </div>
+                    );
+                  })
+                : null}
             </div>
           </>
         </SelectPopover>
