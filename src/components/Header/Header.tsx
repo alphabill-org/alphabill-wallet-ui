@@ -9,22 +9,8 @@ import Button from "../Button/Button";
 import SelectPopover from "../SelectPopover/SelectPopover";
 
 function Header(): ReactElement | null {
-  // const [showTestNetworks, setShowTestNetworks] = useState(false);
   const network = useContext(NetworkContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  // const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
-  //
-  // const testNetworks = account?.networks?.filter((network) => network.isTestNetwork === true);
-  // const isTestNetworkActive = account?.networks?.find(
-  //   (network) => network.isTestNetwork === true && account?.activeNetwork === network.id,
-  // );
-  // const mainNetworks = account?.networks?.filter((network) => network.isTestNetwork !== true);
-  // const popupRef = useRef<HTMLDivElement>(null);
-  //
-  // useDocumentClick(() => {
-  //   isPopoverOpen && setIsPopoverOpen(false);
-  // }, popupRef);
 
   return (
     <div className="header">

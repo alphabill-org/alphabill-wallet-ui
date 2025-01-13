@@ -10,23 +10,14 @@ interface INetwork {
   readonly tokenPartitionUrl: string;
 }
 
-export interface INetworkContext {
-  readonly networks: Map<string, INetwork>;
-  readonly selectedNetworkId: string | null;
-  setSelectedNetwork(id: string | null): void;
-  addNetwork(network: INetwork): void;
-}
-
-export const NetworkContext = createContext<INetworkContext | null>(null);
-
 interface INetworkState {
   readonly networks: Map<string, INetwork>;
   readonly selectedNetworkId: string | null;
 }
 
 enum NetworkReducerAction {
-  SET_ACTIVE_NETWORK = "SET_ACTIVE_NETWORK",
-  ADD_NETWORK = "ADD_NETWORK",
+  SET_ACTIVE_NETWORK,
+  ADD_NETWORK,
 }
 
 function reducer(
@@ -58,6 +49,15 @@ function reducer(
     default:
       throw new Error(`Unknown network action ${String(action)}`);
   }
+}
+
+export const NetworkContext = createContext<INetworkContext | null>(null);
+
+export interface INetworkContext {
+  readonly networks: Map<string, INetwork>;
+  readonly selectedNetworkId: string | null;
+  setSelectedNetwork(id: string | null): void;
+  addNetwork(network: INetwork): void;
 }
 
 export default function NetworkProvider({ children }: PropsWithChildren<object>) {
@@ -100,7 +100,6 @@ export default function NetworkProvider({ children }: PropsWithChildren<object>)
       value={{
         networks: state.networks,
         selectedNetworkId: state.selectedNetworkId,
-
         setSelectedNetwork,
         addNetwork,
       }}

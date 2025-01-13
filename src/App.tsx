@@ -25,40 +25,7 @@ function App() {
           <Route path="/" element={<Home />}>
             <Route path="network" element={<Network />} />
           </Route>
-          {/*<Route*/}
-          {/*  path="/fungible"*/}
-          {/*  element={*/}
-          {/*    <ProtectedRoute>*/}
-          {/*      <div>Fungible</div>*/}
-          {/*    </ProtectedRoute>*/}
-          {/*  }*/}
-          {/*/>*/}
-          {/*<Route*/}
-          {/*  path="/nft"*/}
-          {/*  element={*/}
-          {/*    <ProtectedRoute>*/}
-          {/*      <div>NFT</div>*/}
-          {/*    </ProtectedRoute>*/}
-          {/*  }*/}
-          {/*/>*/}
-          {/*<Route*/}
-          {/*  path="/history"*/}
-          {/*  element={*/}
-          {/*    <ProtectedRoute>*/}
-          {/*      <div>History</div>;*/}
-          {/*    </ProtectedRoute>*/}
-          {/*  }*/}
-          {/*/>*/}
-          {/*{<Route path="/login" element={<Login />} />}*/}
-          {/*<Route path="/create-wallet" element={<CreateAccount />} />*/}
-          {/*<Route path="/recover-wallet" element={<RecoverAccount />} />*/}
-          {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
         </Routes>
-        {/*<Popup isPopupVisible={isNetworkError} title="No internet connection!">*/}
-        {/*  <div className="pad-24-t w-100p">*/}
-        {/*    <p>There is something wrong with your internet connection. Please reconnect and try again.</p>*/}
-        {/*  </div>*/}
-        {/*</Popup>*/}
       </div>
     </div>
   );
