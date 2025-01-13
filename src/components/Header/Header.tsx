@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { ReactElement, useContext, useState } from "react";
 import { NetworkContext } from "../../hooks/network";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
@@ -8,9 +7,36 @@ import ProfileIcon from "../../images/profile.svg?react";
 import Button from "../Button/Button";
 import SelectPopover from "../SelectPopover/SelectPopover";
 
-function Header(): ReactElement | null {
-  const network = useContext(NetworkContext);
+function NetworkSelect() {
+  const networkContext = useContext(NetworkContext);
+  const networks = networkContext?.networks ? Array.from(networkContext?.networks.entries()) : [];
+
+  return (
+    <div className="select__options">
+      {networks.map(([id, value]) => {
+        return (
+          <div
+            key={id}
+            className="select__option"
+            onClick={() => {
+              networkContext?.setSelectedNetwork(id);
+            }}
+          >
+            {value.alias} {networkContext?.selectedNetworkId === id ? <CheckIcon /> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function Header(): ReactElement {
+  const networkContext = useContext(NetworkContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const selectedNetwork = networkContext?.selectedNetworkId
+    ? (networkContext.networks.get(networkContext.selectedNetworkId) ?? null)
+    : null;
 
   return (
     <div className="header">
@@ -24,9 +50,7 @@ function Header(): ReactElement | null {
         }}
       >
         <Button variant="icon" className="select__button">
-          {network?.selectedNetworkId
-            ? network.networks.get(network.selectedNetworkId)?.alias
-            : "--- SELECT NETWORK ---"}
+          {selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover
@@ -36,25 +60,7 @@ function Header(): ReactElement | null {
           isPopoverVisible={isPopoverOpen}
           title="SELECT NETWORK"
         >
-          <>
-            <div className="select__options">
-              {network
-                ? Array.from(network.networks).map(([id, value], index) => {
-                    return (
-                      <div
-                        key={index}
-                        className={classNames("select__option")}
-                        onClick={() => {
-                          network?.setSelectedNetwork(id);
-                        }}
-                      >
-                        {value.alias} {network?.selectedNetworkId === id ? <CheckIcon /> : null}
-                      </div>
-                    );
-                  })
-                : null}
-            </div>
-          </>
+          <NetworkSelect />
         </SelectPopover>
       </div>
       <Button
@@ -63,10 +69,8 @@ function Header(): ReactElement | null {
           // PROFILE VIEW
         }}
       >
-        <ProfileIcon className="header__settings" />
+        <ProfileIcon />
       </Button>
     </div>
   );
 }
-
-export default Header;

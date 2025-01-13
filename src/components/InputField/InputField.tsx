@@ -11,13 +11,7 @@ interface IInputFieldProps {
 export default function InputField(props: PropsWithChildren<IInputFieldProps>): ReactElement {
   const { error, children } = props;
 
-  const className = classNames(
-    "textfield",
-    {
-      "textfield--error": error,
-    },
-    props.className,
-  );
+  const className = classNames("textfield", props.className);
 
   return (
     <div className={className} data-testid="textfield">
