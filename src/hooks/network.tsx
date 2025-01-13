@@ -70,7 +70,7 @@ export default function NetworkProvider({ children }: PropsWithChildren<object>)
     (): INetworkState => {
       const networksString = localStorage.getItem(NETWORKS_LOCAL_STORAGE_KEY);
       const networks: Map<string, INetwork> = networksString ? new Map(JSON.parse(networksString)) : new Map();
-      console.log(localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY));
+
       return {
         networks,
         selectedNetworkId: localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY) ?? null,
