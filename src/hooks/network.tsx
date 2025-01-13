@@ -2,7 +2,7 @@ import { createContext, PropsWithChildren, useCallback, useReducer } from "react
 import { v4 as uuidv4 } from "uuid";
 
 const NETWORKS_LOCAL_STORAGE_KEY = "alphabill_networks";
-const SELECTED_NETWORK_LOCAL_STORAGE_KEY = "alphabill_networks";
+const SELECTED_NETWORK_LOCAL_STORAGE_KEY = "alphabill_selected_network";
 
 interface INetwork {
   readonly alias: string;
@@ -36,16 +36,25 @@ function reducer(
     | { type: NetworkReducerAction.ADD_NETWORK; network: INetwork },
 ): INetworkState {
   switch (action.type) {
-    case NetworkReducerAction.SET_ACTIVE_NETWORK:
+    case NetworkReducerAction.SET_ACTIVE_NETWORK: {
+      if (!action.id) {
+        localStorage.removeItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY);
+      } else {
+        localStorage.setItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY, action.id);
+      }
       return {
         ...previousState,
         selectedNetworkId: action.id,
       };
-    case NetworkReducerAction.ADD_NETWORK:
+    }
+    case NetworkReducerAction.ADD_NETWORK: {
+      const networks = new Map(previousState.networks).set(uuidv4(), action.network);
+      localStorage.setItem(NETWORKS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(networks.entries())));
       return {
         ...previousState,
-        networks: new Map(previousState.networks).set(uuidv4(), action.network),
+        networks,
       };
+    }
     default:
       throw new Error(`Unknown network action ${String(action)}`);
   }
@@ -55,18 +64,16 @@ export default function NetworkProvider({ children }: PropsWithChildren<object>)
   const [state, dispatch] = useReducer(
     reducer,
     {
-      networks: [],
-      selectedNetwork: null,
+      networks: new Map(),
+      selectedNetworkId: null,
     },
     (): INetworkState => {
       const networksString = localStorage.getItem(NETWORKS_LOCAL_STORAGE_KEY);
-      const networks = networksString ? JSON.parse(networksString) : [];
-      const selectedNetworkString = localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY);
-      const selectedNetwork = selectedNetworkString ? JSON.parse(selectedNetworkString) : null;
-
+      const networks: Map<string, INetwork> = networksString ? new Map(JSON.parse(networksString)) : new Map();
+      console.log(localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY));
       return {
         networks,
-        selectedNetworkId: selectedNetwork,
+        selectedNetworkId: localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY) ?? null,
       };
     },
   );

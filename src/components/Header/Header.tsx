@@ -12,6 +12,7 @@ function Header(): ReactElement | null {
   // const [showTestNetworks, setShowTestNetworks] = useState(false);
   const network = useContext(NetworkContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  console.log(network);
 
   // const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
   //
