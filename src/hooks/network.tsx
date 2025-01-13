@@ -5,14 +5,15 @@ const NETWORKS_LOCAL_STORAGE_KEY = "alphabill_networks";
 const SELECTED_NETWORK_LOCAL_STORAGE_KEY = "alphabill_selected_network";
 
 interface INetwork {
+  readonly id: string;
   readonly alias: string;
   readonly moneyPartitionUrl: string;
   readonly tokenPartitionUrl: string;
 }
 
 interface INetworkState {
-  readonly networks: Map<string, INetwork>;
-  readonly selectedNetworkId: string | null;
+  readonly networks: INetwork[];
+  readonly selectedNetwork: INetwork | null;
 }
 
 enum NetworkReducerAction {
@@ -22,25 +23,18 @@ enum NetworkReducerAction {
 
 function reducer(
   previousState: INetworkState,
-  action:
-    | { type: NetworkReducerAction.SET_ACTIVE_NETWORK; id: string | null }
-    | { type: NetworkReducerAction.ADD_NETWORK; network: INetwork },
+  action: { type: NetworkReducerAction; network: INetwork },
 ): INetworkState {
   switch (action.type) {
-    case NetworkReducerAction.SET_ACTIVE_NETWORK: {
-      if (!action.id) {
-        localStorage.removeItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY);
-      } else {
-        localStorage.setItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY, action.id);
-      }
+    case NetworkReducerAction.SET_ACTIVE_NETWORK:
+      localStorage.setItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY, action.network.id);
       return {
         ...previousState,
-        selectedNetworkId: action.id,
+        selectedNetwork: action.network,
       };
-    }
     case NetworkReducerAction.ADD_NETWORK: {
-      const networks = new Map(previousState.networks).set(uuidv4(), action.network);
-      localStorage.setItem(NETWORKS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(networks.entries())));
+      const networks = [...previousState.networks, action.network];
+      localStorage.setItem(NETWORKS_LOCAL_STORAGE_KEY, JSON.stringify(networks));
       return {
         ...previousState,
         networks,
@@ -54,10 +48,10 @@ function reducer(
 export const NetworkContext = createContext<INetworkContext | null>(null);
 
 export interface INetworkContext {
-  readonly networks: Map<string, INetwork>;
-  readonly selectedNetworkId: string | null;
-  setSelectedNetwork(id: string | null): void;
-  addNetwork(network: INetwork): void;
+  readonly networks: INetwork[];
+  readonly selectedNetwork: INetwork | null;
+  setSelectedNetwork(id: INetwork): void;
+  addNetwork(network: Omit<INetwork, "id">): void;
 }
 
 export default function NetworkProvider({ children }: PropsWithChildren<object>) {
@@ -65,31 +59,36 @@ export default function NetworkProvider({ children }: PropsWithChildren<object>)
     reducer,
     {
       networks: new Map(),
-      selectedNetworkId: null,
+      selectedNetwork: null,
     },
     (): INetworkState => {
       const networksString = localStorage.getItem(NETWORKS_LOCAL_STORAGE_KEY);
-      const networks: Map<string, INetwork> = networksString ? new Map(JSON.parse(networksString)) : new Map();
+      const networks: INetwork[] = networksString ? JSON.parse(networksString) : [];
+      const id = localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY);
+      const selectedNetwork = networks.find((network) => network.id === id) ?? null;
 
       return {
         networks,
-        selectedNetworkId: localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY) ?? null,
+        selectedNetwork,
       };
     },
   );
 
   const setSelectedNetwork = useCallback(
-    (id: string | null): void => {
-      dispatch({ type: NetworkReducerAction.SET_ACTIVE_NETWORK, id });
+    (network: INetwork): void => {
+      dispatch({ type: NetworkReducerAction.SET_ACTIVE_NETWORK, network });
     },
     [dispatch],
   );
 
   const addNetwork = useCallback(
-    (network: INetwork) => {
+    (network: Omit<INetwork, "id">) => {
       dispatch({
         type: NetworkReducerAction.ADD_NETWORK,
-        network,
+        network: {
+          ...network,
+          id: uuidv4(),
+        },
       });
     },
     [dispatch],
@@ -99,7 +98,7 @@ export default function NetworkProvider({ children }: PropsWithChildren<object>)
     <NetworkContext.Provider
       value={{
         networks: state.networks,
-        selectedNetworkId: state.selectedNetworkId,
+        selectedNetwork: state.selectedNetwork,
         setSelectedNetwork,
         addNetwork,
       }}

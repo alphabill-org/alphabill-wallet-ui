@@ -9,20 +9,20 @@ import SelectPopover from "../SelectPopover/SelectPopover";
 
 function NetworkSelect() {
   const networkContext = useContext(NetworkContext);
-  const networks = networkContext?.networks ? Array.from(networkContext?.networks.entries()) : [];
+  const networks = networkContext?.networks ? networkContext?.networks : [];
 
   return (
     <div className="select__options">
-      {networks.map(([id, value]) => {
+      {networks.map((network) => {
         return (
           <div
-            key={id}
+            key={network.id}
             className="select__option"
             onClick={() => {
-              networkContext?.setSelectedNetwork(id);
+              networkContext?.setSelectedNetwork(network);
             }}
           >
-            {value.alias} {networkContext?.selectedNetworkId === id ? <CheckIcon /> : null}
+            {network.alias} {networkContext?.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
           </div>
         );
       })}
@@ -33,10 +33,6 @@ function NetworkSelect() {
 export default function Header(): ReactElement {
   const networkContext = useContext(NetworkContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  const selectedNetwork = networkContext?.selectedNetworkId
-    ? (networkContext.networks.get(networkContext.selectedNetworkId) ?? null)
-    : null;
 
   return (
     <div className="header">
@@ -50,7 +46,7 @@ export default function Header(): ReactElement {
         }}
       >
         <Button variant="icon" className="select__button">
-          {selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
+          {networkContext?.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover

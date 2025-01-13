@@ -6,7 +6,7 @@ import Spacer from "../components/Spacer/Spacer";
 import { NetworkContext } from "../hooks/network";
 
 //TODO Error handling
-function Network(): ReactElement {
+export default function Network(): ReactElement {
   const network = useContext(NetworkContext);
 
   return (
@@ -43,5 +43,3 @@ function Network(): ReactElement {
     </div>
   );
 }
-
-export default Network;
