@@ -5,6 +5,7 @@ import TextField from "../components/InputField/TextField";
 import Spacer from "../components/Spacer/Spacer";
 import { NetworkContext } from "../hooks/network";
 
+//TODO Error handling
 function Network(): ReactElement {
   const network = useContext(NetworkContext);
 
