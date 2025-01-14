@@ -8,7 +8,7 @@ interface IInputFieldProps {
   desc?: string;
 }
 
-export default function InputField(props: PropsWithChildren<IInputFieldProps>): ReactElement {
+export function InputField(props: PropsWithChildren<IInputFieldProps>): ReactElement {
   const { error, children } = props;
 
   const className = classNames("textfield", props.className);

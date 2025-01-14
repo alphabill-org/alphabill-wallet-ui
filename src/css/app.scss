@@ -27,6 +27,7 @@
 @use '../components/ToolBar/ToolBar.scss';
 
 @use '../routes/Login/Login.scss';
+@use '../routes/CreateAccount/CreateAccount.scss';
 
 .app {
   min-width: 375px;
