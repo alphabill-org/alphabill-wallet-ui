@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import {
-  CreateAccountKeyPage,
-  CreateAccountMnemonicPage,
-  CreateAccountPasswordPage
-} from "./routes/CreateAccount/CreateAccount";
+  CreateWallet
+} from "./routes/CreateWallet/CreateWallet";
 import { Home } from "./routes/Home";
 import { Network } from "./routes/Network";
+import { Step1 } from "./routes/CreateWallet/Step1";
+import { Step2 } from "./routes/CreateWallet/Step2";
+import { Step3 } from "./routes/CreateWallet/Step3";
 
 export function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -30,9 +31,11 @@ export function App() {
           <Route path="/" element={<Home />}>
             <Route path="network" element={<Network />} />
           </Route>
-          <Route path="/create-wallet" element={<CreateAccountPasswordPage />} />
-          <Route path="/create-wallet/step-2" element={<CreateAccountMnemonicPage />} />
-          <Route path="/create-wallet/step-3" element={<CreateAccountKeyPage />} />
+          <Route path="/create-wallet" element={<CreateWallet />}>
+            <Route path="step-1" element={<Step1 />} />
+            <Route path="step-2" element={<Step2 />} />
+            <Route path="step-3" element={<Step3 />} />
+          </Route>
         </Routes>
       </div>
     </div>
