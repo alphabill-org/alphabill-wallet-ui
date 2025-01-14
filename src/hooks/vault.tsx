@@ -12,7 +12,7 @@ export const VaultContext = createContext<IVaultContext | null>(null);
 
 const encoder = new TextEncoder();
 
-export default function VaultProvider({ children }: PropsWithChildren<object>) {
+export function VaultProvider({ children }: PropsWithChildren<object>) {
   const calculateKeyIV = useCallback(async (password: string, salt: Uint8Array) => {
     const digest = await crypto.subtle.digest("SHA-256", new Uint8Array([...encoder.encode(password), ...salt]));
     return digest.slice(0, 16);

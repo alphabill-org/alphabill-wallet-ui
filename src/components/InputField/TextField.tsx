@@ -10,7 +10,7 @@ interface ITextFieldProps {
   selectInput?: boolean;
 }
 
-export default function TextField(props: ITextFieldProps): ReactElement {
+export function TextField(props: ITextFieldProps): ReactElement {
   const { error, focusInput, selectInput, label, desc, name } = props;
   const inputRef = useRef<HTMLInputElement | null>(null);
 

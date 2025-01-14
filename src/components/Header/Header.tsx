@@ -1,5 +1,5 @@
-import { ReactElement, useContext, useState } from "react";
-import { NetworkContext } from "../../hooks/network";
+import { ReactElement, useState } from "react";
+import { useNetwork } from "../../hooks/network";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 import ArrowIcon from "../../images/arrow.svg?react";
 import CheckIcon from "../../images/check.svg?react";
@@ -8,21 +8,20 @@ import Button from "../Button/Button";
 import SelectPopover from "../SelectPopover/SelectPopover";
 
 function NetworkSelect() {
-  const networkContext = useContext(NetworkContext);
-  const networks = networkContext?.networks ? networkContext?.networks : [];
+  const networkContext = useNetwork();
 
   return (
     <div className="select__options">
-      {networks.map((network) => {
+      {networkContext.networks.map((network) => {
         return (
           <div
             key={network.id}
             className="select__option"
             onClick={() => {
-              networkContext?.setSelectedNetwork(network);
+              networkContext.setSelectedNetwork(network);
             }}
           >
-            {network.alias} {networkContext?.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
+            {network.alias} {networkContext.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
           </div>
         );
       })}
@@ -30,8 +29,8 @@ function NetworkSelect() {
   );
 }
 
-export default function Header(): ReactElement {
-  const networkContext = useContext(NetworkContext);
+export function Header(): ReactElement {
+  const networkContext = useNetwork();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   return (
@@ -46,7 +45,7 @@ export default function Header(): ReactElement {
         }}
       >
         <Button variant="icon" className="select__button">
-          {networkContext?.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
+          {networkContext.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover

@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useCallback, useReducer } from "react";
+import { createContext, PropsWithChildren, useCallback, useContext, useReducer } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const NETWORKS_LOCAL_STORAGE_KEY = "alphabill_networks";
@@ -45,16 +45,25 @@ function reducer(
   }
 }
 
-export const NetworkContext = createContext<INetworkContext | null>(null);
+const NetworkContext = createContext<INetworkContext | null>(null);
 
-export interface INetworkContext {
+interface INetworkContext {
   readonly networks: INetwork[];
   readonly selectedNetwork: INetwork | null;
   setSelectedNetwork(id: INetwork): void;
   addNetwork(network: Omit<INetwork, "id">): void;
 }
 
-export default function NetworkProvider({ children }: PropsWithChildren<object>) {
+export function useNetwork(): INetworkContext {
+  const context = useContext(NetworkContext);
+  if (!context) {
+    throw new Error("Invalid network context.");
+  }
+
+  return context;
+}
+
+export function NetworkProvider({ children }: PropsWithChildren<object>) {
   const [state, dispatch] = useReducer(
     reducer,
     {

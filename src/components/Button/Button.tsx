@@ -3,6 +3,8 @@ import React, { ReactElement, useEffect, useState } from "react";
 
 import Spinner from "../Spinner/Spinner";
 
+// TODO: Remove unused stuff from this component
+
 export interface IButtonProps {
   children?: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;

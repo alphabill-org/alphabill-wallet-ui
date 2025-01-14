@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import Home from "./routes/Home";
-import Network from "./routes/Network";
+import { Home } from "./routes/Home";
+import { Network } from "./routes/Network";
 
-function App() {
+export function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
 
   useEffect(() => {
@@ -30,5 +30,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
