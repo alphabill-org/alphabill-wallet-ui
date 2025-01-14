@@ -1,9 +1,12 @@
+import { HDKey } from "@scure/bip32";
+import { mnemonicToSeed } from "@scure/bip39";
 import { ReactElement, useCallback, useReducer } from "react";
 import { Outlet } from "react-router-dom";
+import { useVault } from "../../hooks/vault";
 
 interface ICreateWalletState {
   password?: string;
-  mnemonic?: string;
+  key?: { mnemonic: string; initialKey: HDKey };
 }
 
 enum CreateWalletAction {
@@ -13,18 +16,23 @@ enum CreateWalletAction {
 
 function reducer(
   previousState: ICreateWalletState,
-  action: { type: CreateWalletAction; data: string },
+  action:
+    | { type: CreateWalletAction.SET_PASSWORD; password: string }
+    | { type: CreateWalletAction.SET_MNEMONIC; key: HDKey; mnemonic: string },
 ): ICreateWalletState {
   switch (action.type) {
     case CreateWalletAction.SET_PASSWORD:
       return {
         ...previousState,
-        password: action.data,
+        password: action.password,
       };
     case CreateWalletAction.SET_MNEMONIC:
       return {
         ...previousState,
-        mnemonic: action.data,
+        key: {
+          initialKey: action.key,
+          mnemonic: action.mnemonic,
+        },
       };
     default:
       throw new Error(`Unknown create wallet action ${String(action)}`);
@@ -33,22 +41,24 @@ function reducer(
 
 export interface ICreateWalletContext extends ICreateWalletState {
   setPassword: (password: string) => void;
-  setMnemonic: (mnemonic: string) => void;
+  setMnemonic: (mnemonic: string) => Promise<void>;
 }
 
 export function CreateWallet(): ReactElement {
+  const vault = useVault();
   const [state, dispatch] = useReducer(reducer, {});
 
   const setPassword = useCallback(
     (password: string) => {
-      dispatch({ type: CreateWalletAction.SET_PASSWORD, data: password });
+      dispatch({ type: CreateWalletAction.SET_PASSWORD, password });
     },
     [dispatch],
   );
 
   const setMnemonic = useCallback(
-    (mnemonic: string) => {
-      dispatch({ type: CreateWalletAction.SET_MNEMONIC, data: mnemonic });
+    async (mnemonic: string): Promise<void> => {
+      const key = await vault.deriveKey(mnemonic, 0);
+      dispatch({ type: CreateWalletAction.SET_MNEMONIC, mnemonic, key });
     },
     [dispatch],
   );

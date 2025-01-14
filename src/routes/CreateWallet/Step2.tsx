@@ -1,6 +1,6 @@
-import { generateMnemonic, mnemonicToSeed } from "@scure/bip39";
+import { generateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import { ReactElement, useMemo, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
@@ -10,6 +10,7 @@ import { ICreateWalletContext } from "./CreateWallet";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Progress } from "./Progress";
+import { Step1 } from "./Step1";
 
 type FormElements = "mnemonic";
 export function Step2(): ReactElement | null {
@@ -22,13 +23,11 @@ export function Step2(): ReactElement | null {
     throw new Error("Invalid create wallet context");
   }
 
-  useEffect(() => {
-    if (!context.password) {
-      navigate("/create-wallet/step-1");
-    }
-  }, []);
+  if (!context.password) {
+    return <Step1 />;
+  }
 
-  const mnemonic = useMemo(() => context.mnemonic ?? generateMnemonic(wordlist), []);
+  const mnemonic = useMemo(() => context.key?.mnemonic ?? generateMnemonic(wordlist), []);
 
   return (
     <form
@@ -38,16 +37,13 @@ export function Step2(): ReactElement | null {
         const errors = new Map<FormElements, string>();
         const data = new FormData(ev.currentTarget);
         const mnemonic = String(data.get("mnemonic"));
-        try {
-          await mnemonicToSeed(mnemonic);
-        } catch (e) {
+        if (mnemonic.split(" ").length !== 12) {
           errors.set("mnemonic", "Invalid mnemonic.");
-          console.error(e);
         }
 
         setErrors(errors);
         if (errors.size === 0) {
-          context.setMnemonic(mnemonic);
+          await context.setMnemonic(mnemonic);
           navigate("/create-wallet/step-3");
         }
       }}
