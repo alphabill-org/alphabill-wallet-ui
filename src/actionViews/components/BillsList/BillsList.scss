@@ -1,3 +1,5 @@
+@use '../../../css/variables.scss';
+
 .bills-list {
   &__proof {
     display: flex;
@@ -6,7 +8,7 @@
   }
 
   &__settings {
-    background-color: $color-secondary;
+    background-color: variables.$color-secondary;
     padding: 4px!important;
     border-radius: 4px;
 
@@ -17,7 +19,7 @@
 
   .btn__refresh {
     svg {
-      fill: $color-white;
+      fill: variables.$color-white;
       transform: rotate(0deg);
       transition: animation 1s linear;
     }

@@ -5,7 +5,7 @@ import Button from "../../../components/Button/Button";
 import { Form, FormFooter, FormContent } from "../../../components/Form/Form";
 import SelectPopover from "../../../components/SelectPopover/SelectPopover";
 import Spacer from "../../../components/Spacer/Spacer";
-import Textfield from "../../../components/Textfield/Textfield";
+import InputField from "../../../components/InputField/InputField";
 import { useAuth } from "../../../hooks/useAuth";
 import { IAccount, IActiveAsset, IBill } from "../../../types/Types";
 import { extractFormikError, getKeys } from "../../../utils/utils";
@@ -73,7 +73,7 @@ function BillsListPopups({
                 <form onSubmit={handleSubmit}>
                   <Form>
                     <FormContent>
-                      <Textfield
+                      <InputField
                         focusInput={Boolean(isPasswordFormVisible)}
                         id="password"
                         name="password"

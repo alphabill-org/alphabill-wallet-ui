@@ -1,10 +1,12 @@
+@use '../../css/variables.scss';
+
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   padding: 12px;
-  font-weight: $font-weight-semibold;
+  font-weight: variables.$font-weight-semibold;
   transform: translate3d(0, 0, 0);
   white-space: nowrap;
   border: none;
@@ -16,7 +18,7 @@
 
   &--icon {
     padding: 0;
-    color: $color-primary;
+    color: variables.$color-primary;
 
     &:active {
       transform: scale(.9);
@@ -25,7 +27,7 @@
   }
 
   &:hover path{
-    fill: $color-white;
+    fill: variables.$color-white;
   }
 
   &:disabled {
@@ -67,20 +69,20 @@
 }
 
 .button--primary {
-  background-color: $color-primary;
-  color: $color-blue;
+  background-color: variables.$color-primary;
+  color: variables.$color-blue;
 
   &.is--active {
-    background-color: $color-blue;
+    background-color: variables.$color-blue;
   }
 
   &:hover {
     opacity: 1;
-    background: $color-primary--hover;
-    color: $color-white;
+    background: variables.$color-primary--hover;
+    color: variables.$color-white;
 
     &.is--active {
-      background-color: $color-blue;
+      background-color: variables.$color-blue;
     }
   }
 
@@ -90,57 +92,57 @@
 }
 
 .button--secondary {
-  color: $color-primary;
-  background-color: rgba($color-white, 0.15);
+  color: variables.$color-primary;
+  background-color: rgba(variables.$color-white, 0.15);
 
   &.is--active {
-    background-color: $color-blue;
+    background-color: variables.$color-blue;
   }
 
   &:hover {
     opacity: 1;
-    background-color: $color-primary;
+    background-color: variables.$color-primary;
     box-shadow: none;
     color: white;
 
     &.is--active {
-      background-color: $color-blue;
+      background-color: variables.$color-blue;
     }
   }
 
   &:hover .icon-btn path {
-    fill: $color-blue;
+    fill: variables.$color-blue;
   }
 }
 
 .button--third {
   color: currentColor;
-  background-color: $color-blue;
+  background-color: variables.$color-blue;
 
   &:hover {
     opacity: 1;
-    background-color: $color-secondary;
+    background-color: variables.$color-secondary;
     box-shadow: none;
     color: white;
 
     &.is--active {
-      background-color: $color-blue;
+      background-color: variables.$color-blue;
     }
   }
 }
 
 .button--link {
   background: transparent;
-  color: $color-link;
+  color: variables.$color-link;
   height: auto;
   padding: 0;
   white-space: normal;
   text-align: left;
-  font-weight: $font-weight-regular;
+  font-weight: variables.$font-weight-regular;
 
   &:hover {
     opacity: 1;
-    color: $color-secondary;
+    color: variables.$color-secondary;
   }
 }
 
@@ -168,19 +170,18 @@
     display: none;
   }
 
-  .react-tooltip {
+  .tooltip {
     background: #f8f8fa;
     opacity: 1;
     color: #0C0A3E;
     padding: 2px 8px;
-    font-family: $font-family-base;
-    border-radius: 0;
+    font-family: variables.$font-family-base;
     font-weight: 600;
     box-shadow: 0 0 10px 0 #0000007a;
     border-radius: 4px;
     white-space: break-spaces;
     word-break: break-all;
     max-width: 335px;
-    z-index: $z-index-tooltip;
+    z-index: variables.$z-index-tooltip;
   }
 }

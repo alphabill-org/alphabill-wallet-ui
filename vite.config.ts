@@ -1,14 +1,13 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import svgr from "vite-plugin-svgr";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react(), svgr()],
   build: {
     outDir: "build",
-    chunkSizeWarningLimit: 2000
+    chunkSizeWarningLimit: 2000,
   },
   define: {
     global: "globalThis",
@@ -19,5 +18,5 @@ export default defineConfig({
   },
   preview: {
     port: 3001,
-  }
+  },
 });

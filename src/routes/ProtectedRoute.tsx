@@ -1,5 +1,4 @@
 import { Navigate } from "react-router-dom";
-import { useApp } from "../hooks/appProvider";
 import { LocalKeyPubKeys, LocalKeyVault } from "../utils/constants";
 
 export interface IProtectedRouteProps {

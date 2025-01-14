@@ -1,39 +1,41 @@
 import classNames from "classnames";
-import { useEffect, useRef } from "react";
+import { ReactElement, ReactNode, useRef } from "react";
 
-import Close from "../../images/close.svg?react";
-import { useDocumentClick } from "../../utils/utils";
+import CloseIcon from "../../images/close.svg?react";
 
 export interface ISelectPopoverProps {
   onClose: () => void;
   isPopoverVisible: boolean;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPopoverProps): JSX.Element | null {
+export default function SelectPopover({
+  isPopoverVisible,
+  onClose,
+  title,
+  children,
+}: ISelectPopoverProps): ReactElement {
   const popupRef = useRef<HTMLDivElement>(null);
-  const isVisibleRef = useRef<boolean>(isPopoverVisible);
-
-  useDocumentClick(() => {
-    isVisibleRef.current && onClose();
-  }, popupRef);
-
-  useEffect(() => {
-    isVisibleRef.current = isPopoverVisible;
-  }, [isPopoverVisible]);
 
   return (
     <div
       className={classNames("select__popover-wrap", {
         "select__popover-wrap--open": isPopoverVisible,
       })}
+      onClick={(ev) => {
+        if (ev.target === ev.currentTarget) {
+          ev.stopPropagation();
+          onClose();
+        }
+      }}
     >
       <div className="select__popover" ref={popupRef}>
         <div className="select__popover-header">
           <div>{title}</div>
-          <Close
-            onClick={() => {
+          <CloseIcon
+            onClick={(ev) => {
+              ev.stopPropagation();
               onClose();
             }}
           />
@@ -43,5 +45,3 @@ function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPo
     </div>
   );
 }
-
-export default SelectPopover;

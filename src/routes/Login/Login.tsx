@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import Button from "../../components/Button/Button";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 import { useApp } from "../../hooks/appProvider";
 import { useAuth } from "../../hooks/useAuth";
 import Logo from "../../images/ab-logo.svg?react";
@@ -61,7 +61,7 @@ function Login(): JSX.Element | null {
             <form onSubmit={handleSubmit}>
               <Form>
                 <FormContent>
-                  <Textfield
+                  <InputField
                     id="passwordLogin"
                     name="password"
                     label="password"

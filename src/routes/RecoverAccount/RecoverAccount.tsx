@@ -8,7 +8,7 @@ import * as Yup from "yup";
 import Button from "../../components/Button/Button";
 import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 import { useAuth } from "../../hooks/useAuth";
 import Back from "../../images/back-ico.svg?react";
 import { checkPassword, clearStorage, extractFormikError, unit8ToHexPrefixed } from "../../utils/utils";
@@ -104,7 +104,7 @@ function RecoverAccount(): JSX.Element | null {
                 <Form>
                   <FormContent>
                     <Spacer mb={8} />
-                    <Textfield
+                    <InputField
                       id="mnemonicRecovery"
                       name="mnemonicRecovery"
                       label="Secret Recovery Phrase"
@@ -113,14 +113,14 @@ function RecoverAccount(): JSX.Element | null {
                       focusInput
                     />
                     <Spacer mb={8} />
-                    <Textfield
+                    <InputField
                       id="passwordRecoverAccount"
                       name="password"
                       label="New password (8 characters min)"
                       type="password"
                       error={extractFormikError(errors, touched, ["password"])}
                     />
-                    <Textfield
+                    <InputField
                       id="passwordRecoverAccountConfirm"
                       name="passwordConfirm"
                       label="Confirm password"

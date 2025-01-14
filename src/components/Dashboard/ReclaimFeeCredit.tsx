@@ -13,7 +13,7 @@ import Button from "../Button/Button";
 import { Form, FormFooter, FormContent } from "../Form/Form";
 import Popup from "../Popup/Popup";
 import Spacer from "../Spacer/Spacer";
-import Textfield from "../Textfield/Textfield";
+import InputField from "../InputField/InputField";
 
 export default function ReclaimFeeCredit({
   isAlpha,
@@ -128,7 +128,7 @@ export default function ReclaimFeeCredit({
 
                 <Form>
                   <FormContent>
-                    <Textfield
+                    <InputField
                       focusInput={isReclaimPopupVisible}
                       id={id}
                       name="password"

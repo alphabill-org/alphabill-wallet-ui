@@ -1,20 +1,22 @@
+@use '../../css/variables.scss';
+
 .popup {
-  background-color: $color-white;
+  background-color: variables.$color-white;
   padding: 24px;
   position: relative;
   width: 100%;
-  color: $color-blue;
+  color: variables.$color-blue;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
   .textfield__label {
-    color: $color-blue;
+    color: variables.$color-blue;
   }
 
   &__header {
-    color: $color-blue;
+    color: variables.$color-blue;
     display: flex;
     align-items: center;
     justify-content: left;
@@ -28,7 +30,7 @@
       right: 24px;
       top: 28px;
       cursor: pointer;
-      transition: all $main-transition-duration;
+      transition: all variables.$main-transition-duration;
 
       &:hover {
         opacity: .7;
@@ -46,11 +48,11 @@
     min-width: 375px;
     max-width: 375px;
     max-height: 600px;
-    background: $color-overlay;
+    background: variables.$color-overlay;
     display: flex;
     z-index: 100;
     overflow: auto;
-    transition: opacity $main-transition-duration;
+    transition: opacity variables.$main-transition-duration;
     pointer-events: none;
     opacity: 0;
     padding: 16px;

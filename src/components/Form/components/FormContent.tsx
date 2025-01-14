@@ -1,9 +1,9 @@
-import React from "react";
+import { ReactElement, ReactNode } from "react";
 
 export interface IFormContentProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export default function FormContent(props: IFormContentProps): JSX.Element {
+export default function FormContent(props: IFormContentProps): ReactElement {
   return <div className="form-content">{props.children}</div>;
 }

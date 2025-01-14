@@ -1,3 +1,5 @@
+@use '../../css/variables.scss';
+
 .dashboard {
   display: flex;
   flex-direction: column;
@@ -8,7 +10,7 @@
   &__account {
     min-width: 278px;
     justify-content: space-between;
-    background: $color-secondary;
+    background: variables.$color-secondary;
     padding: 8px 12px;
     border-radius: 4px;
     color: #ffffff;
@@ -51,7 +53,7 @@
 
     &-buttons {
       button {
-        background-color: $color-blue;
+        background-color: variables.$color-blue;
         padding: 4px;
         border-radius: 4px;
       }
@@ -61,7 +63,7 @@
       position: absolute;
       top: 24px;
       right: -24px;
-      background-color: $color-body-background;
+      background-color: variables.$color-body-background;
       border-radius: 4px;
       overflow: hidden;
       opacity: 0;
@@ -75,10 +77,10 @@
 
     &-option {
       cursor: pointer;
-      border-bottom: 1px solid $color-light;
+      border-bottom: 1px solid variables.$color-light;
       padding: 8px 12px;
-      color: $color-light;
-      transition: all $main-transition-duration;
+      color: variables.$color-light;
+      transition: all variables.$main-transition-duration;
       text-align: center;
       white-space: nowrap;
 
@@ -87,7 +89,7 @@
       }
 
       &:hover {
-        background-color: $color-secondary;
+        background-color: variables.$color-secondary;
       }
     }
   }
@@ -108,7 +110,6 @@
       flex-direction: row;
       gap: 8px;
       border-radius: 4px;
-      padding-right: 8px;
       position: relative;
       padding: 0;
       background: white;
@@ -118,8 +119,8 @@
       }
 
       .textfield__input {
-        background-color: $color-white;
-        color: $color-blue;
+        background-color: variables.$color-white;
+        color: variables.$color-blue;
         border: 1px solid;
         padding-right: 64px;
       }
@@ -130,16 +131,16 @@
         right: 8px;
 
         svg {
-          background: $color-blue;
+          background: variables.$color-blue;
           border-radius: 50%;
           padding: 4px;
           min-width: 20px;
           min-height: 20px;
-          fill: $color-white;
-          stroke: $color-white;
+          fill: variables.$color-white;
+          stroke: variables.$color-white;
 
           &.cancel {
-            background: $color-error;
+            background: variables.$color-error;
             stroke: transparent;
           }
 
@@ -148,7 +149,7 @@
           }
 
           path {
-            fill: $color-white;
+            fill: variables.$color-white;
           }
         }
 
@@ -177,29 +178,29 @@
       }
 
       &.selected {
-        background-color: $color-secondary;
-        color: $color-white;
+        background-color: variables.$color-secondary;
+        color: variables.$color-white;
 
         &:hover {
-          color: $color-white;
+          color: variables.$color-white;
 
           .edit-ico path {
-            stroke: $color-white;
+            stroke: variables.$color-white;
           }
         }
 
         .select__option:hover {
-          background-color: $color-secondary;
-          color: $color-white;
+          background-color: variables.$color-secondary;
+          color: variables.$color-white;
         }
 
         .edit-ico path {
-          stroke: $color-white;
+          stroke: variables.$color-white;
         }
       }
 
       .edit-ico path {
-        stroke: $color-blue;
+        stroke: variables.$color-blue;
       }
     }
 
@@ -213,14 +214,14 @@
       gap: 8px;
       align-items: center;
       cursor: pointer;
-      transition: all .3 ease;
+      transition: all .3s ease;
 
       &:hover {
         opacity: .7;
       }
 
       path {
-        fill: $color-secondary;
+        fill: variables.$color-secondary;
       }
     }
   }
@@ -242,12 +243,12 @@
         svg,
         path,
         g {
-          fill: $color-white;
+          fill: variables.$color-white;
         }
       }
 
       svg {
-        fill: $color-blue;
+        fill: variables.$color-blue;
       }
     }
   }
@@ -317,20 +318,20 @@
 .navbar {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid $color-secondary;
+  border-bottom: 1px solid variables.$color-secondary;
 
   &-item {
     font-weight: 600;
     font-size: 15px;
     line-height: 22px;
-    color: $color-underpants;
+    color: variables.$color-underpants;
     width: 50%;
     text-align: center;
     padding-bottom: 8px;
     padding-top: 4px;
     cursor: pointer;
-    transition: all .3;
-    border-right: 1px solid $color-secondary;
+    transition: all .3s;
+    border-right: 1px solid variables.$color-secondary;
 
     &:last-child {
       border-right: none;
@@ -339,8 +340,8 @@
 
     &.active,
     &:hover {
-      color: $color-light;
-      border-bottom: 2px solid $color-link;
+      color: variables.$color-light;
+      border-bottom: 2px solid variables.$color-link;
     }
   }
 }

@@ -1,130 +1,71 @@
-import classNames from "classnames";
-import { useRef, useState } from "react";
-
-import CopyToClipboard from "react-copy-to-clipboard";
-import { ICLogo, ICSettings } from "../../css/icons";
-import { ICCopy } from "../../css/icons/ICCopy";
-import { ICDown } from "../../css/icons/ICDown";
-import { useApp } from "../../hooks/appProvider";
-import Check from "../../images/check.svg?react";
-import { ProfileView } from "../../utils/constants";
-import { useDocumentClick } from "../../utils/utils";
+import { ReactElement, useState } from "react";
+import { useNetwork } from "../../hooks/network";
+import LogoIcon from "../../images/ab-logo-ico.svg?react";
+import ArrowIcon from "../../images/arrow.svg?react";
+import CheckIcon from "../../images/check.svg?react";
+import ProfileIcon from "../../images/profile.svg?react";
 import Button from "../Button/Button";
-import Checkbox from "../Checkbox/Checkbox";
 import SelectPopover from "../SelectPopover/SelectPopover";
 
-function Header(): JSX.Element | null {
-  const [showTestNetworks, setShowTestNetworks] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { setIsActionsViewVisible, setActionsView, account, accounts, setAccounts } = useApp();
+function NetworkSelect() {
+  const networkContext = useNetwork();
 
-  const testNetworks = account?.networks?.filter((network) => network.isTestNetwork === true);
-  const isTestNetworkActive = account?.networks?.find(
-    (network) => network.isTestNetwork === true && account?.activeNetwork === network.id,
+  return (
+    <div className="select__options">
+      {networkContext.networks.map((network) => {
+        return (
+          <div
+            key={network.id}
+            className="select__option"
+            onClick={() => {
+              networkContext.setSelectedNetwork(network);
+            }}
+          >
+            {network.alias} {networkContext.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
+          </div>
+        );
+      })}
+    </div>
   );
-  const mainNetworks = account?.networks?.filter((network) => network.isTestNetwork !== true);
-  const popupRef = useRef<HTMLDivElement>(null);
+}
 
-  useDocumentClick(() => {
-    isPopoverOpen && setIsPopoverOpen(false);
-  }, popupRef);
+export function Header(): ReactElement {
+  const networkContext = useNetwork();
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   return (
     <div className="header">
       <div className="header__ico">
-        <ICLogo className="header__ico" />
+        <LogoIcon className="header__ico" />
       </div>
-      <div className="header__select">
-        <Button variant="icon" className="select__button" onClick={() => setIsPopoverOpen(!isPopoverOpen)}>
-          {account?.name}
-          <ICDown className="select__button--icon" />
+      <div
+        className="header__select"
+        onClick={() => {
+          setIsPopoverOpen(true);
+        }}
+      >
+        <Button variant="icon" className="select__button">
+          {networkContext.selectedNetwork?.alias ?? "--- SELECT NETWORK ---"}
+          <ArrowIcon className="select__button--icon" />
         </Button>
-        <CopyToClipboard text={account?.pubKey || ""}>
-          <Button id="copy-tooltip" tooltipContent="Key copied" variant="icon" className="copy__button">
-            <ICCopy />
-          </Button>
-        </CopyToClipboard>
         <SelectPopover
           onClose={() => {
-            setIsPopoverOpen(!isPopoverOpen);
+            setIsPopoverOpen(false);
           }}
           isPopoverVisible={isPopoverOpen}
           title="SELECT NETWORK"
         >
-          <>
-            {mainNetworks?.length >= 1 && (
-              <div className="select__popover-checkbox">
-                <Checkbox
-                  label="Show test networks"
-                  isChecked={showTestNetworks || Boolean(isTestNetworkActive)}
-                  onChange={() => setShowTestNetworks(!showTestNetworks)}
-                />
-              </div>
-            )}
-            <div className="select__options">
-              {mainNetworks?.map((network) => {
-                return (
-                  <div
-                    key={network.id}
-                    className="select__option"
-                    onClick={() => {
-                      const updatedAccounts = accounts?.map((obj) => {
-                        if (account?.pubKey === obj?.pubKey) {
-                          return { ...obj, activeNetwork: network.id };
-                        } else return { ...obj };
-                      });
-                      setIsPopoverOpen(false);
-                      setAccounts(updatedAccounts);
-                      setShowTestNetworks(false);
-                    }}
-                  >
-                    {network.id} {network.id === account?.activeNetwork && <Check />}
-                  </div>
-                );
-              })}
-              <div
-                className={classNames("select__popover-test-networks", {
-                  "select__popover-test-networks--hidden": !showTestNetworks && !isTestNetworkActive,
-                })}
-              >
-                Test networks
-              </div>
-              {testNetworks?.map((network) => {
-                return (
-                  <div
-                    key={network.id}
-                    className={classNames("select__option", {
-                      "select__option--hidden": !showTestNetworks && !isTestNetworkActive,
-                    })}
-                    onClick={() => {
-                      const updatedAccounts = accounts?.map((obj) => {
-                        if (account?.pubKey === obj?.pubKey) {
-                          return { ...obj, activeNetwork: network.id };
-                        } else return { ...obj };
-                      });
-                      setIsPopoverOpen(false);
-                      setAccounts(updatedAccounts);
-                    }}
-                  >
-                    {network.id} {network.id === account?.activeNetwork && <Check />}
-                  </div>
-                );
-              })}
-            </div>
-          </>
+          <NetworkSelect />
         </SelectPopover>
       </div>
       <Button
         variant="icon"
         onClick={() => {
-          setActionsView(ProfileView);
-          setIsActionsViewVisible(true);
+          // PROFILE VIEW
         }}
       >
-        <ICSettings className="header__settings" />
+        <ProfileIcon />
       </Button>
     </div>
   );
 }
-
-export default Header;

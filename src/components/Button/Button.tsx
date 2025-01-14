@@ -1,8 +1,9 @@
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
-import { Tooltip } from "react-tooltip";
+import React, { ReactElement, useEffect, useState } from "react";
 
 import Spinner from "../Spinner/Spinner";
+
+// TODO: Remove unused stuff from this component
 
 export interface IButtonProps {
   children?: React.ReactNode;
@@ -27,7 +28,7 @@ export interface IButtonProps {
   tooltipPlacement?: "top" | "left" | "right" | "bottom";
 }
 
-export default function Button(props: IButtonProps): JSX.Element {
+export default function Button(props: IButtonProps): ReactElement {
   const className = classNames(
     "button",
     {
@@ -66,13 +67,9 @@ export default function Button(props: IButtonProps): JSX.Element {
   return (
     <>
       {props.tooltipContent && (
-        <Tooltip
-          isOpen={isTooltipOpen}
-          anchorId={props.id}
-          content={props.tooltipContent}
-          place={props.tooltipPlacement || "top"}
-          noArrow
-        />
+        <div className="tooltip" style={{ position: "relative", display: isTooltipOpen ? "block" : "none" }}>
+          {props.tooltipContent}
+        </div>
       )}
       <TagName
         {...(props.target && { target: props.target })}

@@ -1,3 +1,5 @@
+@use '../../../css/variables.scss';
+
 .fee-credit-card {
   background-color: rgba($color: #ffffff, $alpha: .15);
   width: 158px;
@@ -20,7 +22,7 @@
   }
 
   &__btn {
-    color: $color-primary;
+    color: variables.$color-primary;
     gap: 6px;
     width: 90px;
     margin-top: 6px;
@@ -34,7 +36,7 @@
     }
 
     &-icon path{
-      fill: $color-primary;
+      fill: variables.$color-primary;
     }
   }
 }

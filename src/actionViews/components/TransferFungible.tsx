@@ -8,7 +8,7 @@ import { Form, FormFooter, FormContent } from "../../components/Form/Form";
 
 import Select from "../../components/Select/Select";
 import Spacer from "../../components/Spacer/Spacer";
-import Textfield from "../../components/Textfield/Textfield";
+import InputField from "../../components/InputField/InputField";
 
 import { useApp } from "../../hooks/appProvider";
 import { splitBill, splitFungibleToken, transferBill, transferFungibleToken } from "../../hooks/requests";
@@ -324,7 +324,7 @@ export default function TransferFungible(): JSX.Element | null {
                         </div>
                       )}
                       <Spacer mt={16} />
-                      <Textfield
+                      <InputField
                         id="selectedBillId"
                         name="selectedBillId"
                         label={"SELECTED " + tokenLabel + " ID"}
@@ -367,7 +367,7 @@ export default function TransferFungible(): JSX.Element | null {
                       setActiveAssetLocal(JSON.stringify(option));
                     }}
                   />
-                  <Textfield
+                  <InputField
                     id="address"
                     name="address"
                     label="Address"
@@ -377,7 +377,7 @@ export default function TransferFungible(): JSX.Element | null {
                   />
                   <Spacer mb={8} />
                   <div className={selectedTransferKey ? "d-none" : ""}>
-                    <Textfield
+                    <InputField
                       id="amount"
                       name="amount"
                       label="Amount"
@@ -396,7 +396,7 @@ export default function TransferFungible(): JSX.Element | null {
                     />
                     <Spacer mb={8} />
                   </div>
-                  <Textfield
+                  <InputField
                     id="password"
                     name="password"
                     label="Password"

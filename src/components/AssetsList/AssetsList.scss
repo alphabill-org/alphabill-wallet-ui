@@ -1,3 +1,5 @@
+@use '../../css/variables.scss';
+
 .assets-list {
   font-weight: 600;
   font-size: 15px;
@@ -22,7 +24,7 @@
     justify-content: space-between;
     padding: 14px 16px 14px 12px;
     border-radius: 6px;
-    background-color: $color-secondary-op;
+    background-color: variables.$color-secondary-op;
     transition: background-color .3s ease;
     cursor: pointer;
     position: relative;
@@ -50,7 +52,7 @@
         right: 24px;
         width: auto;
         margin: auto;
-        z-index: $z-index-reclaim;
+        z-index: variables.$z-index-reclaim;
         height: 36px;
         transition: opacity .2s;
       }
@@ -59,7 +61,7 @@
         .reclaim {
           opacity: 1;
           pointer-events: all;
-          background-color: $color-secondary;
+          background-color: variables.$color-secondary;
         }
       }
     }
@@ -68,12 +70,12 @@
       cursor: unset;
 
       &:hover {
-        background-color: $color-secondary-op;
+        background-color: variables.$color-secondary-op;
       }
     }
 
     &:hover {
-      background-color: $color-primary--hover;
+      background-color: variables.$color-primary--hover;
     }
 
     &-lock {
@@ -119,8 +121,8 @@
       min-width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: $color-white;
-      color: $color-secondary-op;
+      background: variables.$color-white;
+      color: variables.$color-secondary-op;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -157,7 +159,7 @@
       z-index: 10;
 
       button {
-        background-color: $color-primary;
+        background-color: variables.$color-primary;
         padding: 6px;
         border-radius: 4px;
         height: 24px;
@@ -165,10 +167,10 @@
         display: flex;
 
         &:hover {
-          background-color: rgba($color-primary, .7);
+          background-color: rgba(variables.$color-primary, .7);
 
           path {
-            fill: $color-white;
+            fill: variables.$color-white;
           }
         }
 

@@ -1,9 +1,11 @@
+@use '../../css/variables.scss';
+
 .spacer {
   margin: 0;
   border-color: transparent;
   width: 100%;
 
   &--with-border {
-    border-bottom: 1px solid $color-primary;
+    border-bottom: 1px solid variables.$color-primary;
   }
 }

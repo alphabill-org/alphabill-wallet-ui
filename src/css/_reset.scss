@@ -1,3 +1,5 @@
+@use './variables.scss';
+
 html,
 body,
 div,
@@ -82,7 +84,7 @@ video {
   margin: 0;
   padding: 0;
   border: 0;
-  font: $font-family-base;
+  font: variables.$font-family-base;
   font-size: 100%;
   vertical-align: baseline;
 }
@@ -108,7 +110,7 @@ html {
 
   body {
     margin: 0;
-    font-family: $font-family-base;
+    font-family: variables.$font-family-base;
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -164,7 +166,7 @@ button {
 input,
 textarea,
 select {
-  color: $color-black;
+  color: variables.$color-black;
   line-height: 24px;
 }
 
@@ -184,7 +186,7 @@ button {
   cursor: pointer;
 
   &:hover {
-    color: $color-primary;
+    color: variables.$color-primary;
   }
 
   &:focus {
@@ -217,7 +219,7 @@ form {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $color-blue;
+  background: variables.$color-blue;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -238,15 +240,15 @@ form {
 
 a {
   text-decoration: none;
-  color: $color-primary;;
-  transition: all $main-transition-duration;
+  color: variables.$color-primary;;
+  transition: all variables.$main-transition-duration;
   cursor: pointer;
 
   &:hover {
-    color: $color-white;
+    color: variables.$color-white;
 
     svg {
-      fill: $color-white;
+      fill: variables.$color-white;
     }
   }
 }

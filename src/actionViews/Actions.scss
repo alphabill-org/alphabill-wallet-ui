@@ -1,3 +1,5 @@
+@use '../css/variables.scss';
+
 .actions {
   display: inline-flex;
   flex-direction: column;
@@ -14,7 +16,7 @@
   bottom: 0;
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform $main-transition-duration 0s, opacity 0s $main-transition-duration;
+  transition: transform variables.$main-transition-duration 0s, opacity 0s variables.$main-transition-duration;
   z-index: 2;
   user-select: none;
   opacity: 0;
@@ -24,7 +26,7 @@
     pointer-events: all;
     user-select: initial;
     opacity: 1;
-    transition: transform $main-transition-duration 0s, opacity 0s 0s;
+    transition: transform variables.$main-transition-duration 0s, opacity 0s 0s;
   }
 
   &__header {
@@ -33,7 +35,7 @@
     display: flex;
     align-items: center;
     position: relative;
-    background: $color-body-background;
+    background: variables.$color-body-background;
 
     svg {
       transform: rotate(90deg);
@@ -47,12 +49,12 @@
 
       svg {
         transform: rotate(0deg);
-        fill: $color-primary;
+        fill: variables.$color-primary;
       }
 
       &:hover {
         svg {
-          fill: $color-white;
+          fill: variables.$color-white;
         }
       }
     }
@@ -104,16 +106,16 @@
 .account__view {
   width: 100%;
   height: 100%;
-  background: $color-body-background;
+  background: variables.$color-body-background;
 
   .account {
     padding: 20px 0 16px;
     width: 100%;
-    border-bottom: 1px solid $color-light;
+    border-bottom: 1px solid variables.$color-light;
     display: flex;
     align-items: center;
     cursor: pointer;
-    transition: all $main-transition-duration;
+    transition: all variables.$main-transition-duration;
     position: relative;
 
     &:hover {
@@ -146,7 +148,7 @@
 
       &--active {
         position: absolute;
-        right: 0px;
+        right: 0;
       }
     }
 
@@ -156,7 +158,7 @@
         display: flex;
         padding: 12px 0;
         width: 100%;
-        transition: all $main-transition-duration;
+        transition: all variables.$main-transition-duration;
         cursor: pointer;
         align-items: center;
 
@@ -167,7 +169,7 @@
 
         &::after {
           position: absolute;
-          right: 0px;
+          right: 0;
           transform: rotate(270deg);
           content: url("./../images/arrow.svg");
         }
@@ -187,7 +189,7 @@
   flex-direction: column;
 
   &__info {
-    background: $color-secondary;
+    background: variables.$color-secondary;
     border-radius: 4px;
     font-weight: 600;
     font-size: 12px;
@@ -221,7 +223,7 @@
     align-items: center;
 
     button.button--icon {
-      background-color: $color-primary;
+      background-color: variables.$color-primary;
       padding: 6px;
       border-radius: 4px;
       height: 24px;
@@ -229,10 +231,10 @@
       display: flex;
 
       &:hover {
-        background-color: rgba($color-primary, .8);
+        background-color: rgba(variables.$color-primary, .8);
 
         path {
-          fill: $color-white;
+          fill: variables.$color-white;
         }
       }
     }
@@ -254,7 +256,7 @@
     color: #0C0A3E;
 
     &.is-empty {
-      background-color: $color-white;
+      background-color: variables.$color-white;
       width: 200px;
       height: 200px;
       border-radius: 8px;
@@ -285,7 +287,7 @@
         svg,
         path,
         g {
-          fill: $color-white;
+          fill: variables.$color-white;
         }
       }
     }

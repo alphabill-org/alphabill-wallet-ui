@@ -1,3 +1,5 @@
+@use '../../css/variables.scss';
+
 .checkbox {
   display: block;
   position: relative;
@@ -6,7 +8,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  font-family: $font-family-base;
+  font-family: variables.$font-family-base;
   user-select: none;
 }
 
@@ -29,7 +31,7 @@
 }
 
 .checkbox input:checked~.checkmark {
-  background-color: $color-blue;
+  background-color: variables.$color-blue;
 }
 
 .checkmark:after {

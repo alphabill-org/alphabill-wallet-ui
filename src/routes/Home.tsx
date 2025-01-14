@@ -1,17 +1,17 @@
-import Actions from "../actionViews/Actions";
-import Dashboard from "../components/Dashboard/Dashboard";
-import Header from "../components/Header/Header";
-import { ToolBar } from "../components/ToolBar/ToolBar";
+import { ReactElement } from "react";
+import { Outlet } from "react-router-dom";
+import { Header } from "../components/Header/Header";
 
-function Home(): JSX.Element {
+export function Home(): ReactElement {
   return (
     <>
       <Header />
-      <Dashboard />
-      <Actions />
-      <ToolBar />
+      <Outlet />
+      <div></div>
+      <div></div>
+      {/*<Dashboard />*/}
+      {/*<Actions />*/}
+      {/*<ToolBar />*/}
     </>
   );
 }
-
-export default Home;
