@@ -5,9 +5,9 @@ import {
 } from "./routes/CreateWallet/CreateWallet";
 import { Home } from "./routes/Home";
 import { Network } from "./routes/Network";
-import { Step1 } from "./routes/CreateWallet/Step1";
-import { Step2 } from "./routes/CreateWallet/Step2";
-import { Step3 } from "./routes/CreateWallet/Step3";
+import { Password } from "./routes/CreateWallet/Password";
+import { Mnemonic } from "./routes/CreateWallet/Mnemonic";
+import { Alias } from "./routes/CreateWallet/Alias";
 
 export function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -31,11 +31,7 @@ export function App() {
           <Route path="/" element={<Home />}>
             <Route path="network" element={<Network />} />
           </Route>
-          <Route path="/create-wallet" element={<CreateWallet />}>
-            <Route path="step-1" element={<Step1 />} />
-            <Route path="step-2" element={<Step2 />} />
-            <Route path="step-3" element={<Step3 />} />
-          </Route>
+          <Route path="/create-wallet" element={<CreateWallet />} />
         </Routes>
       </div>
     </div>

@@ -1,24 +1,43 @@
+import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { HDKey } from "@scure/bip32";
-import { mnemonicToSeed } from "@scure/bip39";
-import { ReactElement, useCallback, useReducer } from "react";
-import { Outlet } from "react-router-dom";
+import { ReactElement, useCallback, useMemo, useReducer } from "react";
+import { useNavigate } from "react-router-dom";
 import { useVault } from "../../hooks/vault";
+import { Alias } from "./Alias";
+import { Mnemonic } from "./Mnemonic";
+import { Password } from "./Password";
+
+interface IKeyInfo {
+  readonly mnemonic: string;
+  readonly key: HDKey;
+}
 
 interface ICreateWalletState {
-  password?: string;
-  key?: { mnemonic: string; initialKey: HDKey };
+  readonly step: CreateWalletStep;
+  readonly password?: string;
+  readonly keyInfo?: IKeyInfo;
 }
 
 enum CreateWalletAction {
   SET_PASSWORD,
   SET_MNEMONIC,
+  SET_STEP,
+  RESET,
+}
+
+export enum CreateWalletStep {
+  PASSWORD,
+  MNEMONIC,
+  ALIAS,
 }
 
 function reducer(
   previousState: ICreateWalletState,
   action:
     | { type: CreateWalletAction.SET_PASSWORD; password: string }
-    | { type: CreateWalletAction.SET_MNEMONIC; key: HDKey; mnemonic: string },
+    | { type: CreateWalletAction.SET_MNEMONIC; key: HDKey; mnemonic: string }
+    | { type: CreateWalletAction.SET_STEP; step: CreateWalletStep }
+    | { type: CreateWalletAction.RESET },
 ): ICreateWalletState {
   switch (action.type) {
     case CreateWalletAction.SET_PASSWORD:
@@ -29,115 +48,96 @@ function reducer(
     case CreateWalletAction.SET_MNEMONIC:
       return {
         ...previousState,
-        key: {
-          initialKey: action.key,
+        keyInfo: {
+          key: action.key,
           mnemonic: action.mnemonic,
         },
+      };
+    case CreateWalletAction.SET_STEP:
+      return {
+        ...previousState,
+        step: action.step,
+      };
+    case CreateWalletAction.RESET:
+      return {
+        step: CreateWalletStep.PASSWORD,
       };
     default:
       throw new Error(`Unknown create wallet action ${String(action)}`);
   }
 }
 
-export interface ICreateWalletContext extends ICreateWalletState {
-  setPassword: (password: string) => void;
-  setMnemonic: (mnemonic: string) => Promise<void>;
-}
+const steps = [CreateWalletStep.PASSWORD, CreateWalletStep.MNEMONIC, CreateWalletStep.ALIAS];
 
 export function CreateWallet(): ReactElement {
+  const navigate = useNavigate();
   const vault = useVault();
-  const [state, dispatch] = useReducer(reducer, {});
+  const [{ step, keyInfo, password }, dispatch] = useReducer(reducer, { step: CreateWalletStep.PASSWORD });
 
-  const setPassword = useCallback(
-    (password: string) => {
-      dispatch({ type: CreateWalletAction.SET_PASSWORD, password });
+  const setStep = useCallback(
+    (step: CreateWalletStep) => {
+      dispatch({ type: CreateWalletAction.SET_STEP, step });
     },
     [dispatch],
   );
 
-  const setMnemonic = useCallback(
-    async (mnemonic: string): Promise<void> => {
+  const reset = useCallback((): void => {
+    dispatch({ type: CreateWalletAction.RESET });
+  }, [dispatch]);
+
+  const nextStep = useCallback(() => {
+    const index = steps.indexOf(step);
+    if (index < steps.length - 1) {
+      setStep(steps[index + 1]);
+    }
+  }, [step]);
+
+  const previousStep = useCallback(() => {
+    const index = steps.indexOf(step);
+    if (index > 0) {
+      setStep(steps[index - 1]);
+    }
+  }, [step]);
+
+  const onStep1Submitted = useCallback(
+    (password: string): void => {
+      dispatch({ type: CreateWalletAction.SET_PASSWORD, password });
+      nextStep();
+    },
+    [dispatch, nextStep],
+  );
+
+  const onStep2Submitted = useCallback(
+    async (mnemonic: string) => {
       const key = await vault.deriveKey(mnemonic, 0);
       dispatch({ type: CreateWalletAction.SET_MNEMONIC, mnemonic, key });
+      nextStep();
     },
-    [dispatch],
+    [dispatch, nextStep, vault],
   );
 
-  return (
-    <>
-      <Outlet context={{ ...state, setPassword, setMnemonic }} />
-    </>
+  const onStep3Submitted = useCallback(
+    async (alias: string) => {
+      if (!keyInfo || !password) {
+        throw new Error("Data is missing for creating a wallet.");
+      }
+
+      await vault.createVault(keyInfo.mnemonic, password, { alias, index: 0 });
+      reset();
+      navigate("/");
+    },
+    [dispatch, keyInfo, password],
   );
+
+  const publicKey = useMemo(() => Base16Converter.encode(keyInfo?.key.publicKey ?? new Uint8Array()), [keyInfo]);
+
+  switch (step) {
+    case CreateWalletStep.PASSWORD:
+      return <Password password={password} onSubmitSuccess={onStep1Submitted} previous={() => navigate("/")} />;
+    case CreateWalletStep.MNEMONIC:
+      return <Mnemonic keyInfo={keyInfo} onSubmitSuccess={onStep2Submitted} previous={previousStep} />;
+    case CreateWalletStep.ALIAS: {
+      return <Alias publicKey={publicKey} onSubmitSuccess={onStep3Submitted} previous={previousStep} />;
+    }
+  }
 }
-
-// {/*<Formik*/}
-//         {/*  initialValues={{*/}
-//         {/*    mnemonic: "",*/}
-//         {/*    password: "",*/}
-//         {/*    passwordConfirm: "",*/}
-//         {/*  }}*/}
-//         {/*  validationSchema={Yup.object().shape({*/}
-//         {/*    password: Yup.string().test(*/}
-//         {/*      "empty-or-8-characters-check",*/}
-//         {/*      "password must be at least 8 characters",*/}
-//         {/*      (password) => checkPassword(password),*/}
-//         {/*    ),*/}
-//         {/*    passwordConfirm: Yup.string().test(*/}
-//         {/*      "empty-or-8-characters-check",*/}
-//         {/*      "password must be at least 8 characters",*/}
-//         {/*      (password) => checkPassword(password),*/}
-//         {/*    ),*/}
-//         {/*  })}*/}
-//         {/*  onSubmit={(values, { setErrors }) => {*/}
-//         {/*    if (values.password !== values.passwordConfirm) {*/}
-//         {/*      return setErrors({ passwordConfirm: "Passwords don't match" });*/}
-//         {/*    }*/}
-//
-//         {/*    const seed = mnemonicToSeedSync(mnemonic);*/}
-//         {/*    const masterKey = HDKey.fromMasterSeed(seed);*/}
-//         {/*    const hashingKey = masterKey.derive(`m/44'/634'/0'/0/0`);*/}
-//         {/*    const hashingPubKey = hashingKey.publicKey;*/}
-//         {/*    const prefixedHashingPubKey = unit8ToHexPrefixed(hashingPubKey!);*/}
-//
-//         {/*    const encrypted = CryptoJS.AES.encrypt(prefixedHashingPubKey, values.password).toString();*/}
-//
-//         {/*    const decrypted = CryptoJS.AES.decrypt(encrypted, values.password);*/}
-//
-//         {/*    if (prefixedHashingPubKey === decrypted.toString(CryptoJS.enc.Latin1)) {*/}
-//         {/*      const vaultData = {*/}
-//         {/*        entropy: mnemonicToEntropy(mnemonic),*/}
-//         {/*        pub_keys: prefixedHashingPubKey,*/}
-//         {/*      };*/}
-//
-//         {/*      clearStorage();*/}
-//         {/*      login(*/}
-//         {/*        prefixedHashingPubKey,*/}
-//         {/*        prefixedHashingPubKey,*/}
-//         {/*        CryptoJS.AES.encrypt(JSON.stringify(vaultData), values.password).toString(),*/}
-//         {/*      );*/}
-//         {/*    } else {*/}
-//         {/*      return setErrors({*/}
-//         {/*        passwordConfirm: "Public key creation failed",*/}
-//         {/*      });*/}
-//         {/*    }*/}
-//         {/*  }}*/}
-//         {/*>*/}
-//         {/*  {(formikProps) => {*/}
-//         {/*    const { handleSubmit, errors, touched } = formikProps;*/}
-//
-//         {/*    return (*/}
-//
-//         {/*<TextAreaField*/}
-//         {/*  id="mnemonic"*/}
-//         {/*  name="mnemonic"*/}
-//         {/*  type="mnemonic"*/}
-//         {/*  label="Secret Recovery Phrase"*/}
-//         {/*  error={null}*/}
-//         {/*  className="center"*/}
-//         {/*  value={mnemonic}*/}
-//         {/*  disabled*/}
-//         {/*/>*/}
-//
-//         {/*    );*/}
-//         {/*  }}*/}
-//         {/*</Formik>*/}

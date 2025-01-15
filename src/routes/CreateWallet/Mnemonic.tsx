@@ -1,53 +1,51 @@
+import { HDKey } from "@scure/bip32";
 import { generateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { ReactElement, useMemo, useRef, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { FormEvent, ReactElement, useCallback, useMemo, useRef, useState } from "react";
 import Button from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import { InputField } from "../../components/InputField/InputField";
 import CopyIcon from "../../images/copy-ico.svg?react";
-import { ICreateWalletContext } from "./CreateWallet";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Progress } from "./Progress";
-import { Step1 } from "./Step1";
 
 type FormElements = "mnemonic";
-export function Step2(): ReactElement | null {
-  const navigate = useNavigate();
-  const context = useOutletContext<ICreateWalletContext | null>();
+
+export function Mnemonic({
+  keyInfo,
+  onSubmitSuccess,
+  previous,
+}: {
+  keyInfo?: { mnemonic: string; key: HDKey };
+  previous: () => void;
+  onSubmitSuccess: (mnemonic: string) => Promise<void>;
+}): ReactElement | null {
   const mnemonicInputField = useRef<HTMLTextAreaElement | null>(null);
   const [errors, setErrors] = useState<Map<FormElements, string>>(new Map());
 
-  if (!context) {
-    throw new Error("Invalid create wallet context");
-  }
+  const onSubmit = useCallback(
+    async (ev: FormEvent<HTMLFormElement>) => {
+      ev.preventDefault();
+      const errors = new Map<FormElements, string>();
+      const data = new FormData(ev.currentTarget);
+      const mnemonic = String(data.get("mnemonic"));
+      if (mnemonic.split(" ").length !== 12) {
+        errors.set("mnemonic", "Invalid mnemonic.");
+      }
 
-  if (!context.password) {
-    return <Step1 />;
-  }
+      setErrors(errors);
+      if (errors.size === 0) {
+        await onSubmitSuccess(mnemonic);
+      }
+    },
+    [setErrors, onSubmitSuccess],
+  );
 
-  const mnemonic = useMemo(() => context.key?.mnemonic ?? generateMnemonic(wordlist), []);
+  const mnemonic = useMemo(() => keyInfo?.mnemonic ?? generateMnemonic(wordlist), []);
 
   return (
-    <form
-      className="create-account"
-      onSubmit={async (ev) => {
-        ev.preventDefault();
-        const errors = new Map<FormElements, string>();
-        const data = new FormData(ev.currentTarget);
-        const mnemonic = String(data.get("mnemonic"));
-        if (mnemonic.split(" ").length !== 12) {
-          errors.set("mnemonic", "Invalid mnemonic.");
-        }
-
-        setErrors(errors);
-        if (errors.size === 0) {
-          await context.setMnemonic(mnemonic);
-          navigate("/create-wallet/step-3");
-        }
-      }}
-    >
+    <form className="create-account" onSubmit={onSubmit}>
       <Header title="Copy Secret Recovery Phrase" />
       <Progress step={2} total={3} />
       <div className="pad-24 t-medium-small">
@@ -84,7 +82,7 @@ export function Step2(): ReactElement | null {
           </FormFooter>
         </Form>
       </div>
-      <Footer previousPage="/create-wallet/step-1" />
+      <Footer previous={previous} />
     </form>
   );
 }
