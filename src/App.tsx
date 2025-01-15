@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import {
-  CreateWallet
-} from "./routes/CreateWallet/CreateWallet";
+import { CreateWallet } from "./routes/CreateWallet/CreateWallet";
 import { Home } from "./routes/Home";
+import { Login } from "./routes/Login/Login";
 import { Network } from "./routes/Network";
-import { Password } from "./routes/CreateWallet/Password";
-import { Mnemonic } from "./routes/CreateWallet/Mnemonic";
-import { Alias } from "./routes/CreateWallet/Alias";
 
 export function App() {
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
@@ -32,6 +28,7 @@ export function App() {
             <Route path="network" element={<Network />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </div>
