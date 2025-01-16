@@ -67,7 +67,7 @@ export function Login(): ReactElement {
         </Form>
       </form>
       <div className="login__footer">
-        <Link to="/recover-wallet">Forgot password?</Link>
+        <Link to="/recover-wallet">Recover account?</Link>
         <Spacer mb={16} />
         <div>
           Don't have a wallet?
