@@ -1,7 +1,7 @@
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { HDKey } from "@scure/bip32";
 import { mnemonicToSeed } from "@scure/bip39";
-import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from "react";
 
 const VAULT_LOCAL_STORAGE_KEY = "alphabill_vault";
 const VAULT_KEYS_LOCAL_STORAGE_KEY = "alphabill_vault_keys";
@@ -29,14 +29,14 @@ interface IVaultContext {
   readonly keys: IVaultKey[];
   createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
-  load(password: string): Promise<boolean>;
+  unlock(password: string): Promise<boolean>;
 }
 
 const VaultContext = createContext<IVaultContext | null>(null);
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-export function useVault() {
+export function useVault(): IVaultContext {
   const context = useContext(VaultContext);
 
   if (!context) {
@@ -46,7 +46,7 @@ export function useVault() {
   return context;
 }
 
-export function VaultProvider({ children }: PropsWithChildren<object>) {
+export function VaultProvider({ children }: PropsWithChildren<object>): ReactElement {
   const [keys, setKeys] = useState<IKeyInfo[]>(() => {
     const storageKeys = localStorage.getItem(VAULT_KEYS_LOCAL_STORAGE_KEY);
     if (!storageKeys) {
@@ -144,7 +144,7 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
     return masterKey.derive(`m/44'/634'/${index}'/0/0`);
   }, []);
 
-  const load = useCallback(
+  const unlock = useCallback(
     async (password: string): Promise<boolean> => {
       const storageVaultJson = localStorage.getItem(VAULT_LOCAL_STORAGE_KEY);
       if (!storageVaultJson) {
@@ -163,10 +163,14 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
 
         for (const key of vault.keys) {
           const derivedKey = await deriveKey(vault.mnemonic, key.index);
+          if (!derivedKey.publicKey) {
+            throw new Error(`Could not derive public key for '${key.alias}'`);
+          }
+
           publicKeys.push({
             alias: key.alias,
             index: key.index,
-            publicKey: Base16Converter.encode(derivedKey.publicKey ?? new Uint8Array()),
+            publicKey: Base16Converter.encode(derivedKey.publicKey),
           });
         }
 
@@ -187,5 +191,5 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
     [decryptVault, deriveKey, setKeys],
   );
 
-  return <VaultContext.Provider value={{ createVault, deriveKey, load, keys }}>{children}</VaultContext.Provider>;
+  return <VaultContext.Provider value={{ createVault, deriveKey, unlock, keys }}>{children}</VaultContext.Provider>;
 }

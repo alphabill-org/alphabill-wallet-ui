@@ -22,7 +22,7 @@ export default [
       "import/no-unresolved": "off",
       "require-await": "error",
       "@typescript-eslint/explicit-member-accessibility": "error",
-      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-function-return-type": "error",
       "@typescript-eslint/naming-convention": [
         "error",
         {
@@ -47,14 +47,5 @@ export default [
       "@typescript-eslint/member-ordering": "error",
       "import/order": ["error", { alphabetize: { order: "asc", caseInsensitive: true } }],
     },
-  },
-  {
-    files: ["*.ts", "*.mts", "*.cts", "*.tsx"],
-    rules: {
-      "@typescript-eslint/explicit-function-return-type": "error",
-    },
-  },
-  {
-    ignores: ["lib/**/*"],
   },
 ];

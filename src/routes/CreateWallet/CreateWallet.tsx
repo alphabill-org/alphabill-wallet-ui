@@ -7,15 +7,13 @@ import { Alias } from "./Alias";
 import { Mnemonic } from "./Mnemonic";
 import { Password } from "./Password";
 
-interface IKeyInfo {
-  readonly mnemonic: string;
-  readonly key: HDKey;
-}
-
 interface ICreateWalletState {
   readonly step: CreateWalletStep;
   readonly password?: string;
-  readonly keyInfo?: IKeyInfo;
+  readonly keyInfo?: {
+    readonly mnemonic: string;
+    readonly key: HDKey;
+  };
 }
 
 enum CreateWalletAction {
@@ -75,7 +73,7 @@ export function CreateWallet(): ReactElement {
   const [{ step, keyInfo, password }, dispatch] = useReducer(reducer, { step: CreateWalletStep.PASSWORD });
 
   const setStep = useCallback(
-    (step: CreateWalletStep) => {
+    (step: CreateWalletStep): void => {
       dispatch({ type: CreateWalletAction.SET_STEP, step });
     },
     [dispatch],
@@ -85,14 +83,14 @@ export function CreateWallet(): ReactElement {
     dispatch({ type: CreateWalletAction.RESET });
   }, [dispatch]);
 
-  const nextStep = useCallback(() => {
+  const nextStep = useCallback((): void => {
     const index = steps.indexOf(step);
     if (index < steps.length - 1) {
       setStep(steps[index + 1]);
     }
   }, [step]);
 
-  const previousStep = useCallback(() => {
+  const previousStep = useCallback((): void => {
     const index = steps.indexOf(step);
     if (index > 0) {
       setStep(steps[index - 1]);
@@ -108,7 +106,7 @@ export function CreateWallet(): ReactElement {
   );
 
   const onStep2Submitted = useCallback(
-    async (mnemonic: string) => {
+    async (mnemonic: string): Promise<void> => {
       const key = await vault.deriveKey(mnemonic, 0);
       dispatch({ type: CreateWalletAction.SET_MNEMONIC, mnemonic, key });
       nextStep();

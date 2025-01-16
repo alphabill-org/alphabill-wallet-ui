@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
-import LoadingBallIcon from "../../images/loading/loading-circle.svg?react";
 import LoadingBackgroundIcon from "../../images/loading/loading-bg.svg?react";
+import LoadingBallIcon from "../../images/loading/loading-circle.svg?react";
 
 interface IProps {
   title?: string;

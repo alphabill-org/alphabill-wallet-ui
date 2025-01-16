@@ -3,28 +3,13 @@
 @use './utils.scss';
 @use './reset.scss';
 
-@use '../actionViews/Actions.scss';
-@use '../actionViews/components/BillsList/BillsList.scss';
-@use '../components/Popup/Popup.scss';
-@use '../components/Animations/Animations.scss';
 @use '../components/Button/Button.scss';
 
-@use '../components/AssetCard/AssetCard.scss';
-@use '../components/FeeCredit/FeeCreditCard/FeeCreditCard.scss';
-@use '../components/FeeCredit/FeeCreditSection.scss';
-@use '../components/AssetCard/AssetCardIcon/AssetCardIcon.scss';
-@use '../components/AssetsList/AssetsList.scss';
 @use '../components/Form/Form.scss';
-@use '../components/Checkbox/Checkbox.scss';
 @use '../components/Header/Header.scss';
-@use '../components/Select/Select.scss';
 @use '../components/Spacer/Spacer.scss';
-@use '../components/Spinner/Spinner.scss';
 @use '../components/InputField/InputField';
-@use '../components/Dashboard/Dashboard.scss';
 @use '../components/SelectPopover/SelectPopover.scss';
-@use '../components/Alert/Alert.scss';
-@use '../components/ToolBar/ToolBar.scss';
 @use '../components/Loading/Loading.scss';
 
 @use '../routes/Login/Login.scss';

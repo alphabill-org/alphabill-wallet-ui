@@ -8,14 +8,14 @@ import Spacer from "../../components/Spacer/Spacer";
 import { useAuthentication } from "../../hooks/authentication";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 
-export function Login(): ReactElement | null {
+export function Login(): ReactElement {
   const authentication = useAuthentication();
   const navigate = useNavigate();
   const [loginFailed, setLoginFailed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const login = useCallback(
-    async (ev: FormEvent<HTMLFormElement>) => {
+    async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
       const time = Date.now();
       setIsLoading(true);
       ev.preventDefault();

@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from "react";
 import { useVault } from "./vault";
 
 const AUTHENTICATED_LOCAL_STORAGE_KEY = "alphabill_authenticated";
@@ -10,7 +10,7 @@ interface IAuthenticationContext {
 
 const AuthenticationContext = createContext<IAuthenticationContext | null>(null);
 
-export function useAuthentication() {
+export function useAuthentication(): IAuthenticationContext {
   const context = useContext(AuthenticationContext);
 
   if (!context) {
@@ -20,8 +20,8 @@ export function useAuthentication() {
   return context;
 }
 
-export function AuthenticationProvider({ children }: PropsWithChildren<object>) {
-  const { load } = useVault();
+export function AuthenticationProvider({ children }: PropsWithChildren<object>): ReactElement {
+  const { unlock } = useVault();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const storageAuthenticated = localStorage.getItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
     if (!storageAuthenticated) {
@@ -38,7 +38,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren<object>) 
 
   const login = useCallback(
     async (password: string): Promise<boolean> => {
-      const result = await load(password);
+      const result = await unlock(password);
       if (result) {
         setIsLoggedIn(true);
         localStorage.setItem(AUTHENTICATED_LOCAL_STORAGE_KEY, JSON.stringify(true));
@@ -46,7 +46,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren<object>) 
 
       return result;
     },
-    [load, setIsLoggedIn],
+    [unlock, setIsLoggedIn],
   );
 
   return <AuthenticationContext.Provider value={{ login, isLoggedIn }}>{children}</AuthenticationContext.Provider>;

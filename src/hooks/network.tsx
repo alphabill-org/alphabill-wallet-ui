@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useReducer } from "react";
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useReducer } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const NETWORKS_LOCAL_STORAGE_KEY = "alphabill_networks";
@@ -63,7 +63,7 @@ export function useNetwork(): INetworkContext {
   return context;
 }
 
-export function NetworkProvider({ children }: PropsWithChildren<object>) {
+export function NetworkProvider({ children }: PropsWithChildren<object>): ReactElement {
   const [state, dispatch] = useReducer(
     reducer,
     {

@@ -19,7 +19,7 @@ export function Alias({
   const [errors, setErrors] = useState<Map<FormElements, string>>(new Map());
 
   const onSubmit = useCallback(
-    async (ev: FormEvent<HTMLFormElement>) => {
+    async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
       ev.preventDefault();
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
