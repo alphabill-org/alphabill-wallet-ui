@@ -60,7 +60,7 @@ export function Login(): ReactElement {
             />
           </FormContent>
           <FormFooter>
-            <Button big={true} block={true} type="submit" variant="primary">
+            <Button block={true} type="submit" variant="primary">
               Log in
             </Button>
           </FormFooter>

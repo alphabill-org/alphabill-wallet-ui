@@ -59,7 +59,7 @@ export function Network(): ReactElement {
               <TextField label="Token partition" name="tokenPartitionUrl" error={errors.get("tokenPartitionUrl")} />
             </FormContent>
             <FormFooter>
-              <Button big={true} block={true} type="submit" variant="primary">
+              <Button block={true} type="submit" variant="primary">
                 Add
               </Button>
             </FormFooter>

@@ -28,7 +28,7 @@ export function App(): ReactElement {
             <Route path="network" element={<Network />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />
-          <Route path="/recover-wallet" element={<CreateWallet isAccountRecovery={true} />} />
+          <Route path="/recover-wallet" element={<CreateWallet isWalletRecovery={true} />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>
