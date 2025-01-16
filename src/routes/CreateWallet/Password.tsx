@@ -1,6 +1,6 @@
 import { FormEvent, ReactElement, useCallback, useState } from "react";
 import { Form, FormContent } from "../../components/Form/Form";
-import PasswordField from "../../components/InputField/PasswordField";
+import { PasswordField } from "../../components/InputField/PasswordField";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Progress } from "./Progress";
