@@ -46,7 +46,7 @@ export function useVault(): IVaultContext {
   return context;
 }
 
-export function VaultProvider({ children }: PropsWithChildren<object>): ReactElement {
+export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   const [keys, setKeys] = useState<IKeyInfo[]>(() => {
     const storageKeys = localStorage.getItem(VAULT_KEYS_LOCAL_STORAGE_KEY);
     if (!storageKeys) {

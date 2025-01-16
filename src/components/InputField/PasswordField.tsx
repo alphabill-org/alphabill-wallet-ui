@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useRef, useState } from "react";
 import ShowIcon from "../../images/show-ico.svg?react";
-import Button from "../Button/Button";
+import { Button } from "../Button/Button";
 import { InputField } from "./InputField";
 
 interface IPasswordFieldProps {
@@ -13,7 +13,7 @@ interface IPasswordFieldProps {
   value?: string;
 }
 
-export default function PasswordField(props: IPasswordFieldProps): ReactElement {
+export function PasswordField(props: IPasswordFieldProps): ReactElement {
   const { error, focusInput, selectInput, label, desc, name, value } = props;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showPassword, setShowPassword] = useState(false);

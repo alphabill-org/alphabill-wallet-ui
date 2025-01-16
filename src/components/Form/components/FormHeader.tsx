@@ -1,9 +1,5 @@
-import React from "react";
+import { PropsWithChildren, ReactElement } from "react";
 
-export interface IFormHeaderProps {
-  children: React.ReactNode;
-}
-
-export default function FormHeader(props: IFormHeaderProps): JSX.Element {
+export function FormHeader(props: PropsWithChildren): ReactElement {
   return <div className="form-header">{props.children}</div>;
 }

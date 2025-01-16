@@ -1,5 +1,5 @@
 import { FormEvent, ReactElement, useCallback, useRef, useState } from "react";
-import Button from "../../components/Button/Button";
+import { Button } from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import { InputField } from "../../components/InputField/InputField";
 import CopyIcon from "../../images/copy-ico.svg?react";

@@ -1,10 +1,10 @@
 import { FormEvent, ReactElement, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Button from "../../components/Button/Button";
+import { Button } from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
-import PasswordField from "../../components/InputField/PasswordField";
+import { PasswordField } from "../../components/InputField/PasswordField";
 import { Loading } from "../../components/Loading/Loading";
-import Spacer from "../../components/Spacer/Spacer";
+import { Spacer } from "../../components/Spacer/Spacer";
 import { useAuthentication } from "../../hooks/authentication";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 

@@ -1,9 +1,5 @@
-import React from "react";
+import { PropsWithChildren, ReactElement } from "react";
 
-export interface IFormFooterProps {
-  children: React.ReactNode;
-}
-
-export default function FormFooter(props: IFormFooterProps): JSX.Element {
+export function FormFooter(props: PropsWithChildren): ReactElement {
   return <div className="form-footer">{props.children}</div>;
 }

@@ -63,7 +63,7 @@ export function useNetwork(): INetworkContext {
   return context;
 }
 
-export function NetworkProvider({ children }: PropsWithChildren<object>): ReactElement {
+export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
   const [state, dispatch] = useReducer(
     reducer,
     {

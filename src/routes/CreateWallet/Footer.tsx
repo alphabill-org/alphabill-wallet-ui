@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import Button from "../../components/Button/Button";
+import { Button } from "../../components/Button/Button";
 
 export function Footer({
   previousLabel = "Back",

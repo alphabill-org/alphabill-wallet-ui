@@ -4,7 +4,7 @@ import LogoIcon from "../../images/ab-logo-ico.svg?react";
 import ArrowIcon from "../../images/arrow.svg?react";
 import CheckIcon from "../../images/check.svg?react";
 import ProfileIcon from "../../images/profile.svg?react";
-import Button from "../Button/Button";
+import { Button } from "../Button/Button";
 import { SelectPopover } from "../SelectPopover/SelectPopover";
 
 function NetworkSelect(): ReactElement {

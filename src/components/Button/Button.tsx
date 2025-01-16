@@ -15,7 +15,7 @@ export interface IButtonProps {
   isActive?: boolean;
 }
 
-export default function Button(props: IButtonProps): ReactElement {
+export function Button(props: IButtonProps): ReactElement {
   const className = classNames(
     "button",
     {

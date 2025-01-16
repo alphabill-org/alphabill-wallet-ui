@@ -69,7 +69,7 @@ function reducer(
 
 const steps = [CreateWalletStep.PASSWORD, CreateWalletStep.MNEMONIC, CreateWalletStep.ALIAS];
 
-export function CreateWallet({ isWalletRecovery }: { isWalletRecovery?: boolean }): ReactElement {
+export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: boolean }): ReactElement {
   const navigate = useNavigate();
   const vault = useVault();
   const [{ step, keyInfo, password }, dispatch] = useReducer(reducer, { step: CreateWalletStep.PASSWORD });

@@ -20,7 +20,7 @@ export function useAuthentication(): IAuthenticationContext {
   return context;
 }
 
-export function AuthenticationProvider({ children }: PropsWithChildren<object>): ReactElement {
+export function AuthenticationProvider({ children }: PropsWithChildren): ReactElement {
   const { unlock } = useVault();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const storageAuthenticated = localStorage.getItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
