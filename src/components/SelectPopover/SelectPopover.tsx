@@ -10,12 +10,7 @@ export interface ISelectPopoverProps {
   children: ReactNode;
 }
 
-export default function SelectPopover({
-  isPopoverVisible,
-  onClose,
-  title,
-  children,
-}: ISelectPopoverProps): ReactElement {
+export function SelectPopover({ isPopoverVisible, onClose, title, children }: ISelectPopoverProps): ReactElement {
   const popupRef = useRef<HTMLDivElement>(null);
 
   return (

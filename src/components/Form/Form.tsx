@@ -1,9 +1,8 @@
 import classNames from "classnames";
 import { ReactElement, ReactNode } from "react";
-
-import FormContent from "./components/FormContent";
-import FormFooter from "./components/FormFooter";
-import FormHeader from "./components/FormHeader";
+import { FormContent } from "./components/FormContent";
+import { FormFooter } from "./components/FormFooter";
+import { FormHeader } from "./components/FormHeader";
 
 export interface IFormProps {
   children: ReactNode;

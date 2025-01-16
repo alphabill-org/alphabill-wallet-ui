@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import React from "react";
+import { ReactElement } from "react";
 
 export interface ISpacerProps {
   m?: number;
@@ -10,7 +10,7 @@ export interface ISpacerProps {
   isBorder?: boolean;
 }
 
-export default function Spacer({ m, mt, mb, ml, mr, isBorder }: ISpacerProps): JSX.Element {
+export function Spacer({ m, mt, mb, ml, mr, isBorder }: ISpacerProps): ReactElement {
   const className = classNames("spacer", { "spacer--with-border": isBorder });
 
   return (

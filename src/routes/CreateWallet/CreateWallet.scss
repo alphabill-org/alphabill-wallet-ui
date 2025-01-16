@@ -1,0 +1,58 @@
+@use '../../css/variables.scss';
+
+.create-account {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+
+  &__header {
+    padding: 23px 48px;
+    width: 100%;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: variables.$color-body-background;
+
+    .close-btn {
+      position: absolute;
+      right: 24px;
+
+      svg {
+        transform: rotate(0deg);
+        fill: variables.$color-primary;
+      }
+
+      &:hover {
+        svg {
+          fill: variables.$color-primary--hover;
+        }
+      }
+    }
+
+    .btn__back {
+      position: absolute;
+      left: 24px;
+    }
+  }
+
+  &__progress {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.15);
+
+    &--active {
+      background-color: variables.$color-primary;
+      height: 100%;
+    }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    flex: 0 1;
+  }
+}
