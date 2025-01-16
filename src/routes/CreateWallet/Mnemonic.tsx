@@ -1,7 +1,4 @@
-import { HDKey } from "@scure/bip32";
-import { generateMnemonic } from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
-import { FormEvent, ReactElement, useCallback, useMemo, useRef, useState } from "react";
+import { FormEvent, ReactElement, useCallback, useRef, useState } from "react";
 import Button from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import { InputField } from "../../components/InputField/InputField";
@@ -13,11 +10,11 @@ import { Progress } from "./Progress";
 type FormElements = "mnemonic";
 
 export function Mnemonic({
-  keyInfo,
+  mnemonic,
   onSubmitSuccess,
   previous,
 }: {
-  keyInfo?: { mnemonic: string; key: HDKey };
+  mnemonic?: string;
   previous: () => void;
   onSubmitSuccess: (mnemonic: string) => Promise<void>;
 }): ReactElement | null {
@@ -41,8 +38,6 @@ export function Mnemonic({
     },
     [setErrors, onSubmitSuccess],
   );
-
-  const mnemonic = useMemo(() => keyInfo?.mnemonic ?? generateMnemonic(wordlist), []);
 
   return (
     <form className="create-account" onSubmit={onSubmit}>
@@ -70,7 +65,6 @@ export function Mnemonic({
             <Button
               type="button"
               variant="secondary"
-              big={true}
               block={true}
               onClick={() => {
                 navigator.clipboard.writeText(mnemonicInputField.current?.value ?? "");

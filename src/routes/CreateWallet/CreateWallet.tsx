@@ -1,5 +1,7 @@
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { HDKey } from "@scure/bip32";
+import { generateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { ReactElement, useCallback, useMemo, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import { useVault } from "../../hooks/vault";
@@ -67,7 +69,7 @@ function reducer(
 
 const steps = [CreateWalletStep.PASSWORD, CreateWalletStep.MNEMONIC, CreateWalletStep.ALIAS];
 
-export function CreateWallet(): ReactElement {
+export function CreateWallet({ isAccountRecovery }: { isAccountRecovery?: boolean }): ReactElement {
   const navigate = useNavigate();
   const vault = useVault();
   const [{ step, keyInfo, password }, dispatch] = useReducer(reducer, { step: CreateWalletStep.PASSWORD });
@@ -127,13 +129,20 @@ export function CreateWallet(): ReactElement {
     [dispatch, keyInfo, password],
   );
 
+  const mnemonic = useMemo(() => generateMnemonic(wordlist), []);
   const publicKey = useMemo(() => Base16Converter.encode(keyInfo?.key.publicKey ?? new Uint8Array()), [keyInfo]);
 
   switch (step) {
     case CreateWalletStep.PASSWORD:
       return <Password password={password} onSubmitSuccess={onStep1Submitted} previous={() => navigate("/")} />;
     case CreateWalletStep.MNEMONIC:
-      return <Mnemonic keyInfo={keyInfo} onSubmitSuccess={onStep2Submitted} previous={previousStep} />;
+      return (
+        <Mnemonic
+          mnemonic={keyInfo?.mnemonic ?? (isAccountRecovery ? undefined : mnemonic)}
+          onSubmitSuccess={onStep2Submitted}
+          previous={previousStep}
+        />
+      );
     case CreateWalletStep.ALIAS: {
       return <Alias publicKey={publicKey} onSubmitSuccess={onStep3Submitted} previous={previousStep} />;
     }
