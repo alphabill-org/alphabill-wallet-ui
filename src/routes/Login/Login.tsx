@@ -1,15 +1,15 @@
-import { FormEvent, ReactElement, useCallback, useState } from "react";
+import { FormEvent, ReactElement, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import PasswordField from "../../components/InputField/PasswordField";
 import { Loading } from "../../components/Loading/Loading";
 import Spacer from "../../components/Spacer/Spacer";
-import { useVault } from "../../hooks/vault";
+import { useAuthentication } from "../../hooks/authentication";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 
 export function Login(): ReactElement | null {
-  const vault = useVault();
+  const authentication = useAuthentication();
   const navigate = useNavigate();
   const [loginFailed, setLoginFailed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -21,20 +21,23 @@ export function Login(): ReactElement | null {
       ev.preventDefault();
       const data = new FormData(ev.currentTarget);
       const password = String(data.get("password") ?? "");
-      const result = await vault.login(password);
+      const result = await authentication.login(password);
       setLoginFailed(!result);
       setTimeout(
         () => {
           setIsLoading(false);
-          if (result) {
-            navigate("/");
-          }
         },
         Math.max(1000 - (Date.now() - time), 0),
       );
     },
-    [vault],
+    [authentication.login],
   );
+
+  useEffect(() => {
+    if (authentication.isLoggedIn) {
+      navigate("/", { replace: true });
+    }
+  }, [authentication.isLoggedIn]);
 
   if (isLoading) {
     return <Loading title="Logging in..." />;

@@ -4,6 +4,7 @@ import { mnemonicToSeed } from "@scure/bip39";
 import { createContext, PropsWithChildren, useCallback, useContext, useState } from "react";
 
 const VAULT_LOCAL_STORAGE_KEY = "alphabill_vault";
+const VAULT_KEYS_LOCAL_STORAGE_KEY = "alphabill_vault_keys";
 
 interface IVaultKey {
   readonly alias: string;
@@ -14,10 +15,9 @@ interface IKeyInfo extends IVaultKey {
   publicKey: string;
 }
 
-interface ILocalStorageVault {
+interface IVaultLocalStorage {
   readonly vault: string;
   readonly salt: string;
-  readonly keys: IKeyInfo[];
 }
 
 interface IVault {
@@ -29,7 +29,7 @@ interface IVaultContext {
   readonly keys: IVaultKey[];
   createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
-  login(password: string): Promise<boolean>;
+  load(password: string): Promise<boolean>;
 }
 
 const VaultContext = createContext<IVaultContext | null>(null);
@@ -47,7 +47,19 @@ export function useVault() {
 }
 
 export function VaultProvider({ children }: PropsWithChildren<object>) {
-  const [keys, setKeys] = useState<IKeyInfo[]>([]);
+  const [keys, setKeys] = useState<IKeyInfo[]>(() => {
+    const storageKeys = localStorage.getItem(VAULT_KEYS_LOCAL_STORAGE_KEY);
+    if (!storageKeys) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(storageKeys);
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  });
 
   const calculateKeyIV = useCallback(async (password: string, salt: Uint8Array) => {
     const digest = await crypto.subtle.digest("SHA-256", new Uint8Array([...textEncoder.encode(password), ...salt]));
@@ -104,7 +116,6 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
       JSON.stringify({
         vault: Base16Converter.encode(vault),
         salt: Base16Converter.encode(salt),
-        keys: [],
       }),
     );
   }, []);
@@ -133,15 +144,14 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
     return masterKey.derive(`m/44'/634'/${index}'/0/0`);
   }, []);
 
-  // TODO: Move login to authentication hook
-  const login = useCallback(
+  const load = useCallback(
     async (password: string): Promise<boolean> => {
       const storageVaultJson = localStorage.getItem(VAULT_LOCAL_STORAGE_KEY);
       if (!storageVaultJson) {
         return false;
       }
 
-      const storageVault = JSON.parse(storageVaultJson) as ILocalStorageVault;
+      const storageVault = JSON.parse(storageVaultJson) as IVaultLocalStorage;
       try {
         const vault = await decryptVault(
           password,
@@ -162,10 +172,8 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
 
         setKeys(publicKeys);
         localStorage.setItem(
-          VAULT_LOCAL_STORAGE_KEY,
+          VAULT_KEYS_LOCAL_STORAGE_KEY,
           JSON.stringify({
-            vault: storageVault.vault,
-            salt: storageVault.salt,
             keys: publicKeys,
           }),
         );
@@ -179,5 +187,5 @@ export function VaultProvider({ children }: PropsWithChildren<object>) {
     [decryptVault, deriveKey, setKeys],
   );
 
-  return <VaultContext.Provider value={{ createVault, deriveKey, login, keys }}>{children}</VaultContext.Provider>;
+  return <VaultContext.Provider value={{ createVault, deriveKey, load, keys }}>{children}</VaultContext.Provider>;
 }

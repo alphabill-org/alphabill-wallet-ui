@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./css/app.scss";
 import { App } from "./App";
+import { AuthenticationProvider } from "./hooks/authentication";
 import { NetworkProvider } from "./hooks/network";
 import { VaultProvider } from "./hooks/vault";
 
@@ -17,7 +18,9 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <NetworkProvider>
           <VaultProvider>
-            <App />
+            <AuthenticationProvider>
+              <App />
+            </AuthenticationProvider>
           </VaultProvider>
         </NetworkProvider>
       </QueryClientProvider>

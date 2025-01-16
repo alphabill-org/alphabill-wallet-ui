@@ -124,7 +124,7 @@ export function CreateWallet(): ReactElement {
 
       await vault.createVault(keyInfo.mnemonic, password, { alias, index: 0 });
       reset();
-      navigate("/");
+      navigate("/", { replace: true });
     },
     [dispatch, keyInfo, password],
   );

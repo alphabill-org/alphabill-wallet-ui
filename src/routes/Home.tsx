@@ -1,17 +1,17 @@
 import { ReactElement, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Header } from "../components/Header/Header";
-import { useVault } from "../hooks/vault";
+import { useAuthentication } from "../hooks/authentication";
 
 export function Home(): ReactElement {
-  const vault = useVault();
+  const { isLoggedIn } = useAuthentication();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!vault.keys.length) {
-      navigate("/login");
+    if (!isLoggedIn) {
+      navigate("/login", { replace: true });
     }
-  }, [vault.keys]);
+  }, [isLoggedIn]);
 
   return (
     <>
