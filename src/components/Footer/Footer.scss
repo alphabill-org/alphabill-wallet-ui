@@ -1,0 +1,10 @@
+@use '../../css/variables.scss';
+
+.footer {
+  padding: 6px 0;
+  width: 100%;
+  display: flex; /* Arrange items in a row */
+  justify-content: center; /* Center items horizontally */
+  gap: 10px; /* Add spacing between buttons */
+  border-top: 1px solid variables.$color-secondary; /* Add a line above the footer */
+}

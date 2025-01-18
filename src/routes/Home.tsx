@@ -1,5 +1,6 @@
 import { ReactElement, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { Footer } from "../components/Footer/Footer";
 import { Header } from "../components/Header/Header";
 import { useAuthentication } from "../hooks/authentication";
 
@@ -17,11 +18,7 @@ export function Home(): ReactElement {
     <>
       <Header />
       <Outlet />
-      <div></div>
-      <div></div>
-      {/*<Dashboard />*/}
-      {/*<Actions />*/}
-      {/*<ToolBar />*/}
+      <Footer />
     </>
   );
 }
