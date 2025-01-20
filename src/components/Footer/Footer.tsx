@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import FungibleIcon from "../../images/fungible.svg?react";
 import NonFungibleIcon from "../../images/non-fungible.svg?react";
 import TransferIcon from "../../images/transfer.svg?react";
@@ -9,21 +9,21 @@ import { Button } from "../Button/Button";
 export const Footer = (): ReactElement => {
   return (
     <div className="footer">
-      <Link to="/fungible">
+      <NavLink to="/fungible" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon">
           <FungibleIcon />
         </Button>
-      </Link>
-      <Link to="/non-fungible">
+      </NavLink>
+      <NavLink to="/non-fungible" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon" onClick={() => {}}>
           <NonFungibleIcon />
         </Button>
-      </Link>
-      <Link to="/transfer">
+      </NavLink>
+      <NavLink to="/transfer" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon" onClick={() => {}}>
           <TransferIcon />
         </Button>
-      </Link>
+      </NavLink>
     </div>
   );
 };
