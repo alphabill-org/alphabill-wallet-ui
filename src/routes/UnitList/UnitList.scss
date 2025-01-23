@@ -8,12 +8,12 @@
   &__key {
     display: flex;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 32px;
 
     &__select {
       flex-grow: 1;
-      max-width: 70%;
+      max-width: 62%;
     }
 
     svg {

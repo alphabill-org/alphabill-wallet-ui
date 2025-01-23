@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ReactElement } from "react";
 import { Outlet } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
@@ -8,6 +9,9 @@ import { useVault } from "../../hooks/vault";
 import AddIcon from "../../images/add-ico.svg?react";
 import CheckIcon from "../../images/check.svg?react";
 import CopyIcon from "../../images/copy-ico.svg?react";
+import SyncIcon from "../../images/sync-ico.svg?react";
+
+const QUERY_KEY = "UNITS";
 
 function KeySelect(): ReactElement {
   const vault = useVault();
@@ -32,6 +36,7 @@ function KeySelect(): ReactElement {
 }
 
 export function UnitList(): ReactElement {
+  const queryClient = useQueryClient();
   const vault = useVault();
 
   const selectedItem = vault.selectedKey ? (
@@ -58,6 +63,21 @@ export function UnitList(): ReactElement {
             }}
           >
             <CopyIcon />
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            isRounded={true}
+            onClick={() => {
+              queryClient.resetQueries({
+                predicate: (query) => {
+                  const key = query.queryKey.at(0) as string | undefined;
+                  return Boolean(key?.startsWith(QUERY_KEY));
+                },
+              });
+            }}
+          >
+            <SyncIcon />
           </Button>
           <Button type="button" variant="primary" isRounded={true} onClick={() => null}>
             <AddIcon />
