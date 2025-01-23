@@ -1,4 +1,4 @@
-import { ReactElement, useState } from "react";
+import { ReactElement } from "react";
 import { useNetwork } from "../../hooks/network";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 import CheckIcon from "../../images/check.svg?react";
@@ -37,7 +37,7 @@ export function Header(): ReactElement {
         <LogoIcon className="header__ico" />
       </div>
       <div className="header__select">
-        <SelectBox emptyItem="--- SELECT NETWORK ---" selectedItem={networkContext.selectedNetwork?.alias}>
+        <SelectBox title="SELECT NETWORK" selectedItem={networkContext.selectedNetwork?.alias}>
           <NetworkSelect />
         </SelectBox>
       </div>

@@ -5,6 +5,7 @@ import { createContext, PropsWithChildren, ReactElement, useCallback, useContext
 
 const VAULT_LOCAL_STORAGE_KEY = "alphabill_vault";
 const VAULT_KEYS_LOCAL_STORAGE_KEY = "alphabill_vault_keys";
+const VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY = "alphabill_vault_selected_key";
 
 interface IVaultKey {
   readonly alias: string;
@@ -26,7 +27,9 @@ interface IVault {
 }
 
 interface IVaultContext {
-  readonly keys: IVaultKey[];
+  readonly keys: IKeyInfo[];
+  readonly selectedKey: IKeyInfo | null;
+  selectKey(key: IKeyInfo): void;
   createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
   unlock(password: string): Promise<boolean>;
@@ -54,11 +57,20 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     }
 
     try {
-      return JSON.parse(storageKeys);
+      const { keys } = JSON.parse(storageKeys) as { keys: IKeyInfo[] };
+      return keys;
     } catch (e) {
       console.error(e);
       return [];
     }
+  });
+  const [selectedKey, setSelectedKey] = useState<IKeyInfo | null>(() => {
+    const selectedKey = localStorage.getItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY);
+    if (selectedKey === null) {
+      return null;
+    }
+
+    return keys.find((key) => key.index === Number(selectedKey)) ?? null;
   });
 
   const calculateKeyIV = useCallback(async (password: string, salt: Uint8Array) => {
@@ -191,5 +203,17 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [decryptVault, deriveKey, setKeys],
   );
 
-  return <VaultContext.Provider value={{ createVault, deriveKey, unlock, keys }}>{children}</VaultContext.Provider>;
+  const selectKey = useCallback(
+    (key: IKeyInfo) => {
+      localStorage.setItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY, String(key.index));
+      setSelectedKey(key);
+    },
+    [setSelectedKey],
+  );
+
+  return (
+    <VaultContext.Provider value={{ createVault, deriveKey, unlock, keys, selectedKey, selectKey }}>
+      {children}
+    </VaultContext.Provider>
+  );
 }

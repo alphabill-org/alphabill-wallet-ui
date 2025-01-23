@@ -1,15 +1,14 @@
-import classNames from "classnames";
-import { PropsWithChildren, ReactElement, useState } from "react";
+import { PropsWithChildren, ReactElement, ReactNode, useState } from "react";
 import ArrowIcon from "../../images/arrow.svg?react";
 import { Button } from "../Button/Button";
 import { SelectPopover } from "../SelectPopover/SelectPopover";
 
 export function SelectBox({
   selectedItem,
-  emptyItem,
   className,
+  title,
   children,
-}: PropsWithChildren<{ emptyItem: string; selectedItem?: string; className?: string }>): ReactElement {
+}: PropsWithChildren<{ title: string; selectedItem?: ReactNode; className?: string }>): ReactElement {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   return (
@@ -20,7 +19,7 @@ export function SelectBox({
       }}
     >
       <Button variant="icon" className="select__button">
-        <span className="select__button--text">{selectedItem ?? emptyItem}</span>
+        <span className="select__button--text">{selectedItem ?? "--- SELECT ---"}</span>
         <ArrowIcon className="select__button--icon" />
       </Button>
       <SelectPopover
@@ -28,7 +27,7 @@ export function SelectBox({
           setIsPopoverOpen(false);
         }}
         isPopoverVisible={isPopoverOpen}
-        title="SELECT NETWORK"
+        title={title}
       >
         {children}
       </SelectPopover>

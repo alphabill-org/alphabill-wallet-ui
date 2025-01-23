@@ -50,7 +50,9 @@ const NetworkContext = createContext<INetworkContext | null>(null);
 interface INetworkContext {
   readonly networks: INetwork[];
   readonly selectedNetwork: INetwork | null;
+
   setSelectedNetwork(id: INetwork): void;
+
   addNetwork(network: Omit<INetwork, "id">): void;
 }
 

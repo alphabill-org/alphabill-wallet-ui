@@ -4,18 +4,26 @@ import { Button } from "../../components/Button/Button";
 import { Footer } from "../../components/Footer/Footer";
 import { Header } from "../../components/Header/Header";
 import { SelectBox } from "../../components/SelectBox/SelectBox";
+import { useVault } from "../../hooks/vault";
 import AddIcon from "../../images/add-ico.svg?react";
+import CheckIcon from "../../images/check.svg?react";
 import CopyIcon from "../../images/copy-ico.svg?react";
 
 function KeySelect(): ReactElement {
-  const networkContext = [1, 2];
+  const vault = useVault();
 
   return (
     <div className="select__options">
-      {networkContext.map((network) => {
+      {vault.keys.map((key) => {
         return (
-          <div key={network} className="select__option" onClick={() => null}>
-            asd
+          <div
+            key={key.index}
+            className="select__option"
+            onClick={() => {
+              vault.selectKey(key);
+            }}
+          >
+            {key.alias} {vault.selectedKey?.index === key.index ? <CheckIcon /> : null}
           </div>
         );
       })}
@@ -24,15 +32,31 @@ function KeySelect(): ReactElement {
 }
 
 export function UnitList(): ReactElement {
+  const vault = useVault();
+
+  const selectedItem = vault.selectedKey ? (
+    <>
+      {vault.selectedKey.alias}
+      <span className="units__key__select--key">({vault.selectedKey.publicKey})</span>
+    </>
+  ) : undefined;
+
   return (
     <>
       <Header />
       <div className="units">
         <div className="units__key">
-          <SelectBox emptyItem="--- SELECT KEY ---" selectedItem={undefined} className="units__key__select">
+          <SelectBox title="SELECT KEY" selectedItem={selectedItem} className="units__key__select">
             <KeySelect />
           </SelectBox>
-          <Button type="button" variant="primary" isRounded={true} onClick={() => null}>
+          <Button
+            type="button"
+            variant="primary"
+            isRounded={true}
+            onClick={() => {
+              navigator.clipboard.writeText(vault.selectedKey?.publicKey ?? "");
+            }}
+          >
             <CopyIcon />
           </Button>
           <Button type="button" variant="primary" isRounded={true} onClick={() => null}>
