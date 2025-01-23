@@ -1,9 +1,11 @@
 import { ReactElement, useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { CreateWallet } from "./routes/CreateWallet/CreateWallet";
 import { Home } from "./routes/Home";
 import { Login } from "./routes/Login/Login";
 import { Network } from "./routes/Network";
+import { FungibleToken } from "./routes/UnitList/FungibleToken";
+import { UnitList } from "./routes/UnitList/UnitList";
 
 export function App(): ReactElement {
   const [, setIsNetworkError] = useState<boolean>(false);
@@ -20,12 +22,14 @@ export function App(): ReactElement {
 
   return (
     <div className="app">
-      <div className="app__background-top"></div>
-      <div className="app__background-bottom"></div>
       <div className="app__content">
         <Routes>
           <Route path="/" element={<Home />}>
             <Route path="network" element={<Network />} />
+            <Route path="unit" element={<UnitList />}>
+              <Route path="fungible" element={<FungibleToken />} />
+            </Route>
+            <Route path="" element={<Navigate to="/unit/fungible" replace={true} />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />
           <Route path="/recover-wallet" element={<CreateWallet isWalletRecovery={true} />} />

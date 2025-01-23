@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./css/app.scss";
 import { App } from "./App";
+import { AlphabillProvider } from "./hooks/alphabill";
 import { AuthenticationProvider } from "./hooks/authentication";
 import { NetworkProvider } from "./hooks/network";
 import { VaultProvider } from "./hooks/vault";
@@ -19,11 +20,13 @@ root.render(
         <NetworkProvider>
           <VaultProvider>
             <AuthenticationProvider>
-              <App />
+              <AlphabillProvider>
+                <App />
+              </AlphabillProvider>
             </AuthenticationProvider>
           </VaultProvider>
         </NetworkProvider>
       </QueryClientProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 );

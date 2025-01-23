@@ -7,13 +7,14 @@
 @use '../components/Footer/Footer.scss';
 @use '../components/Form/Form.scss';
 @use '../components/Header/Header.scss';
-@use '../components/Spacer/Spacer.scss';
 @use '../components/InputField/InputField';
 @use '../components/SelectPopover/SelectPopover.scss';
 @use '../components/Loading/Loading.scss';
+@use '../components/SelectBox/SelectBox.scss';
 
 @use '../routes/Login/Login.scss';
 @use '../routes/CreateWallet/CreateWallet';
+@use '../routes/UnitList/UnitList';
 
 .app {
   min-width: 375px;

@@ -4,7 +4,6 @@ import { Button } from "../../components/Button/Button";
 import { Form, FormContent, FormFooter } from "../../components/Form/Form";
 import { PasswordField } from "../../components/InputField/PasswordField";
 import { Loading } from "../../components/Loading/Loading";
-import { Spacer } from "../../components/Spacer/Spacer";
 import { useAuthentication } from "../../hooks/authentication";
 import LogoIcon from "../../images/ab-logo-ico.svg?react";
 
@@ -67,8 +66,9 @@ export function Login(): ReactElement {
         </Form>
       </form>
       <div className="login__footer">
-        <Link to="/recover-wallet">Recover account?</Link>
-        <Spacer mb={16} />
+        <Link to="/recover-wallet" style={{ marginBottom: "16px" }}>
+          Recover account?
+        </Link>
         <div>
           Don't have a wallet?
           <Link to="/create-wallet" style={{ marginLeft: "10px" }}>

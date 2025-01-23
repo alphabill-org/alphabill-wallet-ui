@@ -9,7 +9,7 @@
   border-top: 1px solid variables.$color-secondary; /* Add a line above the footer */
 
   .active {
-    stroke: variables.$color-secondary;
+    stroke: variables.$color-primary;
     stroke-width: 0.5px;
   }
 }

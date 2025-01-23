@@ -11,7 +11,7 @@ export interface IButtonProps {
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   className?: string;
-  isBordered?: boolean;
+  isRounded?: boolean;
   isActive?: boolean;
 }
 
@@ -23,7 +23,7 @@ export function Button(props: IButtonProps): ReactElement {
       "button--small": props.small,
       "button--x-small": props.xSmall,
       "button--block": props.block,
-      "is--bordered": props.isBordered,
+      "is--rounded": props.isRounded,
       "is--active": props.isActive,
     },
     props.className,

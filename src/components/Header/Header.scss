@@ -9,46 +9,12 @@
   justify-content: space-between;
   border-bottom: 1px solid variables.$color-secondary; /* Add a line below the header */
 
+  &__select {
+    max-width: 70%;
+  }
+
   &__ico {
     fill: variables.$color-primary;
     flex-shrink: 0;
-  }
-
-  &__select {
-    display: flex;
-    max-width: 70%;
-    justify-content: center;
-    gap: 12px;
-    height: 38px;
-    padding: 7px 14px;
-    background: rgba(78, 62, 182);
-    border-radius: 4px;
-    cursor: pointer;
-
-
-    .select__button{
-      gap: 8px;
-      color: variables.$color-white;
-      font-weight: 500;
-      font-size: 14px;
-      line-height: 18px;
-      fill: variables.$color-white;
-
-      &--icon {
-        fill: variables.$color-white
-      }
-
-    }
-
-    .copy__button path {
-      fill: variables.$color-white;
-      width: 24px;
-      height: 24px;
-    }
-  }
-
-  .select__popover {
-    max-height: 100%;
-    overflow-y: auto;
   }
 }
