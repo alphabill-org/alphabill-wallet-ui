@@ -9,17 +9,17 @@ import { Button } from "../Button/Button";
 export const Footer = (): ReactElement => {
   return (
     <div className="footer">
-      <NavLink to="/unit/fungible" className={({ isActive }) => (isActive ? "active" : "")}>
+      <NavLink to="/units/fungible" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon">
           <FungibleIcon />
         </Button>
       </NavLink>
-      <NavLink to="/unit/non-fungible" className={({ isActive }) => (isActive ? "active" : "")}>
+      <NavLink to="/units/non-fungible" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon" onClick={() => {}}>
           <NonFungibleIcon />
         </Button>
       </NavLink>
-      <NavLink to="/unit/transfer" className={({ isActive }) => (isActive ? "active" : "")}>
+      <NavLink to="/units/transfer" className={({ isActive }) => (isActive ? "active" : "")}>
         <Button variant="icon" onClick={() => {}}>
           <TransferIcon />
         </Button>

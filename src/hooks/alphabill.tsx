@@ -5,31 +5,22 @@ import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } f
 import { useNetwork } from "./network";
 
 interface IAlphabillContext {
-  moneyClient: MoneyPartitionJsonRpcClient | null;
-  tokenClient: TokenPartitionJsonRpcClient | null;
+  moneyClient: MoneyPartitionJsonRpcClient;
+  tokenClient: TokenPartitionJsonRpcClient;
 }
 
 const AlphabillContext = createContext<IAlphabillContext | null>(null);
 
-export function useAlphabill(): IAlphabillContext {
-  const context = useContext(AlphabillContext);
-
-  if (!context) {
-    throw new Error("Invalid alphabill context.");
-  }
-
-  return context;
+export function useAlphabill(): IAlphabillContext | null {
+  return useContext(AlphabillContext);
 }
 
 export function AlphabillProvider({ children }: PropsWithChildren): ReactElement {
   const { selectedNetwork } = useNetwork();
 
-  const { moneyClient, tokenClient } = useMemo((): IAlphabillContext => {
+  const context = useMemo((): IAlphabillContext | null => {
     if (!selectedNetwork) {
-      return {
-        moneyClient: null,
-        tokenClient: null,
-      };
+      return null;
     }
 
     return {
@@ -38,5 +29,5 @@ export function AlphabillProvider({ children }: PropsWithChildren): ReactElement
     };
   }, [selectedNetwork]);
 
-  return <AlphabillContext.Provider value={{ moneyClient, tokenClient }}>{children}</AlphabillContext.Provider>;
+  return <AlphabillContext.Provider value={context}>{children}</AlphabillContext.Provider>;
 }

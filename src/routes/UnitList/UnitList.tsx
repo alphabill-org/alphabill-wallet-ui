@@ -4,8 +4,8 @@ import { Button } from "../../components/Button/Button";
 import { Footer } from "../../components/Footer/Footer";
 import { Header } from "../../components/Header/Header";
 import { SelectBox } from "../../components/SelectBox/SelectBox";
-import CopyIcon from "../../images/copy-ico.svg?react";
 import AddIcon from "../../images/add-ico.svg?react";
+import CopyIcon from "../../images/copy-ico.svg?react";
 
 function KeySelect(): ReactElement {
   const networkContext = [1, 2];
@@ -29,7 +29,7 @@ export function UnitList(): ReactElement {
       <Header />
       <div className="units">
         <div className="units__key">
-          <SelectBox emptyItem="SELECT KEY" selectedItem={undefined} className="units__key__select">
+          <SelectBox emptyItem="--- SELECT KEY ---" selectedItem={undefined} className="units__key__select">
             <KeySelect />
           </SelectBox>
           <Button type="button" variant="primary" isRounded={true} onClick={() => null}>
