@@ -4,7 +4,7 @@ import { CreateWallet } from "./routes/CreateWallet/CreateWallet";
 import { Home } from "./routes/Home";
 import { Login } from "./routes/Login/Login";
 import { Network } from "./routes/Network";
-import { FungibleTokenList } from "./routes/UnitList/FungibleTokenList";
+import { FungibleTokenInfo, FungibleTokenList } from "./routes/UnitList/FungibleTokenList";
 import { UnitList } from "./routes/UnitList/UnitList";
 
 export function App(): ReactElement {
@@ -29,6 +29,7 @@ export function App(): ReactElement {
             <Route path="units" element={<UnitList />}>
               <Route path="fungible" element={<FungibleTokenList />} />
             </Route>
+            <Route path="units/fungible/:id" element={<FungibleTokenInfo />} />
             <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />

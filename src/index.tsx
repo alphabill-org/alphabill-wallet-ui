@@ -9,6 +9,7 @@ import { AlphabillProvider } from "./hooks/alphabill";
 import { AuthenticationProvider } from "./hooks/authentication";
 import { NetworkProvider } from "./hooks/network";
 import { VaultProvider } from "./hooks/vault";
+import { UnitsProvider } from "./hooks/units";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
 const queryClient = new QueryClient();
@@ -21,7 +22,9 @@ root.render(
           <VaultProvider>
             <AuthenticationProvider>
               <AlphabillProvider>
-                <App />
+                <UnitsProvider>
+                  <App />
+                </UnitsProvider>
               </AlphabillProvider>
             </AuthenticationProvider>
           </VaultProvider>

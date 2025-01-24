@@ -4,12 +4,16 @@
   padding: 24px;
   width: 100%;
   flex-grow: 1;
+  overflow: hidden;
+
+  a {
+    color: variables.$color-white;
+  }
 
   &__key {
     display: flex;
     flex-wrap: nowrap;
     gap: 5px;
-    margin-bottom: 32px;
 
     &__select {
       flex-grow: 1;
@@ -23,41 +27,97 @@
     }
   }
 
-  &__unit {
+  &__content {
     display: flex;
-    flex-wrap: nowrap;
+    flex-direction: column;
+    overflow: auto;
+    max-height: 396px;
+    margin-top: 32px;
+
+    &__unit {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      border-radius: 6px;
+      padding: 12px;
+      margin: 6px 0;
+      width: 100%;
+      background-color: #1C194E;
+      overflow: hidden;
+
+      &.hoverable {
+        cursor: pointer;
+
+        &:hover {
+          background-color: variables.$color-primary--hover;
+        }
+      }
+
+      &--icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin-right: 12px;
+        border-radius: 50px;
+        background-color: #FFFFFF;
+        padding: 1px;
+        flex-shrink: 0;
+      }
+
+      &--text {
+        font-weight: 700;
+        flex-grow: 1;
+        flex-shrink: 0;
+        margin-right: 5px;
+      }
+
+      &--value {
+        flex-grow: 1;
+        flex-shrink: 0;
+        text-align: right;
+      }
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    border-radius: 6px;
-    padding: 12px;
-    margin: 6px 0;
+    justify-content: center;
     width: 100%;
-    background-color: #1C194E;
     overflow: hidden;
 
-    &--icon {
+    &__content {
+      flex-grow: 1;
+      padding: 24px;
+      width: 100%;
+      overflow: auto;
+    }
+
+    &__header {
+      padding: 23px 48px;
+      width: 100%;
+      height: 72px;
       display: flex;
-      align-items: center;
+      text-align: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      margin-right: 12px;
-      border-radius: 50px;
-      background-color: #FFFFFF;
-      padding: 1px;
-      flex-shrink: 0;
-    }
+      align-items: center;
+      position: relative;
+      background: variables.$color-body-background;
+      border-bottom: 1px solid variables.$color-secondary; /* Add a line below the header */
 
-    &--text {
-      font-weight: 700;
-      flex-grow: 1;
-      flex-shrink: 0;
-      margin-right: 5px;
-    }
+      .back-btn {
+        position: absolute;
+        left: 24px;
 
-    &--value {
-      flex-grow: 1;
-      flex-shrink: 0;
-      text-align: right;
+        &:hover {
+          svg {
+            fill: variables.$color-primary--hover;
+          }
+        }
+      }
     }
   }
 }

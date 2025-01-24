@@ -11,7 +11,7 @@ import CheckIcon from "../../images/check.svg?react";
 import CopyIcon from "../../images/copy-ico.svg?react";
 import SyncIcon from "../../images/sync-ico.svg?react";
 
-const QUERY_KEY = "UNITS";
+export const QUERY_KEY_UNITS = "UNITS";
 
 function KeySelect(): ReactElement {
   const vault = useVault();
@@ -71,8 +71,7 @@ export function UnitList(): ReactElement {
             onClick={() => {
               queryClient.resetQueries({
                 predicate: (query) => {
-                  const key = query.queryKey.at(0) as string | undefined;
-                  return Boolean(key?.startsWith(QUERY_KEY));
+                  return query.queryKey.at(0) === QUERY_KEY_UNITS;
                 },
               });
             }}
