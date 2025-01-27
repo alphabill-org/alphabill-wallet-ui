@@ -45,7 +45,14 @@ export default [
         },
       ],
       "@typescript-eslint/member-ordering": "error",
-      "import/order": ["error", { alphabetize: { order: "asc", caseInsensitive: true } }],
+      "import/order": [
+        "error",
+        {
+          groups: ["builtin", "external", "internal"],
+          "newlines-between": "always",
+          alphabetize: { order: "asc", caseInsensitive: true },
+        },
+      ],
     },
   },
 ];

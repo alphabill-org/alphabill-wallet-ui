@@ -1,10 +1,11 @@
-import { ReactElement } from "react";
+import { ReactElement, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
+import { ErrorNotification } from "../../components/ErrorNotification/ErrorNotification";
+import { Loading } from "../../components/Loading/Loading";
 import { useAlphabill } from "../../hooks/alphabill";
 import { ITokenIcon, useUnits } from "../../hooks/units";
 import BackIcon from "../../images/back-ico.svg?react";
-
-// TODO: Make loading parallel, right now it loads one by one
 
 function FungibleTokenItem({
   name,
@@ -19,18 +20,29 @@ function FungibleTokenItem({
   decimalPlaces: number;
   hoverable?: boolean;
 }): ReactElement {
+  const [error, setError] = useState<boolean>(false);
+
   const paddedValue = value.toString().padStart(decimalPlaces, "0");
   return (
     <div className={`units__content__unit ${hoverable ? "hoverable" : ""}`}>
       <div className="units__content__unit--icon">
-        <img
-          src={`data:${icon.type};base64,${icon.data}`}
-          alt={name}
-          onError={(ev) => {
-            // TODO: Add proper fallback logo
-            ev.currentTarget.src = "";
-          }}
-        />
+        {error ? (
+          <span style={{ color: "#000" }}>
+            {name
+              .split(" ")
+              .slice(0, 2)
+              .map((el) => el.at(0)?.toUpperCase() ?? "")
+              .join("")}
+          </span>
+        ) : (
+          <img
+            src={`data:${icon.type};base64,${icon.data}`}
+            alt={name}
+            onError={() => {
+              setError(true);
+            }}
+          />
+        )}
       </div>
       <div className="units__content__unit--text">{name}</div>
       <div className="units__content__unit--value">
@@ -47,21 +59,31 @@ export function FungibleTokenList(): ReactElement {
   const { fungible } = useUnits();
 
   if (!alphabill) {
-    return <>No network selected</>;
+    return (
+      <div className="units--error">
+        <ErrorNotification
+          title="No network selected"
+          info="Select network from the header. If no network exists, add it from settings."
+        />
+      </div>
+    );
   }
 
   if (fungible.isPending) {
-    return <>Loading</>;
+    return (
+      <div className="units--loading">
+        <Loading title="Loading..." />
+      </div>
+    );
   }
 
-  // TODO: Create proper loading animation, network selection error and fetch error page.
   if (fungible.error) {
-    return <>{fungible.error.toString()}</>;
+    return <ErrorNotification title="Error occurred" info={fungible.error.toString()} />;
   }
 
   const tokenItems = [];
-  // TODO: Check that data exists, remove !
-  for (const token of fungible.data!.values()) {
+  const tokens = fungible.data?.values() || new Map().values();
+  for (const token of tokens) {
     tokenItems.push(
       <Link key={token.id} to={`/units/fungible/${token.id}`}>
         <FungibleTokenItem
@@ -84,19 +106,22 @@ export function FungibleTokenInfo(): ReactElement {
   const { fungible } = useUnits();
 
   if (!alphabill) {
-    return <>No network selected</>;
+    return (
+      <div className="units--error">
+        <ErrorNotification title="No network selected" info={<Link to="/units/fungible">Go back</Link>} />
+      </div>
+    );
   }
 
   if (fungible.isPending) {
-    return <>Loading</>;
+    return <Loading title="Loading..." />;
   }
 
-  // TODO: Create proper loading animation, network selection error and fetch error page.
   if (fungible.error) {
-    return <>{fungible.error.toString()}</>;
+    return <ErrorNotification title="Error occurred" info={fungible.error.toString()} />;
   }
 
-  const tokenInfo = fungible.data!.get(params.id ?? "");
+  const tokenInfo = fungible.data?.get(params.id ?? "");
   if (!tokenInfo) {
     return <>No token found</>;
   }

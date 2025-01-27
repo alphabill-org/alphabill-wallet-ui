@@ -1,3 +1,4 @@
+import type { IUnitId } from "@alphabill/alphabill-js-sdk/lib/IUnitId";
 import { MoneyPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient";
 import { TokenPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient";
 import { Bill } from "@alphabill/alphabill-js-sdk/lib/money/Bill";
@@ -6,12 +7,11 @@ import { FungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/tokens/Fungib
 import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
 import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { createContext, PropsWithChildren, ReactElement, useContext, useEffect } from "react";
-import { QUERY_KEY_UNITS } from "../routes/UnitList/UnitList";
+
 import { useAlphabill } from "./alphabill";
 import { useVault } from "./vault";
-
-const ALPHA_LOGO =
-  "PHN2ZyBmaWxsPSIjMEMwQTNFIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgNDAgMjQiIHdpZHRoPSI0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwYXRoIGQ9Im0zMC4xODI0LjI5NDg0MmgtOC4xODk4Yy0uMTQyMiAxLjEwOTM0OC0uMzQ3NCAyLjIwOTY5OC0uNjE0NiAzLjI5NTcwOC0xLjE5NTItMS4xODQ4Ni0yLjYxOTItMi4xMTM3NS00LjE4NTEtMi43MzAwMzctMS41NjU5LS42MTYyODUtMy4yNDEtLjkwNzAxNTgtNC45MjMtLjg1NDQ3MzI4LTYuOTY3OTggMC0xMi4yNjk5IDQuNTQ3MzEwMjgtMTIuMjY5OSAxMS45NzU1NjAyOCAwIDcuNDI4MyA1LjI1NzQ5IDEyLjAxMjYgMTIuMjI1NSAxMi4wMTI2IDEuNjkwNC4wNTE0IDMuMzczNi0uMjQxOCA0Ljk0NzEtLjg2MTlzMy4wMDQzLTEuNTU0IDQuMjA1NC0yLjc0NDhjLjI2NzEgMS4wOTM1LjQ3MjMgMi4yMDEzLjYxNDYgMy4zMTc5aDguMTg5OGMtLjgyOTctNC4wODIxLTIuMjQzOC04LjAyMzItNC4xOTg2LTExLjcwMTYgMS45NTQzLTMuNjgxMTIgMy4zNjg0LTcuNjI0NiA0LjE5ODYtMTEuNzA4OTU4em0tMTcuNjgyOSAxNi42MTE4NThjLS45NzA1IDAtMS45MTkxLS4yODgxLTIuNzI1NzQtLjgyNzktLjgwNjYxLS41Mzk3LTEuNDM0OS0xLjMwNjctMS44MDUyNi0yLjIwMzktLjM3MDM3LS44OTcyLS40NjYxMS0xLjg4NDEtLjI3NTE2LTIuODM1OC4xOTA5Ni0uOTUxNi42NjAwNS0xLjgyNTE2IDEuMzQ3ODQtMi41MDk5NC42ODc3OC0uNjg0NzggMS41NjMzMi0xLjE0OTk1IDIuNTE1NjItMS4zMzY2MS45NTI0LS4xODY2NiAxLjkzODctLjA4NjQxIDIuODM0MS4yODgwOC44OTUzLjM3NDQ5IDEuNjU5NCAxLjAwNjM2IDIuMTk1MyAxLjgxNTU0LjUzNi44MDkxMy44MTk3IDEuNzU5MjMuODE1MyAyLjcyOTkzLS4wMDU5IDEuMjk2NC0uNTI0OSAyLjUzNzgtMS40NDM2IDMuNDUyNC0uOTE4Ny45MTQ3LTIuMTYyMiAxLjQyODItMy40NTg0IDEuNDI4MnoiLz4KICAgICAgICA8cGF0aCBkPSJtMzUuMDk4MSAxNi44MTQ5YzIuNzA3MyAwIDQuOTAyLTIuMTk1MSA0LjkwMi00LjkwMjggMC0yLjcwNzc2LTIuMTk0Ny00LjkwMjgyLTQuOTAyLTQuOTAyODJzLTQuOTAyMSAyLjE5NTA2LTQuOTAyMSA0LjkwMjgyYzAgMi43MDc3IDIuMTk0OCA0LjkwMjggNC45MDIxIDQuOTAyOHoiLz4KICAgIDwvZz4KPC9zdmc+";
+import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES } from "../constants";
+import { QUERY_KEY_UNITS } from "../routes/UnitList/UnitList";
 
 export interface ITokenIcon {
   readonly type: string;
@@ -40,36 +40,61 @@ const textDecoder = new TextDecoder();
 
 const UnitsContext = createContext<IUnitsContext | null>(null);
 
-function createAlphaInfo(units: ITokenUnit[]): ITokenInfo {
-  return {
-    id: "ALPHA",
-    name: "ALPHA",
-    decimalPlaces: 0,
-    icon: {
-      data: ALPHA_LOGO,
-      type: "image/svg+xml",
-    },
-    units,
-    total: units.reduce((previous, current) => previous + current.value, 0n),
-  };
+async function* fetch<T>(
+  data: ReadonlyArray<IUnitId>,
+  create: (unitId: IUnitId) => Promise<T | null>,
+): AsyncGenerator<T> {
+  const input = [...data];
+  let i = 0;
+  const promises = new Map<number, Promise<{ id: number; data: T | null }>>();
+  while (input.length > 0 || promises.size > 0) {
+    const unitId = input.shift();
+    if (unitId) {
+      const id = i;
+      promises.set(
+        id,
+        create(unitId).then((data) => {
+          return {
+            id,
+            data,
+          };
+        }),
+      );
+    }
+
+    if (promises.size >= CONCURRENT_QUERIES || !unitId) {
+      const { id, data } = await Promise.race(promises.values());
+      promises.delete(id);
+      if (!data) {
+        continue;
+      }
+
+      yield data;
+    }
+
+    i += 1;
+  }
 }
 
 async function getAlphaInfo(ownerId: Uint8Array, moneyClient: MoneyPartitionJsonRpcClient): Promise<ITokenInfo> {
+  const units = [];
   const { bills } = await moneyClient.getUnitsByOwnerId(ownerId);
-  const units: ITokenUnit[] = [];
-  for (const unitId of bills) {
-    const bill = await moneyClient.getUnit(unitId, false, Bill);
-    if (!bill) {
-      continue;
-    }
-
+  const iterator = fetch(bills, (unitId: IUnitId) => moneyClient.getUnit(unitId, false, Bill));
+  for await (const unit of iterator) {
     units.push({
-      id: Base16Converter.encode(bill.unitId.bytes),
-      value: bill.value,
+      id: Base16Converter.encode(unit.unitId.bytes),
+      value: unit.value,
     });
   }
 
-  return createAlphaInfo(units);
+  return {
+    id: "ALPHA",
+    name: "ALPHA",
+    decimalPlaces: ALPHA_DECIMAL_PLACES,
+    icon: ALPHA_ICON,
+    units,
+    total: units.reduce((previous, current) => previous + current.value, 0n),
+  };
 }
 
 async function getFungibleTokenInfo(
@@ -79,26 +104,21 @@ async function getFungibleTokenInfo(
 ): Promise<Map<string, ITokenInfo>> {
   const tokens = new Map<string, FungibleToken[]>();
   const { fungibleTokens } = await tokenClient.getUnitsByOwnerId(ownerId);
-  for (const unitId of fungibleTokens) {
-    const token = await tokenClient.getUnit(unitId, false, FungibleToken);
-    if (!token) {
-      continue;
-    }
-
-    const typeId = Base16Converter.encode(token.typeId.bytes);
+  const iterator = fetch(fungibleTokens, (unitId: IUnitId) => tokenClient.getUnit(unitId, false, FungibleToken));
+  for await (const unit of iterator) {
+    const typeId = Base16Converter.encode(unit.typeId.bytes);
     const typeTokens = tokens.get(typeId) ?? [];
     if (typeTokens.length === 0) {
       tokens.set(typeId, typeTokens);
     }
 
-    typeTokens.push(token);
+    typeTokens.push(unit);
   }
 
   const result = new Map<string, ITokenInfo>();
   result.set("ALPHA", await getAlphaInfo(ownerId, moneyClient));
   for (const [typeId, units] of tokens) {
     const type = await tokenClient.getUnit(units[0].typeId, false, FungibleTokenType);
-    // TODO: Return error cause this cannot happen if token exists
     if (!type) {
       continue;
     }
@@ -151,6 +171,7 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
     },
   });
 
+  // TODO: Check if refresh is required, if nothing changes then there is no point.
   useEffect(() => {
     queryClient.resetQueries({ queryKey: [QUERY_KEY_UNITS, "FUNGIBLE"], exact: true });
   }, [vault.selectedKey, alphabill]);

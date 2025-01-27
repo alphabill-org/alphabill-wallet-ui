@@ -1,13 +1,31 @@
 @use '../../css/variables.scss';
 
 .units {
+  display: flex;
+  flex-direction: column;
   padding: 24px;
   width: 100%;
   flex-grow: 1;
   overflow: hidden;
+  gap: 32px;
 
   a {
     color: variables.$color-white;
+  }
+
+  &--loading {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &--error {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   &__key {
@@ -32,7 +50,7 @@
     flex-direction: column;
     overflow: auto;
     max-height: 396px;
-    margin-top: 32px;
+    gap: 6px;
 
     &__unit {
       display: flex;
@@ -40,7 +58,6 @@
       align-items: center;
       border-radius: 6px;
       padding: 12px;
-      margin: 6px 0;
       width: 100%;
       background-color: #1C194E;
       overflow: hidden;
