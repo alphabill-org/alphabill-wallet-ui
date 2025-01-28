@@ -112,6 +112,7 @@ export function FungibleTokenList(): ReactElement {
 
 export function FungibleTokenInfo(): ReactElement {
   const alphabill = useAlphabill();
+  const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
   const { fungible } = useUnits();
 
@@ -119,6 +120,14 @@ export function FungibleTokenInfo(): ReactElement {
     return (
       <div className="units--error">
         <ErrorNotification title="No network selected" info={<Link to="/units/fungible">Go back</Link>} />
+      </div>
+    );
+  }
+
+  if (!selectedKey) {
+    return (
+      <div className="units--error">
+        <ErrorNotification title="No key selected" info={<Link to="/units/fungible">Go back</Link>} />
       </div>
     );
   }
