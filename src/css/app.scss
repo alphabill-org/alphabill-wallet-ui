@@ -15,7 +15,7 @@
 
 @use '../routes/Login/Login.scss';
 @use '../routes/CreateWallet/CreateWallet.scss';
-@use '../routes/UnitList/UnitList.scss';
+@use '../routes/TokenList/TokenList';
 
 .app {
   min-width: 375px;

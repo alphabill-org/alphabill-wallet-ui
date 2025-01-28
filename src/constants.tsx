@@ -6,3 +6,8 @@ export const ALPHA_ICON = {
 export const ALPHA_DECIMAL_PLACES = 8;
 
 export const CONCURRENT_QUERIES = 5;
+
+export const QUERY_KEYS = {
+  units: 'UNITS',
+  fungible: 'FUNGIBLE',
+};

@@ -10,8 +10,7 @@ import { createContext, PropsWithChildren, ReactElement, useContext } from 'reac
 
 import { useAlphabill } from './alphabill';
 import { useVault } from './vault';
-import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES } from '../constants';
-import { QUERY_KEY_UNITS } from '../routes/UnitList/UnitList';
+import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES, QUERY_KEYS } from '../constants';
 
 export interface ITokenIcon {
   readonly type: string;
@@ -160,7 +159,7 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
   const key = Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
 
   const fungible = useQuery({
-    queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE', vault.selectedKey?.index, alphabill?.networkId],
+    queryKey: [QUERY_KEYS.units, QUERY_KEYS.fungible, vault.selectedKey?.index, alphabill?.networkId],
     queryFn: (): Promise<Map<string, ITokenInfo>> => {
       if (!alphabill) {
         return Promise.resolve(new Map());

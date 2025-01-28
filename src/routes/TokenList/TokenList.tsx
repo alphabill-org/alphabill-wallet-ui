@@ -6,13 +6,12 @@ import { Button } from '../../components/Button/Button';
 import { Footer } from '../../components/Footer/Footer';
 import { Header } from '../../components/Header/Header';
 import { SelectBox } from '../../components/SelectBox/SelectBox';
+import { QUERY_KEYS } from '../../constants';
 import { useVault } from '../../hooks/vault';
 import AddIcon from '../../images/add-ico.svg?react';
 import CheckIcon from '../../images/check.svg?react';
 import CopyIcon from '../../images/copy-ico.svg?react';
 import SyncIcon from '../../images/sync-ico.svg?react';
-
-export const QUERY_KEY_UNITS = 'UNITS';
 
 function KeySelect(): ReactElement {
   const vault = useVault();
@@ -36,7 +35,7 @@ function KeySelect(): ReactElement {
   );
 }
 
-export function UnitList(): ReactElement {
+export function TokenList(): ReactElement {
   const queryClient = useQueryClient();
   const vault = useVault();
 
@@ -72,7 +71,7 @@ export function UnitList(): ReactElement {
             onClick={() => {
               queryClient.resetQueries({
                 predicate: (query) => {
-                  return query.queryKey.at(0) === QUERY_KEY_UNITS;
+                  return query.queryKey.at(0) === QUERY_KEYS.units;
                 },
               });
             }}
