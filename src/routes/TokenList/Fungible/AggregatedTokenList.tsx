@@ -1,12 +1,12 @@
 import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 
+import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { useAlphabill } from '../../../hooks/alphabill';
 import { useUnits } from '../../../hooks/units';
 import { useVault } from '../../../hooks/vault';
-import { TokenItem } from './TokenItem';
 
 export function AggregatedTokenList(): ReactElement {
   const alphabill = useAlphabill();
@@ -62,4 +62,3 @@ export function AggregatedTokenList(): ReactElement {
 
   return <div className="units__content">{tokenItems}</div>;
 }
-
