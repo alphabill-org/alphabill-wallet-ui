@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 const NETWORKS_LOCAL_STORAGE_KEY = 'alphabill_networks';
 const SELECTED_NETWORK_LOCAL_STORAGE_KEY = 'alphabill_selected_network';
 
-interface INetwork {
+export interface INetwork {
   readonly id: string;
   readonly alias: string;
   readonly moneyPartitionUrl: string;

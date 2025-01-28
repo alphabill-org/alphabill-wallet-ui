@@ -36,12 +36,35 @@ export function TokenDetails(): ReactElement {
   }
 
   if (fungible.error) {
-    return <ErrorNotification title="Error occurred" info={fungible.error.message} />;
+    return (
+      <div className="units--error">
+        <ErrorNotification
+          title="Error occurred"
+          info={
+            <>
+              {fungible.error.message} <br />
+              <Link to="/units/fungible">Go back</Link>
+            </>
+          }
+        />
+      </div>
+    );
   }
 
   const tokenInfo = fungible.data?.get(params.id ?? '');
   if (!tokenInfo) {
-    return <>No token found</>;
+    return (
+      <div className="units--error">
+        <ErrorNotification
+          title="No token found"
+          info={
+            <>
+              <Link to="/units/fungible">Go back</Link>
+            </>
+          }
+        />
+      </div>
+    );
   }
 
   return (

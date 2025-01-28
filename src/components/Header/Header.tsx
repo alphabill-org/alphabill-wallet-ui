@@ -1,36 +1,32 @@
-import { ReactElement } from 'react';
+import { ReactElement, useCallback } from 'react';
 
-import { useNetwork } from '../../hooks/network';
+import { INetwork, useNetwork } from '../../hooks/network';
 import LogoIcon from '../../images/ab-logo-ico.svg?react';
 import CheckIcon from '../../images/check.svg?react';
 import ProfileIcon from '../../images/profile.svg?react';
 import { Button } from '../Button/Button';
 import { SelectBox } from '../SelectBox/SelectBox';
 
-function NetworkSelect(): ReactElement {
-  const networkContext = useNetwork();
-
-  return (
-    <div className="select__options">
-      {networkContext.networks.map((network) => {
-        return (
-          <div
-            key={network.id}
-            className="select__option"
-            onClick={() => {
-              networkContext.setSelectedNetwork(network);
-            }}
-          >
-            {network.alias} {networkContext.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function Header(): ReactElement {
   const networkContext = useNetwork();
+
+  const select = useCallback(
+    (network: INetwork) => {
+      networkContext.setSelectedNetwork(network);
+    },
+    [networkContext],
+  );
+
+  const getOptionKey = useCallback((network: INetwork) => network.id, []);
+
+  const createOption = useCallback(
+    (network: INetwork) => (
+      <>
+        {network.alias} {networkContext.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
+      </>
+    ),
+    [networkContext],
+  );
 
   return (
     <div className="header">
@@ -38,9 +34,14 @@ export function Header(): ReactElement {
         <LogoIcon className="header__ico" />
       </div>
       <div className="header__select">
-        <SelectBox title="SELECT NETWORK" selectedItem={networkContext.selectedNetwork?.alias}>
-          <NetworkSelect />
-        </SelectBox>
+        <SelectBox
+          title="SELECT NETWORK"
+          selectedItem={networkContext.selectedNetwork?.alias}
+          data={networkContext.networks}
+          select={select}
+          getOptionKey={getOptionKey}
+          createOption={createOption}
+        />
       </div>
       <Button
         variant="icon"

@@ -41,7 +41,7 @@ export function AggregatedTokenList(): ReactElement {
   }
 
   if (fungible.error) {
-    return <ErrorNotification title="Error occurred" info={fungible.error.message} />;
+    return <div className="units--error"><ErrorNotification title="Error occurred" info={fungible.error.message} /></div>;
   }
 
   const tokenItems = [];

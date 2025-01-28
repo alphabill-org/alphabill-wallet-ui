@@ -12,7 +12,7 @@ interface IVaultKey {
   readonly index: number;
 }
 
-interface IKeyInfo extends IVaultKey {
+export interface IKeyInfo extends IVaultKey {
   publicKey: string;
 }
 
