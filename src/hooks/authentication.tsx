@@ -1,7 +1,8 @@
-import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from "react";
-import { useVault } from "./vault";
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from 'react';
 
-const AUTHENTICATED_LOCAL_STORAGE_KEY = "alphabill_authenticated";
+import { useVault } from './vault';
+
+const AUTHENTICATED_LOCAL_STORAGE_KEY = 'alphabill_authenticated';
 
 interface IAuthenticationContext {
   readonly isLoggedIn: boolean;
@@ -14,7 +15,7 @@ export function useAuthentication(): IAuthenticationContext {
   const context = useContext(AuthenticationContext);
 
   if (!context) {
-    throw new Error("Invalid authentication context.");
+    throw new Error('Invalid authentication context.');
   }
 
   return context;

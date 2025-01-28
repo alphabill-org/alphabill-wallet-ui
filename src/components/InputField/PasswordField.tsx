@@ -1,7 +1,8 @@
-import { ReactElement, useEffect, useRef, useState } from "react";
-import ShowIcon from "../../images/show-ico.svg?react";
-import { Button } from "../Button/Button";
-import { InputField } from "./InputField";
+import { ReactElement, useEffect, useRef, useState } from 'react';
+
+import { InputField } from './InputField';
+import ShowIcon from '../../images/show-ico.svg?react';
+import { Button } from '../Button/Button';
 
 interface IPasswordFieldProps {
   label: string;
@@ -31,7 +32,7 @@ export function PasswordField(props: IPasswordFieldProps): ReactElement {
   return (
     <InputField className="textfield--password" label={label} desc={desc} error={error}>
       <input
-        type={showPassword ? "text" : "password"}
+        type={showPassword ? 'text' : 'password'}
         name={name}
         ref={inputRef}
         autoComplete="off"

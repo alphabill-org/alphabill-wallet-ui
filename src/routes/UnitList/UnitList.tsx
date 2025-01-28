@@ -1,17 +1,18 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { ReactElement } from "react";
-import { Outlet } from "react-router-dom";
-import { Button } from "../../components/Button/Button";
-import { Footer } from "../../components/Footer/Footer";
-import { Header } from "../../components/Header/Header";
-import { SelectBox } from "../../components/SelectBox/SelectBox";
-import { useVault } from "../../hooks/vault";
-import AddIcon from "../../images/add-ico.svg?react";
-import CheckIcon from "../../images/check.svg?react";
-import CopyIcon from "../../images/copy-ico.svg?react";
-import SyncIcon from "../../images/sync-ico.svg?react";
+import { useQueryClient } from '@tanstack/react-query';
+import { ReactElement } from 'react';
+import { Outlet } from 'react-router-dom';
 
-export const QUERY_KEY_UNITS = "UNITS";
+import { Button } from '../../components/Button/Button';
+import { Footer } from '../../components/Footer/Footer';
+import { Header } from '../../components/Header/Header';
+import { SelectBox } from '../../components/SelectBox/SelectBox';
+import { useVault } from '../../hooks/vault';
+import AddIcon from '../../images/add-ico.svg?react';
+import CheckIcon from '../../images/check.svg?react';
+import CopyIcon from '../../images/copy-ico.svg?react';
+import SyncIcon from '../../images/sync-ico.svg?react';
+
+export const QUERY_KEY_UNITS = 'UNITS';
 
 function KeySelect(): ReactElement {
   const vault = useVault();
@@ -59,7 +60,7 @@ export function UnitList(): ReactElement {
             variant="primary"
             isRounded={true}
             onClick={() => {
-              navigator.clipboard.writeText(vault.selectedKey?.publicKey ?? "");
+              navigator.clipboard.writeText(vault.selectedKey?.publicKey ?? '');
             }}
           >
             <CopyIcon />

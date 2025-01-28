@@ -1,11 +1,11 @@
-import { ReactElement, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { ReactElement, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
-import { ErrorNotification } from "../../components/ErrorNotification/ErrorNotification";
-import { Loading } from "../../components/Loading/Loading";
-import { useAlphabill } from "../../hooks/alphabill";
-import { ITokenIcon, useUnits } from "../../hooks/units";
-import BackIcon from "../../images/back-ico.svg?react";
+import { ErrorNotification } from '../../components/ErrorNotification/ErrorNotification';
+import { Loading } from '../../components/Loading/Loading';
+import { useAlphabill } from '../../hooks/alphabill';
+import { ITokenIcon, useUnits } from '../../hooks/units';
+import BackIcon from '../../images/back-ico.svg?react';
 
 function FungibleTokenItem({
   name,
@@ -22,17 +22,17 @@ function FungibleTokenItem({
 }): ReactElement {
   const [error, setError] = useState<boolean>(false);
 
-  const paddedValue = value.toString().padStart(decimalPlaces, "0");
+  const paddedValue = value.toString().padStart(decimalPlaces, '0');
   return (
-    <div className={`units__content__unit ${hoverable ? "hoverable" : ""}`}>
+    <div className={`units__content__unit ${hoverable ? 'hoverable' : ''}`}>
       <div className="units__content__unit--icon">
         {error ? (
-          <span style={{ color: "#000" }}>
+          <span style={{ color: '#000' }}>
             {name
-              .split(" ")
+              .split(' ')
               .slice(0, 2)
-              .map((el) => el.at(0)?.toUpperCase() ?? "")
-              .join("")}
+              .map((el) => el.at(0)?.toUpperCase() ?? '')
+              .join('')}
           </span>
         ) : (
           <img
@@ -47,7 +47,7 @@ function FungibleTokenItem({
       <div className="units__content__unit--text">{name}</div>
       <div className="units__content__unit--value">
         {decimalPlaces
-          ? `${paddedValue.slice(0, -decimalPlaces).padStart(1, "0")}.${paddedValue.slice(-decimalPlaces)}`
+          ? `${paddedValue.slice(0, -decimalPlaces).padStart(1, '0')}.${paddedValue.slice(-decimalPlaces)}`
           : paddedValue}
       </div>
     </div>
@@ -121,7 +121,7 @@ export function FungibleTokenInfo(): ReactElement {
     return <ErrorNotification title="Error occurred" info={fungible.error.toString()} />;
   }
 
-  const tokenInfo = fungible.data?.get(params.id ?? "");
+  const tokenInfo = fungible.data?.get(params.id ?? '');
   if (!tokenInfo) {
     return <>No token found</>;
   }

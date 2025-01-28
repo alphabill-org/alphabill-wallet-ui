@@ -1,13 +1,14 @@
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
-import { HDKey } from "@scure/bip32";
-import { generateMnemonic } from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
-import { ReactElement, useCallback, useMemo, useReducer } from "react";
-import { useNavigate } from "react-router-dom";
-import { useVault } from "../../hooks/vault";
-import { Alias } from "./Alias";
-import { Mnemonic } from "./Mnemonic";
-import { Password } from "./Password";
+import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
+import { HDKey } from '@scure/bip32';
+import { generateMnemonic } from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english';
+import { ReactElement, useCallback, useMemo, useReducer } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Alias } from './Alias';
+import { Mnemonic } from './Mnemonic';
+import { Password } from './Password';
+import { useVault } from '../../hooks/vault';
 
 interface ICreateWalletState {
   readonly step: CreateWalletStep;
@@ -119,12 +120,12 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
   const onStep3Submitted = useCallback(
     async (alias: string) => {
       if (!keyInfo || !password) {
-        throw new Error("Data is missing for creating a wallet.");
+        throw new Error('Data is missing for creating a wallet.');
       }
 
       await vault.createVault(keyInfo.mnemonic, password, { alias, index: 0 });
       reset();
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
     },
     [dispatch, keyInfo, password],
   );
@@ -134,7 +135,7 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
 
   switch (step) {
     case CreateWalletStep.PASSWORD:
-      return <Password password={password} onSubmitSuccess={onStep1Submitted} previous={() => navigate("/")} />;
+      return <Password password={password} onSubmitSuccess={onStep1Submitted} previous={() => navigate('/')} />;
     case CreateWalletStep.MNEMONIC:
       return (
         <Mnemonic

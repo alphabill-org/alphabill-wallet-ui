@@ -1,8 +1,9 @@
-import { MoneyPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient";
-import { TokenPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient";
-import { createMoneyClient, createTokenClient, http } from "@alphabill/alphabill-js-sdk/lib/StateApiClientFactory";
-import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } from "react";
-import { useNetwork } from "./network";
+import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
+import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
+import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory';
+import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } from 'react';
+
+import { useNetwork } from './network';
 
 interface IAlphabillContext {
   moneyClient: MoneyPartitionJsonRpcClient;

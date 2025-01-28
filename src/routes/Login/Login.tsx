@@ -1,11 +1,12 @@
-import { FormEvent, ReactElement, useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../../components/Button/Button";
-import { Form, FormContent, FormFooter } from "../../components/Form/Form";
-import { PasswordField } from "../../components/InputField/PasswordField";
-import { Loading } from "../../components/Loading/Loading";
-import { useAuthentication } from "../../hooks/authentication";
-import LogoIcon from "../../images/ab-logo-ico.svg?react";
+import { FormEvent, ReactElement, useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { Button } from '../../components/Button/Button';
+import { Form, FormContent, FormFooter } from '../../components/Form/Form';
+import { PasswordField } from '../../components/InputField/PasswordField';
+import { Loading } from '../../components/Loading/Loading';
+import { useAuthentication } from '../../hooks/authentication';
+import LogoIcon from '../../images/ab-logo-ico.svg?react';
 
 export function Login(): ReactElement {
   const authentication = useAuthentication();
@@ -19,7 +20,7 @@ export function Login(): ReactElement {
       setIsLoading(true);
       ev.preventDefault();
       const data = new FormData(ev.currentTarget);
-      const password = String(data.get("password") ?? "");
+      const password = String(data.get('password') ?? '');
       const result = await authentication.login(password);
       setLoginFailed(!result);
       setTimeout(
@@ -34,7 +35,7 @@ export function Login(): ReactElement {
 
   useEffect(() => {
     if (authentication.isLoggedIn) {
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
     }
   }, [authentication.isLoggedIn]);
 
@@ -54,7 +55,7 @@ export function Login(): ReactElement {
             <PasswordField
               name="password"
               label="password"
-              error={loginFailed ? "Invalid credentials" : undefined}
+              error={loginFailed ? 'Invalid credentials' : undefined}
               focusInput
             />
           </FormContent>
@@ -66,12 +67,12 @@ export function Login(): ReactElement {
         </Form>
       </form>
       <div className="login__footer">
-        <Link to="/recover-wallet" style={{ marginBottom: "16px" }}>
+        <Link to="/recover-wallet" style={{ marginBottom: '16px' }}>
           Recover account?
         </Link>
         <div>
           Don't have a wallet?
-          <Link to="/create-wallet" style={{ marginLeft: "10px" }}>
+          <Link to="/create-wallet" style={{ marginLeft: '10px' }}>
             Create
           </Link>
         </div>

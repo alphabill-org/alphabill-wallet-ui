@@ -1,9 +1,10 @@
-import { ReactElement } from "react";
-import { Button } from "../../components/Button/Button";
+import { ReactElement } from 'react';
+
+import { Button } from '../../components/Button/Button';
 
 export function Footer({
-  previousLabel = "Back",
-  nextLabel = "Next",
+  previousLabel = 'Back',
+  nextLabel = 'Next',
   previous,
 }: {
   previousLabel?: string;

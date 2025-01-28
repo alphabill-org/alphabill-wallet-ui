@@ -1,5 +1,6 @@
-import { ReactElement, useEffect, useRef } from "react";
-import { InputField } from "./InputField";
+import { ReactElement, useEffect, useRef } from 'react';
+
+import { InputField } from './InputField';
 
 interface ITextFieldProps {
   label: string;

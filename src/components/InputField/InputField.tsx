@@ -1,5 +1,5 @@
-import classNames from "classnames";
-import { PropsWithChildren, ReactElement } from "react";
+import classNames from 'classnames';
+import { PropsWithChildren, ReactElement } from 'react';
 
 interface IInputFieldProps {
   label: string;
@@ -11,7 +11,7 @@ interface IInputFieldProps {
 export function InputField(props: PropsWithChildren<IInputFieldProps>): ReactElement {
   const { error, children } = props;
 
-  const className = classNames("textfield", props.className);
+  const className = classNames('textfield', props.className);
 
   return (
     <div className={className} data-testid="textfield">

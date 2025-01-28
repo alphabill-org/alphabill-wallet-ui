@@ -1,11 +1,12 @@
-import { FormEvent, ReactElement, useCallback, useState } from "react";
-import { Form, FormContent } from "../../components/Form/Form";
-import { TextField } from "../../components/InputField/TextField";
-import { Footer } from "./Footer";
-import { Header } from "./Header";
-import { Progress } from "./Progress";
+import { FormEvent, ReactElement, useCallback, useState } from 'react';
 
-type FormElements = "alias";
+import { Footer } from './Footer';
+import { Header } from './Header';
+import { Progress } from './Progress';
+import { Form, FormContent } from '../../components/Form/Form';
+import { TextField } from '../../components/InputField/TextField';
+
+type FormElements = 'alias';
 
 export function Alias({
   publicKey,
@@ -23,9 +24,9 @@ export function Alias({
       ev.preventDefault();
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
-      const alias = String(data.get("alias") ?? "");
+      const alias = String(data.get('alias') ?? '');
       if (alias.length === 0) {
-        errors.set("alias", "Invalid alias.");
+        errors.set('alias', 'Invalid alias.');
       }
 
       setErrors(errors);
@@ -44,7 +45,7 @@ export function Alias({
         <Form>
           <FormContent>
             <TextField name="key" label="Key" value={publicKey} disabled />
-            <TextField name="alias" label="Key name" error={errors.get("alias")} focusInput />
+            <TextField name="alias" label="Key name" error={errors.get('alias')} focusInput />
           </FormContent>
         </Form>
       </div>

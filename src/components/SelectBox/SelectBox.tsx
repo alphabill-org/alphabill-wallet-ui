@@ -1,7 +1,8 @@
-import { PropsWithChildren, ReactElement, ReactNode, useState } from "react";
-import ArrowIcon from "../../images/arrow.svg?react";
-import { Button } from "../Button/Button";
-import { SelectPopover } from "../SelectPopover/SelectPopover";
+import { PropsWithChildren, ReactElement, ReactNode, useState } from 'react';
+
+import ArrowIcon from '../../images/arrow.svg?react';
+import { Button } from '../Button/Button';
+import { SelectPopover } from '../SelectPopover/SelectPopover';
 
 export function SelectBox({
   selectedItem,
@@ -13,13 +14,13 @@ export function SelectBox({
 
   return (
     <div
-      className={`select ${className ?? ""}`}
+      className={`select ${className ?? ''}`}
       onClick={() => {
         setIsPopoverOpen(true);
       }}
     >
       <Button variant="icon" className="select__button">
-        <span className="select__button--text">{selectedItem ?? "--- SELECT ---"}</span>
+        <span className="select__button--text">{selectedItem ?? '--- SELECT ---'}</span>
         <ArrowIcon className="select__button--icon" />
       </Button>
       <SelectPopover

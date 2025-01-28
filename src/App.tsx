@@ -1,22 +1,23 @@
-import { ReactElement, useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { CreateWallet } from "./routes/CreateWallet/CreateWallet";
-import { Home } from "./routes/Home";
-import { Login } from "./routes/Login/Login";
-import { Network } from "./routes/Network";
-import { FungibleTokenInfo, FungibleTokenList } from "./routes/UnitList/FungibleTokenList";
-import { UnitList } from "./routes/UnitList/UnitList";
+import { ReactElement, useEffect, useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
+import { CreateWallet } from './routes/CreateWallet/CreateWallet';
+import { Home } from './routes/Home';
+import { Login } from './routes/Login/Login';
+import { Network } from './routes/Network';
+import { FungibleTokenInfo, FungibleTokenList } from './routes/UnitList/FungibleTokenList';
+import { UnitList } from './routes/UnitList/UnitList';
 
 export function App(): ReactElement {
   const [, setIsNetworkError] = useState<boolean>(false);
 
   useEffect(() => {
-    window.addEventListener("online", () => setIsNetworkError(false));
-    window.addEventListener("offline", () => setIsNetworkError(true));
+    window.addEventListener('online', () => setIsNetworkError(false));
+    window.addEventListener('offline', () => setIsNetworkError(true));
 
     return (): void => {
-      window.removeEventListener("online", () => setIsNetworkError(false));
-      window.removeEventListener("offline", () => setIsNetworkError(true));
+      window.removeEventListener('online', () => setIsNetworkError(false));
+      window.removeEventListener('offline', () => setIsNetworkError(true));
     };
   }, []);
 

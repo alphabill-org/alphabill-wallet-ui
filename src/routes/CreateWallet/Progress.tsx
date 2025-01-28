@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement } from 'react';
 
 export function Progress({ step, total }: { step: number; total: number }): ReactElement {
   return (

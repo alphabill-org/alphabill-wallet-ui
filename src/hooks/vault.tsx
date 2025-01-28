@@ -1,11 +1,11 @@
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
-import { HDKey } from "@scure/bip32";
-import { mnemonicToSeed } from "@scure/bip39";
-import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from "react";
+import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
+import { HDKey } from '@scure/bip32';
+import { mnemonicToSeed } from '@scure/bip39';
+import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from 'react';
 
-const VAULT_LOCAL_STORAGE_KEY = "alphabill_vault";
-const VAULT_KEYS_LOCAL_STORAGE_KEY = "alphabill_vault_keys";
-const VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY = "alphabill_vault_selected_key";
+const VAULT_LOCAL_STORAGE_KEY = 'alphabill_vault';
+const VAULT_KEYS_LOCAL_STORAGE_KEY = 'alphabill_vault_keys';
+const VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY = 'alphabill_vault_selected_key';
 
 interface IVaultKey {
   readonly alias: string;
@@ -43,7 +43,7 @@ export function useVault(): IVaultContext {
   const context = useContext(VaultContext);
 
   if (!context) {
-    throw new Error("Invalid vault context.");
+    throw new Error('Invalid vault context.');
   }
 
   return context;
@@ -74,28 +74,28 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   });
 
   const calculateKeyIV = useCallback(async (password: string, salt: Uint8Array) => {
-    const digest = await crypto.subtle.digest("SHA-256", new Uint8Array([...textEncoder.encode(password), ...salt]));
+    const digest = await crypto.subtle.digest('SHA-256', new Uint8Array([...textEncoder.encode(password), ...salt]));
     return digest.slice(0, 16);
   }, []);
 
   const createEncryptionKey = useCallback(async (password: string, salt: Uint8Array) => {
-    const key = await crypto.subtle.importKey("raw", textEncoder.encode(password), "PBKDF2", false, [
-      "deriveBits",
-      "deriveKey",
+    const key = await crypto.subtle.importKey('raw', textEncoder.encode(password), 'PBKDF2', false, [
+      'deriveBits',
+      'deriveKey',
     ]);
 
     return {
       key: await crypto.subtle.deriveKey(
         {
-          name: "PBKDF2",
+          name: 'PBKDF2',
           salt,
           iterations: 129531,
-          hash: "SHA-256",
+          hash: 'SHA-256',
         },
         key,
-        { name: "AES-GCM", length: 256 },
+        { name: 'AES-GCM', length: 256 },
         false,
-        ["encrypt", "decrypt"],
+        ['encrypt', 'decrypt'],
       ),
       iv: await calculateKeyIV(password, salt),
     };
@@ -114,7 +114,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     const vault = new Uint8Array(
       await crypto.subtle.encrypt(
         {
-          name: "AES-GCM",
+          name: 'AES-GCM',
           iv,
         },
         key,
@@ -137,7 +137,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       const { key, iv } = await createEncryptionKey(password, salt);
       const vaultBytes = await crypto.subtle.decrypt(
         {
-          name: "AES-GCM",
+          name: 'AES-GCM',
           iv,
         },
         key,
@@ -196,7 +196,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
 
         return true;
       } catch (e) {
-        console.error("Decryption failed", e);
+        console.error('Decryption failed', e);
         return false;
       }
     },

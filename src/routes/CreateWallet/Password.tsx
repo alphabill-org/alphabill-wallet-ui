@@ -1,11 +1,12 @@
-import { FormEvent, ReactElement, useCallback, useState } from "react";
-import { Form, FormContent } from "../../components/Form/Form";
-import { PasswordField } from "../../components/InputField/PasswordField";
-import { Footer } from "./Footer";
-import { Header } from "./Header";
-import { Progress } from "./Progress";
+import { FormEvent, ReactElement, useCallback, useState } from 'react';
 
-type FormElements = "password" | "passwordConfirmation";
+import { Footer } from './Footer';
+import { Header } from './Header';
+import { Progress } from './Progress';
+import { Form, FormContent } from '../../components/Form/Form';
+import { PasswordField } from '../../components/InputField/PasswordField';
+
+type FormElements = 'password' | 'passwordConfirmation';
 export function Password({
   password,
   previous,
@@ -22,15 +23,15 @@ export function Password({
       ev.preventDefault();
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
-      const password = String(data.get("password") ?? "");
-      const passwordConfirmation = String(data.get("passwordConfirmation") ?? "");
+      const password = String(data.get('password') ?? '');
+      const passwordConfirmation = String(data.get('passwordConfirmation') ?? '');
 
       if (password.length < 8) {
-        errors.set("password", "Password must be at least 8 characters long.");
+        errors.set('password', 'Password must be at least 8 characters long.');
       }
 
       if (password !== passwordConfirmation) {
-        errors.set("passwordConfirmation", "Passwords did not match.");
+        errors.set('passwordConfirmation', 'Passwords did not match.');
       }
 
       setErrors(errors);
@@ -52,14 +53,14 @@ export function Password({
               name="password"
               label="Password"
               value={password}
-              error={errors.get("password")}
+              error={errors.get('password')}
               focusInput
             />
             <PasswordField
               name="passwordConfirmation"
               label="Confirm password"
               value={password}
-              error={errors.get("passwordConfirmation")}
+              error={errors.get('passwordConfirmation')}
             />
           </FormContent>
         </Form>

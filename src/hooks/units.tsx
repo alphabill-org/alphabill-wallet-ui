@@ -1,17 +1,17 @@
-import type { IUnitId } from "@alphabill/alphabill-js-sdk/lib/IUnitId";
-import { MoneyPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient";
-import { TokenPartitionJsonRpcClient } from "@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient";
-import { Bill } from "@alphabill/alphabill-js-sdk/lib/money/Bill";
-import { FungibleToken } from "@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken";
-import { FungibleTokenType } from "@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType";
-import { Base16Converter } from "@alphabill/alphabill-js-sdk/lib/util/Base16Converter";
-import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { createContext, PropsWithChildren, ReactElement, useContext, useEffect } from "react";
+import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
+import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
+import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
+import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
+import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
+import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
+import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
+import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
+import { createContext, PropsWithChildren, ReactElement, useContext, useEffect } from 'react';
 
-import { useAlphabill } from "./alphabill";
-import { useVault } from "./vault";
-import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES } from "../constants";
-import { QUERY_KEY_UNITS } from "../routes/UnitList/UnitList";
+import { useAlphabill } from './alphabill';
+import { useVault } from './vault';
+import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES } from '../constants';
+import { QUERY_KEY_UNITS } from '../routes/UnitList/UnitList';
 
 export interface ITokenIcon {
   readonly type: string;
@@ -88,8 +88,8 @@ async function getAlphaInfo(ownerId: Uint8Array, moneyClient: MoneyPartitionJson
   }
 
   return {
-    id: "ALPHA",
-    name: "ALPHA",
+    id: 'ALPHA',
+    name: 'ALPHA',
     decimalPlaces: ALPHA_DECIMAL_PLACES,
     icon: ALPHA_ICON,
     units,
@@ -116,7 +116,7 @@ async function getFungibleTokenInfo(
   }
 
   const result = new Map<string, ITokenInfo>();
-  result.set("ALPHA", await getAlphaInfo(ownerId, moneyClient));
+  result.set('ALPHA', await getAlphaInfo(ownerId, moneyClient));
   for (const [typeId, units] of tokens) {
     const type = await tokenClient.getUnit(units[0].typeId, false, FungibleTokenType);
     if (!type) {
@@ -147,7 +147,7 @@ async function getFungibleTokenInfo(
 export function useUnits(): IUnitsContext {
   const context = useContext(UnitsContext);
   if (!context) {
-    throw new Error("Invalid units context");
+    throw new Error('Invalid units context');
   }
 
   return context;
@@ -158,10 +158,10 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
 
-  const key = Base16Converter.decode(vault.selectedKey?.publicKey ?? "");
+  const key = Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
 
   const fungible = useQuery({
-    queryKey: [QUERY_KEY_UNITS, "FUNGIBLE"],
+    queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE'],
     queryFn: (): Promise<Map<string, ITokenInfo>> => {
       if (!alphabill) {
         return Promise.resolve(new Map());
@@ -173,7 +173,7 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
 
   // TODO: Check if refresh is required, if nothing changes then there is no point.
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: [QUERY_KEY_UNITS, "FUNGIBLE"], exact: true });
+    queryClient.resetQueries({ queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE'], exact: true });
   }, [vault.selectedKey, alphabill]);
 
   return <UnitsContext.Provider value={{ fungible }}>{children}</UnitsContext.Provider>;

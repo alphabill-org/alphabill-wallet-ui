@@ -1,13 +1,14 @@
-import { FormEvent, ReactElement, useCallback, useRef, useState } from "react";
-import { Button } from "../../components/Button/Button";
-import { Form, FormContent, FormFooter } from "../../components/Form/Form";
-import { InputField } from "../../components/InputField/InputField";
-import CopyIcon from "../../images/copy-ico.svg?react";
-import { Footer } from "./Footer";
-import { Header } from "./Header";
-import { Progress } from "./Progress";
+import { FormEvent, ReactElement, useCallback, useRef, useState } from 'react';
 
-type FormElements = "mnemonic";
+import { Footer } from './Footer';
+import { Header } from './Header';
+import { Progress } from './Progress';
+import { Button } from '../../components/Button/Button';
+import { Form, FormContent, FormFooter } from '../../components/Form/Form';
+import { InputField } from '../../components/InputField/InputField';
+import CopyIcon from '../../images/copy-ico.svg?react';
+
+type FormElements = 'mnemonic';
 
 export function Mnemonic({
   mnemonic,
@@ -26,9 +27,9 @@ export function Mnemonic({
       ev.preventDefault();
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
-      const mnemonic = String(data.get("mnemonic"));
-      if (mnemonic.split(" ").length !== 12) {
-        errors.set("mnemonic", "Invalid mnemonic.");
+      const mnemonic = String(data.get('mnemonic'));
+      if (mnemonic.split(' ').length !== 12) {
+        errors.set('mnemonic', 'Invalid mnemonic.');
       }
 
       setErrors(errors);
@@ -44,14 +45,14 @@ export function Mnemonic({
       <Header title="Copy Secret Recovery Phrase" />
       <Progress step={2} total={3} />
       <div className="pad-24 t-medium-small">
-        <div style={{ textAlign: "center", marginBottom: "16px" }}>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
           Copy the phrase & store it safely or memorize it. Never disclose your Secret Recovery Phrase. Anyone with this
           phrase can take your Alphabill forever.
         </div>
 
         <Form>
           <FormContent>
-            <InputField label="Secret Recovery Phrase" error={errors.get("mnemonic")}>
+            <InputField label="Secret Recovery Phrase" error={errors.get('mnemonic')}>
               <textarea
                 ref={mnemonicInputField}
                 name="mnemonic"
@@ -67,11 +68,11 @@ export function Mnemonic({
               variant="secondary"
               block={true}
               onClick={() => {
-                navigator.clipboard.writeText(mnemonicInputField.current?.value ?? "");
+                navigator.clipboard.writeText(mnemonicInputField.current?.value ?? '');
               }}
             >
               <CopyIcon fill="#FFFFFF" />
-              <div style={{ marginLeft: "5px" }}>Copy</div>
+              <div style={{ marginLeft: '5px' }}>Copy</div>
             </Button>
           </FormFooter>
         </Form>
