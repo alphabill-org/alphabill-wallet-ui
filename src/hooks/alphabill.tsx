@@ -6,6 +6,7 @@ import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } f
 import { useNetwork } from './network';
 
 interface IAlphabillContext {
+  networkId: string;
   moneyClient: MoneyPartitionJsonRpcClient;
   tokenClient: TokenPartitionJsonRpcClient;
 }
@@ -25,6 +26,7 @@ export function AlphabillProvider({ children }: PropsWithChildren): ReactElement
     }
 
     return {
+      networkId: selectedNetwork.id,
       moneyClient: createMoneyClient({ transport: http(selectedNetwork.moneyPartitionUrl) }),
       tokenClient: createTokenClient({ transport: http(selectedNetwork.tokenPartitionUrl) }),
     };

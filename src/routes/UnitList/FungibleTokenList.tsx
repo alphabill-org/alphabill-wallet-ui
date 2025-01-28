@@ -5,6 +5,7 @@ import { ErrorNotification } from '../../components/ErrorNotification/ErrorNotif
 import { Loading } from '../../components/Loading/Loading';
 import { useAlphabill } from '../../hooks/alphabill';
 import { ITokenIcon, useUnits } from '../../hooks/units';
+import { useVault } from '../../hooks/vault';
 import BackIcon from '../../images/back-ico.svg?react';
 
 function FungibleTokenItem({
@@ -56,6 +57,7 @@ function FungibleTokenItem({
 
 export function FungibleTokenList(): ReactElement {
   const alphabill = useAlphabill();
+  const { selectedKey } = useVault();
   const { fungible } = useUnits();
 
   if (!alphabill) {
@@ -69,7 +71,15 @@ export function FungibleTokenList(): ReactElement {
     );
   }
 
-  if (fungible.isPending) {
+  if (!selectedKey) {
+    return (
+      <div className="units--error">
+        <ErrorNotification title="No key selected" info="Select key from the selectbox above." />
+      </div>
+    );
+  }
+
+  if (fungible.isLoading) {
     return (
       <div className="units--loading">
         <Loading title="Loading..." />
@@ -78,7 +88,7 @@ export function FungibleTokenList(): ReactElement {
   }
 
   if (fungible.error) {
-    return <ErrorNotification title="Error occurred" info={fungible.error.toString()} />;
+    return <ErrorNotification title="Error occurred" info={fungible.error.message} />;
   }
 
   const tokenItems = [];
@@ -113,12 +123,12 @@ export function FungibleTokenInfo(): ReactElement {
     );
   }
 
-  if (fungible.isPending) {
+  if (fungible.isLoading) {
     return <Loading title="Loading..." />;
   }
 
   if (fungible.error) {
-    return <ErrorNotification title="Error occurred" info={fungible.error.toString()} />;
+    return <ErrorNotification title="Error occurred" info={fungible.error.message} />;
   }
 
   const tokenInfo = fungible.data?.get(params.id ?? '');

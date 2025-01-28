@@ -5,8 +5,8 @@ import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
-import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
-import { createContext, PropsWithChildren, ReactElement, useContext, useEffect } from 'react';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { createContext, PropsWithChildren, ReactElement, useContext } from 'react';
 
 import { useAlphabill } from './alphabill';
 import { useVault } from './vault';
@@ -154,14 +154,13 @@ export function useUnits(): IUnitsContext {
 }
 
 export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
-  const queryClient = useQueryClient();
   const alphabill = useAlphabill();
   const vault = useVault();
 
   const key = Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
 
   const fungible = useQuery({
-    queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE'],
+    queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE', vault.selectedKey?.index, alphabill?.networkId],
     queryFn: (): Promise<Map<string, ITokenInfo>> => {
       if (!alphabill) {
         return Promise.resolve(new Map());
@@ -169,12 +168,8 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
 
       return getFungibleTokenInfo(key, alphabill.moneyClient, alphabill.tokenClient);
     },
+    enabled: !!vault.selectedKey && !!alphabill,
   });
-
-  // TODO: Check if refresh is required, if nothing changes then there is no point.
-  useEffect(() => {
-    queryClient.resetQueries({ queryKey: [QUERY_KEY_UNITS, 'FUNGIBLE'], exact: true });
-  }, [vault.selectedKey, alphabill]);
 
   return <UnitsContext.Provider value={{ fungible }}>{children}</UnitsContext.Provider>;
 }
