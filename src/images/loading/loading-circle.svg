@@ -1,14 +1,13 @@
 <svg fill="#08e8de" height="24" viewBox="0 0 40 24" width="40" xmlns="http://www.w3.org/2000/svg">
-    <g>
-        <path id="ball" d="m35.0981 16.8149c2.7073 0 4.902-2.1951 4.902-4.9028 0-2.70776-2.1947-4.90282-4.902-4.90282s-4.9021 2.19506-4.9021 4.90282c0 2.7077 2.1948 4.9028 4.9021 4.9028z">
-            <animateTransform
-                    attributeName="transform"
-                    type="translate"
-                    begin="0s"
-                    dur="3s"
-                    values="0,0; 0,0; -22.6,0; -22.6,0; 0,0; 0,0"
-                    keyTimes="0; 0.2; 0.3; 0.7; 0.8; 1"
-                    repeatCount="indefinite" />
-        </path>
-    </g>
+    <path id="ball"
+          d="m35.0981 16.8149c2.7073 0 4.902-2.1951 4.902-4.9028 0-2.70776-2.1947-4.90282-4.902-4.90282s-4.9021 2.19506-4.9021 4.90282c0 2.7077 2.1948 4.9028 4.9021 4.9028z">
+        <animateTransform
+                attributeName="transform"
+                type="translate"
+                begin="0s"
+                dur="3s"
+                values="0,0; 0,0; -22.6,0; -22.6,0; 0,0; 0,0"
+                keyTimes="0; 0.2; 0.3; 0.7; 0.8; 1"
+                repeatCount="indefinite"/>
+    </path>
 </svg>

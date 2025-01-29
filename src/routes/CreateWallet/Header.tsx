@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 
-import CloseIcon from '../../images/close.svg?react';
+import CloseIcon from '../../images/close-ico.svg?react';
 
 export function Header({ title }: { title: string }): ReactElement {
   return (

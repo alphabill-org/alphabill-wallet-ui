@@ -9,7 +9,7 @@ import { SelectBox } from '../../components/SelectBox/SelectBox';
 import { QUERY_KEYS } from '../../constants';
 import { IKeyInfo, useVault } from '../../hooks/vault';
 import AddIcon from '../../images/add-ico.svg?react';
-import CheckIcon from '../../images/check.svg?react';
+import CheckIcon from '../../images/check-ico.svg?react';
 import CopyIcon from '../../images/copy-ico.svg?react';
 import SyncIcon from '../../images/sync-ico.svg?react';
 

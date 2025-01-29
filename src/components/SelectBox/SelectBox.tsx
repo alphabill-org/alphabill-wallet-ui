@@ -1,6 +1,6 @@
 import { Key, ReactElement, ReactNode, useCallback, useState, MouseEvent } from 'react';
 
-import ArrowIcon from '../../images/arrow.svg?react';
+import ArrowIcon from '../../images/arrow-ico.svg?react';
 import { Button } from '../Button/Button';
 import { SelectPopover } from '../SelectPopover/SelectPopover';
 
