@@ -77,7 +77,7 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
 
   const setStep = useCallback(
     (step: CreateWalletStep): void => {
-      dispatch({ type: CreateWalletAction.SET_STEP, step });
+      dispatch({ step, type: CreateWalletAction.SET_STEP });
     },
     [dispatch],
   );
@@ -102,7 +102,7 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
 
   const onStep1Submitted = useCallback(
     (password: string): void => {
-      dispatch({ type: CreateWalletAction.SET_PASSWORD, password });
+      dispatch({ password, type: CreateWalletAction.SET_PASSWORD });
       nextStep();
     },
     [dispatch, nextStep],
@@ -111,7 +111,7 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
   const onStep2Submitted = useCallback(
     async (mnemonic: string): Promise<void> => {
       const key = await vault.deriveKey(mnemonic, 0);
-      dispatch({ type: CreateWalletAction.SET_MNEMONIC, mnemonic, key });
+      dispatch({ key, mnemonic, type: CreateWalletAction.SET_MNEMONIC });
       nextStep();
     },
     [dispatch, nextStep, vault],

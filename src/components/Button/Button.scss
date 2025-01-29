@@ -1,4 +1,4 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 .button {
   display: inline-flex;
@@ -79,7 +79,7 @@
 
   &:hover {
     opacity: 1;
-    background: variables.$color-primary--hover;
+    background: variables.$color-primary-hover;
     color: variables.$color-white;
 
     &.is--active {
@@ -117,7 +117,7 @@
 }
 
 .button--third {
-  color: currentColor;
+  color: currentcolor;
   background-color: variables.$color-blue;
 
   &:hover {

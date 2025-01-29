@@ -1,8 +1,44 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 .textfield {
   display: flex;
   flex-direction: column;
+
+  &__input {
+    width: 100%;
+    border: 0;
+    appearance: none;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    color: variables.$color-light;
+    padding: 12px;
+    background-color: variables.$color-secondary;
+    border-radius: 4px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    resize: vertical;
+
+    &:focus {
+      outline: 0;
+    }
+
+    .textfield--transparent & {
+      opacity: 0;
+    }
+
+    .center & {
+      text-align: center;
+    }
+
+    &--wrap {
+      display: flex;
+      position: relative;
+    }
+  }
 
   &--password {
     .textfield__input {
@@ -22,87 +58,32 @@
     }
   }
 
+  &__label {
+    display: block;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: variables.$color-light;
+    white-space: nowrap;
+    margin-right: auto;
+    text-align: left;
+    padding: 4px 0 8px;
+    text-transform: capitalize;
+  }
+
+  &__error {
+    padding: 8px 0;
+    color: variables.$color-yellow;
+  }
+
+  &-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 8px 0;
+  }
+
   &:last-child {
     border-bottom: none;
-  }
-
-  .form--dark & {
-    border-bottom: none;
-  }
-}
-
-.textfield-group {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 8px;
-  row-gap: 8px;
-  padding: 8px 0;
-}
-
-.textfield__input {
-  width: 100%;
-  border: 0;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 18px;
-  display: flex;
-  align-items: center;
-  color: variables.$color-light;
-  padding: 12px;
-  background-color: variables.$color-secondary;
-  border-radius: 4px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 100%;
-  resize: vertical;
-
-  &:focus {
-    outline: 0;
-  }
-
-  .textfield--transparent & {
-    opacity: 0;
-  }
-
-  .form--dark & {
-    color: variables.$color-primary;
-    text-align: right;
-
-    &:read-only {
-      color: variables.$color-white;
-    }
-  }
-
-  .center & {
-    text-align: center;
-  }
-
-  &--wrap {
-    display: flex;
-    position: relative;
-  }
-}
-
-.textfield__label {
-  display: block;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 18px;
-  color: variables.$color-light;
-  white-space: nowrap;
-  margin-right: auto;
-  text-align: left;
-  padding: 4px 0 8px;
-  text-transform: capitalize;
-}
-
-.textfield__error {
-  padding: 8px 0;
-  color: variables.$color-yellow;
-
-  .form--dark & {
-    align-self: flex-end;
   }
 }

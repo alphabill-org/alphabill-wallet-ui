@@ -1,4 +1,4 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 .header {
   display: flex;
@@ -14,7 +14,10 @@
   }
 
   &__ico {
-    fill: variables.$color-primary;
     flex-shrink: 0;
+
+    svg {
+      fill: variables.$color-primary;
+    }
   }
 }

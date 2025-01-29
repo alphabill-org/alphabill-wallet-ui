@@ -1,4 +1,4 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 .loading {
   display: flex;
@@ -40,9 +40,11 @@
   0% {
     transform: translateX(0);
   }
+
   10% {
     transform: translateX(0);
   }
+
   40% {
     transform: translateX(-22.6px);
   }

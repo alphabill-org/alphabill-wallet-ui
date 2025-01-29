@@ -1,10 +1,15 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 .create-account {
   display: flex;
   flex-direction: column;
   width: 100%;
   flex-grow: 1;
+
+  &__info {
+    text-align: center;
+    margin-bottom: 16px;
+  }
 
   &__header {
     padding: 23px 48px;
@@ -27,7 +32,7 @@
 
       &:hover {
         svg {
-          fill: variables.$color-primary--hover;
+          fill: variables.$color-primary-hover;
         }
       }
     }
@@ -40,7 +45,7 @@
 
   &__progress {
     height: 6px;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgb(255 255 255 / 15%);
 
     &--active {
       background-color: variables.$color-primary;

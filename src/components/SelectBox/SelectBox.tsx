@@ -4,6 +4,16 @@ import ArrowIcon from '../../images/arrow.svg?react';
 import { Button } from '../Button/Button';
 import { SelectPopover } from '../SelectPopover/SelectPopover';
 
+interface ISelectBoxProps<T> {
+  title: string;
+  selectedItem?: ReactNode;
+  className?: string;
+  data: T[];
+  select: (item: T) => void;
+  getOptionKey: (item: T) => Key;
+  createOption: (item: T) => ReactNode;
+}
+
 export function SelectBox<T>({
   selectedItem,
   className,
@@ -12,15 +22,7 @@ export function SelectBox<T>({
   select,
   getOptionKey,
   createOption,
-}: {
-  title: string;
-  selectedItem?: ReactNode;
-  className?: string;
-  data: T[];
-  select: (item: T) => void;
-  getOptionKey: (item: T) => Key;
-  createOption: (item: T) => ReactNode;
-}): ReactElement {
+}: ISelectBoxProps<T>): ReactElement {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const openPopover = useCallback(

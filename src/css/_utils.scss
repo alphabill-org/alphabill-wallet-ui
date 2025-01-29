@@ -1,4 +1,4 @@
-@use './variables.scss';
+@use './variables';
 
 // Flex
 
@@ -27,7 +27,7 @@
     margin: 0 16px;
     width: calc(50% - 32px);
 
-    @media (max-width: 760px) {
+    @media (width <= 760px) {
       width: 100%;
     }
   }
@@ -104,10 +104,6 @@
 
 .pad-16-l {
   padding-left: 16px;
-}
-
-.pad-8-l {
-  padding-left: 8px;
 }
 
 // Icons

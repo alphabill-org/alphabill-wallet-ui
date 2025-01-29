@@ -45,7 +45,7 @@ export function Mnemonic({
       <Header title="Copy Secret Recovery Phrase" />
       <Progress step={2} total={3} />
       <div className="pad-24 t-medium-small">
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <div className="create-account__info">
           Copy the phrase & store it safely or memorize it. Never disclose your Secret Recovery Phrase. Anyone with this
           phrase can take your Alphabill forever.
         </div>

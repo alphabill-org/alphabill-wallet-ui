@@ -39,7 +39,7 @@ const textDecoder = new TextDecoder();
 
 const UnitsContext = createContext<IUnitsContext | null>(null);
 
-async function* fetch<T>(
+async function* fetchUnits<T>(
   data: ReadonlyArray<IUnitId>,
   create: (unitId: IUnitId) => Promise<T | null>,
 ): AsyncGenerator<T> {
@@ -54,8 +54,8 @@ async function* fetch<T>(
         id,
         create(unitId).then((data) => {
           return {
-            id,
             data,
+            id,
           };
         }),
       );
@@ -78,7 +78,7 @@ async function* fetch<T>(
 async function getAlphaInfo(ownerId: Uint8Array, moneyClient: MoneyPartitionJsonRpcClient): Promise<ITokenInfo> {
   const units = [];
   const { bills } = await moneyClient.getUnitsByOwnerId(ownerId);
-  const iterator = fetch(bills, (unitId: IUnitId) => moneyClient.getUnit(unitId, false, Bill));
+  const iterator = fetchUnits(bills, (unitId: IUnitId) => moneyClient.getUnit(unitId, false, Bill));
   for await (const unit of iterator) {
     units.push({
       id: Base16Converter.encode(unit.unitId.bytes),
@@ -87,12 +87,12 @@ async function getAlphaInfo(ownerId: Uint8Array, moneyClient: MoneyPartitionJson
   }
 
   return {
-    id: 'ALPHA',
-    name: 'ALPHA',
     decimalPlaces: ALPHA_DECIMAL_PLACES,
     icon: ALPHA_ICON,
-    units,
+    id: 'ALPHA',
+    name: 'ALPHA',
     total: units.reduce((previous, current) => previous + current.value, 0n),
+    units,
   };
 }
 
@@ -103,7 +103,7 @@ async function getFungibleTokenInfo(
 ): Promise<Map<string, ITokenInfo>> {
   const tokens = new Map<string, FungibleToken[]>();
   const { fungibleTokens } = await tokenClient.getUnitsByOwnerId(ownerId);
-  const iterator = fetch(fungibleTokens, (unitId: IUnitId) => tokenClient.getUnit(unitId, false, FungibleToken));
+  const iterator = fetchUnits(fungibleTokens, (unitId: IUnitId) => tokenClient.getUnit(unitId, false, FungibleToken));
   for await (const unit of iterator) {
     const typeId = Base16Converter.encode(unit.typeId.bytes);
     const typeTokens = tokens.get(typeId) ?? [];
@@ -123,20 +123,20 @@ async function getFungibleTokenInfo(
     }
 
     result.set(typeId, {
-      id: typeId,
-      name: type.name,
       decimalPlaces: type.decimalPlaces,
       icon: {
         data: btoa(textDecoder.decode(type.icon.data)),
         type: type.icon.type,
       },
+      id: typeId,
+      name: type.name,
+      total: units.reduce((previous, current) => previous + current.value, 0n),
       units: units.map((unit) => {
         return {
           id: Base16Converter.encode(unit.unitId.bytes),
           value: unit.value,
         };
       }),
-      total: units.reduce((previous, current) => previous + current.value, 0n),
     });
   }
 
@@ -159,7 +159,7 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
   const key = Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
 
   const fungible = useQuery({
-    queryKey: [QUERY_KEYS.units, QUERY_KEYS.fungible, vault.selectedKey?.index, alphabill?.networkId],
+    enabled: !!vault.selectedKey && !!alphabill,
     queryFn: (): Promise<Map<string, ITokenInfo>> => {
       if (!alphabill) {
         return Promise.resolve(new Map());
@@ -167,7 +167,7 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
 
       return getFungibleTokenInfo(key, alphabill.moneyClient, alphabill.tokenClient);
     },
-    enabled: !!vault.selectedKey && !!alphabill,
+    queryKey: [QUERY_KEYS.units, QUERY_KEYS.fungible, vault.selectedKey?.index, alphabill?.networkId],
   });
 
   return <UnitsContext.Provider value={{ fungible }}>{children}</UnitsContext.Provider>;

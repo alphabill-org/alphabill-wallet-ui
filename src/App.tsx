@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { CreateWallet } from './routes/CreateWallet/CreateWallet';
@@ -10,18 +10,6 @@ import { TokenDetails } from './routes/TokenList/Fungible/TokenDetails';
 import { TokenList } from './routes/TokenList/TokenList';
 
 export function App(): ReactElement {
-  const [, setIsNetworkError] = useState<boolean>(false);
-
-  useEffect(() => {
-    window.addEventListener('online', () => setIsNetworkError(false));
-    window.addEventListener('offline', () => setIsNetworkError(true));
-
-    return (): void => {
-      window.removeEventListener('online', () => setIsNetworkError(false));
-      window.removeEventListener('offline', () => setIsNetworkError(true));
-    };
-  }, []);
-
   return (
     <div className="app">
       <div className="app__content">

@@ -87,7 +87,7 @@ export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
 
   const setSelectedNetwork = useCallback(
     (network: INetwork): void => {
-      dispatch({ type: NetworkReducerAction.SET_ACTIVE_NETWORK, network });
+      dispatch({ network, type: NetworkReducerAction.SET_ACTIVE_NETWORK });
     },
     [dispatch],
   );
@@ -95,11 +95,11 @@ export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
   const addNetwork = useCallback(
     (network: Omit<INetwork, 'id'>) => {
       dispatch({
-        type: NetworkReducerAction.ADD_NETWORK,
         network: {
           ...network,
           id: uuidv4(),
         },
+        type: NetworkReducerAction.ADD_NETWORK,
       });
     },
     [dispatch],
@@ -108,10 +108,10 @@ export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
   return (
     <NetworkContext.Provider
       value={{
+        addNetwork,
         networks: state.networks,
         selectedNetwork: state.selectedNetwork,
         setSelectedNetwork,
-        addNetwork,
       }}
     >
       {children}

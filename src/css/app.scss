@@ -1,20 +1,18 @@
-@use './fonts.scss';
-@use './variables.scss';
-@use './utils.scss';
-@use './reset.scss';
-
-@use '../components/Button/Button.scss';
-@use '../components/Footer/Footer.scss';
-@use '../components/Form/Form.scss';
-@use '../components/Header/Header.scss';
+@use './fonts';
+@use './variables';
+@use './utils';
+@use './reset';
+@use '../components/Button/Button';
+@use '../components/Footer/Footer';
+@use '../components/Form/Form';
+@use '../components/Header/Header';
 @use '../components/InputField/InputField';
-@use '../components/SelectPopover/SelectPopover.scss';
-@use '../components/Loading/Loading.scss';
-@use '../components/SelectBox/SelectBox.scss';
-@use '../components/ErrorNotification/ErrorNotification.scss';
-
-@use '../routes/Login/Login.scss';
-@use '../routes/CreateWallet/CreateWallet.scss';
+@use '../components/SelectPopover/SelectPopover';
+@use '../components/Loading/Loading';
+@use '../components/SelectBox/SelectBox';
+@use '../components/ErrorNotification/ErrorNotification';
+@use '../routes/Login/Login';
+@use '../routes/CreateWallet/CreateWallet';
 @use '../routes/TokenList/TokenList';
 
 .app {
@@ -36,8 +34,7 @@
     width: 100%;
     justify-content: space-between;
     z-index: 1;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden auto;
     box-sizing: border-box
   }
 
@@ -48,24 +45,6 @@
       opacity: 0.7;
       z-index: 0;
   }
-
-  &__background-top {
-    @extend .app__background;
-    top: -27px;
-    left: 148px;
-    width: 385px;
-    height: 385px;
-    filter: blur(120px);
- }
-
- &__background-bottom {
-    @extend .app__background;
-    top: 311px;
-    left: -161px;
-    width: 347px;
-    height: 347px;
-    filter: blur(120px);
- }
 
   h1 {
     font-weight: 400;

@@ -26,8 +26,8 @@ export function AlphabillProvider({ children }: PropsWithChildren): ReactElement
     }
 
     return {
-      networkId: selectedNetwork.id,
       moneyClient: createMoneyClient({ transport: http(selectedNetwork.moneyPartitionUrl) }),
+      networkId: selectedNetwork.id,
       tokenClient: createTokenClient({ transport: http(selectedNetwork.tokenPartitionUrl) }),
     };
   }, [selectedNetwork]);

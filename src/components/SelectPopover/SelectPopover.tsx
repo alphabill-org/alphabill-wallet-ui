@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { MouseEvent, ReactElement, ReactNode, useCallback, useRef } from 'react';
+import { MouseEvent, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react';
 
 import CloseIcon from '../../images/close.svg?react';
 
@@ -20,6 +20,22 @@ export function SelectPopover({ isPopoverVisible, onClose, title, children }: IS
     },
     [onClose],
   );
+
+  const keyboardClosePopover = useCallback(
+    (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    window.addEventListener('keyup', keyboardClosePopover);
+    return (): void => {
+      window.removeEventListener('keyup', keyboardClosePopover);
+    };
+  }, [closePopover]);
 
   return (
     <div

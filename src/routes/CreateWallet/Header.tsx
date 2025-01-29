@@ -6,7 +6,7 @@ import CloseIcon from '../../images/close.svg?react';
 export function Header({ title }: { title: string }): ReactElement {
   return (
     <div className="create-account__header">
-      <div className="create-account__title">{title}</div>
+      <div>{title}</div>
       <Link to="/" className="close-btn">
         <CloseIcon />
       </Link>

@@ -29,9 +29,13 @@ interface IVault {
 interface IVaultContext {
   readonly keys: IKeyInfo[];
   readonly selectedKey: IKeyInfo | null;
+
   selectKey(key: IKeyInfo): void;
+
   createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
+
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
+
   unlock(password: string): Promise<boolean>;
 }
 
@@ -85,19 +89,19 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     ]);
 
     return {
+      iv: await calculateKeyIV(password, salt),
       key: await crypto.subtle.deriveKey(
         {
+          hash: 'SHA-256',
+          iterations: 129531,
           name: 'PBKDF2',
           salt,
-          iterations: 129531,
-          hash: 'SHA-256',
         },
         key,
-        { name: 'AES-GCM', length: 256 },
+        { length: 256, name: 'AES-GCM' },
         false,
         ['encrypt', 'decrypt'],
       ),
-      iv: await calculateKeyIV(password, salt),
     };
   }, []);
 
@@ -107,15 +111,15 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     const { key, iv } = await createEncryptionKey(password, salt);
 
     const data: IVault = {
-      mnemonic,
       keys: [initialKey],
+      mnemonic,
     };
 
     const vault = new Uint8Array(
       await crypto.subtle.encrypt(
         {
-          name: 'AES-GCM',
           iv,
+          name: 'AES-GCM',
         },
         key,
         textEncoder.encode(JSON.stringify(data)),
@@ -126,8 +130,8 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     localStorage.setItem(
       VAULT_LOCAL_STORAGE_KEY,
       JSON.stringify({
-        vault: Base16Converter.encode(vault),
         salt: Base16Converter.encode(salt),
+        vault: Base16Converter.encode(vault),
       }),
     );
   }, []);
@@ -137,8 +141,8 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       const { key, iv } = await createEncryptionKey(password, salt);
       const vaultBytes = await crypto.subtle.decrypt(
         {
-          name: 'AES-GCM',
           iv,
+          name: 'AES-GCM',
         },
         key,
         encryptedVault,
@@ -212,7 +216,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   );
 
   return (
-    <VaultContext.Provider value={{ createVault, deriveKey, unlock, keys, selectedKey, selectKey }}>
+    <VaultContext.Provider value={{ createVault, deriveKey, keys, selectKey, selectedKey, unlock }}>
       {children}
     </VaultContext.Provider>
   );

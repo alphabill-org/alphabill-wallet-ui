@@ -20,11 +20,11 @@ export function Button(props: IButtonProps): ReactElement {
     'button',
     {
       [`button--${props.variant}`]: props.variant,
+      'button--block': props.block,
       'button--small': props.small,
       'button--x-small': props.xSmall,
-      'button--block': props.block,
-      'is--rounded': props.isRounded,
       'is--active': props.isActive,
+      'is--rounded': props.isRounded,
     },
     props.className,
   );

@@ -8,13 +8,13 @@ import { Button } from '../Button/Button';
 import { SelectBox } from '../SelectBox/SelectBox';
 
 export function Header(): ReactElement {
-  const networkContext = useNetwork();
+  const { setSelectedNetwork, selectedNetwork, networks } = useNetwork();
 
   const select = useCallback(
     (network: INetwork) => {
-      networkContext.setSelectedNetwork(network);
+      setSelectedNetwork(network);
     },
-    [networkContext],
+    [setSelectedNetwork],
   );
 
   const getOptionKey = useCallback((network: INetwork) => network.id, []);
@@ -22,22 +22,22 @@ export function Header(): ReactElement {
   const createOption = useCallback(
     (network: INetwork) => (
       <>
-        {network.alias} {networkContext.selectedNetwork?.id === network.id ? <CheckIcon /> : null}
+        {network.alias} {selectedNetwork?.id === network.id ? <CheckIcon /> : null}
       </>
     ),
-    [networkContext],
+    [selectedNetwork],
   );
 
   return (
     <div className="header">
       <div className="header__ico">
-        <LogoIcon className="header__ico" />
+        <LogoIcon />
       </div>
       <div className="header__select">
         <SelectBox
           title="SELECT NETWORK"
-          selectedItem={networkContext.selectedNetwork?.alias}
-          data={networkContext.networks}
+          selectedItem={selectedNetwork?.alias}
+          data={networks}
           select={select}
           getOptionKey={getOptionKey}
           createOption={createOption}

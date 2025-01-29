@@ -11,6 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test-watch": "vitest",
+    "stylelint": "stylelint \"**/*.scss\"",
+    "stylelint:fix": "stylelint \"**/*.scss\" --fix",
     "lint": "eslint \"src/**/*.tsx\"",
     "lint:fix": "eslint \"src/**/*.tsx\" --fix"
   },
@@ -40,6 +42,9 @@
     "eslint-plugin-prettier": "5.2.3",
     "typescript": "5.7.3",
     "globals": "15.14.0",
-    "sass": "1.83.4"
+    "sass": "1.83.4",
+    "stylelint": "16.14.1",
+    "stylelint-config-standard-scss": "14.0.0"
+
   }
 }

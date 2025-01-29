@@ -50,5 +50,5 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
     [unlock, setIsLoggedIn],
   );
 
-  return <AuthenticationContext.Provider value={{ login, isLoggedIn }}>{children}</AuthenticationContext.Provider>;
+  return <AuthenticationContext.Provider value={{ isLoggedIn, login }}>{children}</AuthenticationContext.Provider>;
 }

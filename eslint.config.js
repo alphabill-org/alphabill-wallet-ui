@@ -12,47 +12,48 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 2018,
-      sourceType: 'module',
       globals: {
         ...globals.browser,
         ...globals.node,
       },
+      sourceType: 'module',
     },
     rules: {
-      'import/no-unresolved': 'off',
-      'require-await': 'error',
-      '@typescript-eslint/explicit-member-accessibility': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/explicit-member-accessibility': 'error',
+      '@typescript-eslint/member-ordering': 'error',
       '@typescript-eslint/naming-convention': [
         'error',
         {
-          selector: ['interface'],
-          format: ['PascalCase'],
           custom: {
-            regex: '^I[A-Z]',
             match: true,
+            regex: '^I[A-Z]',
           },
+          format: ['PascalCase'],
+          selector: ['interface'],
         },
         {
-          selector: ['method'],
           format: ['camelCase'],
           modifiers: ['static'],
+          selector: ['method'],
         },
         {
-          selector: ['variable'],
           format: ['UPPER_CASE'],
           modifiers: ['static', 'readonly'],
+          selector: ['variable'],
         },
       ],
-      '@typescript-eslint/member-ordering': 'error',
+      'import/no-unresolved': 'off',
       'import/order': [
         'error',
         {
+          alphabetize: { caseInsensitive: true, order: 'asc' },
           groups: ['builtin', 'external', 'internal'],
           'newlines-between': 'always',
-          alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
+      'require-await': 'error',
+      'sort-keys': ['error', 'asc', { minKeys: 2, natural: true }],
     },
   },
 ];

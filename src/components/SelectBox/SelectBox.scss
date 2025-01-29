@@ -1,4 +1,4 @@
-@use '../../css/variables.scss';
+@use '../../css/variables';
 
 
 .select {
@@ -12,7 +12,7 @@
   cursor: pointer;
 
 
-  .select__button{
+  &__button {
     gap: 8px;
     color: variables.$color-white;
     font-weight: 500;
@@ -33,14 +33,8 @@
     }
   }
 
-  .copy__button path {
-    fill: variables.$color-white;
-    width: 24px;
-    height: 24px;
+  &__popover {
+    max-height: 100%;
+    overflow-y: auto;
   }
-}
-
-.select__popover {
-  max-height: 100%;
-  overflow-y: auto;
 }
