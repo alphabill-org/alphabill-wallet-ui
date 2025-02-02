@@ -4,19 +4,19 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), svgr()],
   build: {
-    outDir: 'build',
     chunkSizeWarningLimit: 2000,
+    outDir: 'build',
   },
   define: {
     global: 'globalThis',
   },
-  server: {
-    port: 3000,
-    open: true,
-  },
+  plugins: [react(), svgr()],
   preview: {
     port: 3001,
+  },
+  server: {
+    open: true,
+    port: 3000,
   },
 });
