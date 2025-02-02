@@ -8,7 +8,7 @@ import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Conv
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { createContext, PropsWithChildren, ReactElement, useContext } from 'react';
 
-import { useAlphabill } from './alphabill';
+import { useAlphabill } from './alphabillContext';
 import { useVault } from './vault';
 import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES, QUERY_KEYS } from '../constants';
 

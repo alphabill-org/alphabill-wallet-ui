@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
-import { useAlphabill } from '../../../hooks/alphabill';
+import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useUnits } from '../../../hooks/units';
 import { useVault } from '../../../hooks/vault';
 import BackIcon from '../../../images/back-ico.svg?react';

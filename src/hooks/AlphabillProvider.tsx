@@ -1,21 +1,8 @@
-import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
-import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
 import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory';
-import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } from 'react';
+import { PropsWithChildren, ReactElement, useMemo } from 'react';
 
+import { AlphabillContext } from './alphabillContext';
 import { useNetwork } from './networkContext';
-
-interface IAlphabillContext {
-  networkId: string;
-  moneyClient: MoneyPartitionJsonRpcClient;
-  tokenClient: TokenPartitionJsonRpcClient;
-}
-
-const AlphabillContext = createContext<IAlphabillContext | null>(null);
-
-export function useAlphabill(): IAlphabillContext | null {
-  return useContext(AlphabillContext);
-}
 
 export function AlphabillProvider({ children }: PropsWithChildren): ReactElement {
   const { selectedNetwork } = useNetwork();

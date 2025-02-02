@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import './css/app.scss';
 import { App } from './App';
-import { AlphabillProvider } from './hooks/alphabill';
+import { AlphabillProvider } from './hooks/AlphabillProvider';
 import { AuthenticationProvider } from './hooks/authentication';
 import { NetworkProvider } from './hooks/NetworkProvider';
 import { UnitsProvider } from './hooks/units';
