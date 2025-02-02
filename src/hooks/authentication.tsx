@@ -1,6 +1,6 @@
 import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from 'react';
 
-import { useVault } from './vault';
+import { useVault } from './vaultContext';
 
 const AUTHENTICATED_LOCAL_STORAGE_KEY = 'alphabill_authenticated';
 

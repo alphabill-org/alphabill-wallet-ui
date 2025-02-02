@@ -5,10 +5,11 @@ import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
+import { useQuery } from '@tanstack/react-query';
 import { PropsWithChildren, ReactElement } from 'react';
 
 import { useAlphabill } from './alphabillContext';
-import { useVault } from './vault';
+import { useVault } from './vaultContext';
 import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES, QUERY_KEYS } from '../constants';
 import { UnitsContext } from './unitsContext';
 

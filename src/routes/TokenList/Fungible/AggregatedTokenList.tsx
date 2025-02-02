@@ -6,7 +6,7 @@ import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNo
 import { Loading } from '../../../components/Loading/Loading';
 import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useUnits } from '../../../hooks/unitsContext';
-import { useVault } from '../../../hooks/vault';
+import { useVault } from '../../../hooks/vaultContext';
 
 export function AggregatedTokenList(): ReactElement {
   const alphabill = useAlphabill();
