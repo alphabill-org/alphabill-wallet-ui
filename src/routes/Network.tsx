@@ -3,7 +3,7 @@ import { FormEvent, ReactElement, useCallback, useState } from 'react';
 import { Button } from '../components/Button/Button';
 import { Form, FormContent, FormFooter } from '../components/Form/Form';
 import { TextField } from '../components/InputField/TextField';
-import { useNetwork } from '../hooks/network';
+import { useNetwork } from '../hooks/networkContext';
 
 type FormElements = 'alias' | 'moneyPartitionUrl' | 'tokenPartitionUrl';
 

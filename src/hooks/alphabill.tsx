@@ -3,7 +3,7 @@ import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/jso
 import { createMoneyClient, createTokenClient, http } from '@alphabill/alphabill-js-sdk/lib/StateApiClientFactory';
 import { createContext, PropsWithChildren, ReactElement, useContext, useMemo } from 'react';
 
-import { useNetwork } from './network';
+import { useNetwork } from './networkContext';
 
 interface IAlphabillContext {
   networkId: string;

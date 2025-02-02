@@ -1,6 +1,6 @@
 import { ReactElement, useCallback } from 'react';
 
-import { INetwork, useNetwork } from '../../hooks/network';
+import { INetwork, useNetwork } from '../../hooks/networkContext';
 import LogoIcon from '../../images/ab-logo-ico.svg?react';
 import CheckIcon from '../../images/check-ico.svg?react';
 import ProfileIcon from '../../images/profile-ico.svg?react';

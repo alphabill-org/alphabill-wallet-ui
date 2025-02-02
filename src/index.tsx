@@ -7,7 +7,7 @@ import './css/app.scss';
 import { App } from './App';
 import { AlphabillProvider } from './hooks/alphabill';
 import { AuthenticationProvider } from './hooks/authentication';
-import { NetworkProvider } from './hooks/network';
+import { NetworkProvider } from './hooks/NetworkProvider';
 import { UnitsProvider } from './hooks/units';
 import { VaultProvider } from './hooks/vault';
 
