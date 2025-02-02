@@ -5,7 +5,7 @@ import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { useAlphabill } from '../../../hooks/alphabillContext';
-import { useUnits } from '../../../hooks/units';
+import { useUnits } from '../../../hooks/unitsContext';
 import { useVault } from '../../../hooks/vault';
 
 export function AggregatedTokenList(): ReactElement {

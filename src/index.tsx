@@ -8,7 +8,7 @@ import { App } from './App';
 import { AlphabillProvider } from './hooks/AlphabillProvider';
 import { AuthenticationProvider } from './hooks/authentication';
 import { NetworkProvider } from './hooks/NetworkProvider';
-import { UnitsProvider } from './hooks/units';
+import { UnitsProvider } from './hooks/unitsProvider';
 import { VaultProvider } from './hooks/vault';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);

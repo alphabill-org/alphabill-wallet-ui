@@ -5,39 +5,14 @@ import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { createContext, PropsWithChildren, ReactElement, useContext } from 'react';
+import { PropsWithChildren, ReactElement } from 'react';
 
 import { useAlphabill } from './alphabillContext';
 import { useVault } from './vault';
 import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, CONCURRENT_QUERIES, QUERY_KEYS } from '../constants';
-
-export interface ITokenIcon {
-  readonly type: string;
-  readonly data: string;
-}
-
-interface ITokenUnit {
-  readonly id: string;
-  readonly value: bigint;
-}
-
-export interface ITokenInfo {
-  readonly id: string;
-  readonly name: string;
-  readonly decimalPlaces: number;
-  readonly icon: ITokenIcon;
-  readonly units: ITokenUnit[];
-  readonly total: bigint;
-}
-
-interface IUnitsContext {
-  readonly fungible: UseQueryResult<Map<string, ITokenInfo>>;
-}
+import { UnitsContext } from './unitsContext';
 
 const textDecoder = new TextDecoder();
-
-const UnitsContext = createContext<IUnitsContext | null>(null);
 
 async function* fetchUnits<T>(
   data: ReadonlyArray<IUnitId>,
@@ -141,15 +116,6 @@ async function getFungibleTokenInfo(
   }
 
   return result;
-}
-
-export function useUnits(): IUnitsContext {
-  const context = useContext(UnitsContext);
-  if (!context) {
-    throw new Error('Invalid units context');
-  }
-
-  return context;
 }
 
 export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
