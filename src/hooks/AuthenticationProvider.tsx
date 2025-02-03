@@ -33,5 +33,12 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
     [unlock, setIsLoggedIn],
   );
 
-  return <AuthenticationContext.Provider value={{ isLoggedIn, login }}>{children}</AuthenticationContext.Provider>;
+  const logout = useCallback((): void => {
+    setIsLoggedIn(false);
+    localStorage.removeItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
+  }, []);
+
+  return (
+    <AuthenticationContext.Provider value={{ isLoggedIn, login, logout }}>{children}</AuthenticationContext.Provider>
+  );
 }
