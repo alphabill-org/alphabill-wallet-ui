@@ -23,20 +23,6 @@ function createAlphaInfo(units: Bill[]): IFungibleTokenInfo<Bill> {
   };
 }
 
-async function getAlphaInfo(
-  ownerId: Uint8Array,
-  moneyClient: MoneyPartitionJsonRpcClient,
-): Promise<IFungibleTokenInfo<Bill>> {
-  const units = [];
-  const { bills } = await moneyClient.getUnitsByOwnerId(ownerId);
-  const iterator = fetchUnits(bills, (unitId: IUnitId) => moneyClient.getUnit(unitId, false, Bill));
-  for await (const unit of iterator) {
-    units.push(unit);
-  }
-
-  return createAlphaInfo(units);
-}
-
 export function AlphaProvider({ children }: PropsWithChildren): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
@@ -45,17 +31,36 @@ export function AlphaProvider({ children }: PropsWithChildren): ReactElement {
     return Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
   }, [vault.selectedKey]);
 
-  const alpha = useQuery({
+  const alphas = useQuery({
     enabled: !!vault.selectedKey && !!alphabill,
-    queryFn: (): Promise<IFungibleTokenInfo<Bill>> => {
+    queryFn: async (): Promise<Bill[]> => {
       if (!alphabill) {
-        return Promise.resolve(createAlphaInfo([]));
+        return [];
       }
 
-      return getAlphaInfo(key, alphabill.moneyClient);
+      const { bills } = await alphabill.moneyClient.getUnitsByOwnerId(key);
+      const iterator = fetchUnits(bills, (unitId: IUnitId) => alphabill.moneyClient.getUnit(unitId, false, Bill));
+      const result: Bill[] = [];
+      for await (const unit of iterator) {
+        result.push(unit);
+      }
+
+      return result;
     },
-    queryKey: [QUERY_KEYS.units, QUERY_KEYS.alpha, vault.selectedKey?.index, alphabill?.networkId],
+    queryKey: [QUERY_KEYS.units, QUERY_KEYS.alpha, 'TOKENS', vault.selectedKey?.index, alphabill?.networkId],
   });
 
-  return <AlphaContext.Provider value={{ alpha }}>{children}</AlphaContext.Provider>;
+  const alphasInfo = useQuery({
+    enabled: !!vault.selectedKey && !!alphabill && !!alphas.data,
+    queryFn: (): IFungibleTokenInfo<Bill> => {
+      if (!alphabill || !alphas.data) {
+        return createAlphaInfo([]);
+      }
+
+      return createAlphaInfo(alphas.data);
+    },
+    queryKey: [QUERY_KEYS.units, QUERY_KEYS.alpha, 'INFO', vault.selectedKey?.index, alphabill?.networkId],
+  });
+
+  return <AlphaContext.Provider value={{ alphas, alphasInfo }}>{children}</AlphaContext.Provider>;
 }

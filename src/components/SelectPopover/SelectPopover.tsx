@@ -15,6 +15,7 @@ export function SelectPopover({ isPopoverVisible, onClose, title, children }: IS
 
   const closePopover = useCallback(
     (ev: MouseEvent) => {
+      ev.preventDefault();
       ev.stopPropagation();
       onClose();
     },

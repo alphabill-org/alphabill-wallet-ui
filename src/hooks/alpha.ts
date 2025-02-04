@@ -5,7 +5,8 @@ import { createContext, useContext } from 'react';
 import { IFungibleTokenInfo } from './fungible/IFungibleTokenInfo';
 
 export interface IAlphaContext {
-  readonly alpha: UseQueryResult<IFungibleTokenInfo<Bill>>;
+  readonly alphasInfo: UseQueryResult<IFungibleTokenInfo<Bill>>;
+  readonly alphas: UseQueryResult<Bill[]>;
 }
 
 export const AlphaContext = createContext<IAlphaContext | null>(null);

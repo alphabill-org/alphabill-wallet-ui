@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import { PropsWithChildren, ReactElement } from 'react';
 
 interface IInputFieldProps {
-  label: string;
-  className?: string;
-  error?: string;
-  desc?: string;
+  readonly label: string;
+  readonly className?: string;
+  readonly error?: string;
+  readonly desc?: string;
 }
 
 export function InputField(props: PropsWithChildren<IInputFieldProps>): ReactElement {

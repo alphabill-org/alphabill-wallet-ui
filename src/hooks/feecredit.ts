@@ -3,7 +3,8 @@ import { UseQueryResult } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
 
 export interface IFeeCreditContext {
-  readonly feeCredit: UseQueryResult<FeeCreditRecord[]>;
+  readonly moneyFeeCredits: UseQueryResult<FeeCreditRecord[]>;
+  readonly tokenFeeCredits: UseQueryResult<FeeCreditRecord[]>;
 }
 
 export const FeeCreditContext = createContext<IFeeCreditContext | null>(null);

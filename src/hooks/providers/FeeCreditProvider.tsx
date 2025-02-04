@@ -10,6 +10,19 @@ import { FeeCreditContext } from '../feecredit';
 import { fetchUnits } from '../units/fetchUnits';
 import { useVault } from '../vault';
 
+async function fetchFeeCredits(
+  units: readonly IUnitId[],
+  create: (unitId: IUnitId) => Promise<FeeCreditRecord | null>,
+): Promise<FeeCreditRecord[]> {
+  const iterator = fetchUnits(units, create);
+  const result: FeeCreditRecord[] = [];
+  for await (const unit of iterator) {
+    result.push(unit);
+  }
+
+  return result;
+}
+
 export function FeeCreditProvider({ children }: PropsWithChildren): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
@@ -18,26 +31,35 @@ export function FeeCreditProvider({ children }: PropsWithChildren): ReactElement
     return Base16Converter.decode(vault.selectedKey?.publicKey ?? '');
   }, [vault.selectedKey]);
 
-  const feeCredit = useQuery({
+  const moneyFeeCredits = useQuery({
     enabled: !!vault.selectedKey && !!alphabill,
     queryFn: async (): Promise<FeeCreditRecord[]> => {
       if (!alphabill) {
         return Promise.resolve([]);
       }
 
-      const units = await alphabill.moneyClient.getUnitsByOwnerId(key);
-      const iterator = fetchUnits(units.feeCreditRecords, (unitId: IUnitId) =>
+      const { feeCreditRecords } = await alphabill.moneyClient.getUnitsByOwnerId(key);
+      return fetchFeeCredits(feeCreditRecords, (unitId) =>
         alphabill.moneyClient.getUnit(unitId, false, FeeCreditRecord),
       );
-      const result: FeeCreditRecord[] = [];
-      for await (const unit of iterator) {
-        result.push(unit);
-      }
-
-      return result;
     },
     queryKey: [QUERY_KEYS.units, QUERY_KEYS.feeCredit, vault.selectedKey?.index, alphabill?.networkId],
   });
 
-  return <FeeCreditContext.Provider value={{ feeCredit }}>{children}</FeeCreditContext.Provider>;
+  const tokenFeeCredits = useQuery({
+    enabled: !!vault.selectedKey && !!alphabill,
+    queryFn: async (): Promise<FeeCreditRecord[]> => {
+      if (!alphabill) {
+        return Promise.resolve([]);
+      }
+
+      const { feeCreditRecords } = await alphabill.tokenClient.getUnitsByOwnerId(key);
+      return fetchFeeCredits(feeCreditRecords, (unitId) =>
+        alphabill.tokenClient.getUnit(unitId, false, FeeCreditRecord),
+      );
+    },
+    queryKey: [QUERY_KEYS.units, QUERY_KEYS.feeCredit, vault.selectedKey?.index, alphabill?.networkId],
+  });
+
+  return <FeeCreditContext.Provider value={{ moneyFeeCredits, tokenFeeCredits }}>{children}</FeeCreditContext.Provider>;
 }

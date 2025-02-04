@@ -5,14 +5,14 @@ import { Button } from '../Button/Button';
 import { SelectPopover } from '../SelectPopover/SelectPopover';
 
 interface ISelectBoxProps<T> {
-  title: string;
-  label?: string;
-  selectedItem?: ReactNode;
-  className?: string;
-  data: T[];
-  select: (item: T) => void;
-  getOptionKey: (item: T) => Key;
-  createOption: (item: T) => ReactNode;
+  readonly title: string;
+  readonly label?: string;
+  readonly selectedItem?: ReactNode;
+  readonly className?: string;
+  readonly data: T[];
+  readonly select: (item: T) => void;
+  readonly getOptionKey: (item: T) => Key;
+  readonly createOption: (item: T) => ReactNode;
 }
 
 export function SelectBox<T>({
@@ -29,6 +29,7 @@ export function SelectBox<T>({
 
   const openPopover = useCallback(
     (ev: MouseEvent) => {
+      ev.preventDefault();
       ev.stopPropagation();
       setIsPopoverOpen(true);
     },
@@ -43,7 +44,7 @@ export function SelectBox<T>({
     <div className={`select ${className ?? ''}`}>
       {label && <div className="select__label">{label}</div>}
       <div className="select__body" onClick={openPopover}>
-        <Button variant="icon" className="select__button">
+        <Button type="button" variant="icon" className="select__button">
           <span className="select__button--text">{selectedItem ?? '--- SELECT ---'}</span>
           <ArrowIcon className="select__button--icon" />
         </Button>

@@ -28,6 +28,7 @@ export async function* fetchUnits<T>(
       const { queryId, data } = await Promise.race(promises.values());
       promises.delete(queryId);
       if (!data) {
+        // TODO: Handle missing data from getUnit
         continue;
       }
 

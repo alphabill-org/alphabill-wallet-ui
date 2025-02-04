@@ -1,9 +1,7 @@
 .fees {
   display: flex;
   flex-direction: column;
-  padding: 24px;
   width: 100%;
-  flex-grow: 1;
   overflow: hidden;
 
   &--loading {
@@ -20,6 +18,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .form {
+    padding: 24px;
   }
 }
 

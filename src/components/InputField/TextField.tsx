@@ -3,14 +3,14 @@ import { ReactElement, useEffect, useRef } from 'react';
 import { InputField } from './InputField';
 
 interface ITextFieldProps {
-  label: string;
-  name: string;
-  error?: string;
-  desc?: string;
-  value?: string;
-  disabled?: boolean;
-  focusInput?: boolean;
-  selectInput?: boolean;
+  readonly label: string;
+  readonly name: string;
+  readonly error?: string;
+  readonly desc?: string;
+  readonly value?: string;
+  readonly disabled?: boolean;
+  readonly focusInput?: boolean;
+  readonly selectInput?: boolean;
 }
 
 export function TextField(props: ITextFieldProps): ReactElement {

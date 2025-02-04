@@ -18,8 +18,8 @@ export function TokenDetails(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
-  const { fungible } = useFungibleTokens();
-  const { alpha } = useAlphas();
+  const { fungibleTokensByType } = useFungibleTokens();
+  const { alphasInfo } = useAlphas();
 
   if (!alphabill) {
     return (
@@ -37,12 +37,12 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  if (fungible.isPending || alpha.isPending) {
+  if (fungibleTokensByType.isPending || alphasInfo.isPending) {
     return <Loading title="Loading..." />;
   }
 
-  if (fungible.isError || alpha.isError) {
-    const error = fungible.error || alpha.error;
+  if (fungibleTokensByType.isError || alphasInfo.isError) {
+    const error = fungibleTokensByType.error || alphasInfo.error;
 
     return (
       <div className="units--error">
@@ -59,7 +59,7 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  const tokenInfo = params.id === ALPHA_KEY ? alpha.data : fungible.data.find((token) => token.id === params.id);
+  const tokenInfo = params.id === ALPHA_KEY ? alphasInfo.data : fungibleTokensByType.data.get(params.id ?? '');
   if (!tokenInfo) {
     return (
       <div className="units--error">
@@ -81,7 +81,7 @@ export function TokenDetails(): ReactElement {
         <Link to="/" className="back-btn">
           <BackIcon />
         </Link>
-        <div className="units__info__title">{tokenInfo.name}</div>
+        <div>{tokenInfo.name}</div>
       </div>
       <div className="units__info__content">
         {tokenInfo.units.map((token: Bill | FungibleToken) => {

@@ -5,13 +5,13 @@ import ShowIcon from '../../images/show-ico.svg?react';
 import { Button } from '../Button/Button';
 
 interface IPasswordFieldProps {
-  label: string;
-  name: string;
-  error?: string;
-  desc?: string;
-  focusInput?: boolean;
-  selectInput?: boolean;
-  value?: string;
+  readonly label: string;
+  readonly name: string;
+  readonly error?: string;
+  readonly desc?: string;
+  readonly focusInput?: boolean;
+  readonly selectInput?: boolean;
+  readonly value?: string;
 }
 
 export function PasswordField(props: IPasswordFieldProps): ReactElement {
