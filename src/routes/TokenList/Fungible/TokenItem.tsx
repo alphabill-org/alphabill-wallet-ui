@@ -1,6 +1,6 @@
 import { ReactElement, useState } from 'react';
 
-import { ITokenIcon } from '../../../hooks/units';
+import { ITokenIcon } from '../../../hooks/units/ITokenIcon';
 
 export function TokenItem({
   name,

@@ -6,7 +6,7 @@ import { useVault } from '../vault';
 const AUTHENTICATED_LOCAL_STORAGE_KEY = 'alphabill_authenticated';
 
 export function AuthenticationProvider({ children }: PropsWithChildren): ReactElement {
-  const { unlock } = useVault();
+  const { unlock, lock } = useVault();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const storageAuthenticated = localStorage.getItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
     if (!storageAuthenticated) {
@@ -35,10 +35,9 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
 
   const logout = useCallback((): void => {
     setIsLoggedIn(false);
+    lock();
     localStorage.removeItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
   }, []);
 
-  return (
-    <Authentication.Provider value={{ isLoggedIn, login, logout }}>{children}</Authentication.Provider>
-  );
+  return <Authentication.Provider value={{ isLoggedIn, login, logout }}>{children}</Authentication.Provider>;
 }

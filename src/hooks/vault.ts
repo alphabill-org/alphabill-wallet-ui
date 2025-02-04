@@ -1,7 +1,8 @@
+import type { ISigningService } from '@alphabill/alphabill-js-sdk/lib/signing/ISigningService';
 import { HDKey } from '@scure/bip32';
 import { createContext, useContext } from 'react';
 
-interface IVaultKey {
+export interface IVaultKey {
   readonly alias: string;
   readonly index: number;
 }
@@ -31,6 +32,10 @@ export interface IVaultContext {
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
 
   unlock(password: string): Promise<boolean>;
+
+  lock(): void;
+
+  getSigningService(): Promise<ISigningService>;
 }
 
 export const Vault = createContext<IVaultContext | null>(null);

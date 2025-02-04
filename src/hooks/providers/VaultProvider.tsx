@@ -1,9 +1,11 @@
+import { DefaultSigningService } from '@alphabill/alphabill-js-sdk/lib/signing/DefaultSigningService';
+import type { ISigningService } from '@alphabill/alphabill-js-sdk/lib/signing/ISigningService';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { HDKey } from '@scure/bip32';
 import { mnemonicToSeed } from '@scure/bip39';
 import { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
 
-import { Vault, IVaultKey, IVault, IVaultLocalStorage, IKeyInfo } from '../vault';
+import { Vault, IVault, IVaultLocalStorage, IKeyInfo, IVaultKey } from '../vault';
 
 const VAULT_LOCAL_STORAGE_KEY = 'alphabill_vault';
 const VAULT_KEYS_LOCAL_STORAGE_KEY = 'alphabill_vault_keys';
@@ -166,6 +168,11 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [decryptVault, deriveKey, setKeys],
   );
 
+  const lock = useCallback((): void => {
+    setKeys([]);
+    localStorage.removeItem(VAULT_KEYS_LOCAL_STORAGE_KEY);
+  }, [setKeys]);
+
   const selectKey = useCallback(
     (key: IKeyInfo) => {
       localStorage.setItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY, String(key.index));
@@ -174,8 +181,12 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [setSelectedKey],
   );
 
+  const getSigningService = useCallback((): Promise<ISigningService> => {
+    return Promise.resolve(new DefaultSigningService(Base16Converter.decode('')));
+  }, []);
+
   return (
-    <Vault.Provider value={{ createVault, deriveKey, keys, selectKey, selectedKey, unlock }}>
+    <Vault.Provider value={{ createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}>
       {children}
     </Vault.Provider>
   );

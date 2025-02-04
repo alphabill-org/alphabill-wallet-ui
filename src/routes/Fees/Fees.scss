@@ -5,4 +5,26 @@
   width: 100%;
   flex-grow: 1;
   overflow: hidden;
+
+  &--loading {
+    flex-grow: 1;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &--error {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.select__option--text {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

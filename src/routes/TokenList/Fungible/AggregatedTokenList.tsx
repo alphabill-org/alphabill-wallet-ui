@@ -4,14 +4,17 @@ import { Link } from 'react-router-dom';
 import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
+import { ALPHA_KEY } from '../../../constants';
+import { useAlphas } from '../../../hooks/alpha';
 import { useAlphabill } from '../../../hooks/alphabill';
-import { ITokenInfo, useUnits } from '../../../hooks/units';
+import { useFungibleTokens } from '../../../hooks/fungible';
 import { useVault } from '../../../hooks/vault';
 
 export function AggregatedTokenList(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
-  const { fungible, alpha } = useUnits();
+  const { fungible } = useFungibleTokens();
+  const { alpha } = useAlphas();
 
   if (!alphabill) {
     return (
@@ -49,9 +52,19 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  const tokenItems = [];
-  const tokens: ITokenInfo[] = [alpha.data, ...fungible.data];
-  for (const token of tokens) {
+  const tokenItems = [
+    <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
+      <TokenItem
+        name={alpha.data.name}
+        icon={alpha.data.icon}
+        decimalPlaces={alpha.data.decimalPlaces}
+        value={alpha.data.total}
+        isAggregated={true}
+      />
+    </Link>,
+  ];
+
+  for (const token of fungible.data) {
     tokenItems.push(
       <Link key={token.id} to={`/units/fungible/${token.id}`}>
         <TokenItem

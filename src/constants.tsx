@@ -11,6 +11,7 @@ export const CONCURRENT_QUERIES = 5;
 
 export const QUERY_KEYS = {
   alpha: 'ALPHA',
+  feeCredit: 'FEE_CREDIT',
   fungible: 'FUNGIBLE',
   units: 'UNITS',
 };

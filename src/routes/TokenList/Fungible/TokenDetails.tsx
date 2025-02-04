@@ -1,3 +1,6 @@
+import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
+import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
+import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -5,8 +8,9 @@ import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { ALPHA_KEY } from '../../../constants';
+import { useAlphas } from '../../../hooks/alpha';
 import { useAlphabill } from '../../../hooks/alphabill';
-import { useUnits } from '../../../hooks/units';
+import { useFungibleTokens } from '../../../hooks/fungible';
 import { useVault } from '../../../hooks/vault';
 import BackIcon from '../../../images/back-ico.svg?react';
 
@@ -14,7 +18,8 @@ export function TokenDetails(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
-  const { fungible, alpha } = useUnits();
+  const { fungible } = useFungibleTokens();
+  const { alpha } = useAlphas();
 
   if (!alphabill) {
     return (
@@ -79,10 +84,10 @@ export function TokenDetails(): ReactElement {
         <div className="units__info__title">{tokenInfo.name}</div>
       </div>
       <div className="units__info__content">
-        {tokenInfo.units.map((token) => {
+        {tokenInfo.units.map((token: Bill | FungibleToken) => {
           return (
             <TokenItem
-              key={token.id}
+              key={Base16Converter.encode(token.unitId.bytes)}
               name={tokenInfo.name}
               icon={tokenInfo.icon}
               decimalPlaces={tokenInfo.decimalPlaces}
