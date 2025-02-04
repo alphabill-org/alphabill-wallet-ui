@@ -7,6 +7,7 @@
 @use '../components/Form/Form';
 @use '../components/Header/Header';
 @use '../components/InputField/InputField';
+@use '../components/NavBar/Navbar';
 @use '../components/SelectPopover/SelectPopover';
 @use '../components/Loading/Loading';
 @use '../components/SelectBox/SelectBox';
@@ -14,6 +15,7 @@
 @use '../routes/Login/Login';
 @use '../routes/CreateWallet/CreateWallet';
 @use '../routes/TokenList/TokenList';
+@use '../routes/Settings/Settings';
 
 .app {
   min-width: 375px;
@@ -35,15 +37,15 @@
     justify-content: space-between;
     z-index: 1;
     overflow: hidden auto;
-    box-sizing: border-box
+    box-sizing: border-box;
   }
 
   &__background {
-      position: absolute;
-      background-color: variables.$color-secondary;
-      border-radius: 50%;
-      opacity: 0.7;
-      z-index: 0;
+    position: absolute;
+    background-color: variables.$color-secondary;
+    border-radius: 50%;
+    opacity: 0.7;
+    z-index: 0;
   }
 
   h1 {

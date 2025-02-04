@@ -4,7 +4,11 @@ import { INetwork, useNetwork } from '../../hooks/networkContext';
 import CheckIcon from '../../images/check-ico.svg?react';
 import { SelectBox } from '../SelectBox/SelectBox';
 
-export const NetworkSelect = (): ReactElement => {
+interface INetworkSelectProps {
+  label?: string;
+}
+
+export const NetworkSelect = ({ label }: INetworkSelectProps): ReactElement => {
   const { setSelectedNetwork, selectedNetwork, networks } = useNetwork();
 
   const select = useCallback(
@@ -29,6 +33,7 @@ export const NetworkSelect = (): ReactElement => {
     <div className="select__options">
       <SelectBox
         title="SELECT NETWORK"
+        label={label}
         selectedItem={selectedNetwork?.alias}
         data={networks}
         select={select}

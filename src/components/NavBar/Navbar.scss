@@ -1,0 +1,23 @@
+@use '../../css/variables.scss';
+
+.navbar {
+  display: flex;
+  height: 72px;
+  padding: 24px;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+
+  &__ico {
+    display: flex;
+    fill: variables.$color-primary;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 18px;
+    margin-right: 24px;
+  }
+}

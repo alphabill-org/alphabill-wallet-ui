@@ -1,19 +1,20 @@
 // Colors
 $color-white: #fff;
-$color-light: #EEEDFC;
-$color-underpants: #ACA4E0;
+$color-light: #eeedfc;
+$color-underpants: #aca4e0;
 $color-black: #293033;
-$color-blue: #0C0A3E;
-$color-error: #EF476F;
+$color-blue: #0c0a3e;
+$color-error: #ef476f;
 $color-yellow: #fcb116;
-$color-primary: #08E8DE;
-$color-primary-hover: #4E3EB6;
-$color-secondary: #4E3EB6;
+$color-primary: #08e8de;
+$color-primary-hover: #4e3eb6;
+$color-secondary: #4e3eb6;
 $color-secondary-op: #292078;
-$color-link: #08E8DE;
-$color-border: #EEEDFC;
+$color-link: #08e8de;
+$color-border: #eeedfc;
 $color-body-background: $color-blue;
-$color-overlay: rgba($color-blue, .4);
+$color-overlay: rgba($color-blue, 0.4);
+$color-border-light: rgba($color-white, 0.15);
 
 // Typography
 $font-family-base: 'grotesk';
@@ -33,7 +34,7 @@ $text-color-base: $color-black !default;
 $navbar-height: 68px;
 
 // Transition times
-$main-transition-duration: .2s;
+$main-transition-duration: 0.2s;
 
 // z-indexes
 $z-index-tooltip: 100;
