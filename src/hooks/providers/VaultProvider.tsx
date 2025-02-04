@@ -1,57 +1,16 @@
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { HDKey } from '@scure/bip32';
 import { mnemonicToSeed } from '@scure/bip39';
-import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from 'react';
+import { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
+
+import { Vault, IVaultKey, IVault, IVaultLocalStorage, IKeyInfo } from '../vault';
 
 const VAULT_LOCAL_STORAGE_KEY = 'alphabill_vault';
 const VAULT_KEYS_LOCAL_STORAGE_KEY = 'alphabill_vault_keys';
 const VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY = 'alphabill_vault_selected_key';
 
-interface IVaultKey {
-  readonly alias: string;
-  readonly index: number;
-}
-
-export interface IKeyInfo extends IVaultKey {
-  publicKey: string;
-}
-
-interface IVaultLocalStorage {
-  readonly vault: string;
-  readonly salt: string;
-}
-
-interface IVault {
-  readonly mnemonic: string;
-  readonly keys: IVaultKey[];
-}
-
-interface IVaultContext {
-  readonly keys: IKeyInfo[];
-  readonly selectedKey: IKeyInfo | null;
-
-  selectKey(key: IKeyInfo): void;
-
-  createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
-
-  deriveKey(mnemonic: string, index: number): Promise<HDKey>;
-
-  unlock(password: string): Promise<boolean>;
-}
-
-const VaultContext = createContext<IVaultContext | null>(null);
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
-
-export function useVault(): IVaultContext {
-  const context = useContext(VaultContext);
-
-  if (!context) {
-    throw new Error('Invalid vault context.');
-  }
-
-  return context;
-}
 
 export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   const [keys, setKeys] = useState<IKeyInfo[]>(() => {
@@ -216,8 +175,8 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   );
 
   return (
-    <VaultContext.Provider value={{ createVault, deriveKey, keys, selectKey, selectedKey, unlock }}>
+    <Vault.Provider value={{ createVault, deriveKey, keys, selectKey, selectedKey, unlock }}>
       {children}
-    </VaultContext.Provider>
+    </Vault.Provider>
   );
 }

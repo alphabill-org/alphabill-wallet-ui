@@ -1,0 +1,58 @@
+@use '../../css/variables';
+
+.settings {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    padding: 0 24px 24px;
+    gap: 22px;
+  }
+
+  .select__options {
+    width: 100%;
+  }
+
+  &__menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 18px;
+
+    &-item {
+      display: flex;
+      width: 100%;
+      padding: 12px 0;
+      align-items: center;
+      border-bottom: 1px solid variables.$color-border-light;
+
+      svg path {
+        fill: variables.$color-light;
+      }
+
+      &-label {
+        margin-left: 12px;
+        margin-right: auto;
+      }
+
+      &-chevron {
+        transform: rotate(-90deg);
+      }
+
+      &:hover {
+        cursor: pointer;
+        color: variables.$color-primary;
+
+        svg path {
+          fill: variables.$color-primary;
+        }
+      }
+    }
+  }
+
+  &__logout-button {
+    margin-top: auto;
+  }
+}

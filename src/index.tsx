@@ -5,11 +5,11 @@ import { BrowserRouter } from 'react-router-dom';
 
 import './css/app.scss';
 import { App } from './App';
-import { AlphabillProvider } from './hooks/alphabill';
-import { AuthenticationProvider } from './hooks/authentication';
-import { NetworkProvider } from './hooks/network';
-import { UnitsProvider } from './hooks/units';
-import { VaultProvider } from './hooks/vault';
+import { AlphabillProvider } from './hooks/providers/AlphabillProvider';
+import { AuthenticationProvider } from './hooks/providers/AuthenticationProvider';
+import { NetworkProvider } from './hooks/providers/NetworkProvider';
+import { UnitsProvider } from './hooks/providers/UnitsProvider';
+import { VaultProvider } from './hooks/providers/VaultProvider';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
 const queryClient = new QueryClient();

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { MouseEvent, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react';
 
-import CloseIcon from '../../images/close.svg?react';
+import CloseIcon from '../../images/close-ico.svg?react';
 
 export interface ISelectPopoverProps {
   onClose: () => void;

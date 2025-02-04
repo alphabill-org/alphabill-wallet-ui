@@ -1,25 +1,9 @@
-import { createContext, PropsWithChildren, ReactElement, useCallback, useContext, useState } from 'react';
+import { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
 
-import { useVault } from './vault';
+import { Authentication } from '../authentication';
+import { useVault } from '../vault';
 
 const AUTHENTICATED_LOCAL_STORAGE_KEY = 'alphabill_authenticated';
-
-interface IAuthenticationContext {
-  readonly isLoggedIn: boolean;
-  login(password: string): Promise<boolean>;
-}
-
-const AuthenticationContext = createContext<IAuthenticationContext | null>(null);
-
-export function useAuthentication(): IAuthenticationContext {
-  const context = useContext(AuthenticationContext);
-
-  if (!context) {
-    throw new Error('Invalid authentication context.');
-  }
-
-  return context;
-}
 
 export function AuthenticationProvider({ children }: PropsWithChildren): ReactElement {
   const { unlock } = useVault();
@@ -44,11 +28,17 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
         setIsLoggedIn(true);
         localStorage.setItem(AUTHENTICATED_LOCAL_STORAGE_KEY, JSON.stringify(true));
       }
-
       return result;
     },
     [unlock, setIsLoggedIn],
   );
 
-  return <AuthenticationContext.Provider value={{ isLoggedIn, login }}>{children}</AuthenticationContext.Provider>;
+  const logout = useCallback((): void => {
+    setIsLoggedIn(false);
+    localStorage.removeItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
+  }, []);
+
+  return (
+    <Authentication.Provider value={{ isLoggedIn, login, logout }}>{children}</Authentication.Provider>
+  );
 }

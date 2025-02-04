@@ -1,16 +1,20 @@
 @use '../../css/variables';
 
-
 .select {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  height: 38px;
-  padding: 7px 14px;
-  background: variables.$color-secondary;
-  border-radius: 4px;
-  cursor: pointer;
+  &__label {
+    margin-bottom: 4px;
+  }
 
+  &__body {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    height: 38px;
+    padding: 7px 14px;
+    background: variables.$color-secondary;
+    border-radius: 4px;
+    cursor: pointer;
+  }
 
   &__button {
     gap: 8px;
@@ -29,7 +33,7 @@
     }
 
     &--icon {
-      fill: variables.$color-white
+      fill: variables.$color-white;
     }
   }
 

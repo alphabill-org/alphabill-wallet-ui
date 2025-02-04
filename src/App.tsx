@@ -6,6 +6,7 @@ import { Fees } from './routes/Fees/Fees';
 import { Home } from './routes/Home';
 import { Login } from './routes/Login/Login';
 import { Network } from './routes/Network';
+import { Settings } from './routes/Settings/Settings';
 import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
 import { TokenDetails } from './routes/TokenList/Fungible/TokenDetails';
 import { TokenList } from './routes/TokenList/TokenList';
@@ -27,6 +28,7 @@ export function App(): ReactElement {
           <Route path="/create-wallet" element={<CreateWallet />} />
           <Route path="/recover-wallet" element={<CreateWallet isWalletRecovery={true} />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
     </div>

@@ -5,40 +5,15 @@ import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { createContext, PropsWithChildren, ReactElement, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { PropsWithChildren, ReactElement } from 'react';
 
-import { useAlphabill } from './alphabill';
-import { useVault } from './vault';
-import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, ALPHA_KEY, CONCURRENT_QUERIES, QUERY_KEYS } from '../constants';
-
-export interface ITokenIcon {
-  readonly type: string;
-  readonly data: string;
-}
-
-interface ITokenUnit {
-  readonly id: string;
-  readonly value: bigint;
-}
-
-export interface ITokenInfo {
-  readonly id: string;
-  readonly name: string;
-  readonly decimalPlaces: number;
-  readonly icon: ITokenIcon;
-  readonly units: ITokenUnit[];
-  readonly total: bigint;
-}
-
-interface IUnitsContext {
-  readonly alpha: UseQueryResult<ITokenInfo>;
-  readonly fungible: UseQueryResult<ITokenInfo[]>;
-}
+import { useAlphabill } from '../alphabill';
+import { useVault } from '../vault';
+import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, ALPHA_KEY, CONCURRENT_QUERIES, QUERY_KEYS } from '../../constants';
+import { ITokenInfo, ITokenUnit, Units } from '../units';
 
 const textDecoder = new TextDecoder();
-
-const UnitsContext = createContext<IUnitsContext | null>(null);
 
 function createAlphaInfo(units: ITokenUnit[]): ITokenInfo {
   return {
@@ -146,15 +121,6 @@ async function getFungibleTokenInfo(
   return result;
 }
 
-export function useUnits(): IUnitsContext {
-  const context = useContext(UnitsContext);
-  if (!context) {
-    throw new Error('Invalid units context');
-  }
-
-  return context;
-}
-
 export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
@@ -185,5 +151,5 @@ export function UnitsProvider({ children }: PropsWithChildren): ReactElement {
     queryKey: [QUERY_KEYS.units, QUERY_KEYS.fungible, vault.selectedKey?.index, alphabill?.networkId],
   });
 
-  return <UnitsContext.Provider value={{ alpha, fungible }}>{children}</UnitsContext.Provider>;
+  return <Units.Provider value={{ alpha, fungible }}>{children}</Units.Provider>;
 }

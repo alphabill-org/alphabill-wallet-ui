@@ -1,11 +1,12 @@
 import { Key, ReactElement, ReactNode, useCallback, useState, MouseEvent } from 'react';
 
-import ArrowIcon from '../../images/arrow.svg?react';
+import ArrowIcon from '../../images/arrow-ico.svg?react';
 import { Button } from '../Button/Button';
 import { SelectPopover } from '../SelectPopover/SelectPopover';
 
 interface ISelectBoxProps<T> {
   title: string;
+  label?: string;
   selectedItem?: ReactNode;
   className?: string;
   data: T[];
@@ -18,6 +19,7 @@ export function SelectBox<T>({
   selectedItem,
   className,
   title,
+  label,
   data,
   select,
   getOptionKey,
@@ -38,30 +40,33 @@ export function SelectBox<T>({
   }, [setIsPopoverOpen]);
 
   return (
-    <div className={`select ${className ?? ''}`} onClick={openPopover}>
-      <Button variant="icon" className="select__button">
-        <span className="select__button--text">{selectedItem ?? '--- SELECT ---'}</span>
-        <ArrowIcon className="select__button--icon" />
-      </Button>
-      <SelectPopover onClose={closePopover} isPopoverVisible={isPopoverOpen} title={title}>
-        <div className="select__options">
-          {data.map((item) => {
-            return (
-              <div
-                key={getOptionKey(item)}
-                className="select__option"
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  select(item);
-                  setIsPopoverOpen(false);
-                }}
-              >
-                {createOption(item)}
-              </div>
-            );
-          })}
-        </div>
-      </SelectPopover>
+    <div className={`select ${className ?? ''}`}>
+      {label && <div className="select__label">{label}</div>}
+      <div className="select__body" onClick={openPopover}>
+        <Button variant="icon" className="select__button">
+          <span className="select__button--text">{selectedItem ?? '--- SELECT ---'}</span>
+          <ArrowIcon className="select__button--icon" />
+        </Button>
+        <SelectPopover onClose={closePopover} isPopoverVisible={isPopoverOpen} title={title}>
+          <div className="select__options">
+            {data.map((item) => {
+              return (
+                <div
+                  key={getOptionKey(item)}
+                  className="select__option"
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    select(item);
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  {createOption(item)}
+                </div>
+              );
+            })}
+          </div>
+        </SelectPopover>
+      </div>
     </div>
   );
 }

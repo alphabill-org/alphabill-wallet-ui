@@ -1,32 +1,13 @@
-import { ReactElement, useCallback } from 'react';
+import { ReactElement } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { INetwork, useNetwork } from '../../hooks/network';
 import LogoIcon from '../../images/ab-logo-ico.svg?react';
-import CheckIcon from '../../images/check.svg?react';
-import ProfileIcon from '../../images/profile.svg?react';
+import SettingsIcon from '../../images/settings-ico.svg?react';
 import { Button } from '../Button/Button';
-import { SelectBox } from '../SelectBox/SelectBox';
+import { NetworkSelect } from '../NetworkSelect/NetworkSelect';
 
 export function Header(): ReactElement {
-  const { setSelectedNetwork, selectedNetwork, networks } = useNetwork();
-
-  const select = useCallback(
-    (network: INetwork) => {
-      setSelectedNetwork(network);
-    },
-    [setSelectedNetwork],
-  );
-
-  const getOptionKey = useCallback((network: INetwork) => network.id, []);
-
-  const createOption = useCallback(
-    (network: INetwork) => (
-      <>
-        {network.alias} {selectedNetwork?.id === network.id ? <CheckIcon /> : null}
-      </>
-    ),
-    [selectedNetwork],
-  );
+  const navigate = useNavigate();
 
   return (
     <div className="header">
@@ -34,22 +15,15 @@ export function Header(): ReactElement {
         <LogoIcon />
       </div>
       <div className="header__select">
-        <SelectBox
-          title="SELECT NETWORK"
-          selectedItem={selectedNetwork?.alias}
-          data={networks}
-          select={select}
-          getOptionKey={getOptionKey}
-          createOption={createOption}
-        />
+        <NetworkSelect />
       </div>
       <Button
         variant="icon"
         onClick={() => {
-          // PROFILE VIEW
+          navigate('/settings');
         }}
       >
-        <ProfileIcon />
+        <SettingsIcon />
       </Button>
     </div>
   );
