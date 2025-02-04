@@ -3,11 +3,14 @@ export const ALPHA_ICON = {
   type: 'image/svg+xml',
 };
 
+export const ALPHA_KEY = 'ALPHA';
+
 export const ALPHA_DECIMAL_PLACES = 8;
 
 export const CONCURRENT_QUERIES = 5;
 
 export const QUERY_KEYS = {
+  alpha: 'ALPHA',
   fungible: 'FUNGIBLE',
   units: 'UNITS',
 };

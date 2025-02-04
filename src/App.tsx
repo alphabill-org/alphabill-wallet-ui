@@ -2,6 +2,7 @@ import { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { CreateWallet } from './routes/CreateWallet/CreateWallet';
+import { Fees } from './routes/Fees/Fees';
 import { Home } from './routes/Home';
 import { Login } from './routes/Login/Login';
 import { Network } from './routes/Network';
@@ -15,6 +16,7 @@ export function App(): ReactElement {
       <div className="app__content">
         <Routes>
           <Route path="/" element={<Home />}>
+            <Route path="fees" element={<Fees />} />
             <Route path="network" element={<Network />} />
             <Route path="units" element={<TokenList />}>
               <Route path="fungible" element={<AggregatedTokenList />} />

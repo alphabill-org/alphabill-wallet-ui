@@ -5,13 +5,13 @@ import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { useAlphabill } from '../../../hooks/alphabill';
-import { useUnits } from '../../../hooks/units';
+import { ITokenInfo, useUnits } from '../../../hooks/units';
 import { useVault } from '../../../hooks/vault';
 
 export function AggregatedTokenList(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
-  const { fungible } = useUnits();
+  const { fungible, alpha } = useUnits();
 
   if (!alphabill) {
     return (
@@ -32,7 +32,7 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  if (fungible.isLoading) {
+  if (fungible.isPending || alpha.isPending) {
     return (
       <div className="units--loading">
         <Loading title="Loading..." />
@@ -40,16 +40,17 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  if (fungible.error) {
+  if (fungible.isError || alpha.isError) {
+    const error = fungible.error || alpha.error;
     return (
       <div className="units--error">
-        <ErrorNotification title="Error occurred" info={fungible.error.message} />
+        <ErrorNotification title="Error occurred" info={error?.message} />
       </div>
     );
   }
 
   const tokenItems = [];
-  const tokens = fungible.data?.values() || new Map().values();
+  const tokens: ITokenInfo[] = [alpha.data, ...fungible.data];
   for (const token of tokens) {
     tokenItems.push(
       <Link key={token.id} to={`/units/fungible/${token.id}`}>

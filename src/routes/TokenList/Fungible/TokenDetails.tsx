@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
+import { ALPHA_KEY } from '../../../constants';
 import { useAlphabill } from '../../../hooks/alphabill';
 import { useUnits } from '../../../hooks/units';
 import { useVault } from '../../../hooks/vault';
@@ -13,7 +14,7 @@ export function TokenDetails(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
-  const { fungible } = useUnits();
+  const { fungible, alpha } = useUnits();
 
   if (!alphabill) {
     return (
@@ -31,18 +32,20 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  if (fungible.isLoading) {
+  if (fungible.isPending || alpha.isPending) {
     return <Loading title="Loading..." />;
   }
 
-  if (fungible.error) {
+  if (fungible.isError || alpha.isError) {
+    const error = fungible.error || alpha.error;
+
     return (
       <div className="units--error">
         <ErrorNotification
           title="Error occurred"
           info={
             <>
-              {fungible.error.message} <br />
+              {error?.message} <br />
               <Link to="/units/fungible">Go back</Link>
             </>
           }
@@ -51,7 +54,7 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  const tokenInfo = fungible.data?.get(params.id ?? '');
+  const tokenInfo = params.id === ALPHA_KEY ? alpha.data : fungible.data.find((token) => token.id === params.id);
   if (!tokenInfo) {
     return (
       <div className="units--error">
