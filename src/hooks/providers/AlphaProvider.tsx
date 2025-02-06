@@ -1,9 +1,8 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
 import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
-import { useQuery } from '@tanstack/react-query';
-import { PropsWithChildren, ReactElement, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { PropsWithChildren, ReactElement, useCallback, useMemo } from 'react';
 
 import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, ALPHA_KEY, QUERY_KEYS } from '../../constants';
 import { AlphaContext } from '../alpha';
@@ -24,6 +23,7 @@ function createAlphaInfo(units: Bill[]): IFungibleTokenInfo<Bill> {
 }
 
 export function AlphaProvider({ children }: PropsWithChildren): ReactElement {
+  const queryClient = useQueryClient();
   const alphabill = useAlphabill();
   const vault = useVault();
 
@@ -62,5 +62,13 @@ export function AlphaProvider({ children }: PropsWithChildren): ReactElement {
     queryKey: [QUERY_KEYS.units, QUERY_KEYS.alpha, 'INFO', vault.selectedKey?.index, alphabill?.networkId],
   });
 
-  return <AlphaContext.Provider value={{ alphas, alphasInfo }}>{children}</AlphaContext.Provider>;
+  const resetAlphas = useCallback(async (): Promise<void> => {
+    await queryClient.resetQueries({
+      predicate: (query) => {
+        return query.queryKey.at(0) === QUERY_KEYS.units && query.queryKey.at(1) === QUERY_KEYS.alpha;
+      },
+    });
+  }, [queryClient]);
+
+  return <AlphaContext.Provider value={{ alphas, alphasInfo, resetAlphas }}>{children}</AlphaContext.Provider>;
 }

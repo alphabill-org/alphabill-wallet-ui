@@ -35,7 +35,7 @@ export interface IVaultContext {
 
   lock(): void;
 
-  getSigningService(): Promise<ISigningService>;
+  getSigningService(password: string, index: number): Promise<ISigningService>;
 }
 
 export const Vault = createContext<IVaultContext | null>(null);

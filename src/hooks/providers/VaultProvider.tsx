@@ -43,58 +43,70 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     return digest.slice(0, 16);
   }, []);
 
-  const createEncryptionKey = useCallback(async (password: string, salt: Uint8Array) => {
-    const key = await crypto.subtle.importKey('raw', textEncoder.encode(password), 'PBKDF2', false, [
-      'deriveBits',
-      'deriveKey',
-    ]);
+  const createEncryptionKey = useCallback(
+    async (password: string, salt: Uint8Array) => {
+      const key = await crypto.subtle.importKey('raw', textEncoder.encode(password), 'PBKDF2', false, [
+        'deriveBits',
+        'deriveKey',
+      ]);
 
-    return {
-      iv: await calculateKeyIV(password, salt),
-      key: await crypto.subtle.deriveKey(
-        {
-          hash: 'SHA-256',
-          iterations: 129531,
-          name: 'PBKDF2',
-          salt,
-        },
-        key,
-        { length: 256, name: 'AES-GCM' },
-        false,
-        ['encrypt', 'decrypt'],
-      ),
-    };
-  }, []);
+      return {
+        iv: await calculateKeyIV(password, salt),
+        key: await crypto.subtle.deriveKey(
+          {
+            hash: 'SHA-256',
+            iterations: 129531,
+            name: 'PBKDF2',
+            salt,
+          },
+          key,
+          { length: 256, name: 'AES-GCM' },
+          false,
+          ['encrypt', 'decrypt'],
+        ),
+      };
+    },
+    [calculateKeyIV],
+  );
 
-  const createVault = useCallback(async (mnemonic: string, password: string, initialKey: IVaultKey) => {
-    const salt = new Uint8Array(32);
-    crypto.getRandomValues(salt);
-    const { key, iv } = await createEncryptionKey(password, salt);
+  const createVault = useCallback(
+    async (mnemonic: string, password: string, initialKey: IVaultKey) => {
+      const salt = new Uint8Array(32);
+      crypto.getRandomValues(salt);
+      const { key, iv } = await createEncryptionKey(password, salt);
 
-    const data: IVault = {
-      keys: [initialKey],
-      mnemonic,
-    };
+      const data: IVault = {
+        keys: [initialKey],
+        mnemonic,
+      };
 
-    const vault = new Uint8Array(
-      await crypto.subtle.encrypt(
-        {
-          iv,
-          name: 'AES-GCM',
-        },
-        key,
-        textEncoder.encode(JSON.stringify(data)),
-      ),
-    );
+      const vault = new Uint8Array(
+        await crypto.subtle.encrypt(
+          {
+            iv,
+            name: 'AES-GCM',
+          },
+          key,
+          textEncoder.encode(JSON.stringify(data)),
+        ),
+      );
 
-    // Store salt and vault
-    localStorage.setItem(
-      VAULT_LOCAL_STORAGE_KEY,
-      JSON.stringify({
-        salt: Base16Converter.encode(salt),
-        vault: Base16Converter.encode(vault),
-      }),
-    );
+      // Store salt and vault
+      localStorage.setItem(
+        VAULT_LOCAL_STORAGE_KEY,
+        JSON.stringify({
+          salt: Base16Converter.encode(salt),
+          vault: Base16Converter.encode(vault),
+        }),
+      );
+    },
+    [createEncryptionKey],
+  );
+
+  const deriveKey = useCallback(async (mnemonic: string, index: number) => {
+    const seed = await mnemonicToSeed(mnemonic);
+    const masterKey = HDKey.fromMasterSeed(seed);
+    return masterKey.derive(`m/44'/634'/${index}'/0/0`);
   }, []);
 
   const decryptVault = useCallback(
@@ -112,29 +124,33 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       const vaultJson = textDecoder.decode(vaultBytes);
       return JSON.parse(vaultJson);
     },
-    [],
+    [createEncryptionKey],
   );
 
-  const deriveKey = useCallback(async (mnemonic: string, index: number) => {
-    const seed = await mnemonicToSeed(mnemonic);
-    const masterKey = HDKey.fromMasterSeed(seed);
-    return masterKey.derive(`m/44'/634'/${index}'/0/0`);
-  }, []);
-
-  const unlock = useCallback(
-    async (password: string): Promise<boolean> => {
+  const loadVault = useCallback(
+    async (password: string): Promise<IVault | null> => {
       const storageVaultJson = localStorage.getItem(VAULT_LOCAL_STORAGE_KEY);
       if (!storageVaultJson) {
-        return false;
+        return null;
       }
 
       const storageVault = JSON.parse(storageVaultJson) as IVaultLocalStorage;
+      return await decryptVault(
+        password,
+        Base16Converter.decode(storageVault.salt),
+        Base16Converter.decode(storageVault.vault),
+      );
+    },
+    [decryptVault],
+  );
+
+  const unlock = useCallback(
+    async (password: string): Promise<boolean> => {
       try {
-        const vault = await decryptVault(
-          password,
-          Base16Converter.decode(storageVault.salt),
-          Base16Converter.decode(storageVault.vault),
-        );
+        const vault = await loadVault(password);
+        if (!vault) {
+          return false;
+        }
 
         const publicKeys: IKeyInfo[] = [];
 
@@ -165,7 +181,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
         return false;
       }
     },
-    [decryptVault, deriveKey, setKeys],
+    [decryptVault, deriveKey, loadVault, setKeys],
   );
 
   const lock = useCallback((): void => {
@@ -181,9 +197,22 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [setSelectedKey],
   );
 
-  const getSigningService = useCallback((): Promise<ISigningService> => {
-    return Promise.resolve(new DefaultSigningService(Base16Converter.decode('')));
-  }, []);
+  const getSigningService = useCallback(
+    async (password: string, index: number): Promise<ISigningService> => {
+      const vault = await loadVault(password);
+      if (!vault) {
+        throw new Error('Could not load vault');
+      }
+
+      const key = await deriveKey(vault.mnemonic, index);
+      if (!key.privateKey) {
+        throw new Error('Could not derive key');
+      }
+
+      return new DefaultSigningService(key.privateKey);
+    },
+    [loadVault, deriveKey],
+  );
 
   return (
     <Vault.Provider value={{ createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}>

@@ -1,6 +1,7 @@
 import { ReactElement, useState } from 'react';
 
 import { ITokenIcon } from '../../../hooks/units/ITokenIcon';
+import { formatValueWithDecimalPlaces } from '../../../utils/decimal';
 
 export function TokenItem({
   name,
@@ -17,7 +18,6 @@ export function TokenItem({
 }): ReactElement {
   const [error, setError] = useState<boolean>(false);
 
-  const paddedValue = value.toString().padStart(decimalPlaces, '0');
   return (
     <div className={`units__content__unit ${isAggregated ? 'hoverable' : ''}`}>
       <div className="units__content__unit--icon">
@@ -40,11 +40,7 @@ export function TokenItem({
         )}
       </div>
       <div className="units__content__unit--text">{name}</div>
-      <div className="units__content__unit--value">
-        {decimalPlaces
-          ? `${paddedValue.slice(0, -decimalPlaces).padStart(1, '0')}.${paddedValue.slice(-decimalPlaces)}`
-          : paddedValue}
-      </div>
+      <div className="units__content__unit--value">{formatValueWithDecimalPlaces(value, decimalPlaces)}</div>
     </div>
   );
 }

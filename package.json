@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "start": "vite --mode localhost",
+    "start": "vite --mode localhost --force",
     "build": "vite build",
     "build-dev": "vite build --mode development",
     "build-local": "vite build --mode localhost",
@@ -17,7 +17,7 @@
     "lint:fix": "eslint \"src/**/*.tsx\" --fix"
   },
   "dependencies": {
-    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.a500758",
+    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.c7e5cd7",
     "uuid": "11.0.5",
     "@scure/bip32": "1.6.2",
     "@scure/bip39": "1.5.4",

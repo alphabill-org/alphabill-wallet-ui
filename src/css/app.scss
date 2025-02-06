@@ -12,6 +12,7 @@
 @use '../components/Loading/Loading';
 @use '../components/SelectBox/SelectBox';
 @use '../components/ErrorNotification/ErrorNotification';
+@use '../components/PublicKeySelectBox/PublicKeySelectBox';
 @use '../routes/Login/Login';
 @use '../routes/CreateWallet/CreateWallet';
 @use '../routes/TokenList/TokenList';

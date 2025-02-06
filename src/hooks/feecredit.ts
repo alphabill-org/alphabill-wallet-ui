@@ -5,6 +5,7 @@ import { createContext, useContext } from 'react';
 export interface IFeeCreditContext {
   readonly moneyFeeCredits: UseQueryResult<FeeCreditRecord[]>;
   readonly tokenFeeCredits: UseQueryResult<FeeCreditRecord[]>;
+  resetFeeCredits(): Promise<void>;
 }
 
 export const FeeCreditContext = createContext<IFeeCreditContext | null>(null);

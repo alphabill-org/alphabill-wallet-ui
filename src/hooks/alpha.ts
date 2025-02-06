@@ -7,6 +7,7 @@ import { IFungibleTokenInfo } from './fungible/IFungibleTokenInfo';
 export interface IAlphaContext {
   readonly alphasInfo: UseQueryResult<IFungibleTokenInfo<Bill>>;
   readonly alphas: UseQueryResult<Bill[]>;
+  resetAlphas(): Promise<void>;
 }
 
 export const AlphaContext = createContext<IAlphaContext | null>(null);

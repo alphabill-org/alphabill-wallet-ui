@@ -9,6 +9,22 @@
   overflow: hidden;
   gap: 32px;
 
+  &__key {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
+
+    .key__select {
+      max-width: 62%;
+    }
+
+    svg {
+      fill: #000;
+      width: 12px;
+      height: auto;
+    }
+  }
+
   a {
     color: variables.$color-white;
   }
@@ -27,23 +43,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-  &__key {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 5px;
-
-    &__select {
-      flex-grow: 1;
-      max-width: 62%;
-    }
-
-    svg {
-      fill: #000;
-      width: 12px;
-      height: auto;
-    }
   }
 
   &__content {
@@ -141,9 +140,4 @@
       }
     }
   }
-}
-
-.units__key__select--key {
-  margin-left: 8px;
-  color: variables.$color-underpants;
 }
