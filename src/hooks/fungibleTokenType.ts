@@ -4,10 +4,10 @@ import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Conv
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { QUERY_KEYS } from '../constants';
 import { useAlphabill } from './alphabillContext';
 import { useFungibleTokens } from './fungibleToken';
 import { fetchUnits } from './units/fetchUnits';
+import { createFetchTypeByIdQueryKey, createFetchUnitTypesQueryKey, QUERY_KEYS } from '../utils/unitsQueryKeys';
 
 export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResult<Map<string, FungibleTokenType>> {
   const queryClient = useQueryClient();
@@ -39,14 +39,7 @@ export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResul
         tokenTypes,
         (unitId: IUnitId) => alphabill.tokenClient.getUnit(unitId, false, FungibleTokenType),
         queryClient,
-        (unitId: IUnitId) => [
-          QUERY_KEYS.units,
-          QUERY_KEYS.fungible,
-          'TYPE',
-          unitId.toString(),
-          serializedOwnerId,
-          alphabill?.network.id,
-        ],
+        createFetchTypeByIdQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, alphabill.network.id)
       );
       const result = new Map<string, FungibleTokenType>();
       for await (const unit of iterator) {
@@ -55,6 +48,6 @@ export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResul
 
       return result;
     },
-    queryKey: [QUERY_KEYS.units, QUERY_KEYS.fungible, 'TYPES', tokenTypes, serializedOwnerId, alphabill?.network.id],
+    queryKey: createFetchUnitTypesQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, tokenTypes, alphabill?.network.id),
   });
 }

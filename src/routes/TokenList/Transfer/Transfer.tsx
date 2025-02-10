@@ -17,7 +17,6 @@ import { Form, FormContent, FormFooter } from '../../../components/Form/Form';
 import { PasswordField } from '../../../components/InputField/PasswordField';
 import { TextField } from '../../../components/InputField/TextField';
 import { Loading } from '../../../components/Loading/Loading';
-import { QUERY_KEYS } from '../../../constants';
 import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useFungibleTokens } from '../../../hooks/fungibleToken';
 import { useUnitsList } from '../../../hooks/unitsList';
@@ -115,7 +114,7 @@ export function Transfer(): ReactElement {
     }
     queryClient.resetQueries({
       predicate: (query) => {
-        return query.queryKey.at(0) === QUERY_KEYS.units;
+        return query.queryKey.at(0) === 'UNITS';
       },
     });
     navigate('/units/fungible');

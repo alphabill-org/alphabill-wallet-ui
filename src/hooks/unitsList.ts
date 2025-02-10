@@ -5,8 +5,8 @@ import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Conv
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { QUERY_KEYS } from '../constants';
 import { useAlphabill } from './alphabillContext';
+import { createUnitListQueryKey } from '../utils/unitsQueryKeys';
 
 export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
   ownerId: Uint8Array | null,
@@ -26,11 +26,9 @@ export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIden
         );
       }
 
-      console.log([QUERY_KEYS.units, 'ID', partition, serializedOwnerId, alphabill?.network.id]);
-
       const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
       return client.getUnitsByOwnerId(ownerId);
     },
-    queryKey: [QUERY_KEYS.units, 'ID', partition, serializedOwnerId, alphabill?.network.id]
+    queryKey: createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition),
   });
 }

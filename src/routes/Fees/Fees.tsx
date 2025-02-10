@@ -1,7 +1,6 @@
 import { FeeCreditRecord } from '@alphabill/alphabill-js-sdk/lib/fees/FeeCreditRecord';
 import { AddFeeCredit } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/AddFeeCredit';
 import { TransferFeeCredit } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/TransferFeeCredit';
-import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
 import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
 import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
 import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
@@ -25,10 +24,13 @@ import { Loading } from '../../components/Loading/Loading';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
 import { SelectBox } from '../../components/SelectBox/SelectBox';
 import { ALPHA_DECIMAL_PLACES } from '../../constants';
+import { useAlphas } from '../../hooks/alpha';
 import { useAlphabill } from '../../hooks/alphabillContext';
-import { useUnitsList } from '../../hooks/unitsList';
+import { useFeeCredits } from '../../hooks/feeCredit';
+import { useResetQuery } from '../../hooks/resetQuery';
 import { useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
+import { QUERY_KEYS } from '../../utils/unitsQueryKeys';
 import { Result, ValidatedData } from '../../ValidatedData';
 
 interface IFormData {
@@ -44,16 +46,17 @@ interface IFeesContentProps {
 function FeesContent({ partition }: IFeesContentProps): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
+  const resetQuery = useResetQuery();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState(new Map<string, string>());
   const [selectedAlpha, setSelectedAlpha] = useState<string | undefined>(undefined);
   const [selectedFeeCreditId, setselectedFeeCreditId] = useState<string | undefined>(undefined);
 
-  const moneyPartitionUnits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.MONEY);
-  const tokenPartitionUnits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.TOKEN);
+  const alphas = useAlphas(vault.selectedKey?.publicKey.key ?? null);
+  const feeCredits = useFeeCredits(vault.selectedKey?.publicKey.key ?? null, partition);
 
   const parseAmount = useCallback(
-    (input: string): Result<bigint> => {
+    (input: string, bill: Bill | null): Result<bigint> => {
       if (!RegExp(`^\\d+(\\.\\d{1,${ALPHA_DECIMAL_PLACES}})?$`).test(input)) {
         return {
           data: null,
@@ -69,13 +72,13 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
         return { data: null, error: 'Fee must be greater than 0.' };
       }
 
-      // if (selectedAlpha && (getAlpha(selectedAlpha)?.value ?? 0) < amount) {
-      //   return { data: null, error: 'Alpha does not have enough balance.' };
-      // }
+      if (selectedAlpha && (bill?.value ?? 0n) < amount) {
+        return { data: null, error: 'Alpha does not have enough credits.' };
+      }
 
       return { data: amount, error: null };
     },
-    [selectedAlpha, moneyPartitionUnits.data?.bills],
+    [selectedAlpha, alphas.data],
   );
 
   const tryGetSigningService = useCallback(
@@ -167,13 +170,11 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
       setIsProcessing(true);
       const formData = new FormData(ev.currentTarget);
 
-      // const alpha = selectedAlpha ? getAlpha(selectedAlpha) : null;
-      // const feeCreditRecord = selectedFeeCreditId ? (feeCredits.data?.get(selectedFeeCreditId) ?? null) : null;
-      const alpha = null;
-      const feeCreditRecord = null;
+      const feeCreditRecord = selectedFeeCreditId ? (feeCredits.data?.get(selectedFeeCreditId) ?? null) : null;
+      const alpha = selectedAlpha ? (alphas.data?.get(selectedAlpha) ?? null) : null;
 
       const validatedData = new ValidatedData<IFormData>({
-        amount: parseAmount(String(formData.get('amount'))),
+        amount: parseAmount(String(formData.get('amount')), alpha),
         bill: alpha ? { data: alpha, error: null } : { data: null, error: 'Alpha is not found.' },
         signingService: await tryGetSigningService(String(formData.get('password')), vault.selectedKey?.index),
       }).getData();
@@ -197,8 +198,9 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient,
           feeCreditRecord,
         );
-        // await resetAlphas();
-        // await resetFeeCredits();
+
+        await resetQuery.resetUnitById(validatedData.data.bill.unitId, QUERY_KEYS.ALPHA);
+        await resetQuery.resetUnitList(partition);
       } catch (e) {
         console.error('error', e);
       } finally {
@@ -210,11 +212,11 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
       alphabill,
       vault.selectedKey,
       selectedAlpha,
+      alphas.data,
       partition,
       selectedFeeCreditId,
       parseAmount,
       tryGetSigningService,
-
       setErrors,
     ],
   );
@@ -238,7 +240,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
     );
   }
 
-  if (moneyPartitionUnits.isPending || tokenPartitionUnits.isPending) {
+  if (alphas.isPending || feeCredits.isPending) {
     return (
       <div className="fees--loading">
         <Loading title="Loading..." />
@@ -246,19 +248,14 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
     );
   }
 
-  if (moneyPartitionUnits.isError || tokenPartitionUnits.isError) {
-    const error = moneyPartitionUnits.error || tokenPartitionUnits.error;
+  if (alphas.isError || feeCredits.isError) {
+    const error = alphas.error || feeCredits.error;
     return (
       <div className="fees--error">
         <ErrorNotification title="Error occurred" info={error?.message} />
       </div>
     );
   }
-
-  const feeCredits =
-    partition === PartitionIdentifier.MONEY
-      ? moneyPartitionUnits.data.feeCreditRecords
-      : tokenPartitionUnits.data.feeCreditRecords;
 
   return (
     <form onSubmit={onSubmit}>
@@ -267,14 +264,14 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           <SelectBox
             label="Alphas"
             title="SELECT ALPHA"
-            data={moneyPartitionUnits.data.bills}
+            data={alphas.data.values()}
             selectedItem={selectedAlpha}
-            select={(unitId: IUnitId) => setSelectedAlpha(unitId.toString())}
-            getOptionKey={(unitId: IUnitId) => unitId.toString()}
-            createOption={(unitId: IUnitId) => (
+            select={(unit: Bill) => setSelectedAlpha(unit.unitId.toString())}
+            getOptionKey={(unit: Bill) => unit.unitId.toString()}
+            createOption={(unit: Bill) => (
               <>
-                <div className="select__option--text">{unitId.toString()}</div>
-                {selectedAlpha === unitId.toString() ? <CheckIcon /> : null}
+                <div className="select__option--text">{unit.unitId.toString()}</div>
+                {selectedAlpha === unit.unitId.toString() ? <CheckIcon /> : null}
               </>
             )}
           />
@@ -282,14 +279,14 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           <SelectBox
             label="Fee credit (optional)"
             title="SELECT FEE CREDIT"
-            data={feeCredits}
+            data={feeCredits.data.values()}
             selectedItem={selectedFeeCreditId}
-            select={(unit: IUnitId) => setselectedFeeCreditId(unit.toString())}
-            getOptionKey={(unit: IUnitId) => unit.toString()}
-            createOption={(unit: IUnitId) => (
+            select={(unit: FeeCreditRecord) => setselectedFeeCreditId(unit.unitId.toString())}
+            getOptionKey={(unit: FeeCreditRecord) => unit.unitId.toString()}
+            createOption={(unit: FeeCreditRecord) => (
               <>
-                <div className="select__option--text">{unit.toString()}</div>
-                {selectedFeeCreditId === unit.toString() ? <CheckIcon /> : null}
+                <div className="select__option--text">{unit.unitId.toString()}</div>
+                {selectedFeeCreditId === unit.unitId.toString() ? <CheckIcon /> : null}
               </>
             )}
           />
@@ -316,9 +313,8 @@ export function Fees(): ReactElement {
     <div className="fees">
       <Header />
       <div className="fees__content">
-        <PublicKeySelectBox />
         Public key
-        <FeesContent partition={partition} />
+        <PublicKeySelectBox />
         <div style={{ borderBottom: '1px solid #4E3EB6', display: 'flex', marginBottom: '24px', marginTop: '12px' }}>
           <div
             onClick={() => setPartition(PartitionIdentifier.MONEY)}
@@ -344,6 +340,7 @@ export function Fees(): ReactElement {
             Token partition
           </div>
         </div>
+        <FeesContent partition={partition} />
       </div>
     </div>
   );

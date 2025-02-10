@@ -1,4 +1,4 @@
-import { Key, ReactElement, ReactNode, useCallback, useState, MouseEvent } from 'react';
+import { Key, ReactElement, ReactNode, useCallback, useState, MouseEvent, useMemo } from 'react';
 
 import ArrowIcon from '../../images/arrow-ico.svg?react';
 import { Button } from '../Button/Button';
@@ -9,7 +9,7 @@ interface ISelectBoxProps<T> {
   readonly label?: string;
   readonly selectedItem?: ReactNode;
   readonly className?: string;
-  readonly data: readonly T[];
+  readonly data: Iterable<T>;
   readonly select: (item: T) => void;
   readonly getOptionKey: (item: T) => Key;
   readonly createOption: (item: T) => ReactNode;
@@ -40,6 +40,27 @@ export function SelectBox<T>({
     setIsPopoverOpen(false);
   }, [setIsPopoverOpen]);
 
+  const items = useMemo(() => {
+    const result: ReactNode[] = [];
+    for (const item of data) {
+      result.push(
+        <div
+          key={getOptionKey(item)}
+          className="select__option"
+          onClick={(ev) => {
+            ev.stopPropagation();
+            select(item);
+            setIsPopoverOpen(false);
+          }}
+        >
+          {createOption(item)}
+        </div>,
+      );
+    }
+
+    return result;
+  }, [data]);
+
   return (
     <div className={`select ${className ?? ''}`}>
       {label && <div className="select__label">{label}</div>}
@@ -49,23 +70,7 @@ export function SelectBox<T>({
           <ArrowIcon className="select__button--icon" />
         </Button>
         <SelectPopover onClose={closePopover} isPopoverVisible={isPopoverOpen} title={title}>
-          <div className="select__options">
-            {data.map((item) => {
-              return (
-                <div
-                  key={getOptionKey(item)}
-                  className="select__option"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    select(item);
-                    setIsPopoverOpen(false);
-                  }}
-                >
-                  {createOption(item)}
-                </div>
-              );
-            })}
-          </div>
+          <div className="select__options">{items}</div>
         </SelectPopover>
       </div>
     </div>

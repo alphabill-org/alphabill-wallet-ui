@@ -27,7 +27,7 @@ export async function* fetchUnits<T>(
             return {
               data,
               queryId,
-              queryKey: createQueryKey(unitId),
+              queryKey,
             };
           }),
         );

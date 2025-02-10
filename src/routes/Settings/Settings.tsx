@@ -2,7 +2,7 @@ import { ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../../components/Button/Button';
-import { Navbar } from '../../components/Navbar/Navbar';
+import { Navbar } from '../../components/NavBar/NavBar';
 import { NetworkSelect } from '../../components/NetworkSelect/NetworkSelect';
 import { useAuthentication } from '../../hooks/authenticationContext';
 import ArrowIcon from '../../images/arrow-ico.svg?react';

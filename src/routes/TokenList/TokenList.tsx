@@ -6,7 +6,6 @@ import { Button } from '../../components/Button/Button';
 import { Footer } from '../../components/Footer/Footer';
 import { Header } from '../../components/Header/Header';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
-import { QUERY_KEYS } from '../../constants';
 import { useVault } from '../../hooks/vaultContext';
 import AddIcon from '../../images/add-ico.svg?react';
 import CopyIcon from '../../images/copy-ico.svg?react';
@@ -39,7 +38,7 @@ export function TokenList(): ReactElement {
             onClick={() => {
               queryClient.resetQueries({
                 predicate: (query) => {
-                  return query.queryKey.at(0) === QUERY_KEYS.units;
+                  return query.queryKey.at(0) === 'UNITS';
                 },
               });
             }}

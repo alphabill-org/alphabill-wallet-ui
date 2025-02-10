@@ -5,10 +5,10 @@ import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Conv
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { QUERY_KEYS } from '../constants';
 import { useAlphabill } from './alphabillContext';
 import { fetchUnits } from './units/fetchUnits';
 import { useUnitsList } from './unitsList';
+import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } from '../utils/unitsQueryKeys';
 
 export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string, Bill>> {
   const queryClient = useQueryClient();
@@ -17,7 +17,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
-  return useQuery({
+  return useQuery<Map<string, Bill>>({
     queryFn: async () => {
       if (!alphabill || !ownerId || !unitsList.data) {
         return Promise.resolve(new Map());
@@ -27,14 +27,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
         unitsList.data.bills,
         (unitId: IUnitId) => alphabill.moneyClient.getUnit(unitId, false, Bill),
         queryClient,
-        (unitId: IUnitId) => [
-          QUERY_KEYS.units,
-          QUERY_KEYS.alpha,
-          'UNIT',
-          unitId.toString(),
-          serializedOwnerId,
-          alphabill?.network.id,
-        ],
+        createFetchUnitByIdQueryKey(QUERY_KEYS.ALPHA, serializedOwnerId, alphabill.network.id),
       );
       const result = new Map<string, Bill>();
       for await (const unit of iterator) {
@@ -43,13 +36,11 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
 
       return result;
     },
-    queryKey: [
-      QUERY_KEYS.units,
-      QUERY_KEYS.alpha,
-      'UNITS',
-      unitsList.data?.bills.map((unit) => unit.toString()),
+    queryKey: createFetchUnitsQueryKey(
+      QUERY_KEYS.ALPHA,
       serializedOwnerId,
+      unitsList.data?.bills,
       alphabill?.network.id,
-    ],
+    ),
   });
 }
