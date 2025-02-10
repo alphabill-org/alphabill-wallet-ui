@@ -1,46 +1,27 @@
-import { ReactElement, useState } from 'react';
+import { PropsWithChildren, ReactElement } from 'react';
+import { Link } from 'react-router-dom';
 
-import { ITokenIcon } from '../../../hooks/units/ITokenIcon';
+import { Button } from '../../../components/Button/Button';
+import SendIcon from '../../../images/send-ico.svg?react';
 import { formatValueWithDecimalPlaces } from '../../../utils/decimal';
 
-export function TokenItem({
-  name,
-  icon,
-  value,
-  decimalPlaces,
-  isAggregated,
-}: {
-  name: string;
-  icon: ITokenIcon;
-  value: bigint;
-  decimalPlaces: number;
-  isAggregated?: boolean;
-}): ReactElement {
-  const [error, setError] = useState<boolean>(false);
+interface ITokenItemProps {
+  readonly decimalPlaces: number;
+  readonly id: string;
+  readonly value: bigint;
+}
+
+export function TokenItem(props: PropsWithChildren<ITokenItemProps>): ReactElement {
+  const { decimalPlaces, id, value } = props;
 
   return (
-    <div className={`units__content__unit ${isAggregated ? 'hoverable' : ''}`}>
-      <div className="units__content__unit--icon">
-        {error ? (
-          <span style={{ color: '#000' }}>
-            {name
-              .split(' ')
-              .slice(0, 2)
-              .map((el) => el.at(0)?.toUpperCase() ?? '')
-              .join('')}
-          </span>
-        ) : (
-          <img
-            src={`data:${icon.type};base64,${icon.data}`}
-            alt={name}
-            onError={() => {
-              setError(true);
-            }}
-          />
-        )}
-      </div>
-      <div className="units__content__unit--text">{name}</div>
+    <div className={`units__content__unit`}>
       <div className="units__content__unit--value">{formatValueWithDecimalPlaces(value, decimalPlaces)}</div>
+      <Link to={`/units/transfer/${id}`}>
+        <Button type="button" variant="primary" isRounded={true}>
+          <SendIcon />
+        </Button>
+      </Link>
     </div>
   );
 }
