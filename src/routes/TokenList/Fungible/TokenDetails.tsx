@@ -88,8 +88,7 @@ export function TokenDetails(): ReactElement {
           return (
             <TokenItem
               key={Base16Converter.encode(token.unitId.bytes)}
-              name={tokenInfo.name}
-              icon={tokenInfo.icon}
+              id={token.unitId.toString()}
               decimalPlaces={tokenInfo.decimalPlaces}
               value={token.value}
             />

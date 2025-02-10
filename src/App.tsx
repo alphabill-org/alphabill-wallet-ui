@@ -10,6 +10,7 @@ import { Settings } from './routes/Settings/Settings';
 import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
 import { TokenDetails } from './routes/TokenList/Fungible/TokenDetails';
 import { TokenList } from './routes/TokenList/TokenList';
+import { Transfer } from './routes/TokenList/Transfer/Transfer';
 
 export function App(): ReactElement {
   return (
@@ -23,6 +24,7 @@ export function App(): ReactElement {
               <Route path="fungible" element={<AggregatedTokenList />} />
             </Route>
             <Route path="units/fungible/:id" element={<TokenDetails />} />
+            <Route path="units/transfer/:id" element={<Transfer />} />
             <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />
