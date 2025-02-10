@@ -1,14 +1,14 @@
 import { PropsWithChildren, ReactElement, useCallback, useReducer } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Network, INetwork } from '../network';
+import { NetworkContext, INetwork } from '../networkContext';
 
 const NETWORKS_LOCAL_STORAGE_KEY = 'alphabill_networks';
 const SELECTED_NETWORK_LOCAL_STORAGE_KEY = 'alphabill_selected_network';
 
 interface INetworkState {
   networks: INetwork[];
-  selectedNetwork: INetwork | null;
+  selectedNetwork: string | null;
 }
 
 enum NetworkReducerAction {
@@ -25,7 +25,7 @@ function reducer(
       localStorage.setItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY, action.network.id);
       return {
         ...previousState,
-        selectedNetwork: action.network,
+        selectedNetwork: action.network.id,
       };
     case NetworkReducerAction.ADD_NETWORK: {
       const networks = [...previousState.networks, action.network];
@@ -50,8 +50,7 @@ export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
     (): INetworkState => {
       const networksString = localStorage.getItem(NETWORKS_LOCAL_STORAGE_KEY);
       const networks: INetwork[] = networksString ? JSON.parse(networksString) : [];
-      const id = localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY);
-      const selectedNetwork = networks.find((network) => network.id === id) ?? null;
+      const selectedNetwork = localStorage.getItem(SELECTED_NETWORK_LOCAL_STORAGE_KEY) ?? null;
 
       return {
         networks,
@@ -81,15 +80,15 @@ export function NetworkProvider({ children }: PropsWithChildren): ReactElement {
   );
 
   return (
-    <Network.Provider
+    <NetworkContext.Provider
       value={{
         addNetwork,
         networks: state.networks,
-        selectedNetwork: state.selectedNetwork,
+        selectedNetwork: state.networks.find((network) => network.id === state.selectedNetwork) ?? null,
         setSelectedNetwork,
       }}
     >
       {children}
-    </Network.Provider>
+    </NetworkContext.Provider>
   );
 }

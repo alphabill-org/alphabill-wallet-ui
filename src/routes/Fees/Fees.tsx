@@ -1,19 +1,18 @@
 import { FeeCreditRecord } from '@alphabill/alphabill-js-sdk/lib/fees/FeeCreditRecord';
 import { AddFeeCredit } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/AddFeeCredit';
 import { TransferFeeCredit } from '@alphabill/alphabill-js-sdk/lib/fees/transactions/TransferFeeCredit';
+import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
 import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
 import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
 import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
-import { NetworkIdentifier } from '@alphabill/alphabill-js-sdk/lib/NetworkIdentifier';
 import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
 import type { ISigningService } from '@alphabill/alphabill-js-sdk/lib/signing/ISigningService';
 import { ClientMetadata } from '@alphabill/alphabill-js-sdk/lib/transaction/ClientMetadata';
 import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate';
 import { PayToPublicKeyHashProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory';
-import { FormEvent, ReactElement, useCallback, useMemo, useState } from 'react';
+import { FormEvent, ReactElement, useCallback, useState } from 'react';
 
-import { Result, ValidatedData } from '../../ValidatedData';
 import { Button } from '../../components/Button/Button';
 import { ErrorNotification } from '../../components/ErrorNotification/ErrorNotification';
 import { FormContent } from '../../components/Form/components/FormContent';
@@ -26,12 +25,11 @@ import { Loading } from '../../components/Loading/Loading';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
 import { SelectBox } from '../../components/SelectBox/SelectBox';
 import { ALPHA_DECIMAL_PLACES } from '../../constants';
-import { useAlphas } from '../../hooks/alpha';
-import { useAlphabill } from '../../hooks/alphabill';
-import { useFeeCredits } from '../../hooks/feecredit';
-import { useVault } from '../../hooks/vault';
+import { useAlphabill } from '../../hooks/alphabillContext';
+import { useUnitsList } from '../../hooks/unitsList';
+import { useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
-import { formatValueWithDecimalPlaces } from '../../utils/decimal';
+import { Result, ValidatedData } from '../../ValidatedData';
 
 interface IFormData {
   readonly bill: Result<Bill>;
@@ -39,26 +37,20 @@ interface IFormData {
   readonly amount: Result<bigint>;
 }
 
-// TODO: Fix page design and code. Reset selected state when network is changed. Show network selection even when error occurs with queries
-export function Fees(): ReactElement {
+interface IFeesContentProps {
+  partition: PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN;
+}
+
+function FeesContent({ partition }: IFeesContentProps): ReactElement {
   const alphabill = useAlphabill();
   const vault = useVault();
-  const [errors, setErrors] = useState(new Map<keyof IFormData, string>());
-  const [selectedAlpha, setSelectedAlpha] = useState<Bill | undefined>(undefined);
-  const [selectedFeeCredit, setSelectedFeeCredit] = useState<FeeCreditRecord | undefined>(undefined);
-  const [selectedPartition, setSelectedPartition] = useState<PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
-    PartitionIdentifier.MONEY,
-  );
-  const { alphas, resetAlphas } = useAlphas();
-  const { moneyFeeCredits, tokenFeeCredits, resetFeeCredits } = useFeeCredits();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState(new Map<string, string>());
+  const [selectedAlpha, setSelectedAlpha] = useState<string | undefined>(undefined);
+  const [selectedFeeCreditId, setselectedFeeCreditId] = useState<string | undefined>(undefined);
 
-  const moneyFeeCreditTotal = useMemo(() => {
-    return moneyFeeCredits.data?.reduce((total, feeCredit) => total + feeCredit.balance, 0n) ?? 0n;
-  }, [moneyFeeCredits.data]);
-
-  const tokenFeeCreditTotal = useMemo(() => {
-    return tokenFeeCredits.data?.reduce((total, feeCredit) => total + feeCredit.balance, 0n) ?? 0n;
-  }, [tokenFeeCredits.data]);
+  const moneyPartitionUnits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.MONEY);
+  const tokenPartitionUnits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.TOKEN);
 
   const parseAmount = useCallback(
     (input: string): Result<bigint> => {
@@ -77,23 +69,31 @@ export function Fees(): ReactElement {
         return { data: null, error: 'Fee must be greater than 0.' };
       }
 
-      if (selectedAlpha && selectedAlpha.value < amount) {
-        return { data: null, error: 'Alpha does not have enough balance.' };
-      }
+      // if (selectedAlpha && (getAlpha(selectedAlpha)?.value ?? 0) < amount) {
+      //   return { data: null, error: 'Alpha does not have enough balance.' };
+      // }
 
       return { data: amount, error: null };
     },
-    [selectedAlpha],
+    [selectedAlpha, moneyPartitionUnits.data?.bills],
   );
 
   const tryGetSigningService = useCallback(
-    async (password: string, index: number): Promise<Result<ISigningService>> => {
+    async (password: string, index?: number): Promise<Result<ISigningService>> => {
+      if (index == null) {
+        return {
+          data: null,
+          error: 'Invalid key index',
+        };
+      }
+
       try {
         return { data: await vault.getSigningService(password, index), error: null };
       } catch (e) {
+        console.warn(`Could not create signing service: ${e instanceof Error ? e.message : String(e)}.`);
         return {
           data: null,
-          error: `Could not create signing service: ${e instanceof Error ? e.message : String(e)}.`,
+          error: 'Invalid password',
         };
       }
     },
@@ -108,7 +108,7 @@ export function Fees(): ReactElement {
       targetPartitionIdentifier: PartitionIdentifier,
       moneyClient: MoneyPartitionJsonRpcClient,
       targetClient: MoneyPartitionJsonRpcClient | TokenPartitionJsonRpcClient,
-      feeCreditRecord?: FeeCreditRecord,
+      feeCreditRecord: FeeCreditRecord | null,
     ) => {
       if (!alphabill) {
         throw new Error(`Invalid alphabill context: ${alphabill}`);
@@ -129,7 +129,7 @@ export function Fees(): ReactElement {
         latestAdditionTime: round + 60n,
         metadata: new ClientMetadata(round + 60n, 5n, null, new Uint8Array()),
         // TODO: NetworkIdentifier from networks
-        networkIdentifier: NetworkIdentifier.LOCAL,
+        networkIdentifier: alphabill.network.networkId,
         stateLock: null,
         stateUnlock: new AlwaysTruePredicate(),
         targetPartitionIdentifier,
@@ -143,7 +143,7 @@ export function Fees(): ReactElement {
         const addFeeCreditTransactionOrder = await AddFeeCredit.create({
           feeCreditRecord: { unitId: transferFeeCreditTransactionOrder.payload.attributes.targetUnitId },
           metadata: new ClientMetadata(round + 60n, 5n, null, new Uint8Array()),
-          networkIdentifier: NetworkIdentifier.LOCAL,
+          networkIdentifier: alphabill.network.networkId,
           ownerPredicate: ownerPredicate,
           proof: transferFeeCreditProof,
           stateLock: null,
@@ -164,19 +164,25 @@ export function Fees(): ReactElement {
   const onSubmit = useCallback(
     async (ev: FormEvent<HTMLFormElement>) => {
       ev.preventDefault();
+      setIsProcessing(true);
       const formData = new FormData(ev.currentTarget);
+
+      // const alpha = selectedAlpha ? getAlpha(selectedAlpha) : null;
+      // const feeCreditRecord = selectedFeeCreditId ? (feeCredits.data?.get(selectedFeeCreditId) ?? null) : null;
+      const alpha = null;
+      const feeCreditRecord = null;
 
       const validatedData = new ValidatedData<IFormData>({
         amount: parseAmount(String(formData.get('amount'))),
-        bill: selectedAlpha ? { data: selectedAlpha, error: null } : { data: null, error: 'Alpha is not selected.' },
-        signingService: await tryGetSigningService(String(formData.get('password')), 0),
+        bill: alpha ? { data: alpha, error: null } : { data: null, error: 'Alpha is not found.' },
+        signingService: await tryGetSigningService(String(formData.get('password')), vault.selectedKey?.index),
       }).getData();
 
       if (validatedData.errors) {
+        setIsProcessing(false);
         return setErrors(validatedData.errors);
       }
 
-      setErrors(new Map());
       try {
         if (!alphabill) {
           throw new Error('Invalid alphabill context');
@@ -186,30 +192,53 @@ export function Fees(): ReactElement {
           validatedData.data.amount,
           validatedData.data.bill,
           validatedData.data.signingService,
-          selectedPartition,
+          partition,
           alphabill.moneyClient,
-          selectedPartition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient,
-          selectedFeeCredit,
+          partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient,
+          feeCreditRecord,
         );
-        await resetAlphas();
-        await resetFeeCredits();
+        // await resetAlphas();
+        // await resetFeeCredits();
       } catch (e) {
         console.error('error', e);
+      } finally {
+        setIsProcessing(false);
+        setErrors(new Map());
       }
     },
     [
       alphabill,
+      vault.selectedKey,
       selectedAlpha,
-      selectedPartition,
-      selectedFeeCredit,
+      partition,
+      selectedFeeCreditId,
       parseAmount,
       tryGetSigningService,
-      resetFeeCredits,
+
       setErrors,
     ],
   );
 
-  if (alphas.isPending || moneyFeeCredits.isPending || tokenFeeCredits.isPending) {
+  if (!alphabill) {
+    return (
+      <div className="fees--error">
+        <ErrorNotification
+          title="NO NETWORK SELECTED"
+          info="Select network from the header. If no network exists, add it from settings."
+        />
+      </div>
+    );
+  }
+
+  if (isProcessing) {
+    return (
+      <div className="fees--loading">
+        <Loading title="Processing transaction..." />
+      </div>
+    );
+  }
+
+  if (moneyPartitionUnits.isPending || tokenPartitionUnits.isPending) {
     return (
       <div className="fees--loading">
         <Loading title="Loading..." />
@@ -217,8 +246,8 @@ export function Fees(): ReactElement {
     );
   }
 
-  if (alphas.isError || moneyFeeCredits.isError || tokenFeeCredits.isError) {
-    const error = alphas.error || moneyFeeCredits.error || tokenFeeCredits.error;
+  if (moneyPartitionUnits.isError || tokenPartitionUnits.isError) {
+    const error = moneyPartitionUnits.error || tokenPartitionUnits.error;
     return (
       <div className="fees--error">
         <ErrorNotification title="Error occurred" info={error?.message} />
@@ -226,98 +255,41 @@ export function Fees(): ReactElement {
     );
   }
 
-  const feeCredits = selectedPartition === PartitionIdentifier.MONEY ? moneyFeeCredits.data : tokenFeeCredits.data;
+  const feeCredits =
+    partition === PartitionIdentifier.MONEY
+      ? moneyPartitionUnits.data.feeCreditRecords
+      : tokenPartitionUnits.data.feeCreditRecords;
 
   return (
-    <form className="fees" onSubmit={onSubmit}>
-      <Header />
+    <form onSubmit={onSubmit}>
       <Form>
         <FormContent>
-          <div>
-            Public key
-            <PublicKeySelectBox />
-          </div>
           <SelectBox
             label="Alphas"
             title="SELECT ALPHA"
-            data={alphas.data}
-            selectedItem={selectedAlpha?.unitId.toString()}
-            select={(unit: Bill) => setSelectedAlpha(unit)}
-            getOptionKey={(unit: Bill) => unit.unitId.toString()}
-            createOption={(unit: Bill) => (
+            data={moneyPartitionUnits.data.bills}
+            selectedItem={selectedAlpha}
+            select={(unitId: IUnitId) => setSelectedAlpha(unitId.toString())}
+            getOptionKey={(unitId: IUnitId) => unitId.toString()}
+            createOption={(unitId: IUnitId) => (
               <>
-                <div className="select__option--text">{unit.unitId.toString()}</div>
-                {selectedAlpha?.unitId.toString() === unit.unitId.toString() ? <CheckIcon /> : null}
+                <div className="select__option--text">{unitId.toString()}</div>
+                {selectedAlpha === unitId.toString() ? <CheckIcon /> : null}
               </>
             )}
           />
           {errors.get('bill') && <span className="textfield__error">{errors.get('bill')}</span>}
-          <div>
-            Transfer destination
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '6px' }}>
-              <div
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  setSelectedPartition(PartitionIdentifier.MONEY);
-                  setSelectedFeeCredit(undefined);
-                }}
-                style={{
-                  background: selectedPartition === PartitionIdentifier.MONEY ? '#08e8de' : '#4e3eb6',
-                  borderRadius: '4px',
-                  color: selectedPartition === PartitionIdentifier.MONEY ? '#000' : '#FFF',
-                  cursor: 'pointer',
-                  flexBasis: '50%',
-                  padding: '20px 10px',
-                  textAlign: 'center',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  msUserSelect: 'none',
-                  MozUserSelect: 'none',
-                }}
-              >
-                Money partition
-                <div style={{ fontSize: '12px' }}>
-                  {formatValueWithDecimalPlaces(moneyFeeCreditTotal, ALPHA_DECIMAL_PLACES)}
-                </div>
-              </div>
-              <div
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  setSelectedPartition(PartitionIdentifier.TOKEN);
-                  setSelectedFeeCredit(undefined);
-                }}
-                style={{
-                  background: selectedPartition === PartitionIdentifier.TOKEN ? '#08e8de' : '#4e3eb6',
-                  borderRadius: '4px',
-                  color: selectedPartition === PartitionIdentifier.TOKEN ? '#000' : '#FFF',
-                  cursor: 'pointer',
-                  flexBasis: '50%',
-                  padding: '20px 10px',
-                  textAlign: 'center',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  msUserSelect: 'none',
-                  MozUserSelect: 'none',
-                }}
-              >
-                Token partition
-                <div style={{ fontSize: '12px' }}>
-                  {formatValueWithDecimalPlaces(tokenFeeCreditTotal, ALPHA_DECIMAL_PLACES)}
-                </div>
-              </div>
-            </div>
-          </div>
           <SelectBox
             label="Fee credit (optional)"
             title="SELECT FEE CREDIT"
             data={feeCredits}
-            selectedItem={selectedFeeCredit?.unitId.toString()}
-            select={(unit: FeeCreditRecord) => setSelectedFeeCredit(unit)}
-            getOptionKey={(unit: FeeCreditRecord) => unit.unitId.toString()}
-            createOption={(unit: FeeCreditRecord) => (
+            selectedItem={selectedFeeCreditId}
+            select={(unit: IUnitId) => setselectedFeeCreditId(unit.toString())}
+            getOptionKey={(unit: IUnitId) => unit.toString()}
+            createOption={(unit: IUnitId) => (
               <>
-                <div className="select__option--text">{unit.unitId.toString()}</div>
-                {selectedFeeCredit?.unitId.toString() === unit.unitId.toString() ? <CheckIcon /> : null}
+                <div className="select__option--text">{unit.toString()}</div>
+                {selectedFeeCreditId === unit.toString() ? <CheckIcon /> : null}
               </>
             )}
           />
@@ -331,5 +303,47 @@ export function Fees(): ReactElement {
         </FormFooter>
       </Form>
     </form>
+  );
+}
+
+// TODO: Fix page design and code. Reset selected state when network is changed. Show network selection even when error occurs with queries
+export function Fees(): ReactElement {
+  const [partition, setPartition] = useState<PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
+    PartitionIdentifier.MONEY,
+  );
+
+  return (
+    <div className="fees">
+      <Header />
+      <div className="fees__content">
+        Public key
+        <PublicKeySelectBox />
+        <div style={{ display: 'flex', marginTop: '12px', borderBottom: '1px solid #4E3EB6', marginBottom: '24px' }}>
+          <div
+            onClick={() => setPartition(PartitionIdentifier.MONEY)}
+            style={{
+              textAlign: 'center',
+              cursor: 'pointer',
+              flexGrow: 1,
+              borderBottom: partition === PartitionIdentifier.MONEY ? '1px solid #08E8DE' : null,
+            }}
+          >
+            Money partition
+          </div>
+          <div
+            onClick={() => setPartition(PartitionIdentifier.TOKEN)}
+            style={{
+              textAlign: 'center',
+              cursor: 'pointer',
+              flexGrow: 1,
+              borderBottom: partition === PartitionIdentifier.TOKEN ? '1px solid #08E8DE' : null,
+            }}
+          >
+            Token partition
+          </div>
+        </div>
+        <FeesContent partition={partition} />
+      </div>
+    </div>
   );
 }

@@ -3,6 +3,15 @@
   flex-direction: column;
   width: 100%;
   overflow: hidden;
+  flex-grow: 1;
+
+  &__content {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    flex-grow: 1;
+  }
 
   &--loading {
     flex-grow: 1;
@@ -21,9 +30,6 @@
   }
 
   .form {
-    padding: 24px;
-    overflow: auto;
-
     &-content {
       display: flex;
       flex-direction: column;

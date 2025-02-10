@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Alias } from './Alias';
 import { Mnemonic } from './Mnemonic';
 import { Password } from './Password';
-import { useVault } from '../../hooks/vault';
+import { useVault } from '../../hooks/vaultContext';
 
 interface ICreateWalletState {
   readonly step: CreateWalletStep;

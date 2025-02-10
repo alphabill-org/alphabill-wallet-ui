@@ -1,19 +1,19 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
 import { QUERY_KEYS } from '../constants';
 import { useAlphabill } from './alphabillContext';
 import { fetchUnits } from './units/fetchUnits';
 import { useUnitsList } from './unitsList';
+import { useMemo } from 'react';
 
-export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string, Bill>> {
+export function useFungibleTokens(ownerId: Uint8Array | null): UseQueryResult<Map<string, FungibleToken>> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
-  const unitsList = useUnitsList(ownerId, PartitionIdentifier.MONEY);
+  const unitsList = useUnitsList(ownerId, PartitionIdentifier.TOKEN);
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
@@ -24,19 +24,19 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
       }
 
       const iterator = fetchUnits(
-        unitsList.data.bills,
-        (unitId: IUnitId) => alphabill.moneyClient.getUnit(unitId, false, Bill),
+        unitsList.data.fungibleTokens,
+        (unitId: IUnitId) => alphabill.tokenClient.getUnit(unitId, false, FungibleToken),
         queryClient,
         (unitId: IUnitId) => [
           QUERY_KEYS.units,
-          QUERY_KEYS.alpha,
+          QUERY_KEYS.fungible,
           'UNIT',
           unitId.toString(),
           serializedOwnerId,
           alphabill?.network.id,
         ],
       );
-      const result = new Map<string, Bill>();
+      const result = new Map<string, FungibleToken>();
       for await (const unit of iterator) {
         result.set(unit.unitId.toString(), unit);
       }
@@ -45,9 +45,9 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
     },
     queryKey: [
       QUERY_KEYS.units,
-      QUERY_KEYS.alpha,
+      QUERY_KEYS.fungible,
       'UNITS',
-      unitsList.data?.bills.map((unit) => unit.toString()),
+      unitsList.data?.fungibleTokens.map((unit) => unit.toString()),
       serializedOwnerId,
       alphabill?.network.id,
     ],

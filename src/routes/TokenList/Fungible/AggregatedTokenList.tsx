@@ -5,16 +5,16 @@ import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { ALPHA_KEY } from '../../../constants';
-import { useAlphas } from '../../../hooks/alpha';
-import { useAlphabill } from '../../../hooks/alphabill';
-import { useFungibleTokens } from '../../../hooks/fungible';
-import { useVault } from '../../../hooks/vault';
+import { useAggregatedAlphas } from '../../../hooks/aggregatedAlpha';
+import { useAggregatedFungibleTokens } from '../../../hooks/aggregatedFungibleTokens';
+import { useAlphabill } from '../../../hooks/alphabillContext';
+import { useVault } from '../../../hooks/vaultContext';
 
 export function AggregatedTokenList(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
-  const { fungibleTokensByType } = useFungibleTokens();
-  const { alphasInfo } = useAlphas();
+  const fungibleTokens = useAggregatedFungibleTokens(selectedKey?.publicKey.key ?? null);
+  const alphas = useAggregatedAlphas(selectedKey?.publicKey.key ?? null);
 
   if (!alphabill) {
     return (
@@ -35,7 +35,7 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  if (fungibleTokensByType.isPending || alphasInfo.isPending) {
+  if (fungibleTokens.isPending || alphas.isPending) {
     return (
       <div className="units--loading">
         <Loading title="Loading..." />
@@ -43,8 +43,8 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  if (fungibleTokensByType.isError || alphasInfo.isError) {
-    const error = fungibleTokensByType.error || alphasInfo.error;
+  if (fungibleTokens.isError || alphas.isError) {
+    const error = fungibleTokens.error || alphas.error;
     return (
       <div className="units--error">
         <ErrorNotification title="Error occurred" info={error?.message} />
@@ -55,16 +55,16 @@ export function AggregatedTokenList(): ReactElement {
   const tokenItems = [
     <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
       <TokenItem
-        name={alphasInfo.data.name}
-        icon={alphasInfo.data.icon}
-        decimalPlaces={alphasInfo.data.decimalPlaces}
-        value={alphasInfo.data.total}
+        name={alphas.data.name}
+        icon={alphas.data.icon}
+        decimalPlaces={alphas.data.decimalPlaces}
+        value={alphas.data.total}
         isAggregated={true}
       />
     </Link>,
   ];
 
-  for (const token of fungibleTokensByType.data.values()) {
+  for (const token of fungibleTokens.data.values()) {
     tokenItems.push(
       <Link key={token.id} to={`/units/fungible/${token.id}`}>
         <TokenItem

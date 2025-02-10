@@ -1,7 +1,7 @@
 import { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
 
-import { Authentication } from '../authentication';
-import { useVault } from '../vault';
+import { AuthenticationContext } from '../authenticationContext';
+import { useVault } from '../vaultContext';
 
 const AUTHENTICATED_LOCAL_STORAGE_KEY = 'alphabill_authenticated';
 
@@ -39,5 +39,5 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
     localStorage.removeItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
   }, []);
 
-  return <Authentication.Provider value={{ isLoggedIn, login, logout }}>{children}</Authentication.Provider>;
+  return <AuthenticationContext.Provider value={{ isLoggedIn, login, logout }}>{children}</AuthenticationContext.Provider>;
 }

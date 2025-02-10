@@ -1,24 +1,24 @@
 import { ReactElement, useCallback } from 'react';
 
-import { IKeyInfo, useVault } from '../../hooks/vault';
+import { IKeyInfo, useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
 import { SelectBox } from '../SelectBox/SelectBox';
 
 export function PublicKeySelectBox(): ReactElement {
-  const vault = useVault();
+  const { selectedKey, selectKey, keys } = useVault();
 
-  const selectedItem = vault.selectedKey ? (
+  const selectedItem = selectedKey ? (
     <>
-      {vault.selectedKey.alias}
-      <span className="key__select--key">({vault.selectedKey.publicKey})</span>
+      {selectedKey.alias}
+      <span className="key__select--key">({selectedKey.publicKey.hex})</span>
     </>
   ) : undefined;
 
   const select = useCallback(
     (key: IKeyInfo) => {
-      vault.selectKey(key);
+      selectKey(key.index);
     },
-    [vault],
+    [selectedKey, selectKey],
   );
 
   const getOptionKey = useCallback((key: IKeyInfo) => key.index, []);
@@ -26,10 +26,10 @@ export function PublicKeySelectBox(): ReactElement {
   const createOption = useCallback(
     (key: IKeyInfo) => (
       <>
-        {key.alias} {vault.selectedKey?.index === key.index ? <CheckIcon /> : null}
+        {key.alias} {selectedKey?.index === key.index ? <CheckIcon /> : null}
       </>
     ),
-    [vault],
+    [selectedKey],
   );
 
   return (
@@ -37,7 +37,7 @@ export function PublicKeySelectBox(): ReactElement {
       title="SELECT KEY"
       className="key__select"
       selectedItem={selectedItem}
-      data={vault.keys}
+      data={keys}
       select={select}
       getOptionKey={getOptionKey}
       createOption={createOption}

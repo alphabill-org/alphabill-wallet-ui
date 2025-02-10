@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button/Button';
 import { Navbar } from '../../components/Navbar/Navbar';
 import { NetworkSelect } from '../../components/NetworkSelect/NetworkSelect';
-import { useAuthentication } from '../../hooks/authentication';
+import { useAuthentication } from '../../hooks/authenticationContext';
 import ArrowIcon from '../../images/arrow-ico.svg?react';
 import FeeCreditIcon from '../../images/fee-credit-ico.svg?react';
 import KeyIcon from '../../images/key-ico.svg?react';

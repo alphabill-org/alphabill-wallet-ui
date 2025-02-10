@@ -5,7 +5,7 @@ import { Button } from '../../components/Button/Button';
 import { Form, FormContent, FormFooter } from '../../components/Form/Form';
 import { PasswordField } from '../../components/InputField/PasswordField';
 import { Loading } from '../../components/Loading/Loading';
-import { useAuthentication } from '../../hooks/authentication';
+import { useAuthentication } from '../../hooks/authenticationContext';
 import LogoIcon from '../../images/ab-logo-ico.svg?react';
 
 export function Login(): ReactElement {

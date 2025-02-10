@@ -1,6 +1,6 @@
 import { ReactElement, useCallback } from 'react';
 
-import { INetwork, useNetwork } from '../../hooks/network';
+import { INetwork, useNetwork } from '../../hooks/networkContext';
 import CheckIcon from '../../images/check-ico.svg?react';
 import { SelectBox } from '../SelectBox/SelectBox';
 

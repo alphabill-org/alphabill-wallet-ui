@@ -6,10 +6,10 @@ export interface IAuthenticationContext {
   logout(): void;
 }
 
-export const Authentication = createContext<IAuthenticationContext | null>(null);
+export const AuthenticationContext = createContext<IAuthenticationContext | null>(null);
 
 export function useAuthentication(): IAuthenticationContext {
-  const context = useContext(Authentication);
+  const context = useContext(AuthenticationContext);
   if (!context) {
     throw new Error('Invalid authentication context.');
   }

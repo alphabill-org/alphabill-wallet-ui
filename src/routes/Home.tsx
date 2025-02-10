@@ -1,7 +1,7 @@
 import { ReactElement, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 
-import { useAuthentication } from '../hooks/authentication';
+import { useAuthentication } from '../hooks/authenticationContext';
 
 export function Home(): ReactElement {
   const { isLoggedIn } = useAuthentication();

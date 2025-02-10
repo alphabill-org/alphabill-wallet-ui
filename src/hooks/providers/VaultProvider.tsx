@@ -3,9 +3,17 @@ import type { ISigningService } from '@alphabill/alphabill-js-sdk/lib/signing/IS
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { HDKey } from '@scure/bip32';
 import { mnemonicToSeed } from '@scure/bip39';
-import { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
+import { PropsWithChildren, ReactElement, useCallback, useMemo, useState } from 'react';
 
-import { Vault, IVault, IVaultLocalStorage, IKeyInfo, IVaultKey } from '../vault';
+import {
+  VaultContext,
+  IVault,
+  IVaultLocalStorage,
+  IKeyInfo,
+  IVaultKey,
+  parseKeyInfo,
+  IPublicKeyLocalStorage,
+} from '../vaultContext';
 
 const VAULT_LOCAL_STORAGE_KEY = 'alphabill_vault';
 const VAULT_KEYS_LOCAL_STORAGE_KEY = 'alphabill_vault_keys';
@@ -22,20 +30,19 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     }
 
     try {
-      const { keys } = JSON.parse(storageKeys) as { keys: IKeyInfo[] };
-      return keys;
+      return parseKeyInfo(JSON.parse(storageKeys));
     } catch (e) {
       console.error(e);
       return [];
     }
   });
-  const [selectedKey, setSelectedKey] = useState<IKeyInfo | null>(() => {
+  const [selectedKeyIndex, setSelectedKeyIndex] = useState<number | null>(() => {
     const selectedKey = localStorage.getItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY);
     if (selectedKey === null) {
       return null;
     }
 
-    return keys.find((key) => key.index === Number(selectedKey)) ?? null;
+    return Number(selectedKey);
   });
 
   const calculateKeyIV = useCallback(async (password: string, salt: Uint8Array) => {
@@ -163,17 +170,20 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
           publicKeys.push({
             alias: key.alias,
             index: key.index,
-            publicKey: Base16Converter.encode(derivedKey.publicKey),
+            publicKey: {
+              hex: Base16Converter.encode(derivedKey.publicKey),
+              key: derivedKey.publicKey,
+            },
           });
         }
 
         setKeys(publicKeys);
-        localStorage.setItem(
-          VAULT_KEYS_LOCAL_STORAGE_KEY,
-          JSON.stringify({
-            keys: publicKeys,
-          }),
-        );
+        const localStorageKeys: IPublicKeyLocalStorage[] = publicKeys.map(({ alias, index, publicKey }) => ({
+          alias,
+          index,
+          key: publicKey.hex,
+        }));
+        localStorage.setItem(VAULT_KEYS_LOCAL_STORAGE_KEY, JSON.stringify(localStorageKeys));
 
         return true;
       } catch (e) {
@@ -190,11 +200,11 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   }, [setKeys]);
 
   const selectKey = useCallback(
-    (key: IKeyInfo) => {
-      localStorage.setItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY, String(key.index));
-      setSelectedKey(key);
+    (index: number) => {
+      localStorage.setItem(VAULT_SELECTED_KEY_LOCAL_STORAGE_KEY, String(index));
+      setSelectedKeyIndex(index);
     },
-    [setSelectedKey],
+    [setSelectedKeyIndex],
   );
 
   const getSigningService = useCallback(
@@ -214,9 +224,15 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [loadVault, deriveKey],
   );
 
+  const selectedKey = useMemo(() => {
+    return keys.find((key) => key.index === selectedKeyIndex) ?? null;
+  }, [keys, selectedKeyIndex]);
+
   return (
-    <Vault.Provider value={{ createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}>
+    <VaultContext.Provider
+      value={{ createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}
+    >
       {children}
-    </Vault.Provider>
+    </VaultContext.Provider>
   );
 }

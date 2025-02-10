@@ -9,7 +9,7 @@ interface ISelectBoxProps<T> {
   readonly label?: string;
   readonly selectedItem?: ReactNode;
   readonly className?: string;
-  readonly data: T[];
+  readonly data: readonly T[];
   readonly select: (item: T) => void;
   readonly getOptionKey: (item: T) => Key;
   readonly createOption: (item: T) => ReactNode;

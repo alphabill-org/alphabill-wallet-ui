@@ -7,7 +7,7 @@ import { Footer } from '../../components/Footer/Footer';
 import { Header } from '../../components/Header/Header';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
 import { QUERY_KEYS } from '../../constants';
-import { useVault } from '../../hooks/vault';
+import { useVault } from '../../hooks/vaultContext';
 import AddIcon from '../../images/add-ico.svg?react';
 import CopyIcon from '../../images/copy-ico.svg?react';
 import SyncIcon from '../../images/sync-ico.svg?react';

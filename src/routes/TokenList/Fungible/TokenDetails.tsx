@@ -8,18 +8,18 @@ import { TokenItem } from './TokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { ALPHA_KEY } from '../../../constants';
-import { useAlphas } from '../../../hooks/alpha';
-import { useAlphabill } from '../../../hooks/alphabill';
-import { useFungibleTokens } from '../../../hooks/fungible';
-import { useVault } from '../../../hooks/vault';
+import { useAggregatedAlphas } from '../../../hooks/aggregatedAlpha';
+import { useAggregatedFungibleTokens } from '../../../hooks/aggregatedFungibleTokens';
+import { useAlphabill } from '../../../hooks/alphabillContext';
+import { useVault } from '../../../hooks/vaultContext';
 import BackIcon from '../../../images/back-ico.svg?react';
 
 export function TokenDetails(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
-  const { fungibleTokensByType } = useFungibleTokens();
-  const { alphasInfo } = useAlphas();
+  const fungibleTokens = useAggregatedFungibleTokens(selectedKey?.publicKey.key ?? null);
+  const alphas = useAggregatedAlphas(selectedKey?.publicKey.key ?? null);
 
   if (!alphabill) {
     return (
@@ -37,12 +37,12 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  if (fungibleTokensByType.isPending || alphasInfo.isPending) {
+  if (fungibleTokens.isPending || alphas.isPending) {
     return <Loading title="Loading..." />;
   }
 
-  if (fungibleTokensByType.isError || alphasInfo.isError) {
-    const error = fungibleTokensByType.error || alphasInfo.error;
+  if (fungibleTokens.isError || alphas.isError) {
+    const error = fungibleTokens.error || alphas.error;
 
     return (
       <div className="units--error">
@@ -59,7 +59,7 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  const tokenInfo = params.id === ALPHA_KEY ? alphasInfo.data : fungibleTokensByType.data.get(params.id ?? '');
+  const tokenInfo = params.id === ALPHA_KEY ? alphas.data : fungibleTokens.data.get(params.id ?? '');
   if (!tokenInfo) {
     return (
       <div className="units--error">

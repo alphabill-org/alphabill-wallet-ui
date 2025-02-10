@@ -3,9 +3,9 @@ import { FormEvent, ReactElement, useCallback, useState } from 'react';
 import { Button } from '../components/Button/Button';
 import { Form, FormContent, FormFooter } from '../components/Form/Form';
 import { TextField } from '../components/InputField/TextField';
-import { useNetwork } from '../hooks/network';
+import { useNetwork } from '../hooks/networkContext';
 
-type FormElements = 'alias' | 'moneyPartitionUrl' | 'tokenPartitionUrl';
+type FormElements = 'alias' | 'networkId' | 'moneyPartitionUrl' | 'tokenPartitionUrl';
 
 export function Network(): ReactElement {
   const networkContext = useNetwork();
@@ -30,6 +30,10 @@ export function Network(): ReactElement {
         errors.set('tokenPartitionUrl', 'Invalid token partition URL');
       }
 
+      if (!/^\d+$/.test(String(data.get('networkId')))) {
+        errors.set('networkId', 'Network id must be a number');
+      }
+
       if (!data.get('alias')) {
         errors.set('alias', 'Alias must be defined');
       }
@@ -40,6 +44,7 @@ export function Network(): ReactElement {
         networkContext.addNetwork({
           alias: data.get('alias') as string,
           moneyPartitionUrl: data.get('moneyPartitionUrl') as string,
+          networkId: Number(data.get('networkId')),
           tokenPartitionUrl: data.get('tokenPartitionUrl') as string,
         });
 
@@ -56,6 +61,7 @@ export function Network(): ReactElement {
           <Form>
             <FormContent>
               <TextField label="Alias" name="alias" error={errors.get('alias')} focusInput />
+              <TextField label="Network ID" name="networkId" error={errors.get('networkId')} />
               <TextField label="Money partition" name="moneyPartitionUrl" error={errors.get('moneyPartitionUrl')} />
               <TextField label="Token partition" name="tokenPartitionUrl" error={errors.get('tokenPartitionUrl')} />
             </FormContent>
