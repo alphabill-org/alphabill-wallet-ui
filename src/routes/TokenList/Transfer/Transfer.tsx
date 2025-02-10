@@ -1,4 +1,5 @@
 import { NetworkIdentifier } from '@alphabill/alphabill-js-sdk/lib/NetworkIdentifier';
+import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
 import { TransferFungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/transactions/TransferFungibleToken';
 import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate';
@@ -17,10 +18,10 @@ import { PasswordField } from '../../../components/InputField/PasswordField';
 import { TextField } from '../../../components/InputField/TextField';
 import { Loading } from '../../../components/Loading/Loading';
 import { QUERY_KEYS } from '../../../constants';
-import { useAlphabill } from '../../../hooks/alphabill';
-import { useFeeCredits } from '../../../hooks/feecredit';
-import { useFungibleTokens } from '../../../hooks/fungible';
-import { useVault } from '../../../hooks/vault';
+import { useAlphabill } from '../../../hooks/alphabillContext';
+import { useFungibleTokens } from '../../../hooks/fungibleToken';
+import { useUnitsList } from '../../../hooks/unitsList';
+import { useVault } from '../../../hooks/vaultContext';
 import BackIcon from '../../../images/back-ico.svg?react';
 
 type FormElements = 'address' | 'password';
@@ -29,10 +30,11 @@ export function Transfer(): ReactElement {
   const alphabill = useAlphabill();
   const params = useParams<{ id: string }>();
   const vault = useVault();
-  const { tokenFeeCredits } = useFeeCredits();
-  const { fungibleTokens } = useFungibleTokens();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const fungibleTokens = useFungibleTokens(vault.selectedKey?.publicKey.key ?? null);
+  const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.TOKEN);
 
   const unitIdParam = params.id;
   if (!unitIdParam) {
@@ -40,12 +42,12 @@ export function Transfer(): ReactElement {
   }
   const unitId = UnitId.fromBytes(Base16Converter.decode(unitIdParam));
 
-  if (fungibleTokens.isPending || tokenFeeCredits.isPending) {
+  if (fungibleTokens.isPending || feeCredits.isPending) {
     return <Loading title="Loading..." />;
   }
 
-  if (fungibleTokens.isError || tokenFeeCredits.isError) {
-    const error = fungibleTokens.error || tokenFeeCredits.error;
+  if (fungibleTokens.isError || feeCredits.isError) {
+    const error = fungibleTokens.error || feeCredits.error;
 
     return (
       <div className="units--error">
@@ -83,16 +85,17 @@ export function Transfer(): ReactElement {
 
     const round = (await alphabill!.tokenClient.getRoundInfo()).roundNumber;
     const alwaysTrueProofFactory = new AlwaysTrueProofFactory();
-    const token = fungibleTokens.data.find((token) => UnitId.equals(token.unitId, unitId));
+    const token = fungibleTokens.data.get(unitId.toString());
     if (!token) {
       console.log('Token not found');
       return;
     }
-    const feeCreditRecord = tokenFeeCredits.data[0];
+
+    const feeCreditRecordId = feeCredits.data.feeCreditRecords[0];
     const newOwnerPredicate = PayToPublicKeyHashPredicate.create(Base16Converter.decode(address));
     const txo = TransferFungibleToken.create({
       metadata: {
-        feeCreditRecordId: feeCreditRecord.unitId,
+        feeCreditRecordId,
         maxTransactionFee: 10n,
         referenceNumber: null,
         timeout: round + 60n,
