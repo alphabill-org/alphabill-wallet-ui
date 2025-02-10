@@ -316,16 +316,18 @@ export function Fees(): ReactElement {
     <div className="fees">
       <Header />
       <div className="fees__content">
-        Public key
         <PublicKeySelectBox />
-        <div style={{ display: 'flex', marginTop: '12px', borderBottom: '1px solid #4E3EB6', marginBottom: '24px' }}>
+        Public key
+        <FeesContent partition={partition} />
+        <div style={{ borderBottom: '1px solid #4E3EB6', display: 'flex', marginBottom: '24px', marginTop: '12px' }}>
           <div
             onClick={() => setPartition(PartitionIdentifier.MONEY)}
             style={{
-              textAlign: 'center',
+              // TODO: Fix style and move to css
+              borderBottom: partition === PartitionIdentifier.MONEY ? '1px solid #08E8DE' : '',
               cursor: 'pointer',
               flexGrow: 1,
-              borderBottom: partition === PartitionIdentifier.MONEY ? '1px solid #08E8DE' : null,
+              textAlign: 'center',
             }}
           >
             Money partition
@@ -333,16 +335,15 @@ export function Fees(): ReactElement {
           <div
             onClick={() => setPartition(PartitionIdentifier.TOKEN)}
             style={{
-              textAlign: 'center',
+              borderBottom: partition === PartitionIdentifier.TOKEN ? '1px solid #08E8DE' : '',
               cursor: 'pointer',
               flexGrow: 1,
-              borderBottom: partition === PartitionIdentifier.TOKEN ? '1px solid #08E8DE' : null,
+              textAlign: 'center',
             }}
           >
             Token partition
           </div>
         </div>
-        <FeesContent partition={partition} />
       </div>
     </div>
   );

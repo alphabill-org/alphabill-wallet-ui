@@ -11,7 +11,13 @@ import { NetworkProvider } from './hooks/providers/NetworkProvider';
 import { VaultProvider } from './hooks/providers/VaultProvider';
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 86400,
+    },
+  },
+});
 
 // TODO: Reduce the amount of iterations in hooks
 
@@ -30,5 +36,5 @@ root.render(
         </NetworkProvider>
       </QueryClientProvider>
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode>,
 );

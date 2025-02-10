@@ -26,9 +26,11 @@ export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIden
         );
       }
 
+      console.log([QUERY_KEYS.units, 'ID', partition, serializedOwnerId, alphabill?.network.id]);
+
       const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
       return client.getUnitsByOwnerId(ownerId);
     },
-    queryKey: [QUERY_KEYS.units, 'ID', partition, serializedOwnerId, alphabill?.network.id],
+    queryKey: [QUERY_KEYS.units, 'ID', partition, serializedOwnerId, alphabill?.network.id]
   });
 }

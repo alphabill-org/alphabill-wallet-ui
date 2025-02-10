@@ -27,7 +27,7 @@ export function TokenList(): ReactElement {
             variant="primary"
             isRounded={true}
             onClick={() => {
-              navigator.clipboard.writeText(vault.selectedKey?.publicKey ?? '');
+              navigator.clipboard.writeText(vault.selectedKey?.publicKey.hex ?? '');
             }}
           >
             <CopyIcon />

@@ -3,12 +3,12 @@ import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionId
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { QUERY_KEYS } from '../constants';
 import { useAlphabill } from './alphabillContext';
 import { fetchUnits } from './units/fetchUnits';
 import { useUnitsList } from './unitsList';
-import { useMemo } from 'react';
 
 export function useFungibleTokens(ownerId: Uint8Array | null): UseQueryResult<Map<string, FungibleToken>> {
   const queryClient = useQueryClient();

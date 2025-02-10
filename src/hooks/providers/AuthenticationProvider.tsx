@@ -39,5 +39,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren): ReactEl
     localStorage.removeItem(AUTHENTICATED_LOCAL_STORAGE_KEY);
   }, []);
 
-  return <AuthenticationContext.Provider value={{ isLoggedIn, login, logout }}>{children}</AuthenticationContext.Provider>;
+  return (
+    <AuthenticationContext.Provider value={{ isLoggedIn, login, logout }}>{children}</AuthenticationContext.Provider>
+  );
 }
