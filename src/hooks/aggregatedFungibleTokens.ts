@@ -53,12 +53,13 @@ export function useAggregatedFungibleTokens(
     return result;
   }, [units.data, types.data]);
 
-  if (units.isPending) {
+  if (units.isPending || types.isPending) {
     return { data: undefined, error: null, isError: false, isPending: true };
   }
 
-  if (units.isError) {
-    return { data: undefined, error: units.error, isError: true, isPending: false };
+  if (units.isError || types.isError) {
+    const error = units.error || types.error;
+    return { data: undefined, error: error as Error, isError: true, isPending: false };
   }
 
   return {
