@@ -8,26 +8,27 @@ import { useMemo } from 'react';
 import { useAlphabill } from './alphabillContext';
 import { createUnitListQueryKey } from '../utils/unitsQueryKeys';
 
+type Response<T> = T extends PartitionIdentifier.MONEY ? MoneyPartitionUnitIdResponse : TokenPartitionUnitIdResponse;
+
 export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
   ownerId: Uint8Array | null,
   partition: T,
-): UseQueryResult<T extends PartitionIdentifier.MONEY ? MoneyPartitionUnitIdResponse : TokenPartitionUnitIdResponse> {
+): UseQueryResult<Response<T> | null> {
   const alphabill = useAlphabill();
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
-  return useQuery({
+  console.log('load units', createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition));
+  return useQuery<Response<T> | null>({
     queryFn: () => {
       if (!alphabill || !ownerId) {
-        return Promise.resolve(
-          partition === PartitionIdentifier.MONEY
-            ? new MoneyPartitionUnitIdResponse([])
-            : new TokenPartitionUnitIdResponse([]),
-        );
+        return Promise.resolve(null);
       }
 
+      console.log('load units inside', createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition));
+
       const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
-      return client.getUnitsByOwnerId(ownerId);
+      return client.getUnitsByOwnerId(ownerId) as Promise<Response<T>>;
     },
     queryKey: createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition),
   });

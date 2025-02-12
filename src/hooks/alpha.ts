@@ -10,17 +10,17 @@ import { fetchUnits } from './units/fetchUnits';
 import { useUnitsList } from './unitsList';
 import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } from '../utils/unitsQueryKeys';
 
-export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string, Bill>> {
+export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string, Bill> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
   const unitsList = useUnitsList(ownerId, PartitionIdentifier.MONEY);
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
-  return useQuery<Map<string, Bill>>({
+  return useQuery<Map<string, Bill> | null>({
     queryFn: async () => {
       if (!alphabill || !ownerId || !unitsList.data) {
-        return Promise.resolve(new Map());
+        return Promise.resolve(null);
       }
 
       const iterator = fetchUnits(
@@ -39,7 +39,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
     queryKey: createFetchUnitsQueryKey(
       QUERY_KEYS.ALPHA,
       serializedOwnerId,
-      unitsList.data?.bills,
+      !!unitsList.data?.bills.length,
       alphabill?.network.id,
     ),
   });

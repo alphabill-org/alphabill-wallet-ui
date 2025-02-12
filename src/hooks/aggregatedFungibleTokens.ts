@@ -9,13 +9,13 @@ import { QueryResult } from '../utils/queryResult';
 const textDecoder = new TextDecoder();
 export function useAggregatedFungibleTokens(
   ownerId: Uint8Array | null,
-): QueryResult<Map<string, IFungibleTokenInfo<FungibleToken>>> {
+): QueryResult<Map<string, IFungibleTokenInfo<FungibleToken>> | null> {
   const units = useFungibleTokens(ownerId);
   const types = useFungibleTokenTypes(ownerId);
 
-  const data = useMemo((): Map<string, IFungibleTokenInfo<FungibleToken>> => {
+  const data = useMemo((): Map<string, IFungibleTokenInfo<FungibleToken>> | null => {
     if (!units.data || !types.data) {
-      return new Map();
+      return null;
     }
 
     const tokensByType = new Map<string, FungibleToken[]>();

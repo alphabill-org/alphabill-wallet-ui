@@ -25,8 +25,8 @@ export function TokenList(): ReactElement {
             type="button"
             variant="primary"
             isRounded={true}
-            onClick={() => {
-              navigator.clipboard.writeText(vault.selectedKey?.publicKey.hex ?? '');
+            onClick={async () => {
+              await navigator.clipboard.writeText(vault.selectedKey?.publicKey.hex ?? '');
             }}
           >
             <CopyIcon />
@@ -35,8 +35,8 @@ export function TokenList(): ReactElement {
             type="button"
             variant="primary"
             isRounded={true}
-            onClick={() => {
-              queryClient.resetQueries({
+            onClick={async () => {
+              await queryClient.resetQueries({
                 predicate: (query) => {
                   return query.queryKey.at(0) === 'UNITS';
                 },

@@ -52,28 +52,34 @@ export function AggregatedTokenList(): ReactElement {
     );
   }
 
-  const tokenItems = [
-    <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
-      <AggregatedTokenItem
-        name={alphas.data.name}
-        icon={alphas.data.icon}
-        decimalPlaces={alphas.data.decimalPlaces}
-        value={alphas.data.total}
-      />
-    </Link>,
-  ];
+  const tokenItems: ReactElement[] = [];
 
-  for (const token of fungibleTokens.data.values()) {
+  if (alphas.data) {
     tokenItems.push(
-      <Link key={token.id} to={`/units/fungible/${token.id}`}>
+      <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
         <AggregatedTokenItem
-          name={token.name}
-          icon={token.icon}
-          decimalPlaces={token.decimalPlaces}
-          value={token.total}
+          name={alphas.data.name}
+          icon={alphas.data.icon}
+          decimalPlaces={alphas.data.decimalPlaces}
+          value={alphas.data.total}
         />
       </Link>,
     );
+  }
+
+  if (fungibleTokens.data) {
+    for (const token of fungibleTokens.data.values()) {
+      tokenItems.push(
+        <Link key={token.id} to={`/units/fungible/${token.id}`}>
+          <AggregatedTokenItem
+            name={token.name}
+            icon={token.icon}
+            decimalPlaces={token.decimalPlaces}
+            value={token.total}
+          />
+        </Link>,
+      );
+    }
   }
 
   return <div className="units__content">{tokenItems}</div>;

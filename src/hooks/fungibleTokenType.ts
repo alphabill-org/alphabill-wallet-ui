@@ -9,7 +9,9 @@ import { useFungibleTokens } from './fungibleToken';
 import { fetchUnits } from './units/fetchUnits';
 import { createFetchTypeByIdQueryKey, createFetchUnitTypesQueryKey, QUERY_KEYS } from '../utils/unitsQueryKeys';
 
-export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResult<Map<string, FungibleTokenType>> {
+export function useFungibleTokenTypes(
+  ownerId: Uint8Array | null,
+): UseQueryResult<Map<string, FungibleTokenType> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
   const units = useFungibleTokens(ownerId);
@@ -29,17 +31,17 @@ export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResul
     return result;
   }, [units.data]);
 
-  return useQuery<Map<string, FungibleTokenType>>({
+  return useQuery<Map<string, FungibleTokenType> | null>({
     queryFn: async () => {
       if (!alphabill || !ownerId) {
-        return Promise.resolve(new Map());
+        return Promise.resolve(null);
       }
 
       const iterator = fetchUnits(
         tokenTypes,
         (unitId: IUnitId) => alphabill.tokenClient.getUnit(unitId, false, FungibleTokenType),
         queryClient,
-        createFetchTypeByIdQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, alphabill.network.id)
+        createFetchTypeByIdQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, alphabill.network.id),
       );
       const result = new Map<string, FungibleTokenType>();
       for await (const unit of iterator) {
@@ -48,6 +50,11 @@ export function useFungibleTokenTypes(ownerId: Uint8Array | null): UseQueryResul
 
       return result;
     },
-    queryKey: createFetchUnitTypesQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, tokenTypes, alphabill?.network.id),
+    queryKey: createFetchUnitTypesQueryKey(
+      QUERY_KEYS.FUNGIBLE,
+      serializedOwnerId,
+      !!tokenTypes.length,
+      alphabill?.network.id,
+    ),
   });
 }

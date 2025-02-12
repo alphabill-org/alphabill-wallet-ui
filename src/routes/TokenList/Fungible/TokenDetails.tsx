@@ -59,7 +59,7 @@ export function TokenDetails(): ReactElement {
     );
   }
 
-  const tokenInfo = params.id === ALPHA_KEY ? alphas.data : fungibleTokens.data.get(params.id ?? '');
+  const tokenInfo = params.id === ALPHA_KEY ? alphas.data : fungibleTokens.data?.get(params.id ?? '');
   if (!tokenInfo) {
     return (
       <div className="units--error">

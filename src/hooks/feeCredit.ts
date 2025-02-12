@@ -13,7 +13,7 @@ import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } fro
 export function useFeeCredits(
   ownerId: Uint8Array | null,
   partition: PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN,
-): UseQueryResult<Map<string, FeeCreditRecord>> {
+): UseQueryResult<Map<string, FeeCreditRecord> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
   const unitsList = useUnitsList(ownerId, partition);
@@ -29,10 +29,10 @@ export function useFeeCredits(
     [alphabill],
   );
 
-  return useQuery<Map<string, FeeCreditRecord>>({
+  return useQuery<Map<string, FeeCreditRecord> | null>({
     queryFn: async () => {
       if (!alphabill || !ownerId || !unitsList.data) {
-        return Promise.resolve(new Map());
+        return Promise.resolve(null);
       }
 
       const iterator = fetchUnits(
@@ -51,7 +51,7 @@ export function useFeeCredits(
     queryKey: createFetchUnitsQueryKey(
       QUERY_KEYS.FEE_CREDIT,
       serializedOwnerId,
-      unitsList.data?.feeCreditRecords,
+      !!unitsList.data?.feeCreditRecords.length,
       alphabill?.network.id,
       partition,
     ),

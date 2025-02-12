@@ -84,13 +84,17 @@ export function Transfer(): ReactElement {
 
     const round = (await alphabill!.tokenClient.getRoundInfo()).roundNumber;
     const alwaysTrueProofFactory = new AlwaysTrueProofFactory();
-    const token = fungibleTokens.data.get(unitId.toString());
+    const token = fungibleTokens.data?.get(unitId.toString());
     if (!token) {
       console.log('Token not found');
       return;
     }
 
-    const feeCreditRecordId = feeCredits.data.feeCreditRecords[0];
+    const feeCreditRecordId = feeCredits.data?.feeCreditRecords.at(0);
+    if (!feeCreditRecordId) {
+      console.log('Fee credit not found');
+      return;
+    }
     const newOwnerPredicate = PayToPublicKeyHashPredicate.create(Base16Converter.decode(address));
     const txo = TransferFungibleToken.create({
       metadata: {
@@ -112,7 +116,7 @@ export function Transfer(): ReactElement {
       console.log('Transfer failed');
       return;
     }
-    queryClient.resetQueries({
+    await queryClient.resetQueries({
       predicate: (query) => {
         return query.queryKey.at(0) === 'UNITS';
       },

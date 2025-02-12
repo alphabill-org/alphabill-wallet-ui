@@ -67,8 +67,8 @@ export function Mnemonic({
               type="button"
               variant="secondary"
               block={true}
-              onClick={() => {
-                navigator.clipboard.writeText(mnemonicInputField.current?.value ?? '');
+              onClick={async () => {
+                await navigator.clipboard.writeText(mnemonicInputField.current?.value ?? '');
               }}
             >
               <CopyIcon fill="#FFFFFF" />

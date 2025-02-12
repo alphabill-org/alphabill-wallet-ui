@@ -14,6 +14,7 @@ const root = createRoot(document.getElementById('root') as HTMLElement);
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      retry: false,
       staleTime: 1000 * 86400,
     },
   },

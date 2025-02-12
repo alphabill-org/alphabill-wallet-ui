@@ -17,12 +17,12 @@ function createAlphaInfo(total: bigint, units: Bill[]): IFungibleTokenInfo<Bill>
   };
 }
 
-export function useAggregatedAlphas(ownerId: Uint8Array | null): QueryResult<IFungibleTokenInfo<Bill>> {
+export function useAggregatedAlphas(ownerId: Uint8Array | null): QueryResult<IFungibleTokenInfo<Bill> | null> {
   const units = useAlphas(ownerId);
 
-  const data = useMemo((): IFungibleTokenInfo<Bill> => {
+  const data = useMemo((): IFungibleTokenInfo<Bill> | null => {
     if (!units.data) {
-      return createAlphaInfo(0n, []);
+      return null;
     }
 
     let total = 0n;

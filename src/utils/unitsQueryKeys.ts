@@ -18,21 +18,21 @@ const FETCH_LIST_KEY = 'ID';
 export function createFetchUnitsQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
-  unitsList?: readonly IUnitId[],
+  unitsListExists: boolean,
   networkId?: string,
   partition?: PartitionIdentifier,
 ): QueryKey {
-  return [UNITS_KEY, type, FETCH_UNITS_KEY, unitsList?.map((unit) => unit.toString()), ownerId, networkId, partition];
+  return [UNITS_KEY, type, FETCH_UNITS_KEY, unitsListExists, ownerId, networkId, partition];
 }
 
 export function createFetchUnitTypesQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
-  unitsList?: readonly IUnitId[],
+  unitsListExists: boolean,
   networkId?: string,
   partition?: PartitionIdentifier,
 ): QueryKey {
-  return [UNITS_KEY, type, FETCH_TYPES_KEY, unitsList?.map((unit) => unit.toString()), ownerId, networkId, partition];
+  return [UNITS_KEY, type, FETCH_TYPES_KEY, unitsListExists, ownerId, networkId, partition];
 }
 
 export function createFetchUnitByIdQueryKey(

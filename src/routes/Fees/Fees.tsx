@@ -264,7 +264,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           <SelectBox
             label="Alphas"
             title="SELECT ALPHA"
-            data={alphas.data.values()}
+            data={alphas.data?.values() || []}
             selectedItem={selectedAlpha}
             select={(unit: Bill) => setSelectedAlpha(unit.unitId.toString())}
             getOptionKey={(unit: Bill) => unit.unitId.toString()}
@@ -279,7 +279,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           <SelectBox
             label="Fee credit (optional)"
             title="SELECT FEE CREDIT"
-            data={feeCredits.data.values()}
+            data={feeCredits.data?.values() || []}
             selectedItem={selectedFeeCreditId}
             select={(unit: FeeCreditRecord) => setselectedFeeCreditId(unit.unitId.toString())}
             getOptionKey={(unit: FeeCreditRecord) => unit.unitId.toString()}
