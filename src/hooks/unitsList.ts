@@ -18,18 +18,15 @@ export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIden
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
-  console.log('load units', createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition));
   return useQuery<Response<T> | null>({
     queryFn: () => {
       if (!alphabill || !ownerId) {
         return Promise.resolve(null);
       }
 
-      console.log('load units inside', createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition));
-
       const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
       return client.getUnitsByOwnerId(ownerId) as Promise<Response<T>>;
     },
-    queryKey: createUnitListQueryKey(serializedOwnerId, alphabill?.network.id, partition),
+    queryKey: createUnitListQueryKey(serializedOwnerId, partition, alphabill?.network.id),
   });
 }

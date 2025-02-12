@@ -39,7 +39,7 @@ export function useFeeCredits(
         unitsList.data.feeCreditRecords,
         partition === PartitionIdentifier.MONEY ? getUnitFromMoneyPartition : getUnitFromTokenPartition,
         queryClient,
-        createFetchUnitByIdQueryKey(QUERY_KEYS.FEE_CREDIT, serializedOwnerId, alphabill.network.id, partition),
+        createFetchUnitByIdQueryKey(QUERY_KEYS.FEE_CREDIT, serializedOwnerId, partition, alphabill.network.id),
       );
       const result = new Map<string, FeeCreditRecord>();
       for await (const unit of iterator) {
@@ -52,8 +52,8 @@ export function useFeeCredits(
       QUERY_KEYS.FEE_CREDIT,
       serializedOwnerId,
       !!unitsList.data?.feeCreditRecords.length,
-      alphabill?.network.id,
       partition,
+      alphabill?.network.id,
     ),
   });
 }

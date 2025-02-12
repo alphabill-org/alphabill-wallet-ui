@@ -19,8 +19,8 @@ export function createFetchUnitsQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
   unitsListExists: boolean,
+  partition: PartitionIdentifier,
   networkId?: string,
-  partition?: PartitionIdentifier,
 ): QueryKey {
   return [UNITS_KEY, type, FETCH_UNITS_KEY, unitsListExists, ownerId, networkId, partition];
 }
@@ -29,8 +29,8 @@ export function createFetchUnitTypesQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
   unitsListExists: boolean,
+  partition: PartitionIdentifier,
   networkId?: string,
-  partition?: PartitionIdentifier,
 ): QueryKey {
   return [UNITS_KEY, type, FETCH_TYPES_KEY, unitsListExists, ownerId, networkId, partition];
 }
@@ -38,8 +38,8 @@ export function createFetchUnitTypesQueryKey(
 export function createFetchUnitByIdQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
+  partition: PartitionIdentifier,
   networkId?: string,
-  partition?: PartitionIdentifier,
 ): (unitId: IUnitId) => QueryKey {
   return (unitId: IUnitId) => [UNITS_KEY, type, FETCH_UNIT_BY_ID_KEY, unitId.toString(), ownerId, networkId, partition];
 }
@@ -47,33 +47,48 @@ export function createFetchUnitByIdQueryKey(
 export function createFetchTypeByIdQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
+  partition: PartitionIdentifier,
   networkId?: string,
-  partition?: PartitionIdentifier,
 ): (unitId: IUnitId) => QueryKey {
   return (unitId: IUnitId) => [UNITS_KEY, type, FETCH_TYPE_BY_ID_KEY, unitId.toString(), ownerId, networkId, partition];
 }
 
 export function createUnitListQueryKey(
   ownerId: string | null,
+  partition: PartitionIdentifier,
   networkId?: string,
-  partition?: PartitionIdentifier,
 ): QueryKey {
   return [UNITS_KEY, 'ID', ownerId, networkId, partition];
 }
 
-export function createInvalidateUnitByIdPredicate(query: Query, type: QUERY_KEYS, id: string): boolean {
+export function createInvalidateUnitByIdPredicate(
+  query: Query,
+  partition: PartitionIdentifier,
+  type?: QUERY_KEYS,
+  id?: string,
+): boolean {
   const { queryKey } = query;
   return (
     queryKey.at(0) === UNITS_KEY &&
-    queryKey.at(1) === type &&
+    (type == null ? true : queryKey.at(1) === type) &&
     queryKey.at(2) === FETCH_UNIT_BY_ID_KEY &&
-    queryKey.at(3) === id
+    (id == null ? true : queryKey.at(3) === id) &&
+    queryKey.at(6) === partition
   );
 }
 
-export function createInvalidateUnitsPredicate(query: Query, type: QUERY_KEYS): boolean {
+export function createInvalidateUnitsPredicate(
+  query: Query,
+  partition: PartitionIdentifier,
+  type?: QUERY_KEYS,
+): boolean {
   const { queryKey } = query;
-  return queryKey.at(0) === UNITS_KEY && queryKey.at(1) === type && queryKey.at(2) === FETCH_UNITS_KEY;
+  return (
+    queryKey.at(0) === UNITS_KEY &&
+    (type == null ? true : queryKey.at(1) === type) &&
+    queryKey.at(2) === FETCH_UNITS_KEY &&
+    queryKey.at(6) === partition
+  );
 }
 
 export function createInvalidateUnitListPredicate(query: Query, partition: PartitionIdentifier): boolean {

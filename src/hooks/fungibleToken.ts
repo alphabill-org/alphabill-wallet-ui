@@ -27,7 +27,7 @@ export function useFungibleTokens(ownerId: Uint8Array | null): UseQueryResult<Ma
         unitsList.data.fungibleTokens,
         (unitId: IUnitId) => alphabill.tokenClient.getUnit(unitId, false, FungibleToken),
         queryClient,
-        createFetchUnitByIdQueryKey(QUERY_KEYS.FEE_CREDIT, serializedOwnerId, alphabill.network.id),
+        createFetchUnitByIdQueryKey(QUERY_KEYS.FEE_CREDIT, serializedOwnerId, PartitionIdentifier.TOKEN, alphabill.network.id),
       );
       const result = new Map<string, FungibleToken>();
       for await (const unit of iterator) {
@@ -40,6 +40,7 @@ export function useFungibleTokens(ownerId: Uint8Array | null): UseQueryResult<Ma
       QUERY_KEYS.FEE_CREDIT,
       serializedOwnerId,
       !!unitsList.data?.fungibleTokens.length,
+      PartitionIdentifier.TOKEN,
       alphabill?.network.id,
     ),
   });

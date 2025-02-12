@@ -27,10 +27,9 @@ import { ALPHA_DECIMAL_PLACES } from '../../constants';
 import { useAlphas } from '../../hooks/alpha';
 import { useAlphabill } from '../../hooks/alphabillContext';
 import { useFeeCredits } from '../../hooks/feeCredit';
-import { useResetQuery } from '../../hooks/resetQuery';
+import { Predicates, useResetQuery } from '../../hooks/resetQuery';
 import { useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
-import { QUERY_KEYS } from '../../utils/unitsQueryKeys';
 import { Result, ValidatedData } from '../../ValidatedData';
 
 interface IFormData {
@@ -199,8 +198,12 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           feeCreditRecord,
         );
 
-        await resetQuery.resetUnitById(validatedData.data.bill.unitId, QUERY_KEYS.ALPHA);
-        await resetQuery.resetUnitList(partition);
+        await resetQuery.resetUnitById(validatedData.data.bill.unitId, Predicates.ALPHA);
+        await resetQuery.resetUnitList(
+          partition === PartitionIdentifier.MONEY
+            ? Predicates.MONEY_PARTITION_FEE_CREDIT
+            : Predicates.TOKEN_PARTITION_FEE_CREDIT,
+        );
       } catch (e) {
         console.error('error', e);
       } finally {

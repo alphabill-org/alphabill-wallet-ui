@@ -27,7 +27,12 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
         unitsList.data.bills,
         (unitId: IUnitId) => alphabill.moneyClient.getUnit(unitId, false, Bill),
         queryClient,
-        createFetchUnitByIdQueryKey(QUERY_KEYS.ALPHA, serializedOwnerId, alphabill.network.id),
+        createFetchUnitByIdQueryKey(
+          QUERY_KEYS.ALPHA,
+          serializedOwnerId,
+          PartitionIdentifier.MONEY,
+          alphabill.network.id,
+        ),
       );
       const result = new Map<string, Bill>();
       for await (const unit of iterator) {
@@ -40,6 +45,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
       QUERY_KEYS.ALPHA,
       serializedOwnerId,
       !!unitsList.data?.bills.length,
+      PartitionIdentifier.MONEY,
       alphabill?.network.id,
     ),
   });

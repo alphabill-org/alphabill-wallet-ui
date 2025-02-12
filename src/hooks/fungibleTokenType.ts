@@ -1,4 +1,5 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
+import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
@@ -41,7 +42,12 @@ export function useFungibleTokenTypes(
         tokenTypes,
         (unitId: IUnitId) => alphabill.tokenClient.getUnit(unitId, false, FungibleTokenType),
         queryClient,
-        createFetchTypeByIdQueryKey(QUERY_KEYS.FUNGIBLE, serializedOwnerId, alphabill.network.id),
+        createFetchTypeByIdQueryKey(
+          QUERY_KEYS.FUNGIBLE,
+          serializedOwnerId,
+          PartitionIdentifier.TOKEN,
+          alphabill.network.id,
+        ),
       );
       const result = new Map<string, FungibleTokenType>();
       for await (const unit of iterator) {
@@ -54,6 +60,7 @@ export function useFungibleTokenTypes(
       QUERY_KEYS.FUNGIBLE,
       serializedOwnerId,
       !!tokenTypes.length,
+      PartitionIdentifier.TOKEN,
       alphabill?.network.id,
     ),
   });
