@@ -4,7 +4,7 @@ import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Conv
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { TokenItem } from './TokenItem';
+import { FungibleTokenItem } from './FungibleTokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { ALPHA_KEY } from '../../../constants';
@@ -14,7 +14,7 @@ import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useVault } from '../../../hooks/vaultContext';
 import BackIcon from '../../../images/back-ico.svg?react';
 
-export function TokenDetails(): ReactElement {
+export function FungibleTokenDetails(): ReactElement {
   const alphabill = useAlphabill();
   const { selectedKey } = useVault();
   const params = useParams<{ id: string }>();
@@ -86,7 +86,7 @@ export function TokenDetails(): ReactElement {
       <div className="units__info__content">
         {tokenInfo.units.map((token: Bill | FungibleToken) => {
           return (
-            <TokenItem
+            <FungibleTokenItem
               key={Base16Converter.encode(token.unitId.bytes)}
               id={token.unitId.toString()}
               decimalPlaces={tokenInfo.decimalPlaces}

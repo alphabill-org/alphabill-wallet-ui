@@ -11,13 +11,13 @@ interface ITokenItemProps {
   readonly value: bigint;
 }
 
-export function TokenItem(props: PropsWithChildren<ITokenItemProps>): ReactElement {
+export function FungibleTokenItem(props: PropsWithChildren<ITokenItemProps>): ReactElement {
   const { decimalPlaces, id, value } = props;
 
   return (
     <div className={`units__content__unit`}>
       <div className="units__content__unit--value">{formatValueWithDecimalPlaces(value, decimalPlaces)}</div>
-      <Link to={`/units/transfer/${id}`}>
+      <Link to={`/units/fungible/${id}/transfer`}>
         <Button type="button" variant="primary" isRounded={true}>
           <SendIcon />
         </Button>

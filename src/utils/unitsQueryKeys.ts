@@ -6,6 +6,7 @@ export enum QUERY_KEYS {
   ALPHA = 'ALPHA',
   FEE_CREDIT = 'FEE_CREDIT',
   FUNGIBLE = 'FUNGIBLE',
+  NON_FUNGIBLE = 'NON_FUNGIBLE',
 }
 
 const UNITS_KEY = 'UNITS';

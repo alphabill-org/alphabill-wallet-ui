@@ -31,6 +31,10 @@ export const Predicates = {
     partition: PartitionIdentifier.MONEY,
     type: QUERY_KEYS.FEE_CREDIT,
   },
+  NON_FUNGIBLE_TOKEN: {
+    partition: PartitionIdentifier.TOKEN,
+    type: QUERY_KEYS.NON_FUNGIBLE,
+  },
   TOKEN_PARTITION_FEE_CREDIT: {
     partition: PartitionIdentifier.TOKEN,
     type: QUERY_KEYS.FEE_CREDIT,

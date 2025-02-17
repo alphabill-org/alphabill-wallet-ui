@@ -8,9 +8,11 @@ import { Login } from './routes/Login/Login';
 import { Network } from './routes/Network';
 import { Settings } from './routes/Settings/Settings';
 import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
-import { TokenDetails } from './routes/TokenList/Fungible/TokenDetails';
+import { FungibleTokenDetails } from './routes/TokenList/Fungible/FungibleTokenDetails';
+import { FungibleTokenTransfer } from './routes/TokenList/Fungible/FungibleTokenTransfer';
+import { NonFungibleTokenList } from './routes/TokenList/NonFungible/NonFungibleTokenList';
+import { NonFungibleTokenTransfer } from './routes/TokenList/NonFungible/NonFungibleTokenTransfer';
 import { TokenList } from './routes/TokenList/TokenList';
-import { Transfer } from './routes/TokenList/Transfer/Transfer';
 
 export function App(): ReactElement {
   return (
@@ -22,9 +24,11 @@ export function App(): ReactElement {
             <Route path="network" element={<Network />} />
             <Route path="units" element={<TokenList />}>
               <Route path="fungible" element={<AggregatedTokenList />} />
+              <Route path="non-fungible" element={<NonFungibleTokenList />} />
             </Route>
-            <Route path="units/fungible/:id" element={<TokenDetails />} />
-            <Route path="units/transfer/:id" element={<Transfer />} />
+            <Route path="units/fungible/:id" element={<FungibleTokenDetails />} />
+            <Route path="units/fungible/:id/transfer" element={<FungibleTokenTransfer />} />
+            <Route path="units/non-fungible/:id/transfer" element={<NonFungibleTokenTransfer />} />
             <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
           </Route>
           <Route path="/create-wallet" element={<CreateWallet />} />
