@@ -31,6 +31,7 @@ import { Predicates, useResetQuery } from '../../hooks/resetQuery';
 import { useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
 import { Result, ValidatedData } from '../../ValidatedData';
+import { Navbar } from '../../components/NavBar/NavBar';
 
 interface IFormData {
   readonly bill: Result<Bill>;
@@ -85,7 +86,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
       if (index == null) {
         return {
           data: null,
-          error: 'Invalid key index',
+          error: 'Invalid key index.',
         };
       }
 
@@ -95,7 +96,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
         console.warn(`Could not create signing service: ${e instanceof Error ? e.message : String(e)}.`);
         return {
           data: null,
-          error: 'Invalid password',
+          error: 'Invalid password.',
         };
       }
     },
@@ -260,47 +261,45 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <Form>
-        <FormContent>
-          <SelectBox
-            label="Alphas"
-            title="SELECT ALPHA"
-            data={alphas.data?.values() || []}
-            selectedItem={selectedAlpha}
-            select={(unit: Bill) => setSelectedAlpha(unit.unitId.toString())}
-            getOptionKey={(unit: Bill) => unit.unitId.toString()}
-            createOption={(unit: Bill) => (
-              <>
-                <div className="select__option--text">{unit.unitId.toString()}</div>
-                {selectedAlpha === unit.unitId.toString() ? <CheckIcon /> : null}
-              </>
-            )}
-          />
-          {errors.get('bill') && <span className="textfield__error">{errors.get('bill')}</span>}
-          <SelectBox
-            label="Fee credit (optional)"
-            title="SELECT FEE CREDIT"
-            data={feeCredits.data?.values() || []}
-            selectedItem={selectedFeeCreditId}
-            select={(unit: FeeCreditRecord) => setselectedFeeCreditId(unit.unitId.toString())}
-            getOptionKey={(unit: FeeCreditRecord) => unit.unitId.toString()}
-            createOption={(unit: FeeCreditRecord) => (
-              <>
-                <div className="select__option--text">{unit.unitId.toString()}</div>
-                {selectedFeeCreditId === unit.unitId.toString() ? <CheckIcon /> : null}
-              </>
-            )}
-          />
-          <TextField name="amount" label="Amount to transfer" error={errors.get('amount')} />
-          <PasswordField name="password" label="Password" error={errors.get('signingService')} />
-        </FormContent>
-        <FormFooter>
-          <Button block={true} type="submit" variant="primary">
-            Add
-          </Button>
-        </FormFooter>
-      </Form>
+    <form className="fees__form" onSubmit={onSubmit}>
+      <FormContent>
+        <SelectBox
+          label="Alphas"
+          title="SELECT ALPHA"
+          data={alphas.data?.values() || []}
+          selectedItem={selectedAlpha}
+          select={(unit: Bill) => setSelectedAlpha(unit.unitId.toString())}
+          getOptionKey={(unit: Bill) => unit.unitId.toString()}
+          createOption={(unit: Bill) => (
+            <>
+              <div className="select__option--text">{unit.unitId.toString()}</div>
+              {selectedAlpha === unit.unitId.toString() ? <CheckIcon /> : null}
+            </>
+          )}
+        />
+        {errors.get('bill') && <span className="textfield__error">{errors.get('bill')}</span>}
+        <SelectBox
+          label="Fee credit (optional)"
+          title="SELECT FEE CREDIT"
+          data={feeCredits.data?.values() || []}
+          selectedItem={selectedFeeCreditId}
+          select={(unit: FeeCreditRecord) => setselectedFeeCreditId(unit.unitId.toString())}
+          getOptionKey={(unit: FeeCreditRecord) => unit.unitId.toString()}
+          createOption={(unit: FeeCreditRecord) => (
+            <>
+              <div className="select__option--text">{unit.unitId.toString()}</div>
+              {selectedFeeCreditId === unit.unitId.toString() ? <CheckIcon /> : null}
+            </>
+          )}
+        />
+        <TextField name="amount" label="Amount to transfer" error={errors.get('amount')} />
+        <PasswordField name="password" label="Password" error={errors.get('signingService')} />
+      </FormContent>
+      <FormFooter>
+        <Button block={true} type="submit" variant="primary">
+          Add
+        </Button>
+      </FormFooter>
     </form>
   );
 }
@@ -313,24 +312,24 @@ export function Fees(): ReactElement {
 
   return (
     <div className="fees">
-      <Header />
+      <Navbar title="Add fee credit" />
+      <div className="fees__content__tabs">
+        <div
+          onClick={() => setPartition(PartitionIdentifier.MONEY)}
+          className={`fees__content__tab ${partition === PartitionIdentifier.MONEY ? 'fees__content__tab--active' : ''}`}
+        >
+          Money partition
+        </div>
+        <div
+          onClick={() => setPartition(PartitionIdentifier.TOKEN)}
+          className={`fees__content__tab ${partition === PartitionIdentifier.TOKEN ? 'fees__content__tab--active' : ''}`}
+        >
+          Token partition
+        </div>
+      </div>
       <div className="fees__content">
         Public key
         <PublicKeySelectBox />
-        <div className="fees__content__tabs">
-          <div
-            onClick={() => setPartition(PartitionIdentifier.MONEY)}
-            className={`fees__content__tab ${partition === PartitionIdentifier.MONEY ? 'fees__content__tab--active' : ''}`}
-          >
-            Money partition
-          </div>
-          <div
-            onClick={() => setPartition(PartitionIdentifier.TOKEN)}
-            className={`fees__content__tab ${partition === PartitionIdentifier.TOKEN ? 'fees__content__tab--active' : ''}`}
-          >
-            Token partition
-          </div>
-        </div>
         <FeesContent partition={partition} />
       </div>
     </div>
