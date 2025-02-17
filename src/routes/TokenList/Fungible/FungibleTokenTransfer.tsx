@@ -84,7 +84,7 @@ export function FungibleTokenTransfer(): ReactElement {
             referenceNumber: null,
             timeout: round + 60n,
           },
-          networkIdentifier: NetworkIdentifier.LOCAL,
+          networkIdentifier: alphabill.network.networkId,
           ownerPredicate: newOwnerPredicate,
           stateLock: null,
           stateUnlock: new AlwaysTruePredicate(),

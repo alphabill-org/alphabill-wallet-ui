@@ -130,7 +130,6 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
         },
         latestAdditionTime: round + 60n,
         metadata: new ClientMetadata(round + 60n, 5n, null, new Uint8Array()),
-        // TODO: NetworkIdentifier from networks
         networkIdentifier: alphabill.network.networkId,
         stateLock: null,
         stateUnlock: new AlwaysTruePredicate(),
