@@ -5,7 +5,7 @@ import { CreateWallet } from './routes/CreateWallet/CreateWallet';
 import { Fees } from './routes/Fees/Fees';
 import { Home } from './routes/Home';
 import { Login } from './routes/Login/Login';
-import { Network } from './routes/Network';
+import { Network } from './routes/Network/Network';
 import { Settings } from './routes/Settings/Settings';
 import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
 import { FungibleTokenDetails } from './routes/TokenList/Fungible/FungibleTokenDetails';

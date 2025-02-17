@@ -19,6 +19,7 @@
 @use '../routes/TokenList/Transfer';
 @use '../routes/Settings/Settings';
 @use '../routes/Fees/Fees';
+@use '../routes/Network/Network';
 
 .app {
   min-width: 375px;

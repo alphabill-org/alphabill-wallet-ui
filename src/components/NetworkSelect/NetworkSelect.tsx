@@ -30,7 +30,7 @@ export const NetworkSelect = ({ label }: INetworkSelectProps): ReactElement => {
   );
 
   return (
-    <div className="select__options">
+    <>
       <SelectBox
         title="SELECT NETWORK"
         label={label}
@@ -40,6 +40,6 @@ export const NetworkSelect = ({ label }: INetworkSelectProps): ReactElement => {
         getOptionKey={getOptionKey}
         createOption={createOption}
       />
-    </div>
+    </>
   );
 };
