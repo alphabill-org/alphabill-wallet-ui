@@ -7,7 +7,6 @@ import { Footer } from '../../components/Footer/Footer';
 import { Header } from '../../components/Header/Header';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
 import { useVault } from '../../hooks/vaultContext';
-import AddIcon from '../../images/add-ico.svg?react';
 import CopyIcon from '../../images/copy-ico.svg?react';
 import SyncIcon from '../../images/sync-ico.svg?react';
 
@@ -44,9 +43,6 @@ export function TokenList(): ReactElement {
             }}
           >
             <SyncIcon />
-          </Button>
-          <Button type="button" variant="primary" isRounded={true} onClick={() => null}>
-            <AddIcon />
           </Button>
         </div>
         <Outlet />
