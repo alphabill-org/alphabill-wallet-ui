@@ -119,17 +119,22 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   const decryptVault = useCallback(
     async (password: string, salt: Uint8Array, encryptedVault: Uint8Array): Promise<IVault> => {
       const { key, iv } = await createEncryptionKey(password, salt);
-      const vaultBytes = await crypto.subtle.decrypt(
-        {
-          iv,
-          name: 'AES-GCM',
-        },
-        key,
-        encryptedVault,
-      );
 
-      const vaultJson = textDecoder.decode(vaultBytes);
-      return JSON.parse(vaultJson);
+      try {
+        const vaultBytes = await crypto.subtle.decrypt(
+          {
+            iv,
+            name: 'AES-GCM',
+          },
+          key,
+          encryptedVault,
+        );
+        const vaultJson = textDecoder.decode(vaultBytes);
+        return JSON.parse(vaultJson);
+      } catch (e) {
+        console.error(e);
+        throw new Error('Could not decrypt vault.');
+      }
     },
     [createEncryptionKey],
   );

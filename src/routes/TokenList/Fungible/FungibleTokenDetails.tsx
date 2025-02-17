@@ -7,12 +7,12 @@ import { Link, useParams } from 'react-router-dom';
 import { FungibleTokenItem } from './FungibleTokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
+import { Navbar } from '../../../components/NavBar/NavBar';
 import { ALPHA_KEY } from '../../../constants';
 import { useAggregatedAlphas } from '../../../hooks/aggregatedAlpha';
 import { useAggregatedFungibleTokens } from '../../../hooks/aggregatedFungibleTokens';
 import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useVault } from '../../../hooks/vaultContext';
-import BackIcon from '../../../images/back-ico.svg?react';
 
 export function FungibleTokenDetails(): ReactElement {
   const alphabill = useAlphabill();
@@ -77,12 +77,7 @@ export function FungibleTokenDetails(): ReactElement {
 
   return (
     <div className="units__info">
-      <div className="units__info__header">
-        <Link to="/" className="back-btn">
-          <BackIcon />
-        </Link>
-        <div>{tokenInfo.name}</div>
-      </div>
+      <Navbar title={tokenInfo.name} />
       <div className="units__info__content">
         {tokenInfo.units.map((token: Bill | FungibleToken) => {
           return (

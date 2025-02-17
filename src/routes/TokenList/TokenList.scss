@@ -115,29 +115,5 @@
       overflow: auto;
       gap: 6px;
     }
-
-    &__header {
-      padding: 23px 48px;
-      width: 100%;
-      height: 72px;
-      display: flex;
-      text-align: center;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      background: variables.$color-body-background;
-      border-bottom: 1px solid variables.$color-secondary; /* Add a line below the header */
-
-      .back-btn {
-        position: absolute;
-        left: 24px;
-
-        &:hover {
-          svg {
-            fill: variables.$color-primary-hover;
-          }
-        }
-      }
-    }
   }
 }

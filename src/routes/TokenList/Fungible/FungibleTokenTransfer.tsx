@@ -12,16 +12,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '../../../components/Button/Button';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
-import { Form, FormContent, FormFooter } from '../../../components/Form/Form';
+import { FormContent, FormFooter } from '../../../components/Form/Form';
 import { PasswordField } from '../../../components/InputField/PasswordField';
 import { TextField } from '../../../components/InputField/TextField';
 import { Loading } from '../../../components/Loading/Loading';
+import { Navbar } from '../../../components/NavBar/NavBar';
 import { useAlphabill } from '../../../hooks/alphabillContext';
 import { useFungibleTokens } from '../../../hooks/fungibleToken';
 import { Predicates, useResetQuery } from '../../../hooks/resetQuery';
 import { useUnitsList } from '../../../hooks/unitsList';
 import { useVault } from '../../../hooks/vaultContext';
-import BackIcon from '../../../images/back-ico.svg?react';
 
 type FormElements = 'address' | 'password';
 
@@ -32,65 +32,77 @@ export function FungibleTokenTransfer(): ReactElement {
   const resetQuery = useResetQuery();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState(new Map<string, string>());
 
-  const transfer = useCallback(async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
-    ev.preventDefault();
-    if (!alphabill) {
-      throw new Error('Invalid alphabill context');
-    }
-    setIsLoading(true);
-    const errors = new Map<FormElements, string>();
-    const data = new FormData(ev.currentTarget);
-    const address = String(data.get('address') ?? '');
-    if (address.length === 0) {
-      errors.set('address', 'Invalid address.');
-    }
+  const transfer = useCallback(
+    async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
+      ev.preventDefault();
+      if (!alphabill) {
+        throw new Error('Invalid alphabill context');
+      }
+      const errors = new Map<FormElements, string>();
+      const data = new FormData(ev.currentTarget);
+      const address = String(data.get('address') ?? '');
+      if (address.length === 0) {
+        // TODO: Add proper address validation
+        errors.set('address', 'Invalid address.');
+      }
 
-    const password = String(data.get('password') ?? '');
-    let signingService;
-    try {
-      signingService = await vault.getSigningService(password, vault.selectedKey!.index);
-    } catch (e) {
-      errors.set('password', e instanceof Error ? e.message : String(e));
-      return;
-    }
-    const proofFactory = new PayToPublicKeyHashProofFactory(signingService);
+      const password = String(data.get('password') ?? '');
+      let signingService;
+      try {
+        signingService = await vault.getSigningService(password, vault.selectedKey!.index);
+      } catch (e) {
+        errors.set('password', e instanceof Error ? e.message : String(e));
+      }
 
-    const token = fungibleTokens.data?.get(unitId.toString());
-    if (!token) {
-      throw new Error('Token with ID ' + unitId.toString() + 'not found');
-    }
+      setErrors(errors);
 
-    const feeCreditRecordId = feeCredits.data?.feeCreditRecords.at(0);
-    if (!feeCreditRecordId) {
-      throw new Error('Fee credit not found');
-    }
-    const round = (await alphabill!.tokenClient.getRoundInfo()).roundNumber;
-    const alwaysTrueProofFactory = new AlwaysTrueProofFactory();
-    const newOwnerPredicate = PayToPublicKeyHashPredicate.create(Base16Converter.decode(address));
-    const txo = TransferFungibleToken.create({
-      metadata: {
-        feeCreditRecordId,
-        maxTransactionFee: 10n,
-        referenceNumber: null,
-        timeout: round + 60n,
-      },
-      networkIdentifier: NetworkIdentifier.LOCAL,
-      ownerPredicate: newOwnerPredicate,
-      stateLock: null,
-      stateUnlock: new AlwaysTruePredicate(),
-      token: token,
-      version: 1n,
-    }).sign(proofFactory, proofFactory, [alwaysTrueProofFactory]);
-    const transferHash = await alphabill.tokenClient.sendTransaction(await txo);
-    const transferProof = await alphabill.tokenClient.waitTransactionProof(transferHash, TransferFungibleToken);
-    if (!transferProof.transactionRecord.serverMetadata.successIndicator) {
-      throw new Error('Transfer failed');
-    }
-    setIsLoading(false);
-    await resetQuery.resetUnitList(Predicates.FUNGIBLE_TOKEN);
-    navigate('/units/fungible');
-  }, []);
+      if (errors.size === 0) {
+        const proofFactory = new PayToPublicKeyHashProofFactory(signingService!);
+
+        setIsLoading(true);
+        const token = fungibleTokens.data?.get(unitId.toString());
+        if (!token) {
+          setIsLoading(false);
+          throw new Error('Token with ID ' + unitId.toString() + 'not found');
+        }
+
+        const feeCreditRecordId = feeCredits.data?.feeCreditRecords.at(0);
+        if (!feeCreditRecordId) {
+          setIsLoading(false);
+          throw new Error('Fee credit not found');
+        }
+
+        const round = (await alphabill!.tokenClient.getRoundInfo()).roundNumber;
+        const alwaysTrueProofFactory = new AlwaysTrueProofFactory();
+        const newOwnerPredicate = PayToPublicKeyHashPredicate.create(Base16Converter.decode(address));
+        const txo = TransferFungibleToken.create({
+          metadata: {
+            feeCreditRecordId,
+            maxTransactionFee: 10n,
+            referenceNumber: null,
+            timeout: round + 60n,
+          },
+          networkIdentifier: NetworkIdentifier.LOCAL,
+          ownerPredicate: newOwnerPredicate,
+          stateLock: null,
+          stateUnlock: new AlwaysTruePredicate(),
+          token: token,
+          version: 1n,
+        }).sign(proofFactory, proofFactory, [alwaysTrueProofFactory]);
+        const transferHash = await alphabill.tokenClient.sendTransaction(await txo);
+        const transferProof = await alphabill.tokenClient.waitTransactionProof(transferHash, TransferFungibleToken);
+        setIsLoading(false);
+        if (!transferProof.transactionRecord.serverMetadata.successIndicator) {
+          throw new Error('Transfer failed');
+        }
+        await resetQuery.resetUnitList(Predicates.FUNGIBLE_TOKEN);
+        navigate('/units/fungible');
+      }
+    },
+    [setErrors],
+  );
 
   const fungibleTokens = useFungibleTokens(vault.selectedKey?.publicKey.key ?? null);
   const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.TOKEN);
@@ -128,28 +140,21 @@ export function FungibleTokenTransfer(): ReactElement {
   }
 
   return (
-    <div className="transfer">
-      <div className="transfer__header">
-        <Link to="/" className="back-btn">
-          <BackIcon />
-        </Link>
-        <div className="transfer__title">Transfer</div>
-      </div>
-      <div className="transfer pad-24">
-        <form onSubmit={transfer}>
-          <Form>
-            <FormContent>
-              <TextField label="Address" name="address" focusInput />
-              <PasswordField label="password" name="password" />
-            </FormContent>
-            <FormFooter>
-              <Button block={true} type="submit" variant="primary">
-                Transfer
-              </Button>
-            </FormFooter>
-          </Form>
+    <>
+      <Navbar title="Transfer" />
+      <div className="transfer__content">
+        <form className="transfer__form" onSubmit={transfer}>
+          <FormContent>
+            <TextField label="Address" name="address" focusInput error={errors.get('address')} />
+            <PasswordField label="password" name="password" error={errors.get('password')} />
+          </FormContent>
+          <FormFooter>
+            <Button className="transfer__button" block={true} type="submit" variant="primary">
+              Transfer
+            </Button>
+          </FormFooter>
         </form>
       </div>
-    </div>
+    </>
   );
 }
