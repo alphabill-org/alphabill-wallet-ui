@@ -11,6 +11,23 @@
     flex-direction: column;
     padding: 24px;
     flex-grow: 1;
+
+    &__tabs {
+      border-bottom: 1px solid #4E3EB6;
+      display: flex;
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+
+    &__tab {
+      cursor: pointer;
+      flex-grow: 1;
+      text-align: center;
+
+      &--active {
+        border-bottom: 1px solid #08E8DE;
+      }
+    }
   }
 
   &--loading {

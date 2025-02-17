@@ -318,27 +318,16 @@ export function Fees(): ReactElement {
       <div className="fees__content">
         Public key
         <PublicKeySelectBox />
-        <div style={{ borderBottom: '1px solid #4E3EB6', display: 'flex', marginBottom: '24px', marginTop: '12px' }}>
+        <div className="fees__content__tabs">
           <div
             onClick={() => setPartition(PartitionIdentifier.MONEY)}
-            style={{
-              // TODO: Fix style and move to css
-              borderBottom: partition === PartitionIdentifier.MONEY ? '1px solid #08E8DE' : '',
-              cursor: 'pointer',
-              flexGrow: 1,
-              textAlign: 'center',
-            }}
+            className={`fees__content__tab ${partition === PartitionIdentifier.MONEY ? 'fees__content__tab--active' : ''}`}
           >
             Money partition
           </div>
           <div
             onClick={() => setPartition(PartitionIdentifier.TOKEN)}
-            style={{
-              borderBottom: partition === PartitionIdentifier.TOKEN ? '1px solid #08E8DE' : '',
-              cursor: 'pointer',
-              flexGrow: 1,
-              textAlign: 'center',
-            }}
+            className={`fees__content__tab ${partition === PartitionIdentifier.TOKEN ? 'fees__content__tab--active' : ''}`}
           >
             Token partition
           </div>

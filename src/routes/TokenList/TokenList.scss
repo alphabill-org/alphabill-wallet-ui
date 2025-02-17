@@ -14,6 +14,7 @@
     flex-wrap: nowrap;
     gap: 5px;
 
+    // Override the width for key select
     .key__select {
       max-width: 73.5%;
     }
