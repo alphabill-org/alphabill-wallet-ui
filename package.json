@@ -9,8 +9,6 @@
     "build-dev": "vite build --mode development",
     "build-local": "vite build --mode localhost",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test-watch": "vitest",
     "stylelint": "stylelint \"**/*.scss\"",
     "stylelint:fix": "stylelint \"**/*.scss\" --fix",
     "lint": "eslint \"src/**/*.tsx\"",

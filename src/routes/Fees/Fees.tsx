@@ -16,11 +16,10 @@ import { Button } from '../../components/Button/Button';
 import { ErrorNotification } from '../../components/ErrorNotification/ErrorNotification';
 import { FormContent } from '../../components/Form/components/FormContent';
 import { FormFooter } from '../../components/Form/components/FormFooter';
-import { Form } from '../../components/Form/Form';
-import { Header } from '../../components/Header/Header';
 import { PasswordField } from '../../components/InputField/PasswordField';
 import { TextField } from '../../components/InputField/TextField';
 import { Loading } from '../../components/Loading/Loading';
+import { Navbar } from '../../components/NavBar/NavBar';
 import { PublicKeySelectBox } from '../../components/PublicKeySelectBox/PublicKeySelectBox';
 import { SelectBox } from '../../components/SelectBox/SelectBox';
 import { ALPHA_DECIMAL_PLACES } from '../../constants';
@@ -31,7 +30,6 @@ import { Predicates, useResetQuery } from '../../hooks/resetQuery';
 import { useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
 import { Result, ValidatedData } from '../../ValidatedData';
-import { Navbar } from '../../components/NavBar/NavBar';
 
 interface IFormData {
   readonly bill: Result<Bill>;
