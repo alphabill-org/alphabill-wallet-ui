@@ -1,4 +1,5 @@
 import { FormEvent, ReactElement, useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../../components/Button/Button';
 import { FormContent, FormFooter } from '../../components/Form/Form';
@@ -10,6 +11,7 @@ type FormElements = 'alias' | 'networkId' | 'moneyPartitionUrl' | 'tokenPartitio
 
 export function Network(): ReactElement {
   const networkContext = useNetwork();
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<Map<FormElements, string>>(new Map());
 
   const onSubmit = useCallback(
@@ -49,6 +51,7 @@ export function Network(): ReactElement {
           tokenPartitionUrl: data.get('tokenPartitionUrl') as string,
         });
 
+        navigate(-1);
         ev.currentTarget.reset();
       }
     },
