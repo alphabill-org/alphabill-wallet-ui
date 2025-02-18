@@ -1,98 +1,42 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { ReactElement } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
-import CreateAccount from "./routes/CreateAccount/CreateAccount";
-import Login from "./routes/Login/Login";
-import Home from "./routes/Home";
-import { ProtectedRoute } from "./routes/ProtectedRoute";
-import RecoverAccount from "./routes/RecoverAccount/RecoverAccount";
-import Popup from "./components/Popup/Popup";
-import Fungible from "./routes/Fungible";
-import NFT from "./routes/NFT";
-import History from "./routes/History";
+import { CreateWallet } from './routes/CreateWallet/CreateWallet';
+import { Fees } from './routes/Fees/Fees';
+import { Home } from './routes/Home';
+import { Login } from './routes/Login/Login';
+import { Network } from './routes/Network/Network';
+import { Settings } from './routes/Settings/Settings';
+import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
+import { FungibleTokenDetails } from './routes/TokenList/Fungible/FungibleTokenDetails';
+import { FungibleTokenTransfer } from './routes/TokenList/Fungible/FungibleTokenTransfer';
+import { NonFungibleTokenList } from './routes/TokenList/NonFungible/NonFungibleTokenList';
+import { NonFungibleTokenTransfer } from './routes/TokenList/NonFungible/NonFungibleTokenTransfer';
+import { TokenList } from './routes/TokenList/TokenList';
 
-function App() {
-  const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
-
-  useEffect(() => {
-    window.addEventListener("online", () => setIsNetworkError(false));
-    window.addEventListener("offline", () => setIsNetworkError(true));
-
-    return () => {
-      window.removeEventListener("online", () => setIsNetworkError(false));
-      window.removeEventListener("offline", () => setIsNetworkError(true));
-    };
-  }, []);
-
-  useEffect(() => {
-    const extensionId = chrome?.runtime?.id;
-    extensionId &&
-      chrome?.runtime?.sendMessage(extensionId, {
-        ab_extension_state: { is_popup_open: true },
-      });
-
-    return () => {
-      extensionId &&
-        chrome?.runtime?.sendMessage(extensionId, {
-          ab_extension_state: { is_popup_open: false },
-        });
-    };
-  }, []);
-
+export function App(): ReactElement {
   return (
     <div className="app">
-      <div className="app__background-top"></div>
-      <div className="app__background-bottom"></div>
       <div className="app__content">
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/fungible"
-            element={
-              <ProtectedRoute>
-                <Fungible/>
-              </ProtectedRoute>
-            }          
-          />
-          <Route
-            path="/nft"
-            element={
-              <ProtectedRoute>
-                <NFT/>
-              </ProtectedRoute>
-            }          
-          />
-          <Route
-            path="/history"
-            element={
-              <ProtectedRoute>
-                <History/>
-              </ProtectedRoute>
-            }          
-          />
-          {<Route path="/login" element={<Login />} />}
-          <Route path="/create-wallet" element={<CreateAccount />} />
-          <Route path="/recover-wallet" element={<RecoverAccount />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<Home />}>
+            <Route path="fees" element={<Fees />} />
+            <Route path="network" element={<Network />} />
+            <Route path="units" element={<TokenList />}>
+              <Route path="fungible" element={<AggregatedTokenList />} />
+              <Route path="non-fungible" element={<NonFungibleTokenList />} />
+            </Route>
+            <Route path="units/fungible/:id" element={<FungibleTokenDetails />} />
+            <Route path="units/fungible/:id/transfer" element={<FungibleTokenTransfer />} />
+            <Route path="units/non-fungible/:id/transfer" element={<NonFungibleTokenTransfer />} />
+            <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
+          </Route>
+          <Route path="/create-wallet" element={<CreateWallet />} />
+          <Route path="/recover-wallet" element={<CreateWallet isWalletRecovery={true} />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
-        <Popup isPopupVisible={isNetworkError} title="No internet connection!">
-          <div className="pad-24-t w-100p">
-            <p>
-              There is something wrong with your internet connection. Please
-              reconnect and try again.
-            </p>
-          </div>
-        </Popup>
       </div>
     </div>
   );
 }
-
-export default App;

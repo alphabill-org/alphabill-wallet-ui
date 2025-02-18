@@ -1,0 +1,120 @@
+@use '../../css/variables';
+
+.units {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  width: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+  gap: 32px;
+
+  &__key {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
+
+    // Override the width for key select
+    .key__select {
+      max-width: 73.5%;
+    }
+
+    svg {
+      fill: #000;
+      width: 12px;
+      height: auto;
+    }
+  }
+
+  a {
+    color: variables.$color-white;
+  }
+
+  &--loading {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &--error {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    max-height: 396px;
+    gap: 6px;
+
+    &__unit {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      border-radius: 6px;
+      padding: 12px;
+      width: 100%;
+      background-color: #1C194E;
+      overflow: hidden;
+
+      &.hoverable {
+        cursor: pointer;
+
+        &:hover {
+          background-color: variables.$color-primary-hover;
+        }
+      }
+
+      &--icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin-right: 12px;
+        border-radius: 50px;
+        background-color: #FFF;
+        padding: 1px;
+        flex-shrink: 0;
+      }
+
+      &--text {
+        font-weight: 700;
+        flex-grow: 1;
+        flex-shrink: 0;
+        margin-right: 5px;
+      }
+
+      &--value {
+        flex-grow: 1;
+        flex-shrink: 0;
+        text-align: left;
+      }
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+
+    &__content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      width: 100%;
+      overflow: auto;
+      gap: 6px;
+    }
+  }
+}

@@ -1,50 +1,23 @@
+@use '../../css/variables';
+
 .header {
-  display: block;
   display: flex;
   height: 72px;
   padding: 24px;
   align-items: center;
   width: 100%;
   justify-content: space-between;
-
-  &__ico {
-    fill: $color-primary;
-    flex-shrink: 0;
-  }
+  border-bottom: 1px solid variables.$color-secondary; /* Add a line below the header */
 
   &__select {
-    display: flex;
     max-width: 70%;
-    justify-content: center;
-    gap: 12px;
-    height: 38px;
-    padding: 7px 14px;
-    background: rgba(255, 255, 255, 0.15);
-    
-
-    .select__button{
-      gap: 8px;
-      color: $color-white;
-      font-weight: 500;
-      font-size: 14px;
-      line-height: 18px;
-      fill: $color-white;
-
-      &--icon {
-        fill: $color-white 
-      }
-
-    }
-
-    .copy__button path {
-      fill: $color-white;
-      width: 24px;
-      height: 24px;
-    }
   }
 
-  &__settings path {
-    fill: rgba(223, 216, 245, 1);
+  &__ico {
     flex-shrink: 0;
+
+    svg {
+      fill: variables.$color-primary;
+    }
   }
 }

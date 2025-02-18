@@ -1,3 +1,5 @@
+@use './variables';
+
 html,
 body,
 div,
@@ -82,7 +84,7 @@ video {
   margin: 0;
   padding: 0;
   border: 0;
-  font: $font-family-base;
+  font: variables.$font-family-base;
   font-size: 100%;
   vertical-align: baseline;
 }
@@ -108,7 +110,7 @@ html {
 
   body {
     margin: 0;
-    font-family: $font-family-base;
+    font-family: variables.$font-family-base;
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -120,6 +122,14 @@ html {
 
 h1, h2, h3, h4 {
   text-transform: uppercase;
+}
+
+img,
+svg {
+  border: 0;
+  display: block;
+  margin: 0;
+  max-width: 100%;
 }
 
 button svg {
@@ -136,10 +146,10 @@ q {
   quotes: none;
 }
 
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
   content: '';
 }
 
@@ -149,8 +159,8 @@ table {
 }
 
 *,
-*:before,
-*:after {
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
@@ -164,7 +174,7 @@ button {
 input,
 textarea,
 select {
-  color: $color-black;
+  color: variables.$color-black;
   line-height: 24px;
 }
 
@@ -184,7 +194,7 @@ button {
   cursor: pointer;
 
   &:hover {
-    color: $color-primary;
+    color: variables.$color-primary;
   }
 
   &:focus {
@@ -194,13 +204,12 @@ button {
 
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 input[type='number'] {
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 form {
@@ -213,48 +222,28 @@ form {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(255 255 255 / 20%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $color-blue;
-}
-
-::-webkit-scrollbar-thumb {
-  border-bottom: 4px solid white;
-  border-left: 4px solid white;
-  border-right: 4px solid white;
-  border-top: 4px solid white;
-}
-
-::-webkit-scrollbar-thumb {
+  background: variables.$color-blue;
   border: none;
-  -webkit-box-shadow: none;
   box-shadow: none;
-  -webkit-border-radius: 0;
   border-radius: 0;
   min-height: 40px;
 }
 
 a {
   text-decoration: none;
-  color: $color-primary;;
-  transition: all $main-transition-duration;
+  color: variables.$color-primary;;
+  transition: all variables.$main-transition-duration;
   cursor: pointer;
 
   &:hover {
-    color: $color-white;
+    color: variables.$color-white;
 
     svg {
-      fill: $color-white;
+      fill: variables.$color-white;
     }
   }
-}
-
-img,
-svg {
-  border: 0;
-  display: block;
-  margin: 0;
-  max-width: 100%;
 }

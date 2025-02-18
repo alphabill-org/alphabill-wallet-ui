@@ -1,0 +1,22 @@
+@use '../../css/variables';
+
+.error_notification {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  h2 {
+    margin-top: 32px;
+  }
+
+  div {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+
+  svg {
+    fill: variables.$color-primary;
+  }
+}

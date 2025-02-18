@@ -1,0 +1,58 @@
+@use '../../css/variables';
+
+.create-account {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+
+  &__info {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  &__header {
+    padding: 23px 48px;
+    width: 100%;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: variables.$color-body-background;
+
+    .close-btn {
+      position: absolute;
+      left: 24px;
+
+      svg {
+        transform: rotate(0deg);
+        fill: variables.$color-primary;
+      }
+
+      &:hover {
+        svg {
+          fill: variables.$color-primary-hover;
+        }
+      }
+    }
+  }
+
+  &__progress {
+    height: 6px;
+    background-color: rgb(255 255 255 / 15%);
+
+    &--active {
+      background-color: variables.$color-primary;
+      height: 100%;
+    }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    flex: 0 1;
+  }
+}

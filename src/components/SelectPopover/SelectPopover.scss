@@ -1,9 +1,8 @@
+@use '../../css/variables';
+
 .select__popover-wrap {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   height: 100%;
   min-width: 375px;
   max-width: 375px;
@@ -12,7 +11,7 @@
   display: flex;
   z-index: 100;
   overflow: auto;
-  transition: opacity $main-transition-duration;
+  transition: opacity variables.$main-transition-duration;
   transform: translateY(100%);
   user-select: none;
   align-items: flex-end;
@@ -26,7 +25,7 @@
 }
 
 .select__popover {
-  background-color: $color-white;
+  background-color: variables.$color-white;
   font-weight: 400;
   font-size: 16px;
   line-height: 22px;
@@ -39,7 +38,7 @@
     font-weight: 400;
     font-size: 14px;
     line-height: 18px;
-    font-family: $font-family-base;
+    font-family: variables.$font-family-base;
   }
 }
 
@@ -51,9 +50,9 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 22px;
-  border-bottom: 1px solid $color-secondary;
+  border-bottom: 1px solid variables.$color-secondary;
   cursor: pointer;
-  transition: all $main-transition-duration;
+  transition: all variables.$main-transition-duration;
   max-height: 55px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -61,11 +60,11 @@
 
   &:hover,
   &--active {
-    background: $color-light;
+    background: variables.$color-light;
   }
 
   &--hidden {
-    max-height: 0px;
+    max-height: 0;
     padding: 0 12px;
     border-bottom: none;
   }
@@ -74,7 +73,7 @@
 .select__popover-checkbox {
   margin: 0 24px;
   padding: 8px 0;
-  border-bottom: 1px solid $color-secondary;
+  border-bottom: 1px solid variables.$color-secondary;
 
   svg {
     color: #0C0A3E;
@@ -89,11 +88,11 @@
   font-weight: 700;
   font-size: 16px;
   line-height: 26px;
-  border-bottom: 1px solid $color-secondary;
+  border-bottom: 1px solid variables.$color-secondary;
 
   svg {
     cursor: pointer;
-    transition: all $main-transition-duration;
+    transition: all variables.$main-transition-duration;
 
     &:hover {
       opacity: .7;
@@ -107,16 +106,15 @@
   padding: 24px 0 16px;
   margin: 0 24px;
   font-weight: bold;
-  border-bottom: 1px solid $color-secondary;
+  border-bottom: 1px solid variables.$color-secondary;
   overflow: hidden;
-  transition: all $main-transition-duration;
+  transition: all variables.$main-transition-duration;
   max-height: 58px;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .select__popover-test-networks.select__popover-test-networks--hidden {
-  max-height: 0px;
+  max-height: 0;
   padding: 0;
   border-bottom: none;
 }

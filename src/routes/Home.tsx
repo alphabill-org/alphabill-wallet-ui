@@ -1,17 +1,21 @@
-import Dashboard from "../components/Dashboard/Dashboard";
-import Header from "../components/Header/Header";
-import Actions from "../actionViews/Actions";
-import { ToolBar } from "../components/ToolBar/ToolBar";
+import { ReactElement, useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 
-function Home(): JSX.Element {
+import { useAuthentication } from '../hooks/authenticationContext';
+
+export function Home(): ReactElement {
+  const { isLoggedIn } = useAuthentication();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { replace: true });
+    }
+  }, [isLoggedIn]);
+
   return (
     <>
-      <Header />
-      <Dashboard />
-      <Actions />
-      <ToolBar/>
+      <Outlet />
     </>
   );
 }
-
-export default Home;

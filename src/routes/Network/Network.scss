@@ -1,0 +1,18 @@
+@use '../../css/variables';
+
+.network {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    padding: 0 24px 24px;
+    gap: 22px;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+}

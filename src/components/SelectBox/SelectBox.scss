@@ -1,0 +1,48 @@
+@use '../../css/variables';
+
+.select {
+  &__label {
+    margin-bottom: 4px;
+  }
+
+  &__body {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    height: 38px;
+    padding: 7px 14px;
+    background: variables.$color-secondary;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  &__button {
+    gap: 8px;
+    color: variables.$color-white;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    fill: variables.$color-white;
+    max-width: 100%;
+
+    &--text {
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &--icon {
+      fill: variables.$color-white;
+    }
+  }
+
+  &__popover {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  &__options {
+    width: 100%;
+  }
+}

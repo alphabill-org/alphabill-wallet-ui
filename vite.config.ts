@@ -1,39 +1,22 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import viteTsconfigPaths from "vite-tsconfig-paths";
-import svgrPlugin from "vite-plugin-svgr";
-import eslint from 'vite-plugin-eslint'
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [eslint(), react(), viteTsconfigPaths(), svgrPlugin()],
   build: {
-    outDir: "build",
-    chunkSizeWarningLimit: 2000
+    chunkSizeWarningLimit: 2000,
+    outDir: 'build',
   },
   define: {
-    global: "globalThis",
+    global: 'globalThis',
   },
-  server: {
-    port: 3000,
-    open: true,
-  },
+  plugins: [react(), svgr()],
   preview: {
     port: 3001,
   },
-  resolve: {
-    alias: {
-      events: "events",
-      stream: "stream-browserify",
-      zlib: "browserify-zlib",
-      "util/": "util",
-      path: "path-browserify",
-      crypto: "crypto-browserify",
-      assert: "assert",
-      http: "stream-http",
-      https: "https-browserify",
-      os: "os-browserify",
-      url: "url",
-    },
-  }
+  server: {
+    open: true,
+    port: 3000,
+  },
 });

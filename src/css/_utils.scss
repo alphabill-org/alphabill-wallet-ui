@@ -1,3 +1,5 @@
+@use './variables';
+
 // Flex
 
 .flex {
@@ -25,7 +27,7 @@
     margin: 0 16px;
     width: calc(50% - 32px);
 
-    @media (max-width: 760px) {
+    @media (width <= 760px) {
       width: 100%;
     }
   }
@@ -104,16 +106,12 @@
   padding-left: 16px;
 }
 
-.pad-8-l {
-  padding-left: 8px;
-}
-
 // Icons
 .icon-wrap {
   height: 32px;
   width: 32px;
   border-radius: 50%;
-  background-color: $color-light;
+  background-color: variables.$color-light;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,37 +160,23 @@
 // Color
 
 .c-light {
-  color: $color-light;
+  color: variables.$color-light;
 }
 
 .c-primary {
-  color: $color-primary;
+  color: variables.$color-primary;
 }
 
 .c-error {
-  color: $color-error
+  color: variables.$color-error
 }
 
 .c-blue {
-  color: $color-blue;
+  color: variables.$color-blue;
 }
 
 .f-blue {
-  fill: $color-blue;
-}
-
-// Widths
-
-.mw-100p {
-  max-width: 100%;
-}
-
-.mw-200px {
-  max-width: 200px;
-}
-
-.w-100p {
-  width: 100%;
+  fill: variables.$color-blue;
 }
 
 // Displays

@@ -1,0 +1,10 @@
+@use '../../css/variables';
+
+.key {
+  &__select {
+    &--key {
+      margin-left: 8px;
+      color: variables.$color-underpants;
+    }
+  }
+}

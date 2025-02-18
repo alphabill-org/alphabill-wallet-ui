@@ -1,0 +1,60 @@
+.fees {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  flex-grow: 1;
+
+  &__content {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    flex-grow: 1;
+
+    &__tabs {
+      border-bottom: 1px solid #4E3EB6;
+      display: flex;
+      margin-top: 6px;
+    }
+
+    &__tab {
+      cursor: pointer;
+      flex-grow: 1;
+      text-align: center;
+      padding-bottom: 12px;
+
+      &--active {
+        border-bottom: 1px solid #08E8DE;
+      }
+    }
+  }
+
+  &--loading {
+    flex-grow: 1;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &--error {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+}
+
+.select__option--text {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

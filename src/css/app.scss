@@ -1,75 +1,33 @@
-@font-face {
-  font-family: "grotesk";
-  font-style: normal;
-  font-weight: 300;
-  src: url("./fonts/SpaceGrotesk-Light.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "grotesk";
-  font-style: normal;
-  font-weight: 400;
-  src: url("./fonts/SpaceGrotesk-Regular.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "grotesk";
-  font-style: normal;
-  font-weight: 500;
-  src: url("./fonts/SpaceGrotesk-Medium.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "grotesk";
-  font-style: normal;
-  font-weight: 600;
-  src: url("./fonts/SpaceGrotesk-SemiBold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "grotesk";
-  font-style: normal;
-  font-weight: 700;
-  src: url("./fonts/SpaceGrotesk-Bold.ttf") format("truetype");
-}
-
-@import './variables.scss';
-@import './utils.scss';
-@import './reset.scss';
-
-@import '../actionViews/Actions.scss';
-@import '../actionViews/components/BillsList/BillsList.scss';
-@import '../components/Popup/Popup.scss';
-@import '../components/Animations/Animations.scss';
-@import '../components/Button/Button.scss';
-
-@import '../components/AssetCard/AssetCard.scss';
-@import '../components/FeeCredit/FeeCreditCard/FeeCreditCard.scss';
-@import '../components/FeeCredit/FeeCreditSection.scss';
-@import '../components/AssetCard/AssetCardIcon/AssetCardIcon.scss';
-@import '../components/AssetsList/AssetsList.scss';
-@import '../components/Form/Form.scss';
-@import '../components/Checkbox/Checkbox.scss';
-@import '../components/Header/Header.scss';
-@import '../components/Select/Select.scss';
-@import '../components/Spacer/Spacer.scss';
-@import '../components/Spinner/Spinner.scss';
-@import '../components/Textfield/Textfield.scss';
-@import '../components/Dashboard/Dashboard.scss';
-@import '../components/SelectPopover/SelectPopover.scss';
-@import '../components/Alert/Alert.scss';
-@import '../components/ToolBar/ToolBar.scss';
-
-@import '../routes/Login/Login.scss';
-@import 'react-tooltip/dist/react-tooltip.css';
+@use './fonts';
+@use './variables';
+@use './utils';
+@use './reset';
+@use '../components/Button/Button';
+@use '../components/Footer/Footer';
+@use '../components/Form/Form';
+@use '../components/Header/Header';
+@use '../components/InputField/InputField';
+@use '../components/NavBar/Navbar';
+@use '../components/SelectPopover/SelectPopover';
+@use '../components/Loading/Loading';
+@use '../components/SelectBox/SelectBox';
+@use '../components/ErrorNotification/ErrorNotification';
+@use '../components/PublicKeySelectBox/PublicKeySelectBox';
+@use '../routes/Login/Login';
+@use '../routes/CreateWallet/CreateWallet';
+@use '../routes/TokenList/TokenList';
+@use '../routes/TokenList/Transfer';
+@use '../routes/Settings/Settings';
+@use '../routes/Fees/Fees';
+@use '../routes/Network/Network';
 
 .app {
   min-width: 375px;
   max-width: 375px;
   min-height: 667px;
   max-height: 667px;
-  background-color: $color-body-background;
-  color: $color-white;
+  background-color: variables.$color-body-background;
+  color: variables.$color-white;
   display: flex;
   justify-content: center;
   overflow: hidden;
@@ -82,36 +40,17 @@
     width: 100%;
     justify-content: space-between;
     z-index: 1;
-    overflow-x: hidden;
-    overflow-y: auto;
-    box-sizing: border-box
+    overflow: hidden auto;
+    box-sizing: border-box;
   }
 
   &__background {
-      position: absolute;
-      background-color: $color-secondary;
-      border-radius: 50%;
-      opacity: 0.7;
-      z-index: 0;
+    position: absolute;
+    background-color: variables.$color-secondary;
+    border-radius: 50%;
+    opacity: 0.7;
+    z-index: 0;
   }
-
-  &__background-top {
-    @extend .app__background;
-    top: -27px;
-    left: 148px;
-    width: 385px;
-    height: 385px;
-    filter: blur(120px);
- }
-
- &__background-bottom {
-    @extend .app__background;
-    top: 311px;
-    left: -161px;
-    width: 347px;
-    height: 347px;
-    filter: blur(120px);
- }
 
   h1 {
     font-weight: 400;
