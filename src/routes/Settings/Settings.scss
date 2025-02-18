@@ -28,22 +28,23 @@
         fill: variables.$color-light;
       }
 
+      &-row {
+        display: flex;
+        color: #fff;
+
+        &:hover {
+          cursor: pointer;
+          color: variables.$color-primary;
+
+          svg path {
+            fill: variables.$color-primary;
+          }
+        }
+      }
+
       &-label {
         margin-left: 12px;
         margin-right: auto;
-      }
-
-      &-chevron {
-        transform: rotate(-90deg);
-      }
-
-      &:hover {
-        cursor: pointer;
-        color: variables.$color-primary;
-
-        svg path {
-          fill: variables.$color-primary;
-        }
       }
     }
   }
