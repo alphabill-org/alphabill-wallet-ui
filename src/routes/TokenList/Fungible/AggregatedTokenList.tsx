@@ -45,6 +45,7 @@ export function AggregatedTokenList(): ReactElement {
 
   if (fungibleTokens.isError || alphas.isError) {
     const error = fungibleTokens.error || alphas.error;
+    console.error(error);
     return (
       <div className="units--error">
         <ErrorNotification title="Error occurred" info={error?.message} />
