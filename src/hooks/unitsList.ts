@@ -20,8 +20,12 @@ export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIden
 
   return useQuery<Response<T> | null>({
     queryFn: () => {
-      if (!alphabill || !ownerId) {
-        return Promise.resolve(null);
+      if (!alphabill) {
+        throw new Error('Invalid Alphabill context.');
+      }
+
+      if (!ownerId) {
+        throw new Error('Invalid owner ID.');
       }
 
       const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;

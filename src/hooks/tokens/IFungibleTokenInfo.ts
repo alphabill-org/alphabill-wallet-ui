@@ -1,4 +1,4 @@
-import { ITokenIcon } from '../units/ITokenIcon';
+import { ITokenIcon } from './ITokenIcon';
 
 export interface IFungibleTokenInfo<T> {
   readonly id: string;

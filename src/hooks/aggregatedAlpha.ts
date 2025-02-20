@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { ALPHA_DECIMAL_PLACES, ALPHA_ICON, ALPHA_KEY } from '../constants';
 import { useAlphas } from './alpha';
-import { IFungibleTokenInfo } from './fungible/IFungibleTokenInfo';
+import { IFungibleTokenInfo } from './tokens/IFungibleTokenInfo';
 import { QueryResult } from '../utils/queryResult';
 
 function createAlphaInfo(total: bigint, units: Bill[]): IFungibleTokenInfo<Bill> {

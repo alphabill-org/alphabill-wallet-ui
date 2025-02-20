@@ -1,6 +1,6 @@
 import { PropsWithChildren, ReactElement, useState } from 'react';
 
-import { ITokenIcon } from '../../../hooks/units/ITokenIcon';
+import { ITokenIcon } from '../../../hooks/tokens/ITokenIcon';
 import { formatValueWithDecimalPlaces } from '../../../utils/decimal';
 
 interface IAggregatedTokenItemProps {
@@ -10,7 +10,7 @@ interface IAggregatedTokenItemProps {
   readonly value: bigint;
 }
 
-export function AggregatedTokenItem(props: PropsWithChildren<IAggregatedTokenItemProps>): ReactElement {
+export function AggregatedFungibleTokenItem(props: PropsWithChildren<IAggregatedTokenItemProps>): ReactElement {
   const { decimalPlaces, icon, name, value } = props;
   const [error, setError] = useState<boolean>(false);
   return (

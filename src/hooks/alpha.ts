@@ -19,6 +19,10 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
 
   return useQuery<Map<string, Bill> | null>({
     queryFn: async () => {
+      if (unitsList.isError) {
+        throw new Error('Unable to connect to Alphabill network.');
+      }
+
       if (!alphabill || !ownerId || !unitsList.data) {
         return Promise.resolve(null);
       }
@@ -41,12 +45,15 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
 
       return result;
     },
-    queryKey: createFetchUnitsQueryKey(
-      QUERY_KEYS.ALPHA,
-      serializedOwnerId,
-      !!unitsList.data?.bills.length,
-      PartitionIdentifier.MONEY,
-      alphabill?.network.id,
-    ),
+    queryKey: [
+      ...createFetchUnitsQueryKey(
+        QUERY_KEYS.ALPHA,
+        serializedOwnerId,
+        !!unitsList.data?.bills.length,
+        PartitionIdentifier.MONEY,
+        alphabill?.network.id,
+      ),
+      unitsList.isError,
+    ],
   });
 }

@@ -2,7 +2,7 @@ import { PropsWithChildren, ReactElement, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button } from '../../../components/Button/Button';
-import { ITokenIcon } from '../../../hooks/units/ITokenIcon';
+import { ITokenIcon } from '../../../hooks/tokens/ITokenIcon';
 import SendIcon from '../../../images/send-ico.svg?react';
 
 interface INonFungibleTokenItemProps {

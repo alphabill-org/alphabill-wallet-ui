@@ -34,7 +34,11 @@ export function useFungibleTokenTypes(
 
   return useQuery<Map<string, FungibleTokenType> | null>({
     queryFn: async () => {
-      if (!alphabill || !ownerId) {
+      if (units.isError) {
+        throw new Error('Unable to connect to Alphabill network.');
+      }
+
+      if (!alphabill || !ownerId || !units.data) {
         return Promise.resolve(null);
       }
 
@@ -56,12 +60,15 @@ export function useFungibleTokenTypes(
 
       return result;
     },
-    queryKey: createFetchUnitTypesQueryKey(
-      QUERY_KEYS.FUNGIBLE,
-      serializedOwnerId,
-      !!tokenTypes.length,
-      PartitionIdentifier.TOKEN,
-      alphabill?.network.id,
-    ),
+    queryKey: [
+      ...createFetchUnitTypesQueryKey(
+        QUERY_KEYS.FUNGIBLE,
+        serializedOwnerId,
+        !!tokenTypes.length,
+        PartitionIdentifier.TOKEN,
+        alphabill?.network.id,
+      ),
+      units.isError,
+    ],
   });
 }

@@ -37,7 +37,7 @@ export function FungibleTokenTransfer(): ReactElement {
     async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
       ev.preventDefault();
       if (!alphabill) {
-        throw new Error('Invalid alphabill context');
+        throw new Error('Invalid Alphabill context.');
       }
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
@@ -64,13 +64,13 @@ export function FungibleTokenTransfer(): ReactElement {
         const token = fungibleTokens.data?.get(unitId.toString());
         if (!token) {
           setIsLoading(false);
-          throw new Error('Token with ID ' + unitId.toString() + 'not found');
+          throw new Error('Token with ID ' + unitId.toString() + ' not found.');
         }
 
         const feeCreditRecordId = feeCredits.data?.feeCreditRecords.at(0);
         if (!feeCreditRecordId) {
           setIsLoading(false);
-          throw new Error('Fee credit not found');
+          throw new Error('Fee credit not found.');
         }
 
         const round = (await alphabill!.tokenClient.getRoundInfo()).roundNumber;
@@ -94,7 +94,7 @@ export function FungibleTokenTransfer(): ReactElement {
         const transferProof = await alphabill.tokenClient.waitTransactionProof(transferHash, TransferFungibleToken);
         setIsLoading(false);
         if (!transferProof.transactionRecord.serverMetadata.successIndicator) {
-          throw new Error('Transfer failed');
+          throw new Error('Transfer failed.');
         }
         await resetQuery.resetUnitList(Predicates.FUNGIBLE_TOKEN);
         navigate('/units/fungible');
@@ -108,7 +108,7 @@ export function FungibleTokenTransfer(): ReactElement {
 
   const unitIdParam = params.id;
   if (!unitIdParam) {
-    throw new Error('Unit ID is mandatory');
+    throw new Error('Unit ID is mandatory.');
   }
   const unitId = UnitId.fromBytes(Base16Converter.decode(unitIdParam));
 
@@ -145,7 +145,7 @@ export function FungibleTokenTransfer(): ReactElement {
         <form className="transfer__form" onSubmit={transfer}>
           <FormContent>
             <TextField label="Address" name="address" focusInput error={errors.get('address')} />
-            <PasswordField label="password" name="password" error={errors.get('password')} />
+            <PasswordField label="Password" name="password" error={errors.get('password')} />
           </FormContent>
           <FormFooter>
             <Button className="transfer__button" block={true} type="submit" variant="primary">

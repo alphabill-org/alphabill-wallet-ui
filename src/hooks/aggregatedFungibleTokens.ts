@@ -1,9 +1,9 @@
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { useMemo } from 'react';
 
-import { IFungibleTokenInfo } from './fungible/IFungibleTokenInfo';
 import { useFungibleTokens } from './fungibleToken';
 import { useFungibleTokenTypes } from './fungibleTokenType';
+import { IFungibleTokenInfo } from './tokens/IFungibleTokenInfo';
 import { QueryResult } from '../utils/queryResult';
 
 const textDecoder = new TextDecoder();

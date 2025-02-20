@@ -12,7 +12,6 @@ import {
 
 interface IResetQuery {
   resetUnitById(id: IUnitId, predicate: Predicate): Promise<void>;
-  resetUnits(predicate: Predicate): Promise<void>;
   resetUnitList(predicate: Predicate): Promise<void>;
 }
 
@@ -61,23 +60,6 @@ export function useResetQuery(): IResetQuery {
     [queryClient],
   );
 
-  const resetUnits = useCallback(
-    async ({ partition, type }: Predicate) => {
-      await queryClient.resetQueries({
-        predicate: (query) => createInvalidateUnitByIdPredicate(query, partition, type),
-      });
-
-      await queryClient.resetQueries({
-        predicate: (query) => createInvalidateUnitsPredicate(query, partition, type),
-      });
-
-      await queryClient.resetQueries({
-        predicate: (query) => createInvalidateUnitListPredicate(query, partition),
-      });
-    },
-    [queryClient],
-  );
-
   const resetUnitList = useCallback(
     async ({ partition, type }: Predicate) => {
       await queryClient.resetQueries({
@@ -95,5 +77,5 @@ export function useResetQuery(): IResetQuery {
     [queryClient],
   );
 
-  return { resetUnitById, resetUnitList, resetUnits };
+  return { resetUnitById, resetUnitList };
 }

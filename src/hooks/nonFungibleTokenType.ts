@@ -56,12 +56,15 @@ export function useNonFungibleTokenTypes(
 
       return result;
     },
-    queryKey: createFetchUnitTypesQueryKey(
-      QUERY_KEYS.NON_FUNGIBLE,
-      serializedOwnerId,
-      !!tokenTypes.length,
-      PartitionIdentifier.TOKEN,
-      alphabill?.network.id,
-    ),
+    queryKey: [
+      ...createFetchUnitTypesQueryKey(
+        QUERY_KEYS.NON_FUNGIBLE,
+        serializedOwnerId,
+        !!tokenTypes.length,
+        PartitionIdentifier.TOKEN,
+        alphabill?.network.id,
+      ),
+      units.isError,
+    ],
   });
 }
