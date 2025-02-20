@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { ALPHA_KEY } from '../../../constants';
 import { useAggregatedAlphas } from '../../../hooks/aggregatedAlpha';
 import { useVault } from '../../../hooks/vaultContext';
-import { AggregatedFungibleTokenItem } from '../Fungible/AggregatedFungibleTokenItem';
 import { TokenContent } from '../TokenContent';
+import { AggregatedAlphaItem } from './AggregatedAlphaItem';
 
 export function AggregatedAlphaList(): ReactElement {
   const { selectedKey } = useVault();
@@ -14,8 +14,8 @@ export function AggregatedAlphaList(): ReactElement {
   return (
     <TokenContent selectedKey={selectedKey} query={alphas}>
       {alphas.data && (
-        <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
-          <AggregatedFungibleTokenItem
+        <Link key={ALPHA_KEY} to={`/units/alpha/${ALPHA_KEY}`}>
+          <AggregatedAlphaItem
             name={alphas.data.name}
             icon={alphas.data.icon}
             decimalPlaces={alphas.data.decimalPlaces}

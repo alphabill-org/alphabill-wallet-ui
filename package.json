@@ -11,8 +11,8 @@
     "preview": "vite preview",
     "stylelint": "stylelint \"**/*.scss\"",
     "stylelint:fix": "stylelint \"**/*.scss\" --fix",
-    "lint": "eslint \"src/**/*.tsx\"",
-    "lint:fix": "eslint \"src/**/*.tsx\" --fix"
+    "lint": "eslint \"src/**/*.tsx\" \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.tsx\" \"src/**/*.ts\" --fix"
   },
   "dependencies": {
     "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.c7e5cd7",
