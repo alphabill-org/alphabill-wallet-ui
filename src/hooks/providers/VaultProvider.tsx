@@ -192,7 +192,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
 
         return true;
       } catch (e) {
-        console.error('Decryption failed', e);
+        console.error('Decryption failed.', e);
         return false;
       }
     },

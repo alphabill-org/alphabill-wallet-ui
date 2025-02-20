@@ -1,15 +1,16 @@
 import { ReactElement, ReactNode } from 'react';
 
 import { NonFungibleTokenItem } from './NonFungibleTokenItem';
-import { useNonFungibleTokens } from '../../../hooks/nonFungibleToken';
+import { useNonFungibleTokensWithType } from '../../../hooks/nonFungibleTokenWithType';
 import { useVault } from '../../../hooks/vaultContext';
+import { TokenContent } from '../TokenContent';
 
 export function NonFungibleTokenList(): ReactElement {
   const { selectedKey } = useVault();
-  const nonFungibleTokens = useNonFungibleTokens(selectedKey?.publicKey.key ?? null);
+  const nonFungibleTokens = useNonFungibleTokensWithType(selectedKey?.publicKey.key ?? null);
 
   return (
-    <div className="units__content">
+    <TokenContent selectedKey={selectedKey} query={nonFungibleTokens}>
       {nonFungibleTokens.data &&
         Array.from(nonFungibleTokens.data.values()).map((token): ReactNode => {
           return (
@@ -21,6 +22,6 @@ export function NonFungibleTokenList(): ReactElement {
             />
           );
         })}
-    </div>
+    </TokenContent>
   );
 }

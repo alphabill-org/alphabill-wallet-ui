@@ -31,7 +31,19 @@ export function useFeeCredits(
 
   return useQuery<Map<string, FeeCreditRecord> | null>({
     queryFn: async () => {
-      if (!alphabill || !ownerId || !unitsList.data) {
+      if (!alphabill) {
+        throw new Error('Invalid Alphabill context.');
+      }
+
+      if (!ownerId) {
+        throw new Error('Invalid owner ID.');
+      }
+
+      if (!unitsList.isPending && unitsList.data === undefined) {
+        throw new Error('Unable to connect to Alphabill network.');
+      }
+
+      if (!unitsList.data) {
         return Promise.resolve(null);
       }
 

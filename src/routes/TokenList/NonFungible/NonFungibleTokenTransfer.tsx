@@ -37,7 +37,7 @@ export function NonFungibleTokenTransfer(): ReactElement {
     async (ev: FormEvent<HTMLFormElement>): Promise<void> => {
       ev.preventDefault();
       if (!alphabill) {
-        throw new Error('Invalid alphabill context');
+        throw new Error('Invalid Alphabill context.');
       }
       const errors = new Map<FormElements, string>();
       const data = new FormData(ev.currentTarget);
