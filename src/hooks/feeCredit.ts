@@ -31,19 +31,11 @@ export function useFeeCredits(
 
   return useQuery<Map<string, FeeCreditRecord> | null>({
     queryFn: async () => {
-      if (!alphabill) {
-        throw new Error('Invalid Alphabill context.');
-      }
-
-      if (!ownerId) {
-        throw new Error('Invalid owner ID.');
-      }
-
-      if (!unitsList.isPending && unitsList.data === undefined) {
+      if (unitsList.isError) {
         throw new Error('Unable to connect to Alphabill network.');
       }
 
-      if (!unitsList.data) {
+      if (!alphabill || !ownerId || !unitsList.data) {
         return Promise.resolve(null);
       }
 
@@ -60,12 +52,15 @@ export function useFeeCredits(
 
       return result;
     },
-    queryKey: createFetchUnitsQueryKey(
-      QUERY_KEYS.FEE_CREDIT,
-      serializedOwnerId,
-      !!unitsList.data?.feeCreditRecords.length,
-      partition,
-      alphabill?.network.id,
-    ),
+    queryKey: [
+      ...createFetchUnitsQueryKey(
+        QUERY_KEYS.FEE_CREDIT,
+        serializedOwnerId,
+        !!unitsList.data?.feeCreditRecords.length,
+        partition,
+        alphabill?.network.id,
+      ),
+      unitsList.isError,
+    ],
   });
 }
