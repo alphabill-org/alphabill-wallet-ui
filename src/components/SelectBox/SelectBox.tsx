@@ -59,7 +59,7 @@ export function SelectBox<T>({
     }
 
     return result;
-  }, [data]);
+  }, [data, createOption, select, getOptionKey]);
 
   return (
     <div className={`select ${className ?? ''}`}>
