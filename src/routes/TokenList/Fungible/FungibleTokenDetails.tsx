@@ -1,4 +1,3 @@
-import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { ReactElement } from 'react';
@@ -64,7 +63,7 @@ export function FungibleTokenDetails(): ReactElement {
     <div className="units__info">
       <Navbar title={tokenInfo.name} />
       <div className="units__info__content">
-        {tokenInfo.units.map((token: Bill | FungibleToken) => {
+        {tokenInfo.units.map((token: FungibleToken) => {
           return (
             <FungibleTokenItem
               key={Base16Converter.encode(token.unitId.bytes)}
