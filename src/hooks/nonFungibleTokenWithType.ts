@@ -23,9 +23,13 @@ export function useNonFungibleTokensWithType(
         // TODO: Do something with tokens which are missing type
         continue;
       }
+      let typeIcon = null;
+      if (type.icon) {
+        typeIcon = { data: btoa(new TextDecoder().decode(type.icon.data)), type: type.icon.type };
+      }
       result.set(unit.unitId.toString(), {
         counter: unit.counter,
-        icon: { data: btoa(new TextDecoder().decode(type.icon.data)), type: type.icon.type },
+        icon: typeIcon,
         name: unit.name,
         typeId: unit.typeId,
         unitId: unit.unitId,

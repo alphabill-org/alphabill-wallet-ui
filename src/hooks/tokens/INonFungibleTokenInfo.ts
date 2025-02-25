@@ -6,6 +6,6 @@ export interface INonFungibleTokenInfo {
   readonly unitId: IUnitId;
   readonly typeId: IUnitId;
   readonly name: string;
-  readonly icon: ITokenIcon;
+  readonly icon: ITokenIcon | null;
   readonly counter: bigint;
 }

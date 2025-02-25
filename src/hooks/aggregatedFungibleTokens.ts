@@ -6,7 +6,6 @@ import { useFungibleTokenTypes } from './fungibleTokenType';
 import { IFungibleTokenInfo } from './tokens/IFungibleTokenInfo';
 import { QueryResult } from '../utils/queryResult';
 
-const textDecoder = new TextDecoder();
 export function useAggregatedFungibleTokens(
   ownerId: Uint8Array | null,
 ): QueryResult<Map<string, IFungibleTokenInfo<FungibleToken>> | null> {
@@ -36,13 +35,13 @@ export function useAggregatedFungibleTokens(
         // TODO: Do something with tokens which are missing type
         continue;
       }
-
+      let typeIcon = null;
+      if (type.icon) {
+        typeIcon = { data: btoa(new TextDecoder().decode(type.icon.data)), type: type.icon.type };
+      }
       result.set(typeId, {
         decimalPlaces: type.decimalPlaces,
-        icon: {
-          data: btoa(textDecoder.decode(type.icon.data)),
-          type: type.icon.type,
-        },
+        icon: typeIcon,
         id: typeId,
         name: type.name,
         total: tokens.reduce((previous, current) => previous + current.value, 0n),
