@@ -121,7 +121,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       await unlock(password);
       return true;
     },
-    [createVault],
+    [createVault, keys],
   );
 
   const deriveKey = useCallback(async (mnemonic: string, index: number) => {
