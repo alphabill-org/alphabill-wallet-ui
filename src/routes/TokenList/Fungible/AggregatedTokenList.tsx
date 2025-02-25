@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 
-import { AggregatedTokenItem } from './AggregatedTokenItem';
+import { AggregatedFungibleTokenItem } from './AggregatedFungibleTokenItem';
 import { ErrorNotification } from '../../../components/ErrorNotification/ErrorNotification';
 import { Loading } from '../../../components/Loading/Loading';
 import { ALPHA_KEY } from '../../../constants';
@@ -58,7 +58,7 @@ export function AggregatedTokenList(): ReactElement {
   if (alphas.data) {
     tokenItems.push(
       <Link key={ALPHA_KEY} to={`/units/fungible/${ALPHA_KEY}`}>
-        <AggregatedTokenItem
+        <AggregatedFungibleTokenItem
           name={alphas.data.name}
           icon={alphas.data.icon}
           decimalPlaces={alphas.data.decimalPlaces}
@@ -72,7 +72,7 @@ export function AggregatedTokenList(): ReactElement {
     for (const token of fungibleTokens.data.values()) {
       tokenItems.push(
         <Link key={token.id} to={`/units/fungible/${token.id}`}>
-          <AggregatedTokenItem
+          <AggregatedFungibleTokenItem
             name={token.name}
             icon={token.icon}
             decimalPlaces={token.decimalPlaces}

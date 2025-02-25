@@ -112,7 +112,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
       feeCreditRecord: FeeCreditRecord | null,
     ) => {
       if (!alphabill) {
-        throw new Error(`Invalid alphabill context: ${alphabill}`);
+        throw new Error(`Invalid Alphabill context.`);
       }
 
       const round = (await moneyClient.getRoundInfo()).roundNumber;
@@ -183,7 +183,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
 
       try {
         if (!alphabill) {
-          throw new Error('Invalid alphabill context');
+          throw new Error('Invalid Alphabill context.');
         }
 
         await addFeeCredit(

@@ -19,6 +19,10 @@ export function useNonFungibleTokens(ownerId: Uint8Array | null): UseQueryResult
 
   return useQuery<Map<string, NonFungibleToken> | null>({
     queryFn: async () => {
+      if (unitsList.isError) {
+        throw new Error('Unable to connect to Alphabill network.');
+      }
+
       if (!alphabill || !ownerId || !unitsList.data) {
         return Promise.resolve(null);
       }
@@ -41,12 +45,15 @@ export function useNonFungibleTokens(ownerId: Uint8Array | null): UseQueryResult
 
       return result;
     },
-    queryKey: createFetchUnitsQueryKey(
-      QUERY_KEYS.NON_FUNGIBLE,
-      serializedOwnerId,
-      !!unitsList.data?.nonFungibleTokens.length,
-      PartitionIdentifier.TOKEN,
-      alphabill?.network.id,
-    ),
+    queryKey: [
+      ...createFetchUnitsQueryKey(
+        QUERY_KEYS.NON_FUNGIBLE,
+        serializedOwnerId,
+        !!unitsList.data?.nonFungibleTokens.length,
+        PartitionIdentifier.TOKEN,
+        alphabill?.network.id,
+      ),
+      unitsList.isError,
+    ],
   });
 }

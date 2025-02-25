@@ -7,7 +7,8 @@ import { Home } from './routes/Home';
 import { Login } from './routes/Login/Login';
 import { Network } from './routes/Network/Network';
 import { Settings } from './routes/Settings/Settings';
-import { AggregatedTokenList } from './routes/TokenList/Fungible/AggregatedTokenList';
+import { AggregatedAlphaList } from './routes/TokenList/Alpha/AggregatedAlphaList';
+import { AggregatedFungibleTokenList } from './routes/TokenList/Fungible/AggregatedFungibleTokenList';
 import { FungibleTokenDetails } from './routes/TokenList/Fungible/FungibleTokenDetails';
 import { FungibleTokenTransfer } from './routes/TokenList/Fungible/FungibleTokenTransfer';
 import { NonFungibleTokenList } from './routes/TokenList/NonFungible/NonFungibleTokenList';
@@ -23,8 +24,9 @@ export function App(): ReactElement {
             <Route path="fees" element={<Fees />} />
             <Route path="network" element={<Network />} />
             <Route path="units" element={<TokenList />}>
-              <Route path="fungible" element={<AggregatedTokenList />} />
+              <Route path="fungible" element={<AggregatedFungibleTokenList />} />
               <Route path="non-fungible" element={<NonFungibleTokenList />} />
+              <Route path="alpha" element={<AggregatedAlphaList />} />
             </Route>
             <Route path="units/fungible/:id" element={<FungibleTokenDetails />} />
             <Route path="units/fungible/:id/transfer" element={<FungibleTokenTransfer />} />
