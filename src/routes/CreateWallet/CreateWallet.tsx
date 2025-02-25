@@ -123,7 +123,7 @@ export function CreateWallet({ isWalletRecovery = false }: { isWalletRecovery?: 
         throw new Error('Data is missing for creating a wallet.');
       }
 
-      await vault.createVault(keyInfo.mnemonic, password, { alias, index: 0 });
+      await vault.createVault(keyInfo.mnemonic, password, [{ alias, index: 0 }]);
       reset();
       navigate('/', { replace: true });
     },

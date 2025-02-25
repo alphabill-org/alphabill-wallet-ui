@@ -35,7 +35,9 @@ export interface IVaultContext {
 
   selectKey(index: number): void;
 
-  createVault(mnemonic: string, password: string, initialKey: IVaultKey): Promise<void>;
+  createVault(mnemonic: string, password: string, keys: IVaultKey[]): Promise<void>;
+
+  addKey(alias: string, password: string): Promise<boolean>;
 
   deriveKey(mnemonic: string, index: number): Promise<HDKey>;
 

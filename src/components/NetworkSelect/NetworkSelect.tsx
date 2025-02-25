@@ -1,7 +1,9 @@
 import { ReactElement, useCallback } from 'react';
+import { NavLink } from 'react-router-dom';
 
 import { INetwork, useNetwork } from '../../hooks/networkContext';
 import CheckIcon from '../../images/check-ico.svg?react';
+import { Button } from '../Button/Button';
 import { SelectBox } from '../SelectBox/SelectBox';
 
 interface INetworkSelectProps {
@@ -39,6 +41,11 @@ export const NetworkSelect = ({ label }: INetworkSelectProps): ReactElement => {
         select={select}
         getOptionKey={getOptionKey}
         createOption={createOption}
+        addButton={
+          <NavLink to="/network">
+            <Button>Add Network</Button>
+          </NavLink>
+        }
       />
     </>
   );

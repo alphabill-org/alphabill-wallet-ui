@@ -77,13 +77,13 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
   );
 
   const createVault = useCallback(
-    async (mnemonic: string, password: string, initialKey: IVaultKey) => {
+    async (mnemonic: string, password: string, keys: IVaultKey[]) => {
       const salt = new Uint8Array(32);
       crypto.getRandomValues(salt);
       const { key, iv } = await createEncryptionKey(password, salt);
 
       const data: IVault = {
-        keys: [initialKey],
+        keys,
         mnemonic,
       };
 
@@ -108,6 +108,20 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       );
     },
     [createEncryptionKey],
+  );
+
+  const addKey = useCallback(
+    async (alias: string, password: string) => {
+      const vault = await loadVault(password);
+      if (!vault) {
+        return false;
+      }
+      const lastIndex = vault.keys[keys.length - 1].index;
+      await createVault(vault.mnemonic, password, [...keys, { alias, index: lastIndex + 1 }]);
+      await unlock(password);
+      return true;
+    },
+    [createVault],
   );
 
   const deriveKey = useCallback(async (mnemonic: string, index: number) => {
@@ -235,7 +249,7 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
 
   return (
     <VaultContext.Provider
-      value={{ createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}
+      value={{ addKey, createVault, deriveKey, getSigningService, keys, lock, selectKey, selectedKey, unlock }}
     >
       {children}
     </VaultContext.Provider>
