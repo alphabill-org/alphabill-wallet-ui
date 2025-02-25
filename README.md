@@ -1,4 +1,4 @@
-# Getting Started with Alphabill Light Wallet
+# Getting Started with Alphabill Wallet
 
 ## Available Scripts
 
@@ -8,19 +8,15 @@ Installs dependencies for the project.
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser & uses devnet endpoints.\
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Runs the app. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### `npm run preview`
+### `npm run build`
 
-Runs the app locally to preview production build.\
-Open [http://localhost:3001](http://localhost:3001) to view it in the browser.
+Builds the app to `build` folder.
 
 ## Add wallet as Chrome extension
 
-Download the wallet build zip file under the given release assets & unpack it.
+Download the wallet build zip file under the given release assets & unpack it or use locally built data. 
 
 Open Your Extension in Chrome `chrome://extensions/`
 
