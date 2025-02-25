@@ -27,16 +27,16 @@ export function App(): ReactElement {
             <Route path="fees" element={<Fees />} />
             <Route path="network" element={<Network />} />
             <Route path="units" element={<TokenList />}>
+              <Route path="alpha" element={<AggregatedAlphaList />} />
               <Route path="fungible" element={<AggregatedFungibleTokenList />} />
               <Route path="non-fungible" element={<NonFungibleTokenList />} />
-              <Route path="alpha" element={<AggregatedAlphaList />} />
             </Route>
             <Route path="units/alpha/:id" element={<AlphaDetails />} />
             <Route path="units/alpha/:id/transfer" element={<AlphaTransfer />} />
             <Route path="units/fungible/:id" element={<FungibleTokenDetails />} />
             <Route path="units/fungible/:id/transfer" element={<FungibleTokenTransfer />} />
             <Route path="units/non-fungible/:id/transfer" element={<NonFungibleTokenTransfer />} />
-            <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
+            <Route path="" element={<Navigate to="/units/alpha" replace={true} />} />
           </Route>
           <Route path="/add-key" element={<AddKey />} />
           <Route path="/create-wallet" element={<CreateWallet />} />
