@@ -13,6 +13,7 @@ interface ISelectBoxProps<T> {
   readonly select: (item: T) => void;
   readonly getOptionKey: (item: T) => Key;
   readonly createOption: (item: T) => ReactNode;
+  readonly addButton: ReactNode;
 }
 
 export function SelectBox<T>({
@@ -24,6 +25,7 @@ export function SelectBox<T>({
   select,
   getOptionKey,
   createOption,
+  addButton,
 }: ISelectBoxProps<T>): ReactElement {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -71,6 +73,7 @@ export function SelectBox<T>({
         </Button>
         <SelectPopover onClose={closePopover} isPopoverVisible={isPopoverOpen} title={title}>
           <div className="select__options">{items}</div>
+          <div className="select__popover-footer">{addButton}</div>
         </SelectPopover>
       </div>
     </div>

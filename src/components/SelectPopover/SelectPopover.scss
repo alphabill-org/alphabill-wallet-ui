@@ -100,6 +100,15 @@
   }
 }
 
+.select__popover-footer {
+  padding: 16px 24px 8px;
+  display: flex;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 26px;
+}
+
 .select__popover-test-networks {
   font-size: 14px;
   line-height: 18px;

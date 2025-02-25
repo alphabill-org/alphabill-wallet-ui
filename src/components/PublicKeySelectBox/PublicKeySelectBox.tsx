@@ -1,7 +1,9 @@
 import { ReactElement, useCallback } from 'react';
+import { NavLink } from 'react-router-dom';
 
 import { IKeyInfo, useVault } from '../../hooks/vaultContext';
 import CheckIcon from '../../images/check-ico.svg?react';
+import { Button } from '../Button/Button';
 import { SelectBox } from '../SelectBox/SelectBox';
 
 export function PublicKeySelectBox(): ReactElement {
@@ -41,6 +43,11 @@ export function PublicKeySelectBox(): ReactElement {
       select={select}
       getOptionKey={getOptionKey}
       createOption={createOption}
+      addButton={
+        <NavLink to="/add-key">
+          <Button>Add Key</Button>
+        </NavLink>
+      }
     />
   );
 }

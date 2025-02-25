@@ -1,6 +1,7 @@
 import { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { AddKey } from './routes/CreateWallet/AddKey';
 import { CreateWallet } from './routes/CreateWallet/CreateWallet';
 import { Fees } from './routes/Fees/Fees';
 import { Home } from './routes/Home';
@@ -37,6 +38,7 @@ export function App(): ReactElement {
             <Route path="units/non-fungible/:id/transfer" element={<NonFungibleTokenTransfer />} />
             <Route path="" element={<Navigate to="/units/fungible" replace={true} />} />
           </Route>
+          <Route path="/add-key" element={<AddKey />} />
           <Route path="/create-wallet" element={<CreateWallet />} />
           <Route path="/recover-wallet" element={<CreateWallet isWalletRecovery={true} />} />
           <Route path="/login" element={<Login />} />

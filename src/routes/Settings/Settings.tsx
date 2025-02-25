@@ -26,6 +26,11 @@ export const Settings = (): ReactElement => {
       link: '/network',
     },
     {
+      icon: <KeyIcon />,
+      label: 'Add key',
+      link: '/add-key',
+    },
+    {
       icon: <FeeCreditIcon />,
       label: 'Transfer fee credits',
       link: '/fees',
