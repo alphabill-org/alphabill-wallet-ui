@@ -36,7 +36,6 @@ export function AddKey(): ReactElement {
 
       if (errors.size === 0) {
         navigate(-1);
-        ev.currentTarget.reset();
       }
     },
     [setErrors],
