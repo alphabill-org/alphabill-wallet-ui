@@ -8,8 +8,6 @@ import { Login } from './routes/Login/Login';
 import { Network } from './routes/Network/Network';
 import { Settings } from './routes/Settings/Settings';
 import { AggregatedAlphaList } from './routes/TokenList/Alpha/AggregatedAlphaList';
-import { AggregatedFungibleTokenList } from './routes/TokenList/Fungible/AggregatedFungibleTokenList';
-import { AggregatedAlphaList } from './routes/TokenList/Alpha/AggregatedAlphaList';
 import { AlphaDetails } from './routes/TokenList/Alpha/AlphaDetails';
 import { AlphaTransfer } from './routes/TokenList/Alpha/AlphaTransfer';
 import { AggregatedFungibleTokenList } from './routes/TokenList/Fungible/AggregatedFungibleTokenList';

@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { ALPHA_KEY } from '../../../constants';
 import { useAggregatedAlphas } from '../../../hooks/aggregatedAlpha';
 import { useVault } from '../../../hooks/vaultContext';
-import { AggregatedFungibleTokenItem } from '../Fungible/AggregatedFungibleTokenItem';
 import { TokenContent } from '../TokenContent';
 import { AggregatedAlphaItem } from './AggregatedAlphaItem';
 
