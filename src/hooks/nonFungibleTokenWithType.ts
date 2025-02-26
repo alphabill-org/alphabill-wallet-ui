@@ -1,3 +1,4 @@
+import { Base64Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base64Converter';
 import { useMemo } from 'react';
 
 import { useNonFungibleTokens } from './nonFungibleToken';
@@ -23,14 +24,10 @@ export function useNonFungibleTokensWithType(
         // TODO: Do something with tokens which are missing type
         continue;
       }
-      let typeIcon = null;
-      if (type.icon) {
-        typeIcon = { data: btoa(new TextDecoder().decode(type.icon.data)), type: type.icon.type };
-      }
       result.set(unit.unitId.toString(), {
         counter: unit.counter,
-        icon: typeIcon,
-        name: unit.name,
+        icon: type.icon ? { data: Base64Converter.encode(type.icon.data), type: type.icon.type } : null,
+        symbol: type.symbol,
         typeId: unit.typeId,
         unitId: unit.unitId,
       });

@@ -17,7 +17,7 @@ export function AggregatedFungibleTokenList(): ReactElement {
           return (
             <Link key={token.id} to={`/units/fungible/${token.id}`}>
               <AggregatedFungibleTokenItem
-                name={token.name}
+                symbol={token.symbol}
                 icon={token.icon}
                 decimalPlaces={token.decimalPlaces}
                 value={token.total}

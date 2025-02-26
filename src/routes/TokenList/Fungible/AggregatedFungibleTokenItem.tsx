@@ -7,20 +7,20 @@ import { TokenIcon } from '../TokenIcon';
 interface IAggregatedTokenItemProps {
   readonly decimalPlaces: number;
   readonly icon: ITokenIcon | null;
-  readonly name: string;
+  readonly symbol: string;
   readonly value: bigint;
 }
 
 export function AggregatedFungibleTokenItem(props: PropsWithChildren<IAggregatedTokenItemProps>): ReactElement {
-  const { decimalPlaces, icon, name, value } = props;
+  const { decimalPlaces, icon, symbol, value } = props;
 
   return (
     <div className={`units__content__unit hoverable`}>
       <div className="units__content__unit--icon">
-        <TokenIcon icon={icon} name={name} />
+        <TokenIcon icon={icon} symbol={symbol} />
       </div>
-      <div className="units__content__unit--text">{name}</div>
-      <div className="units__content__unit--value">{formatValueWithDecimalPlaces(value, decimalPlaces)}</div>
+      <div className="units__content__unit--text">{symbol}</div>
+      <div className="units__content__unit--aggregated-value">{formatValueWithDecimalPlaces(value, decimalPlaces)}</div>
     </div>
   );
 }

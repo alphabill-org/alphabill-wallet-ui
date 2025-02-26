@@ -15,7 +15,7 @@
     "lint:fix": "eslint \"src/**/*.tsx\" \"src/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.c7e5cd7",
+    "@alphabill/alphabill-js-sdk": "1.0.0-rc1-rc.a0a1660",
     "uuid": "11.0.5",
     "@scure/bip32": "1.6.2",
     "@scure/bip39": "1.5.4",

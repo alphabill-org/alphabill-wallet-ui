@@ -2,6 +2,7 @@ import { ReactElement, ReactNode } from 'react';
 
 import { NonFungibleTokenItem } from './NonFungibleTokenItem';
 import { useNonFungibleTokensWithType } from '../../../hooks/nonFungibleTokenWithType';
+import { INonFungibleTokenInfo } from '../../../hooks/tokens/INonFungibleTokenInfo';
 import { useVault } from '../../../hooks/vaultContext';
 import { TokenContent } from '../TokenContent';
 
@@ -12,13 +13,13 @@ export function NonFungibleTokenList(): ReactElement {
   return (
     <TokenContent selectedKey={selectedKey} query={nonFungibleTokens}>
       {nonFungibleTokens.data &&
-        Array.from(nonFungibleTokens.data.values()).map((token): ReactNode => {
+        Array.from(nonFungibleTokens.data.values()).map((token: INonFungibleTokenInfo): ReactNode => {
           return (
             <NonFungibleTokenItem
               icon={token.icon}
               id={token.unitId.toString()}
               key={token.unitId.toString()}
-              name={token.name}
+              symbol={token.symbol}
             />
           );
         })}

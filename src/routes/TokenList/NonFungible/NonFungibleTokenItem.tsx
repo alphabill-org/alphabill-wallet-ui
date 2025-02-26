@@ -9,18 +9,18 @@ import { TokenIcon } from '../TokenIcon';
 interface INonFungibleTokenItemProps {
   readonly icon: ITokenIcon | null;
   readonly id: string;
-  readonly name: string;
+  readonly symbol: string;
 }
 
 export function NonFungibleTokenItem(props: PropsWithChildren<INonFungibleTokenItemProps>): ReactElement {
-  const { icon, id, name } = props;
+  const { icon, id, symbol } = props;
 
   return (
     <div className={`units__content__unit hoverable`}>
       <div className="units__content__unit--icon">
-        <TokenIcon icon={icon} name={name} />
+        <TokenIcon icon={icon} symbol={symbol} />
       </div>
-      <div className="units__content__unit--text">{name}</div>
+      <div className="units__content__unit--text">{symbol}</div>
       <Link to={`/units/non-fungible/${id}/transfer`}>
         <Button type="button" variant="primary" isRounded={true}>
           <SendIcon />

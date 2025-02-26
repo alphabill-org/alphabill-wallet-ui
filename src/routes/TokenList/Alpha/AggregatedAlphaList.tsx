@@ -16,7 +16,7 @@ export function AggregatedAlphaList(): ReactElement {
       {alphas.data && (
         <Link key={ALPHA_KEY} to={`/units/alpha/${ALPHA_KEY}`}>
           <AggregatedAlphaItem
-            name={alphas.data.name}
+            symbol={alphas.data.symbol}
             icon={alphas.data.icon}
             decimalPlaces={alphas.data.decimalPlaces}
             value={alphas.data.total}
