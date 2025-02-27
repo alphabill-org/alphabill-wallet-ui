@@ -110,20 +110,6 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
     [createEncryptionKey],
   );
 
-  const addKey = useCallback(
-    async (alias: string, password: string) => {
-      const vault = await loadVault(password);
-      if (!vault) {
-        return false;
-      }
-      const lastIndex = vault.keys[keys.length - 1].index;
-      await createVault(vault.mnemonic, password, [...keys, { alias, index: lastIndex + 1 }]);
-      await unlock(password);
-      return true;
-    },
-    [createVault, keys],
-  );
-
   const deriveKey = useCallback(async (mnemonic: string, index: number) => {
     const seed = await mnemonicToSeed(mnemonic);
     const masterKey = HDKey.fromMasterSeed(seed);
@@ -241,6 +227,20 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       return new DefaultSigningService(key.privateKey);
     },
     [loadVault, deriveKey],
+  );
+
+  const addKey = useCallback(
+    async (alias: string, password: string) => {
+      const vault = await loadVault(password);
+      if (!vault) {
+        return false;
+      }
+      const lastIndex = vault.keys[keys.length - 1].index;
+      await createVault(vault.mnemonic, password, [...keys, { alias, index: lastIndex + 1 }]);
+      await unlock(password);
+      return true;
+    },
+    [createVault, keys, loadVault, unlock],
   );
 
   const selectedKey = useMemo(() => {
