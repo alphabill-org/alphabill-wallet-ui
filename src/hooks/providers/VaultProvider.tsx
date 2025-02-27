@@ -236,11 +236,11 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
         return false;
       }
       const lastIndex = vault.keys[keys.length - 1].index;
-      await createVault(vault.mnemonic, password, [...keys, { alias, index: lastIndex + 1 }]);
+      await createVault(vault.mnemonic, password, [...vault.keys, { alias, index: lastIndex + 1 }]);
       await unlock(password);
       return true;
     },
-    [createVault, keys, loadVault, unlock],
+    [createVault, loadVault, unlock],
   );
 
   const selectedKey = useMemo(() => {
