@@ -61,7 +61,7 @@ export function FungibleTokenDetails(): ReactElement {
 
   return (
     <div className="units__info">
-      <Navbar title={tokenInfo.name} />
+      <Navbar title={tokenInfo.symbol} />
       <div className="units__info__content">
         {tokenInfo.units.map((token: FungibleToken) => {
           return (

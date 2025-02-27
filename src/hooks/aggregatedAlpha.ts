@@ -11,7 +11,7 @@ function createAlphaInfo(total: bigint, units: Bill[]): IFungibleTokenInfo<Bill>
     decimalPlaces: ALPHA_DECIMAL_PLACES,
     icon: ALPHA_ICON,
     id: ALPHA_KEY,
-    name: ALPHA_KEY,
+    symbol: ALPHA_KEY,
     total,
     units,
   };

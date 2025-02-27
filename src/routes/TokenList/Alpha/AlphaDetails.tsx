@@ -60,7 +60,7 @@ export function AlphaDetails(): ReactElement {
 
   return (
     <div className="units__info">
-      <Navbar title={alphaInfo.name} />
+      <Navbar title={alphaInfo.symbol} />
       <div className="units__info__content">
         {alphaInfo.units.map((alpha: Bill) => {
           return (

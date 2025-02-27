@@ -5,7 +5,7 @@ import { ITokenIcon } from './ITokenIcon';
 export interface INonFungibleTokenInfo {
   readonly unitId: IUnitId;
   readonly typeId: IUnitId;
-  readonly name: string;
-  readonly icon: ITokenIcon;
+  readonly symbol: string;
+  readonly icon: ITokenIcon | null;
   readonly counter: bigint;
 }

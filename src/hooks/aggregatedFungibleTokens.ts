@@ -1,4 +1,5 @@
 import { FungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleToken';
+import { Base64Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base64Converter';
 import { useMemo } from 'react';
 
 import { useFungibleTokens } from './fungibleToken';
@@ -6,7 +7,6 @@ import { useFungibleTokenTypes } from './fungibleTokenType';
 import { IFungibleTokenInfo } from './tokens/IFungibleTokenInfo';
 import { QueryResult } from '../utils/queryResult';
 
-const textDecoder = new TextDecoder();
 export function useAggregatedFungibleTokens(
   ownerId: Uint8Array | null,
 ): QueryResult<Map<string, IFungibleTokenInfo<FungibleToken>> | null> {
@@ -36,15 +36,11 @@ export function useAggregatedFungibleTokens(
         // TODO: Do something with tokens which are missing type
         continue;
       }
-
       result.set(typeId, {
         decimalPlaces: type.decimalPlaces,
-        icon: {
-          data: btoa(textDecoder.decode(type.icon.data)),
-          type: type.icon.type,
-        },
+        icon: type.icon ? { data: Base64Converter.encode(type.icon.data), type: type.icon.type } : null,
         id: typeId,
-        name: type.name,
+        symbol: type.symbol,
         total: tokens.reduce((previous, current) => previous + current.value, 0n),
         units: tokens,
       });
