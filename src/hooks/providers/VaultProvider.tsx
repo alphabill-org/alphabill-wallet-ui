@@ -235,8 +235,8 @@ export function VaultProvider({ children }: PropsWithChildren): ReactElement {
       if (!vault) {
         return false;
       }
-      const lastIndex = vault.keys[keys.length - 1].index;
-      await createVault(vault.mnemonic, password, [...vault.keys, { alias, index: lastIndex + 1 }]);
+      const maxIndex = vault.keys.reduce((max, key) => Math.max(max, key.index), -1);
+      await createVault(vault.mnemonic, password, [...vault.keys, { alias, index: maxIndex + 1 }]);
       await unlock(password);
       return true;
     },
