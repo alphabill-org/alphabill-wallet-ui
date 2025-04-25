@@ -1,5 +1,5 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
@@ -15,27 +15,27 @@ interface IResetQuery {
   resetUnitList(predicate: Predicate): Promise<void>;
 }
 
-type Predicate = { partition: PartitionIdentifier; type: QUERY_KEYS };
+type Predicate = { partition: PartitionTypeIdentifier; type: QUERY_KEYS };
 
 export const Predicates = {
   ALPHA: {
-    partition: PartitionIdentifier.MONEY,
+    partition: PartitionTypeIdentifier.MONEY,
     type: QUERY_KEYS.ALPHA,
   },
   FUNGIBLE_TOKEN: {
-    partition: PartitionIdentifier.TOKEN,
+    partition: PartitionTypeIdentifier.TOKEN,
     type: QUERY_KEYS.FUNGIBLE,
   },
   MONEY_PARTITION_FEE_CREDIT: {
-    partition: PartitionIdentifier.MONEY,
+    partition: PartitionTypeIdentifier.MONEY,
     type: QUERY_KEYS.FEE_CREDIT,
   },
   NON_FUNGIBLE_TOKEN: {
-    partition: PartitionIdentifier.TOKEN,
+    partition: PartitionTypeIdentifier.TOKEN,
     type: QUERY_KEYS.NON_FUNGIBLE,
   },
   TOKEN_PARTITION_FEE_CREDIT: {
-    partition: PartitionIdentifier.TOKEN,
+    partition: PartitionTypeIdentifier.TOKEN,
     type: QUERY_KEYS.FEE_CREDIT,
   },
 };

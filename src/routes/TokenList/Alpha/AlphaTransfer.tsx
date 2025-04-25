@@ -1,6 +1,5 @@
 import { TransferBill } from '@alphabill/alphabill-js-sdk/lib/money/transactions/TransferBill';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
-import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate';
 import { PayToPublicKeyHashProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory';
 import { UnitId } from '@alphabill/alphabill-js-sdk/lib/UnitId';
@@ -84,8 +83,9 @@ export function AlphaTransfer(): ReactElement {
           },
           networkIdentifier: alphabill.network.networkId,
           ownerPredicate: newOwnerPredicate,
+          partitionIdentifier: PartitionTypeIdentifier.MONEY,
           stateLock: null,
-          stateUnlock: new AlwaysTruePredicate(),
+          stateUnlock: null,
           version: 1n,
         }).sign(proofFactory, proofFactory);
         const transferHash = await alphabill.moneyClient.sendTransaction(await txo);
@@ -102,7 +102,7 @@ export function AlphaTransfer(): ReactElement {
   );
 
   const alphas = useAlphas(vault.selectedKey?.publicKey.key ?? null);
-  const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.MONEY);
+  const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionTypeIdentifier.MONEY);
 
   const unitIdParam = params.id;
   if (!unitIdParam) {

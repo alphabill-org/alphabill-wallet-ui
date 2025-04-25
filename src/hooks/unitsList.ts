@@ -1,6 +1,6 @@
 import { MoneyPartitionUnitIdResponse } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionUnitIdResponse';
 import { TokenPartitionUnitIdResponse } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionUnitIdResponse';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -8,9 +8,11 @@ import { useMemo } from 'react';
 import { useAlphabill } from './alphabillContext';
 import { createUnitListQueryKey } from '../utils/unitsQueryKeys';
 
-type Response<T> = T extends PartitionIdentifier.MONEY ? MoneyPartitionUnitIdResponse : TokenPartitionUnitIdResponse;
+type Response<T> = T extends PartitionTypeIdentifier.MONEY
+  ? MoneyPartitionUnitIdResponse
+  : TokenPartitionUnitIdResponse;
 
-export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
+export function useUnitsList<T extends PartitionTypeIdentifier.MONEY | PartitionTypeIdentifier.TOKEN>(
   ownerId: Uint8Array | null,
   partition: T,
 ): UseQueryResult<Response<T> | null> {
@@ -28,7 +30,7 @@ export function useUnitsList<T extends PartitionIdentifier.MONEY | PartitionIden
         throw new Error('Invalid owner ID.');
       }
 
-      const client = partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
+      const client = partition === PartitionTypeIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient;
       return client.getUnitsByOwnerId(ownerId) as Promise<Response<T>>;
     },
     queryKey: createUnitListQueryKey(serializedOwnerId, partition, alphabill?.network.id),

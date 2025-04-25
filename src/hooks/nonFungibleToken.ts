@@ -1,5 +1,5 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { NonFungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/NonFungibleToken';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
@@ -13,7 +13,7 @@ import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } fro
 export function useNonFungibleTokens(ownerId: Uint8Array | null): UseQueryResult<Map<string, NonFungibleToken> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
-  const unitsList = useUnitsList(ownerId, PartitionIdentifier.TOKEN);
+  const unitsList = useUnitsList(ownerId, PartitionTypeIdentifier.TOKEN);
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
@@ -34,7 +34,7 @@ export function useNonFungibleTokens(ownerId: Uint8Array | null): UseQueryResult
         createFetchUnitByIdQueryKey(
           QUERY_KEYS.NON_FUNGIBLE,
           serializedOwnerId,
-          PartitionIdentifier.TOKEN,
+          PartitionTypeIdentifier.TOKEN,
           alphabill.network.id,
         ),
       );
@@ -50,7 +50,7 @@ export function useNonFungibleTokens(ownerId: Uint8Array | null): UseQueryResult
         QUERY_KEYS.NON_FUNGIBLE,
         serializedOwnerId,
         !!unitsList.data?.nonFungibleTokens.length,
-        PartitionIdentifier.TOKEN,
+        PartitionTypeIdentifier.TOKEN,
         alphabill?.network.id,
       ),
       unitsList.isError,

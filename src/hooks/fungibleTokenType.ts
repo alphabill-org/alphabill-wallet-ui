@@ -1,5 +1,5 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { FungibleTokenType } from '@alphabill/alphabill-js-sdk/lib/tokens/FungibleTokenType';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
@@ -49,7 +49,7 @@ export function useFungibleTokenTypes(
         createFetchTypeByIdQueryKey(
           QUERY_KEYS.FUNGIBLE,
           serializedOwnerId,
-          PartitionIdentifier.TOKEN,
+          PartitionTypeIdentifier.TOKEN,
           alphabill.network.id,
         ),
       );
@@ -65,7 +65,7 @@ export function useFungibleTokenTypes(
         QUERY_KEYS.FUNGIBLE,
         serializedOwnerId,
         !!tokenTypes.length,
-        PartitionIdentifier.TOKEN,
+        PartitionTypeIdentifier.TOKEN,
         alphabill?.network.id,
       ),
       units.isError,
