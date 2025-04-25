@@ -1,6 +1,6 @@
 import { FeeCreditRecord } from '@alphabill/alphabill-js-sdk/lib/fees/FeeCreditRecord';
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
@@ -12,7 +12,7 @@ import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } fro
 
 export function useFeeCredits(
   ownerId: Uint8Array | null,
-  partition: PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN,
+  partition: PartitionTypeIdentifier.MONEY | PartitionTypeIdentifier.TOKEN,
 ): UseQueryResult<Map<string, FeeCreditRecord> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
@@ -41,7 +41,7 @@ export function useFeeCredits(
 
       const iterator = fetchUnits(
         unitsList.data.feeCreditRecords,
-        partition === PartitionIdentifier.MONEY ? getUnitFromMoneyPartition : getUnitFromTokenPartition,
+        partition === PartitionTypeIdentifier.MONEY ? getUnitFromMoneyPartition : getUnitFromTokenPartition,
         queryClient,
         createFetchUnitByIdQueryKey(QUERY_KEYS.FEE_CREDIT, serializedOwnerId, partition, alphabill.network.id),
       );

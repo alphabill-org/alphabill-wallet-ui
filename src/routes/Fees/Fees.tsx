@@ -4,10 +4,9 @@ import { TransferFeeCredit } from '@alphabill/alphabill-js-sdk/lib/fees/transact
 import { MoneyPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/MoneyPartitionJsonRpcClient';
 import { TokenPartitionJsonRpcClient } from '@alphabill/alphabill-js-sdk/lib/json-rpc/TokenPartitionJsonRpcClient';
 import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import type { ISigningService } from '@alphabill/alphabill-js-sdk/lib/signing/ISigningService';
 import { ClientMetadata } from '@alphabill/alphabill-js-sdk/lib/transaction/ClientMetadata';
-import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate';
 import { PayToPublicKeyHashProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory';
 import { FormEvent, ReactElement, useCallback, useState } from 'react';
@@ -38,7 +37,7 @@ interface IFormData {
 }
 
 interface IFeesContentProps {
-  partition: PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN;
+  partition: PartitionTypeIdentifier.MONEY | PartitionTypeIdentifier.TOKEN;
 }
 
 function FeesContent({ partition }: IFeesContentProps): ReactElement {
@@ -106,7 +105,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
       amount: bigint,
       bill: Bill,
       signingService: ISigningService,
-      targetPartitionIdentifier: PartitionIdentifier,
+      targetPartitionIdentifier: PartitionTypeIdentifier,
       moneyClient: MoneyPartitionJsonRpcClient,
       targetClient: MoneyPartitionJsonRpcClient | TokenPartitionJsonRpcClient,
       feeCreditRecord: FeeCreditRecord | null,
@@ -130,8 +129,9 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
         latestAdditionTime: round + 60n,
         metadata: new ClientMetadata(round + 60n, 5n, null, new Uint8Array()),
         networkIdentifier: alphabill.network.networkId,
+        partitionIdentifier: targetPartitionIdentifier,
         stateLock: null,
-        stateUnlock: new AlwaysTruePredicate(),
+        stateUnlock: null,
         targetPartitionIdentifier,
         version: 1n,
       }).sign(proofFactory);
@@ -145,9 +145,10 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           metadata: new ClientMetadata(round + 60n, 5n, null, new Uint8Array()),
           networkIdentifier: alphabill.network.networkId,
           ownerPredicate: ownerPredicate,
+          partitionIdentifier: targetPartitionIdentifier,
           proof: transferFeeCreditProof,
           stateLock: null,
-          stateUnlock: new AlwaysTruePredicate(),
+          stateUnlock: null,
           targetPartitionIdentifier,
           version: 1n,
         }).sign(proofFactory);
@@ -192,13 +193,13 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
           validatedData.data.signingService,
           partition,
           alphabill.moneyClient,
-          partition === PartitionIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient,
+          partition === PartitionTypeIdentifier.MONEY ? alphabill.moneyClient : alphabill.tokenClient,
           feeCreditRecord,
         );
 
         await resetQuery.resetUnitById(validatedData.data.bill.unitId, Predicates.ALPHA);
         await resetQuery.resetUnitList(
-          partition === PartitionIdentifier.MONEY
+          partition === PartitionTypeIdentifier.MONEY
             ? Predicates.MONEY_PARTITION_FEE_CREDIT
             : Predicates.TOKEN_PARTITION_FEE_CREDIT,
         );
@@ -262,6 +263,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
     <form className="fees__form" onSubmit={onSubmit}>
       <FormContent>
         <SelectBox
+          addButton={null}
           label="Alphas"
           title="SELECT ALPHA"
           data={alphas.data?.values() || []}
@@ -277,6 +279,7 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
         />
         {errors.get('bill') && <span className="textfield__error">{errors.get('bill')}</span>}
         <SelectBox
+          addButton={null}
           label="Fee credit (optional)"
           title="SELECT FEE CREDIT"
           data={feeCredits.data?.values() || []}
@@ -304,8 +307,8 @@ function FeesContent({ partition }: IFeesContentProps): ReactElement {
 
 // TODO: Fix page design and code. Reset selected state when network is changed. Show network selection even when error occurs with queries
 export function Fees(): ReactElement {
-  const [partition, setPartition] = useState<PartitionIdentifier.MONEY | PartitionIdentifier.TOKEN>(
-    PartitionIdentifier.MONEY,
+  const [partition, setPartition] = useState<PartitionTypeIdentifier.MONEY | PartitionTypeIdentifier.TOKEN>(
+    PartitionTypeIdentifier.MONEY,
   );
 
   return (
@@ -313,14 +316,14 @@ export function Fees(): ReactElement {
       <Navbar title="Add fee credit" />
       <div className="fees__content__tabs">
         <div
-          onClick={() => setPartition(PartitionIdentifier.MONEY)}
-          className={`fees__content__tab ${partition === PartitionIdentifier.MONEY ? 'fees__content__tab--active' : ''}`}
+          onClick={() => setPartition(PartitionTypeIdentifier.MONEY)}
+          className={`fees__content__tab ${partition === PartitionTypeIdentifier.MONEY ? 'fees__content__tab--active' : ''}`}
         >
           Money partition
         </div>
         <div
-          onClick={() => setPartition(PartitionIdentifier.TOKEN)}
-          className={`fees__content__tab ${partition === PartitionIdentifier.TOKEN ? 'fees__content__tab--active' : ''}`}
+          onClick={() => setPartition(PartitionTypeIdentifier.TOKEN)}
+          className={`fees__content__tab ${partition === PartitionTypeIdentifier.TOKEN ? 'fees__content__tab--active' : ''}`}
         >
           Token partition
         </div>

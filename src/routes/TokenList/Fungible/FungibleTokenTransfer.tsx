@@ -1,6 +1,5 @@
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { TransferFungibleToken } from '@alphabill/alphabill-js-sdk/lib/tokens/transactions/TransferFungibleToken';
-import { AlwaysTruePredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/AlwaysTruePredicate';
 import { PayToPublicKeyHashPredicate } from '@alphabill/alphabill-js-sdk/lib/transaction/predicates/PayToPublicKeyHashPredicate';
 import { AlwaysTrueProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/AlwaysTrueProofFactory';
 import { PayToPublicKeyHashProofFactory } from '@alphabill/alphabill-js-sdk/lib/transaction/proofs/PayToPublicKeyHashProofFactory';
@@ -85,8 +84,9 @@ export function FungibleTokenTransfer(): ReactElement {
           },
           networkIdentifier: alphabill.network.networkId,
           ownerPredicate: newOwnerPredicate,
+          partitionIdentifier: PartitionTypeIdentifier.TOKEN,
           stateLock: null,
-          stateUnlock: new AlwaysTruePredicate(),
+          stateUnlock: null,
           token: token,
           version: 1n,
         }).sign(proofFactory, proofFactory, [alwaysTrueProofFactory]);
@@ -104,7 +104,7 @@ export function FungibleTokenTransfer(): ReactElement {
   );
 
   const fungibleTokens = useFungibleTokens(vault.selectedKey?.publicKey.key ?? null);
-  const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionIdentifier.TOKEN);
+  const feeCredits = useUnitsList(vault.selectedKey?.publicKey.key ?? null, PartitionTypeIdentifier.TOKEN);
 
   const unitIdParam = params.id;
   if (!unitIdParam) {

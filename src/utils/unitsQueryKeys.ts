@@ -1,5 +1,5 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { Query, QueryKey } from '@tanstack/react-query';
 
 export enum QUERY_KEYS {
@@ -20,7 +20,7 @@ export function createFetchUnitsQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
   unitsListExists: boolean,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   networkId?: string,
 ): QueryKey {
   return [UNITS_KEY, type, FETCH_UNITS_KEY, unitsListExists, ownerId, networkId, partition];
@@ -30,7 +30,7 @@ export function createFetchUnitTypesQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
   unitsListExists: boolean,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   networkId?: string,
 ): QueryKey {
   return [UNITS_KEY, type, FETCH_TYPES_KEY, unitsListExists, ownerId, networkId, partition];
@@ -39,7 +39,7 @@ export function createFetchUnitTypesQueryKey(
 export function createFetchUnitByIdQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   networkId?: string,
 ): (unitId: IUnitId) => QueryKey {
   return (unitId: IUnitId) => [UNITS_KEY, type, FETCH_UNIT_BY_ID_KEY, unitId.toString(), ownerId, networkId, partition];
@@ -48,7 +48,7 @@ export function createFetchUnitByIdQueryKey(
 export function createFetchTypeByIdQueryKey(
   type: QUERY_KEYS,
   ownerId: string | null,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   networkId?: string,
 ): (unitId: IUnitId) => QueryKey {
   return (unitId: IUnitId) => [UNITS_KEY, type, FETCH_TYPE_BY_ID_KEY, unitId.toString(), ownerId, networkId, partition];
@@ -56,7 +56,7 @@ export function createFetchTypeByIdQueryKey(
 
 export function createUnitListQueryKey(
   ownerId: string | null,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   networkId?: string,
 ): QueryKey {
   return [UNITS_KEY, 'ID', ownerId, networkId, partition];
@@ -64,7 +64,7 @@ export function createUnitListQueryKey(
 
 export function createInvalidateUnitByIdPredicate(
   query: Query,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   type?: QUERY_KEYS,
   id?: string,
 ): boolean {
@@ -80,7 +80,7 @@ export function createInvalidateUnitByIdPredicate(
 
 export function createInvalidateUnitsPredicate(
   query: Query,
-  partition: PartitionIdentifier,
+  partition: PartitionTypeIdentifier,
   type?: QUERY_KEYS,
 ): boolean {
   const { queryKey } = query;
@@ -92,7 +92,7 @@ export function createInvalidateUnitsPredicate(
   );
 }
 
-export function createInvalidateUnitListPredicate(query: Query, partition: PartitionIdentifier): boolean {
+export function createInvalidateUnitListPredicate(query: Query, partition: PartitionTypeIdentifier): boolean {
   const { queryKey } = query;
   return queryKey.at(0) === UNITS_KEY && queryKey.at(1) === FETCH_LIST_KEY && queryKey.at(4) === partition;
 }

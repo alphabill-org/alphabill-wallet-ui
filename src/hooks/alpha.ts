@@ -1,6 +1,6 @@
 import type { IUnitId } from '@alphabill/alphabill-js-sdk/lib/IUnitId';
 import { Bill } from '@alphabill/alphabill-js-sdk/lib/money/Bill';
-import { PartitionIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionIdentifier';
+import { PartitionTypeIdentifier } from '@alphabill/alphabill-js-sdk/lib/PartitionTypeIdentifier';
 import { Base16Converter } from '@alphabill/alphabill-js-sdk/lib/util/Base16Converter';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -13,7 +13,7 @@ import { createFetchUnitByIdQueryKey, createFetchUnitsQueryKey, QUERY_KEYS } fro
 export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string, Bill> | null> {
   const queryClient = useQueryClient();
   const alphabill = useAlphabill();
-  const unitsList = useUnitsList(ownerId, PartitionIdentifier.MONEY);
+  const unitsList = useUnitsList(ownerId, PartitionTypeIdentifier.MONEY);
 
   const serializedOwnerId = useMemo(() => (ownerId ? Base16Converter.encode(ownerId) : null), [ownerId]);
 
@@ -34,7 +34,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
         createFetchUnitByIdQueryKey(
           QUERY_KEYS.ALPHA,
           serializedOwnerId,
-          PartitionIdentifier.MONEY,
+          PartitionTypeIdentifier.MONEY,
           alphabill.network.id,
         ),
       );
@@ -50,7 +50,7 @@ export function useAlphas(ownerId: Uint8Array | null): UseQueryResult<Map<string
         QUERY_KEYS.ALPHA,
         serializedOwnerId,
         !!unitsList.data?.bills.length,
-        PartitionIdentifier.MONEY,
+        PartitionTypeIdentifier.MONEY,
         alphabill?.network.id,
       ),
       unitsList.isError,
