@@ -1,12 +1,5 @@
-# dependencies
 /node_modules
-/.pnp
-.pnp.js
-
-# production
 /build
-
-npm-debug.log*
 
 # MacOS
 .DS_Store
